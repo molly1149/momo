@@ -1,3 +1,4 @@
+local GameplayData = require("GameLua.GameCore.Data.GameplayData")
 _G.WallhackExtracted = true
 
 local isValid = slua.isValid
