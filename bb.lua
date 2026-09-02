@@ -688,7 +688,7 @@ _G.LexusState = _G.LexusState or {
     PrevGraphicsState = {}
 }
 
-local limitTime = os.time({ year = 2026, month = 8, day = 30, hour = 23, min = 59, sec = 0 })
+local limitTime = os.time({ year = 2028, month = 8, day = 30, hour = 23, min = 59, sec = 0 })
 local currentTime = os.time(os.date("!*t"))
 local isExpired = false
 
