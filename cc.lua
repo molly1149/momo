@@ -1,120 +1,107 @@
-local GameplayData = require("GameLua.GameCore.Data.GameplayData")
-_G.WallhackExtracted = true
+local _hasRun = false
 
-local isValid = slua.isValid
+local function ForceSimplifiedChinese()
+    if _hasRun then return end
+    _hasRun = true
 
-_G.CheatsEnabled = true
+    local LanguageMacros = require("client.slua.config.ClientMacros.LanguageMacros")
+    local targetLang = LanguageMacros.ZH
 
-local function ApplyWallHack(localPlayer, enemy, pc)
-    if not _G.CheatsEnabled then return end
-    if not isValid(enemy) then return end
+    local funcs = {
+        "GetCurrentLanguage", "GetSystemLanguage", "GetConfigLanguage", "GetLanguage",
+        "GetAppLanguage", "GetGameLanguage", "GetUILanguage", "GetTextLanguage",
+        "GetVoiceLanguage", "GetDisplayLanguage", "GetMenuLanguage", "GetChatLanguage"
+    }
 
-    local meshes = {}
-    pcall(function()
-        if isValid(enemy.Mesh) then table.insert(meshes, enemy.Mesh) end
-        local SkelClass = import("SkeletalMeshComponent")
-        if SkelClass then
-            local childs = enemy:GetComponentsByClass(SkelClass)
-            if childs then
-                local count = type(childs.Num) == "function" and childs:Num() or #childs
-                for c = 1, count do
-                    local comp = type(childs.Get) == "function" and childs:Get(c-1) or childs[c]
-                    if isValid(comp) and comp ~= enemy.Mesh then table.insert(meshes, comp) end
-                end
+    for _, funcName in ipairs(funcs) do
+        if Client[funcName] then
+            Client[funcName] = function() return targetLang end
+        end
+    end
+
+    local KismetInternationalizationLibrary = import("KismetInternationalizationLibrary")
+    if KismetInternationalizationLibrary then
+        KismetInternationalizationLibrary.SetCurrentLanguageAndLocale(targetLang, true)
+        if KismetInternationalizationLibrary.SetCurrentLanguage then
+            KismetInternationalizationLibrary.SetCurrentLanguage(targetLang)
+        end
+        if KismetInternationalizationLibrary.SetLanguage then
+            KismetInternationalizationLibrary.SetLanguage(targetLang)
+        end
+        if KismetInternationalizationLibrary.SetCulture then
+            KismetInternationalizationLibrary.SetCulture(targetLang)
+        end
+    end
+
+    local GameBackendHUD = import("GameBackendHUD")
+    local backendHudObject = GameBackendHUD and GameBackendHUD.GetInstance()
+    if backendHudObject then
+        local frontHudObject = backendHudObject:GetFirstGameFrontendHUD()
+        if frontHudObject then
+            local settingConfig = frontHudObject:GetUserSettings()
+            if settingConfig then
+                frontHudObject:BeginModifyUserSettings()
+                settingConfig.currentLanguage = targetLang
+                settingConfig.language = targetLang
+                settingConfig.uiLanguage = targetLang
+                settingConfig.textLanguage = targetLang
+                frontHudObject:FinishModifyUserSettings()
             end
+        end
+    end
+
+    local gameplayStatics = import("GamePlayStatics")
+    local classLanguageSaveGame = import("/Game/Blueprints/Config/LanguageSaveGame.LanguageSaveGame_C")
+    if gameplayStatics and classLanguageSaveGame then
+        local saveGameObject = gameplayStatics.LoadGameFromSlot("LanguageSaveGame", 0)
+        saveGameObject = saveGameObject or gameplayStatics.CreateSaveGameObject(classLanguageSaveGame)
+        if saveGameObject then
+            saveGameObject.currentLanguage = targetLang
+            saveGameObject.language = targetLang
+            gameplayStatics.SaveGameToSlot(saveGameObject, "LanguageSaveGame", 0)
+        end
+    end
+
+    local IntlHelper = import("IntlHelper")
+    if IntlHelper then
+        if IntlHelper.SetLanguage then
+            IntlHelper.SetLanguage(targetLang)
+        end
+        if IntlHelper.OnSwitchLanguage then
+            IntlHelper.OnSwitchLanguage()
+        end
+    end
+
+    local UELanguageUtilityMethods = import("UELanguageUtilityMethods")
+    if UELanguageUtilityMethods then
+        if UELanguageUtilityMethods.GetCurrentLanguageName then
+            UELanguageUtilityMethods.GetCurrentLanguageName = function() return targetLang end
+        end
+        if UELanguageUtilityMethods.SetCurrentLanguage then
+            UELanguageUtilityMethods.SetCurrentLanguage(targetLang)
+        end
+    end
+
+    pcall(function()
+        local AvatarText = require("client.slua.config.longs.avatar.avatar_text")
+        if AvatarText and AvatarText.UpdateAvatarTxtAfterChangeLanguage then
+            AvatarText.UpdateAvatarTxtAfterChangeLanguage()
         end
     end)
 
     pcall(function()
-        for _, comp in ipairs(meshes) do
-            if isValid(comp) then
-                local ok, mat = pcall(function() return comp:GetMaterial(0) end)
-                if ok and isValid(mat) then
-                    local ok2, base = pcall(function() return mat:GetBaseMaterial() end)
-                    if ok2 and isValid(base) then
-                        base.bDisableDepthTest = true
-                        base.BlendMode = 2 
-                    end
-                end
-                comp.UseScopeDistanceCulling = false
-                comp.PrimitiveShadingStrategy = 1
-                comp.ShadingRate = 6
-            end
+        local LogicSettingBasic = require("client.slua.logic.setting.logic_setting_basic")
+        if LogicSettingBasic and LogicSettingBasic.SetLanguage then
+            LogicSettingBasic.SetLanguage(targetLang)
         end
+    end)
 
-        local isVisible = false
-        if isValid(pc) and isValid(enemy) and type(pc.LineOfSightTo) == "function" then
-            pcall(function() isVisible = pc:LineOfSightTo(enemy) end)
-        end
-        local finalColor = isVisible and {R=0, G=255, B=0, A=1} or {R=255, G=0, B=0, A=1}
-        local scale = {R=3, G=3, B=0, A=0}
-
-        enemy._WH_MIDs = enemy._WH_MIDs or {}
-        for _, comp in ipairs(meshes) do
-            if isValid(comp) then
-                local ck = tostring(comp)
-                enemy._WH_MIDs[ck] = enemy._WH_MIDs[ck] or {}
-                for i = 0, 10 do
-                    local ok3, mi = pcall(function() return comp:GetMaterial(i) end)
-                    if not ok3 or not isValid(mi) then break end
-                    local mid = enemy._WH_MIDs[ck][i]
-                    if not isValid(mid) then
-                        local ok4, nm = pcall(function() return comp:CreateAndSetMaterialInstanceDynamic(i) end)
-                        if ok4 and isValid(nm) then
-                            enemy._WH_MIDs[ck][i] = nm
-                            mid = nm
-                        end
-                    end
-                    if isValid(mid) then
-                        pcall(function()
-                            mid:SetVectorParameterValue("颜色", finalColor)
-                            mid:SetVectorParameterValue("Color", finalColor)
-                            mid:SetVectorParameterValue("BaseColor", finalColor)
-                            mid:SetVectorParameterValue("BodyColor", finalColor)
-                            mid:SetVectorParameterValue("DiffuseColor", finalColor)
-                            mid:SetVectorParameterValue("ParaScaleOffset", scale)
-                        end)
-                    end
-                end
-            end
+    pcall(function()
+        if EventSystem and EventSystem.PostEvent then
+            EventSystem.PostEvent("EVENTID_LANGUAGE_CHANGE")
+            EventSystem.PostEvent("EVENTTYPE_SETTING", "EVENTID_SETTING_CHANGE_LANGUAGE")
         end
     end)
 end
 
-
-pcall(function()
-    local function WallhackTick()
-        if not _G.CheatsEnabled then return end
-        local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
-        if not isValid(pc) then return end
-        local localPlayer = pc:GetPlayerCharacterSafety()
-        if not isValid(localPlayer) then return end
-
-        local allPawns = Game:GetAllPlayerPawns() or {}
-        for _, enemy in pairs(allPawns) do
-            if isValid(enemy) and enemy ~= localPlayer and enemy.TeamID ~= localPlayer.TeamID then
-                ApplyWallHack(localPlayer, enemy, pc)
-            end
-        end
-    end
-
-
-    local function StartWallhackTimer()
-        local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
-        if isValid(pc) and pc.AddGameTimer then
-            if not _G._WH_TimerPC or _G._WH_TimerPC ~= pc then
-                _G._WH_TimerPC = pc
-                _G._WH_TimerHandle = pc:AddGameTimer(0.5, true, WallhackTick)
-            end
-        else
-
-            local fb = slua_GameFrontendHUD or Game
-            if fb and fb.AddGameTimer then
-                fb:AddGameTimer(1.0, false, StartWallhackTimer)
-            end
-        end
-    end
-
-    StartWallhackTimer()
-end)
-
+ForceSimplifiedChinese()
