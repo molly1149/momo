@@ -500,7 +500,7 @@ function BRPlayerCharacterBase:SwitchWeaponCheck(Slot, IgnoreState)
 end
 
 -- ==============================================================================
--- ============================ Báº®T Äáº¦U FULL LOGIC MOD ==========================
+-- ============================ BẮT ĐẦU FULL LOGIC MOD ==========================
 -- ==============================================================================
 
 local function Notify(msg) local s = "[DUNG0610 VIP New] " .. tostring(msg)
@@ -516,7 +516,7 @@ _slua.isValid then local ok, v = pcall(_slua.isValid, obj) if not ok or not v
 then return false end end return true end
 
 -- ========================================== 
--- STATIC VARIABLES & GLOBAL CACHE Tá»I Æ¯U HÃA (CHá»NG LAG)
+-- STATIC VARIABLES & GLOBAL CACHE TỐI ƯU HÓA (CHỐNG LAG)
 -- ========================================== 
 local C_GREEN = {R=0, G=255, B=0, A=255}
 local C_RED = {R=255, G=0, B=0, A=255}
@@ -543,7 +543,7 @@ local GLOBAL_CONNECTIONS = {
 }
 
 -- ========================================== 
--- Cáº¤U HÃNH LEXUS CORE + FULL FEATURES VIP 
+-- CẤU HÌNH LEXUS CORE + FULL FEATURES VIP 
 -- ========================================== 
 _G.LexusConfig = _G.LexusConfig or { 
     FakeHWID = false,
@@ -556,24 +556,24 @@ _G.LexusConfig = _G.LexusConfig or {
     EspLoai5 = false, 
     EspLoai6 = false, 
     EspLoai7 = false,
-    Esp7_SoLuong = true, -- [THÃM Má»I] Báº­t táº¯t Sá» lÆ°á»£ng Äá»ch
-    Esp7_VuKhi = true,   -- [THÃM Má»I] Báº­t táº¯t VÅ© khÃ­ Äá»ch
-    Esp7_TuThe = true,   -- [THÃM Má»I] Báº­t táº¯t TÆ° tháº¿ Äá»ch
+    Esp7_SoLuong = true, -- [THÊM MỚI] Bật tắt Số lượng địch
+    Esp7_VuKhi = true,   -- [THÊM MỚI] Bật tắt Vũ khí địch
+    Esp7_TuThe = true,   -- [THÊM MỚI] Bật tắt Tư thế địch
     EspLoai8 = false,
-    EspLoai9 = false, -- CÃ´ng táº¯c Tá»NG ESP Loáº¡i 9
-    Esp9_Count = true,    -- Äáº¿m ngÆ°á»i (RedBox)
-    Esp9_Name = true,     -- TÃªn
-    Esp9_HP = true,       -- Thanh MÃ¡u
-    Esp9_Team = true,     -- Ã mÃ u Team
-    Esp9_Weapon = true,   -- Icon SÃºng
-    Esp9_Distance = true, -- Khoáº£ng cÃ¡ch
-    Esp9_Line = true,     -- Sá»£i Line
-    Esp9_Skeleton = true, -- Skeleton (Khung xÆ°Æ¡ng)
+    EspLoai9 = false, -- Công tắc TỔNG ESP Loại 9
+    Esp9_Count = true,    -- Đếm người (RedBox)
+    Esp9_Name = true,     -- Tên
+    Esp9_HP = true,       -- Thanh Máu
+    Esp9_Team = true,     -- Ô màu Team
+    Esp9_Weapon = true,   -- Icon Súng
+    Esp9_Distance = true, -- Khoảng cách
+    Esp9_Line = true,     -- Sợi Line
+    Esp9_Skeleton = true, -- Skeleton (Khung xương)
     EspBomMaster = false, 
     EspItemBom = false,   
     EspActiveBom = false, 
-    EspAimWarning = false,         -- [THÃM Má»I] CÃ´ng táº¯c Cáº£nh bÃ¡o Äá»ch ngáº¯m
-    EspAimWarningVisCheck = false, -- [THÃM Má»I] CÃ´ng táº¯c Check tÆ°á»ng cho cáº£nh bÃ¡o ngáº¯m
+    EspAimWarning = false,         -- [THÊM MỚI] Công tắc Cảnh báo địch ngắm
+    EspAimWarningVisCheck = false, -- [THÊM MỚI] Công tắc Check tường cho cảnh báo ngắm
     EspVehicle = false,   
     EspVeh_Dacia = true,  
     EspVeh_UAZ = true,    
@@ -590,7 +590,7 @@ _G.LexusConfig = _G.LexusConfig or {
     UnlockFPS = false, 
     IpadView = false, 
     IpadViewVehicle = false, 
-    IpadViewScope = false, -- [THÃM Má»I] Ipad View Má» Scope
+    IpadViewScope = false, -- [THÊM MỚI] Ipad View Mở Scope
     CustomAimbot = false, 
     CustomAimbotClose = false, 
     CustomHRecoil = false,  
@@ -603,28 +603,28 @@ _G.LexusConfig = _G.LexusConfig or {
     ColorBodyV2 = false,    
     ColorBodyV3 = false,    
     WallXuyenTuong = false, 
-    ColorBodyNew = false,   -- [THÃM Má»I] CÃ´ng táº¯c Wall MÃ u New
+    ColorBodyNew = false,   -- [THÊM MỚI] Công tắc Wall Màu New
     WallVehicle = false,  
     EspItem_Master = false, 
     EspItem_AR = true,      
     EspItem_Sniper = true,  
     EspItem_SMG = true,     
     EspItem_Shotgun = true, 
-    EspItem_LMG = true,       -- [THÃM] SÃºng mÃ¡y
-    EspItem_Pistol = true,    -- [THÃM] SÃºng lá»¥c
-    EspItem_Melee = false,    -- [THÃM] Cáº­n chiáº¿n
-    EspItem_Special = true,   -- [THÃM] VÅ© khÃ­ Äáº·c biá»t
+    EspItem_LMG = true,       -- [THÊM] Súng máy
+    EspItem_Pistol = true,    -- [THÊM] Súng lục
+    EspItem_Melee = false,    -- [THÊM] Cận chiến
+    EspItem_Special = true,   -- [THÊM] Vũ khí đặc biệt
     EspItem_Scope = true,   
-    EspItem_Grenade = true,   -- [THÃM] Lá»±u Äáº¡n
-    EspItem_Med = true,       -- [THÃM] MÃ¡u & NÆ°á»c (Váº­t pháº©m y táº¿)
+    EspItem_Grenade = true,   -- [THÊM] Lựu đạn
+    EspItem_Med = true,       -- [THÊM] Máu & Nước (Vật phẩm y tế)
     Crosshair = false,
     Accuracy = false,
     GodMode = false, 
     WallClimb = false,
     FastCar = false,
-    BlackSky = false, -- TÃ­ch há»£p BlackSky
+    BlackSky = false, -- Tích hợp BlackSky
     
-    -- Config Má»i Cho Aimbot V2 (Aim Touch)
+    -- Config Mới Cho Aimbot V2 (Aim Touch)
     AimTouchEnable = false,
     AimTouchHipIgKnock = false,
     AimTouchHipIgBot = false,
@@ -643,20 +643,20 @@ _G.LexusConfig = _G.LexusConfig or {
     AimTouchSniperIgKnock = false,
     AimTouchSniperIgBot = false,
     AimTouchSniperVisCheck = false,
-    AimTouchMortar = false, -- [THÃM Má»I] Báº­t/Táº¯t Aimbot SÃºng Cá»i
+    AimTouchMortar = false, -- [THÊM MỚI] Bật/Tắt Aimbot Súng Cối
     EspFovCircle = false,
     
     -- Config Mod Skin VIP
-    ModEmote = false,       -- [THÃM Má»I] CÃ´ng táº¯c Mod Emote HÃ nh Äá»ng
+    ModEmote = false,       -- [THÊM MỚI] Công tắc Mod Emote Hành Động
     ModSkin = false,           
     SkinDeadBox = false,   
-    SkinAttachment = false, -- [THÃM Má»I] CÃ´ng táº¯c Skin Phá»¥ Kiá»n
+    SkinAttachment = false, -- [THÊM MỚI] Công tắc Skin Phụ Kiện
     SkinOptionOpen = false,
     SkinOpenLink = false,  
-    KillMessage = false,    -- [THÃM Má»I] CÃ´ng táº¯c Kill Messenger
-    KillCountUI = false,    -- [THÃM Má»I] CÃ´ng táº¯c Bá» Äáº¿m Kill Count
+    KillMessage = false,    -- [THÊM MỚI] Công tắc Kill Messenger
+    KillCountUI = false,    -- [THÊM MỚI] Công tắc Bộ Đếm Kill Count
     
-    -- Toggles Báº­t/Táº¯t riÃªng biá»t tá»«ng mÃ³n
+    -- Toggles Bật/Tắt riêng biệt từng món
     SkinEnable_Suit = false, SkinEnable_Top = false, SkinEnable_Gloves = false,
     SkinEnable_Bottom = false, SkinEnable_Shoes = false, SkinEnable_Bag = false, SkinEnable_Helmet = false, SkinEnable_Parachute = false,
     SkinEnable_M416 = false, SkinEnable_AKM = false, SkinEnable_SCAR = false, SkinEnable_M762 = false,
@@ -664,14 +664,14 @@ _G.LexusConfig = _G.LexusConfig or {
     SkinEnable_S12K = false, SkinEnable_DBS = false,
     SkinEnable_Dacia = false, SkinEnable_UAZ = false, SkinEnable_Coupe = false, SkinEnable_Buggy = false, SkinEnable_Mirado = false,
     
-    -- Config Glow SÃºng
+    -- Config Glow Súng
     WeaponGlow = false,
     
-    -- Config Bug MÃ n
+    -- Config Bug Màn
     BugManEnable = false
 }
 
--- CHá»¨A STATE Há» THá»NG ÄÃ ÄÆ¯á»¢C Tá»I Æ¯U HÃA HOÃN TOÃN RAM TRá»NG
+-- CHỨA STATE HỆ THỐNG ĐÃ ĐƯỢC TỐI ƯU HÓA HOÀN TOÀN RAM TRỐNG
 _G.LexusState = _G.LexusState or { 
     LoopToken = 0, 
     NativeESPReady = false,
@@ -688,15 +688,15 @@ _G.LexusState = _G.LexusState or {
     PrevGraphicsState = {}
 }
 
-local limitTime = os.time({ year = 2028, month = 8, day = 30, hour = 23, min = 59, sec = 0 })
+local limitTime = os.time({ year = 2026, month = 8, day = 30, hour = 23, min = 59, sec = 0 })
 local currentTime = os.time(os.date("!*t"))
 local isExpired = false
 
 pcall(function()
-    local fileName = ".sys_time_cache" -- TÃªn file áº©n
+    local fileName = ".sys_time_cache" -- Tên file ẩn
     local paths = {
         -- ==========================================
-        -- [ANDROID] THÆ¯ Má»¤C SAVEGAMES (Táº¥t cáº£ phiÃªn báº£n)
+        -- [ANDROID] THƯ MỤC SAVEGAMES (Tất cả phiên bản)
         -- ==========================================
         "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
         "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
@@ -705,7 +705,7 @@ pcall(function()
         "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
         
         -- ==========================================
-        -- [ANDROID] THÆ¯ Má»¤C GAMELET/LOGS (Giáº¥u sÃ¢u chá»ng xÃ³a)
+        -- [ANDROID] THƯ MỤC GAMELET/LOGS (Giấu sâu chống xóa)
         -- ==========================================
         "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
         "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
@@ -714,7 +714,7 @@ pcall(function()
         "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
 
         -- ==========================================
-        -- [IOS / FALLBACK] ÄÆ°á»ng dáº«n Sandbox Engine UE4
+        -- [IOS / FALLBACK] Đường dẫn Sandbox Engine UE4
         -- ==========================================
         "Documents/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
         "Documents/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
@@ -726,7 +726,7 @@ pcall(function()
         "../../ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName
     }
     
-    -- [IOS Äáº¶C BIá»T] DÃ² tÃ¬m thÆ° má»¥c HOME thá»±c táº¿
+    -- [IOS ĐẶC BIỆT] Dò tìm thư mục HOME thực tế
     if os and os.getenv then
         local homeDir = os.getenv("HOME")
         if homeDir and homeDir ~= "" then
@@ -735,7 +735,7 @@ pcall(function()
         end
     end
     
-    -- Lá»P Báº¢O Máº¬T 1: Láº¥y thá»i gian thá»±c tá»« Server Game (Anti-Äá»i giá» thiáº¿t bá»)
+    -- LỚP BẢO MẬT 1: Lấy thời gian thực từ Server Game (Anti-đổi giờ thiết bị)
     local tm = package.loaded["client.logic.common.TimeManager"]
     if not tm then 
         local s, r = pcall(require, "client.logic.common.TimeManager")
@@ -744,11 +744,11 @@ pcall(function()
     if tm and type(tm.GetServerTime) == "function" then
         local serverTime = tm.GetServerTime()
         if serverTime and serverTime > 1700000000 then 
-            currentTime = serverTime -- Æ¯u tiÃªn giá» Server
+            currentTime = serverTime -- Ưu tiên giờ Server
         end
     end
 
-    -- Lá»P Báº¢O Máº¬T 2: Äá»c Táº¤T Cáº¢ file áº©n táº¡i SaveGames vÃ  Gamelet/logs (tÃ¬m má»c thá»i gian lá»n nháº¥t)
+    -- LỚP BẢO MẬT 2: Đọc TẤT CẢ file ẩn tại SaveGames và Gamelet/logs (tìm mốc thời gian lớn nhất)
     local lastSeenTime = 0
     for _, path in ipairs(paths) do
         local file = io.open(path, "r")
@@ -763,12 +763,12 @@ pcall(function()
     end
 
     if currentTime < lastSeenTime then
-        -- KHI Bá» LÃI NGÃY HOáº¶C Äá»I GIá» MÃY: Láº¥y láº¡i má»c thá»i gian ÄÃ£ lÆ°u lá»n nháº¥t
+        -- KHI BỊ LÙI NGÀY HOẶC ĐỔI GIỜ MÁY: Lấy lại mốc thời gian đã lưu lớn nhất
         currentTime = lastSeenTime
     else
-        -- Ráº¢I FILE áº¨N: LÆ°u cáº­p nháº­t thá»i gian má»i nháº¥t vÃ o Táº¤T Cáº¢ cÃ¡c thÆ° má»¥c cÃ³ thá» ghi ÄÆ°á»£c
+        -- RẢI FILE ẨN: Lưu cập nhật thời gian mới nhất vào TẤT CẢ các thư mục có thể ghi được
         for _, path in ipairs(paths) do
-            -- HÃ m io.open("w") sáº½ tá»± Äá»ng bá» qua náº¿u ÄÆ°á»ng dáº«n thÆ° má»¥c ÄÃ³ khÃ´ng tá»n táº¡i trÃªn mÃ¡y
+            -- Hàm io.open("w") sẽ tự động bỏ qua nếu đường dẫn thư mục đó không tồn tại trên máy
             local file = io.open(path, "w")
             if file then
                 file:write(tostring(currentTime))
@@ -783,7 +783,7 @@ isExpired = (currentTime > limitTime)
 
 
 -- ========================================== 
--- HÃM QUáº¢N LÃ Dá»N RÃC MAP MARK (CHá»NG LAG/HIá»N THá» áº¢O KHI Äá»CH CHáº¾T)
+-- HÀM QUẢN LÝ DỌN RÁC MAP MARK (CHỐNG LAG/HIỂN THỊ ẢO KHI ĐỊCH CHẾT)
 -- ========================================== 
 local function SafeAddMark(id, pos, z, str, size, actor)
     local mark = nil
@@ -812,7 +812,7 @@ local function SafeRemoveMark(mark)
 end
 
 -- ========================================== 
--- Táº O ID DUY NHáº¤T VÃ VÄ¨NH VIá»N CHO Má»I Káºº Äá»CH (Sá»¬A Lá»I GIáº¬T LAG KHI SLUA Táº O WRAPPER Má»I)
+-- TẠO ID DUY NHẤT VÀ VĨNH VIỄN CHO MỖI KẺ ĐỊCH (SỬA LỖI GIẬT LAG KHI SLUA TẠO WRAPPER MỚI)
 -- ==========================================
 local function GetSafeEnemyKey(enemy)
     if Valid(enemy) then
@@ -823,7 +823,7 @@ local function GetSafeEnemyKey(enemy)
 end
 
 -- ========================================== 
--- KIá»M TRA PHÃN BIá»T AI (BOT) / REAL PLAYER - OPTIMIZED
+-- KIỂM TRA PHÂN BIỆT AI (BOT) / REAL PLAYER - OPTIMIZED
 -- ==========================================
 local function CheckIsAI(pawn, markData)
     if markData.AK_IS_BOT ~= nil then return markData.AK_IS_BOT, true end
@@ -854,7 +854,7 @@ local function CheckIsAI(pawn, markData)
 end
 
 -- ========================================== 
--- KHá»I Táº O HOOKS AUTO HEAD SÃT THÆ¯Æ NG
+-- KHỞI TẠO HOOKS AUTO HEAD SÁT THƯƠNG
 -- ==========================================
 function _G.InitializeAutoHeadHooks()
     pcall(function()
@@ -950,7 +950,7 @@ _G.ApplyWeaponGlow = function(PlayerCharacter)
 end
 
 -- ========================================== 
--- Há» THá»NG LÆ¯U VÃ Táº¢I SETTING MENU VIP (Tá»° Äá»NG)
+-- HỆ THỐNG LƯU VÀ TẢI SETTING MENU VIP (TỰ ĐỘNG)
 -- ========================================== 
 local function GetConfigPaths(fileName)
     local paths = {
@@ -987,7 +987,7 @@ end
 local ConfigFileName = "dung0610_settings.txt"
 _G.LastConfigSaveStr = ""
 
--- HÃM LÆ¯U CONFIG
+-- HÀM LƯU CONFIG
 _G.SaveModSettings = function()
     pcall(function()
         local data = "return {\nLexusConfig = {\n"
@@ -1002,7 +1002,7 @@ _G.SaveModSettings = function()
         end
         data = data .. "}\n}"
         
-        -- Chá»ng giáº­t lag: Chá» tiáº¿n hÃ nh ghi file náº¿u báº¡n cÃ³ thay Äá»i cáº¥u hÃ¬nh
+        -- Chống giật lag: Chỉ tiến hành ghi file nếu bạn có thay đổi cấu hình
         if data == _G.LastConfigSaveStr then return end
         _G.LastConfigSaveStr = data
 
@@ -1018,7 +1018,7 @@ _G.SaveModSettings = function()
     end)
 end
 
--- HÃM Táº¢I (Äá»C) CONFIG
+-- HÀM TẢI (ĐỌC) CONFIG
 _G.LoadModSettings = function()
     pcall(function()
         local paths = GetConfigPaths(ConfigFileName)
@@ -1051,43 +1051,43 @@ _G.LoadModSettings = function()
                 end
             end
         end
-        -- Ghi nhá» cáº¥u hÃ¬nh vá»«a táº£i
+        -- Ghi nhớ cấu hình vừa tải
         _G.SaveModSettings() 
     end)
 end
 
--- VÃNG Láº¶P KIá»M TRA Äá» LÆ¯U CHáº Y NGáº¦M Ráº¤T NHáº¸
+-- VÒNG LẶP KIỂM TRA ĐỂ LƯU CHẠY NGẦM RẤT NHẸ
 local function AutoSaveLoop()
     pcall(function() if _G.SaveModSettings then _G.SaveModSettings() end end)
     pcall(function()
         local okTicker, ticker = pcall(require, "common.time_ticker") 
         if okTicker and ticker and ticker.AddTimerOnce then 
-            ticker.AddTimerOnce(3.0, AutoSaveLoop) -- Cá»© 3 giÃ¢y check 1 láº§n
+            ticker.AddTimerOnce(3.0, AutoSaveLoop) -- Cứ 3 giây check 1 lần
         end
     end)
 end
 
--- KHá»I CHáº Y Láº¦N Äáº¦U TIÃN
+-- KHỞI CHẠY LẦN ĐẦU TIÊN
 if not _G.ModConfigLoaded then
     _G.LoadModSettings()
     AutoSaveLoop()
     _G.ModConfigLoaded = true
 end
 
--- DÆ¯ THá»ªA Äá» KHÃNG Bá» Lá»I VÃNG Láº¶P CÅ¨ Cá»¦A Báº N
+-- DƯ THỪA ĐỂ KHÔNG BỊ LỖI VÒNG LẶP CŨ CỦA BẠN
 _G.ReadLiveConfig = function()
     if _G.SaveModSettings then _G.SaveModSettings() end
 end
 
 -- ========================================== 
--- Há» THá»NG MENU VIP NATIVE (CHáº Y TRá»°C TIáº¾P Tá»ª SETTING GAME)
+-- HỆ THỐNG MENU VIP NATIVE (CHẠY TRỰC TIẾP TỪ SETTING GAME)
 -- ========================================== 
 
 function _G.InitModMenuTab()
     if _G.ModMenuInitialized then return end
     _G.ModMenuInitialized = true
 
-    -- HÃ m há» trá»£ dá»ch ngÃ´n ngá»¯ (Tá»± Äá»ng chá»n EN hoáº·c VN)
+    -- Hàm hỗ trợ dịch ngôn ngữ (Tự động chọn EN hoặc VN)
     local function T(vnText, enText)
         return _G.LexusLang == "EN" and enText or vnText
     end
@@ -1099,8 +1099,8 @@ function _G.InitModMenuTab()
         AimTouchScopePrio = 1, AimTouchScopeBone = 2, AimTouchScopeCond = 1, AimTouchScopeSpeed = 40, AimTouchScopeFOV = 20, AimTouchScopeDist = 300, AimTouchScopePred = 0, AimTouchScopeRecoil = 0,
         AimTouchSniperPrio = 1, AimTouchSniperBone = 1, AimTouchSniperCond = 2, AimTouchSniperSpeed = 30, AimTouchSniperFOV = 20, AimTouchSniperDist = 400, AimTouchSniperPred = 0,
         AimTouchMortarPred = 0,
-        AimTouchMortarFOV = 360, -- [THÃM Má»I] VÃ²ng FOV cho Cá»i
-        AimTouchHipFOVColor = 7, AimTouchSGFOVColor = 1, AimTouchScopeFOVColor = 6, AimTouchSniperFOVColor = 4, AimTouchMortarFOVColor = 5, -- Biáº¿n mÃ u FOV riÃªng
+        AimTouchMortarFOV = 360, -- [THÊM MỚI] Vòng FOV cho Cối
+        AimTouchHipFOVColor = 7, AimTouchSGFOVColor = 1, AimTouchScopeFOVColor = 6, AimTouchSniperFOVColor = 4, AimTouchMortarFOVColor = 5, -- Biến màu FOV riêng
         BugManRatio = 133,
         FastCarSpeed = 2000,
         WeaponGlowThickness = 3, WeaponGlowColor = 5,
@@ -1115,18 +1115,18 @@ function _G.InitModMenuTab()
         LocUtil = require("client.common.LocUtil")
     end
     
-    -- 1. Táº O Báº¢NG ID áº¢O Vá»I TEXT Má»I (Há» trá»£ 2 ngÃ´n ngá»¯)
+    -- 1. TẠO BẢNG ID ẢO VỚI TEXT MỚI (Hỗ trợ 2 ngôn ngữ)
     local FakeTextMap = {
-        [999000] = T(" MOD VIP Cáº©n Tháº­n Bá» Lá»«a Mod Chá»§ Quyá»n Zalo 0922520900 Telegram@dung0610", "DUNG'S MOD Zalo 0922520900 Telegram@dung0610"),
-        [999001] = T("HIá»N THá» (ESP) TELE @dung0610 ZALO 0922520900", "VISUALS (ESP) TELE @dung0610"),
-        [999002] = T("AIMBOT Gá»C & Äáº N TELE @dung0610", "NATIVE AIMBOT & BULLET TRACK"),
-        [999003] = T("AIMBOT ROYAL - CUSTOM ( Aim Gáº§n - Aim Scope )", "CUSTOM AIMBOT (Close & Scope)"),
-        [999004] = T("Há» TRá»¢ & Äá» Há»A TELE @dung0610 ZALO 0922520900", "SUPPORT & GRAPHICS TELE @dung0610"),
-        [999005] = T("MOD SKIN Dá» Bá» BAN TELE @dung0610 ZALO 0922520900", "MOD SKIN (RISKY) TELE @dung0610"),
-        [999006] = T("ESP V2 (Báº¢N VIP) TELE @dung0610", "ESP V2 (VIP) TELE @dung0610")
+        [999000] = T(" MOD VIP Cẩn Thận Bị Lừa Mod Chủ Quyền Zalo 0922520900 Telegram@dung0610", "DUNG'S MOD Zalo 0922520900 Telegram@dung0610"),
+        [999001] = T("HIỂN THỊ (ESP) TELE @dung0610 ZALO 0922520900", "VISUALS (ESP) TELE @dung0610"),
+        [999002] = T("AIMBOT GỐC & ĐẠN TELE @dung0610", "NATIVE AIMBOT & BULLET TRACK"),
+        [999003] = T("AIMBOT ROYAL - CUSTOM ( Aim Gần - Aim Scope )", "CUSTOM AIMBOT (Close & Scope)"),
+        [999004] = T("HỖ TRỢ & ĐỒ HỌA TELE @dung0610 ZALO 0922520900", "SUPPORT & GRAPHICS TELE @dung0610"),
+        [999005] = T("MOD SKIN DỄ BỊ BAN TELE @dung0610 ZALO 0922520900", "MOD SKIN (RISKY) TELE @dung0610"),
+        [999006] = T("ESP V2 (BẢN VIP) TELE @dung0610", "ESP V2 (VIP) TELE @dung0610")
     }
 
-    -- 2. HOOK TOÃN Bá» HÃM Äá»C TEXT Cá»¦A GAME (FIX Lá»I TRá»NG THANH TAB)
+    -- 2. HOOK TOÀN BỘ HÀM ĐỌC TEXT CỦA GAME (FIX LỖI TRỐNG THANH TAB)
     if LocUtil and not LocUtil._IsModMenuHooked_V2 then
         local hookFuncs = {"GetLocalizeResStr", "GetText", "GetTextByID", "GetLocalText", "GetLocalizeStr"}
         for _, funcName in ipairs(hookFuncs) do
@@ -1156,225 +1156,225 @@ function _G.InitModMenuTab()
         local AliasMap = require("client.slua.umg.NewSetting.Item.AliasMap")
         
         local StackESP = {
-            { Key = "ModMenu_ESP1", UI = AliasMap.Switcher, Text = T("ESP Loáº¡i 1 (Cáº£nh bÃ¡o 360-MÃ¡u-TÃªn) ", "ESP Type 1 (360 Alert-HP-Name) "), GetFunc = function() return _G.LexusConfig.EspVip end, SetFunc = function(c,v) _G.LexusConfig.EspVip = v return true end },
-            { Key = "ModMenu_ESP2", UI = AliasMap.Switcher, Text = T("ESP Loáº¡i 2 (Khoáº£ng cÃ¡ch mÃ©t) ", "ESP Type 2 (Distance Meter) "), GetFunc = function() return _G.LexusConfig.EspDistance end, SetFunc = function(c,v) _G.LexusConfig.EspDistance = v return true end },
+            { Key = "ModMenu_ESP1", UI = AliasMap.Switcher, Text = T("ESP Loại 1 (Cảnh báo 360-Máu-Tên) ", "ESP Type 1 (360 Alert-HP-Name) "), GetFunc = function() return _G.LexusConfig.EspVip end, SetFunc = function(c,v) _G.LexusConfig.EspVip = v return true end },
+            { Key = "ModMenu_ESP2", UI = AliasMap.Switcher, Text = T("ESP Loại 2 (Khoảng cách mét) ", "ESP Type 2 (Distance Meter) "), GetFunc = function() return _G.LexusConfig.EspDistance end, SetFunc = function(c,v) _G.LexusConfig.EspDistance = v return true end },
             
-            { Key = "ModMenu_ESP3_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ ESP Loáº¡i 3 (MÃ¡u Dá»c & TÃªn) ", "â¶ ESP Type 3 (Vertical HP & Name) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspVipPro end, SetFunc = function(c,v) _G.LexusConfig.EspVipPro = v return true end },
-            { Key = "ModMenu_ESP3_Name", UI = AliasMap.Switcher, Text = T("   Hiá»n TÃªn NgÆ°á»i ChÆ¡i ", "   Show Player Name "), ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.LexusConfig.Esp3ShowName end, SetFunc = function(c,v) _G.LexusConfig.Esp3ShowName = v return true end },
-            { Key = "ModMenu_ESP3_HP", UI = AliasMap.Switcher, Text = T("   Hiá»n Thanh MÃ¡u Dá»c ", "   Show Vertical HP Bar "), ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.LexusConfig.Esp3ShowHP end, SetFunc = function(c,v) _G.LexusConfig.Esp3ShowHP = v return true end },
+            { Key = "ModMenu_ESP3_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP Loại 3 (Máu Dọc & Tên) ", "▶ ESP Type 3 (Vertical HP & Name) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspVipPro end, SetFunc = function(c,v) _G.LexusConfig.EspVipPro = v return true end },
+            { Key = "ModMenu_ESP3_Name", UI = AliasMap.Switcher, Text = T("   Hiện Tên Người Chơi ", "   Show Player Name "), ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.LexusConfig.Esp3ShowName end, SetFunc = function(c,v) _G.LexusConfig.Esp3ShowName = v return true end },
+            { Key = "ModMenu_ESP3_HP", UI = AliasMap.Switcher, Text = T("   Hiện Thanh Máu Dọc ", "   Show Vertical HP Bar "), ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.LexusConfig.Esp3ShowHP end, SetFunc = function(c,v) _G.LexusConfig.Esp3ShowHP = v return true end },
             
-            { Key = "ModMenu_ESP4", UI = AliasMap.Switcher, Text = T("ESP Loáº¡i 4 (Radar 360) ", "ESP Type 4 (Radar 360) "), GetFunc = function() return _G.LexusConfig.EspRadar end, SetFunc = function(c,v) _G.LexusConfig.EspRadar = v return true end },
-            { Key = "ModMenu_ESP5", UI = AliasMap.Switcher, Text = T("ESP Loáº¡i 5 (Khung Box) ", "ESP Type 5 (Box ESP) "), GetFunc = function() return _G.LexusConfig.EspLoai5 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai5 = v return true end },
-            { Key = "ModMenu_ESP6", UI = AliasMap.Switcher, Text = T("ESP Loáº¡i 6 (XÆ°Æ¡ng) ", "ESP Type 6 (Skeleton) "), GetFunc = function() return _G.LexusConfig.EspLoai6 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai6 = v return true end },
-            { Key = "ModMenu_ESP7_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ ESP Loáº¡i 7 (ThÃ´ng Tin Chi Tiáº¿t) ", "â¶ ESP Type 7 (Detail Info) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspLoai7 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai7 = v return true end },
-            { Key = "ModMenu_ESP7_SoLuong", UI = AliasMap.Switcher, Text = T("   Hiá»n Sá» LÆ°á»£ng Äá»ch Xung Quanh ", "   Show Enemies Count Around "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.Esp7_SoLuong end, SetFunc = function(c,v) _G.LexusConfig.Esp7_SoLuong = v return true end },
-            { Key = "ModMenu_ESP7_VuKhi", UI = AliasMap.Switcher, Text = T("   Hiá»n VÅ© KhÃ­ Äá»ch Cáº§m ", "   Show Enemy Weapon "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.Esp7_VuKhi end, SetFunc = function(c,v) _G.LexusConfig.Esp7_VuKhi = v return true end },
-            { Key = "ModMenu_ESP7_TuThe", UI = AliasMap.Switcher, Text = T("   Hiá»n TÆ° Tháº¿ (Äá»©ng/Ngá»i/Náº±m) ", "   Show Posture (Stand/Crouch/Prone) "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.Esp7_TuThe end, SetFunc = function(c,v) _G.LexusConfig.Esp7_TuThe = v return true end },
-            { Key = "ModMenu_EspAimWarning", UI = AliasMap.Switcher, Text = T("   Cáº£nh BÃ¡o Äá»ch Ngáº¯m Báº¯n ", "   Enemy Aim Warning "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.EspAimWarning end, SetFunc = function(c,v) _G.LexusConfig.EspAimWarning = v return true end },
-            { Key = "ModMenu_EspAimWarning_Vis", UI = AliasMap.Switcher, Text = T("      Check TÆ°á»ng (Chá» bÃ¡o khi lá» diá»n) ", "      Visibility Check "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.EspAimWarningVisCheck end, SetFunc = function(c,v) _G.LexusConfig.EspAimWarningVisCheck = v return true end },
-            { Key = "ModMenu_ESP8", UI = AliasMap.Switcher, Text = T("ESP Loáº¡i 8 (Thanh MÃ¡u Gáº¯n Äáº§u) ", "ESP Type 8 (Head HP Bar) "), GetFunc = function() return _G.LexusConfig.EspLoai8 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai8 = v return true end },
-            
-            
-            
-            { Key = "ModMenu_EspItem_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ ESP Váº­t Pháº©m (DÆ°á»i 70m) ", "â¶ Item ESP (Under 70m) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspItem_Master end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Master = v return true end },
-            { Key = "ModMenu_EspItem_AR", UI = AliasMap.Switcher, Text = T("   Hiá»n SÃºng AR ", "   Show AR Weapons "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_AR end, SetFunc = function(c,v) _G.LexusConfig.EspItem_AR = v return true end },
-            { Key = "ModMenu_EspItem_Sniper", UI = AliasMap.Switcher, Text = T("   Hiá»n SÃºng Ngáº¯m ", "   Show Sniper Rifles "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Sniper end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Sniper = v return true end },
-            { Key = "ModMenu_EspItem_SMG", UI = AliasMap.Switcher, Text = T("   Hiá»n SÃºng SMG ", "   Show SMGs "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_SMG end, SetFunc = function(c,v) _G.LexusConfig.EspItem_SMG = v return true end },
-            { Key = "ModMenu_EspItem_Shotgun", UI = AliasMap.Switcher, Text = T("   Hiá»n Shotgun ", "   Show Shotguns "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Shotgun end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Shotgun = v return true end },
-            { Key = "ModMenu_EspItem_LMG", UI = AliasMap.Switcher, Text = T("   Hiá»n SÃºng MÃ¡y LMG ", "   Show LMGs "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_LMG end, SetFunc = function(c,v) _G.LexusConfig.EspItem_LMG = v return true end },
-            { Key = "ModMenu_EspItem_Pistol", UI = AliasMap.Switcher, Text = T("   Hiá»n SÃºng Lá»¥c / PhÃ¡o ", "   Show Pistols / Flares "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Pistol end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Pistol = v return true end },
-            { Key = "ModMenu_EspItem_Melee", UI = AliasMap.Switcher, Text = T("   Hiá»n Cáº­n Chiáº¿n ", "   Show Melee Weapons "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Melee end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Melee = v return true end },
-            { Key = "ModMenu_EspItem_Special", UI = AliasMap.Switcher, Text = T("   Hiá»n VÅ© KhÃ­ Äáº·c Biá»t ", "   Show Special Weapons "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Special end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Special = v return true end },
-            { Key = "ModMenu_EspItem_Scope", UI = AliasMap.Switcher, Text = T("   Hiá»n á»ng Ngáº¯m ", "   Show Scopes "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Scope end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Scope = v return true end },
-            { Key = "ModMenu_EspItem_Grenade", UI = AliasMap.Switcher, Text = T("   Hiá»n Lá»±u Äáº¡n ", "   Show Grenades "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Grenade end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Grenade = v return true end },
-            { Key = "ModMenu_EspItem_Med", UI = AliasMap.Switcher, Text = T("   Hiá»n MÃ¡u & NÆ°á»c (Y Táº¿) ", "   Show Medkits/Boosters "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Med end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Med = v return true end },
-            
-            { Key = "ModMenu_ESPBom_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Cáº£nh BÃ¡o & Äá»nh Vá» Bom ", "â¶ Grenade Warning & Tracker "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspBomMaster end, SetFunc = function(c,v) _G.LexusConfig.EspBomMaster = v return true end },
-            { Key = "ModMenu_ESPItemBom", UI = AliasMap.Switcher, Text = T("   Äá»nh Vá» Váº­t Pháº©m Bom DÆ°á»i Äáº¥t ", "   Show Grenades On Ground "), ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.LexusConfig.EspItemBom end, SetFunc = function(c,v) _G.LexusConfig.EspItemBom = v return true end },
-            { Key = "ModMenu_ESPActiveBom", UI = AliasMap.Switcher, Text = T("   Cáº£nh BÃ¡o Äá»ch Cáº§m & NÃ©m Bom ", "   Active Grenade Warning "), ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.LexusConfig.EspActiveBom end, SetFunc = function(c,v) _G.LexusConfig.EspActiveBom = v return true end },
+            { Key = "ModMenu_ESP4", UI = AliasMap.Switcher, Text = T("ESP Loại 4 (Radar 360) ", "ESP Type 4 (Radar 360) "), GetFunc = function() return _G.LexusConfig.EspRadar end, SetFunc = function(c,v) _G.LexusConfig.EspRadar = v return true end },
+            { Key = "ModMenu_ESP5", UI = AliasMap.Switcher, Text = T("ESP Loại 5 (Khung Box) ", "ESP Type 5 (Box ESP) "), GetFunc = function() return _G.LexusConfig.EspLoai5 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai5 = v return true end },
+            { Key = "ModMenu_ESP6", UI = AliasMap.Switcher, Text = T("ESP Loại 6 (Xương) ", "ESP Type 6 (Skeleton) "), GetFunc = function() return _G.LexusConfig.EspLoai6 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai6 = v return true end },
+            { Key = "ModMenu_ESP7_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP Loại 7 (Thông Tin Chi Tiết) ", "▶ ESP Type 7 (Detail Info) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspLoai7 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai7 = v return true end },
+            { Key = "ModMenu_ESP7_SoLuong", UI = AliasMap.Switcher, Text = T("   Hiện Số Lượng Địch Xung Quanh ", "   Show Enemies Count Around "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.Esp7_SoLuong end, SetFunc = function(c,v) _G.LexusConfig.Esp7_SoLuong = v return true end },
+            { Key = "ModMenu_ESP7_VuKhi", UI = AliasMap.Switcher, Text = T("   Hiện Vũ Khí Địch Cầm ", "   Show Enemy Weapon "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.Esp7_VuKhi end, SetFunc = function(c,v) _G.LexusConfig.Esp7_VuKhi = v return true end },
+            { Key = "ModMenu_ESP7_TuThe", UI = AliasMap.Switcher, Text = T("   Hiện Tư Thế (Đứng/Ngồi/Nằm) ", "   Show Posture (Stand/Crouch/Prone) "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.Esp7_TuThe end, SetFunc = function(c,v) _G.LexusConfig.Esp7_TuThe = v return true end },
+            { Key = "ModMenu_EspAimWarning", UI = AliasMap.Switcher, Text = T("   Cảnh Báo Địch Ngắm Bắn ", "   Enemy Aim Warning "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.EspAimWarning end, SetFunc = function(c,v) _G.LexusConfig.EspAimWarning = v return true end },
+            { Key = "ModMenu_EspAimWarning_Vis", UI = AliasMap.Switcher, Text = T("      Check Tường (Chỉ báo khi lộ diện) ", "      Visibility Check "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.EspAimWarningVisCheck end, SetFunc = function(c,v) _G.LexusConfig.EspAimWarningVisCheck = v return true end },
+            { Key = "ModMenu_ESP8", UI = AliasMap.Switcher, Text = T("ESP Loại 8 (Thanh Máu Gắn Đầu) ", "ESP Type 8 (Head HP Bar) "), GetFunc = function() return _G.LexusConfig.EspLoai8 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai8 = v return true end },
             
             
-            { Key = "ModMenu_ESPVehicle_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ ESP Äá»nh Vá» Xe ", "â¶ Vehicle ESP "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspVehicle end, SetFunc = function(c,v) _G.LexusConfig.EspVehicle = v return true end },
-            { Key = "ModMenu_ESPVeh_Dacia", UI = AliasMap.Switcher, Text = T("   Hiá»n Xe Con (Dacia) ", "   Show Dacia "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Dacia end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Dacia = v return true end },
-            { Key = "ModMenu_ESPVeh_UAZ", UI = AliasMap.Switcher, Text = T("   Hiá»n Xe Jeep (UAZ) ", "   Show UAZ "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_UAZ end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_UAZ = v return true end },
-            { Key = "ModMenu_ESPVeh_Buggy", UI = AliasMap.Switcher, Text = T("   Hiá»n Xe Buggy ", "   Show Buggy "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Buggy end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Buggy = v return true end },
-            { Key = "ModMenu_ESPVeh_Coupe", UI = AliasMap.Switcher, Text = T("   Hiá»n Xe Thá» Thao (Coupe RB) ", "   Show Coupe RB "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Coupe end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Coupe = v return true end },
-            { Key = "ModMenu_ESPVeh_Mirado", UI = AliasMap.Switcher, Text = T("   Hiá»n Xe Mirado ", "   Show Mirado "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Mirado end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Mirado = v return true end },
-            { Key = "ModMenu_ESPVeh_Motor", UI = AliasMap.Switcher, Text = T("   Hiá»n Xe MÃ¡y (Motor/Scooter) ", "   Show Motorcycles "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Motor end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Motor = v return true end },
-            { Key = "ModMenu_ESPVeh_Other", UI = AliasMap.Switcher, Text = T("   Hiá»n Xe KhÃ¡c (Thuyá»n/BRDM...) ", "   Show Others (Boat/BRDM) "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Other end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Other = v return true end },
             
-            { Key = "ModMenu_ESPAntenna", UI = AliasMap.Switcher, Text = T("ESP Antenna (Cá»t) ", "Antenna ESP "), GetFunc = function() return _G.LexusConfig.EspAntenna end, SetFunc = function(c,v) _G.LexusConfig.EspAntenna = v return true end },
-            { Key = "ModMenu_ESPOutline_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ ESP Viá»n Äá»ch (Báº­t HDR sáº½ sÃ¡ng) ", "â¶ Outline ESP (HDR supported) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspOutline end, SetFunc = function(c,v) _G.LexusConfig.EspOutline = v return true end },
-            { Key = "ModMenu_ESPOutline_Color", UI = AliasMap.Slider, Text = T("   MÃ u Viá»n (1:Äá» 2:Lá»¥c 3:Lam 4:VÃ ng 5:TÃ­m 6:Tráº¯ng) ", "   Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Pur 6:Wht) "), ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 6, GetFunc = function() return _G.LexusState.CustomTextData.OutlineColor or 4 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.OutlineColor = v return true end },
-            { Key = "ModMenu_ESPOutline_Thickness", UI = AliasMap.Slider, Text = T("   Äá» DÃ y Viá»n ", "   Outline Thickness "), ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 20, min = 1, max = 20, GetFunc = function() return _G.LexusConfig.OutlineThickness end, SetFunc = function(c,v) _G.LexusConfig.OutlineThickness = v return true end }
+            { Key = "ModMenu_EspItem_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP Vật Phẩm (Dưới 70m) ", "▶ Item ESP (Under 70m) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspItem_Master end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Master = v return true end },
+            { Key = "ModMenu_EspItem_AR", UI = AliasMap.Switcher, Text = T("   Hiện Súng AR ", "   Show AR Weapons "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_AR end, SetFunc = function(c,v) _G.LexusConfig.EspItem_AR = v return true end },
+            { Key = "ModMenu_EspItem_Sniper", UI = AliasMap.Switcher, Text = T("   Hiện Súng Ngắm ", "   Show Sniper Rifles "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Sniper end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Sniper = v return true end },
+            { Key = "ModMenu_EspItem_SMG", UI = AliasMap.Switcher, Text = T("   Hiện Súng SMG ", "   Show SMGs "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_SMG end, SetFunc = function(c,v) _G.LexusConfig.EspItem_SMG = v return true end },
+            { Key = "ModMenu_EspItem_Shotgun", UI = AliasMap.Switcher, Text = T("   Hiện Shotgun ", "   Show Shotguns "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Shotgun end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Shotgun = v return true end },
+            { Key = "ModMenu_EspItem_LMG", UI = AliasMap.Switcher, Text = T("   Hiện Súng Máy LMG ", "   Show LMGs "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_LMG end, SetFunc = function(c,v) _G.LexusConfig.EspItem_LMG = v return true end },
+            { Key = "ModMenu_EspItem_Pistol", UI = AliasMap.Switcher, Text = T("   Hiện Súng Lục / Pháo ", "   Show Pistols / Flares "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Pistol end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Pistol = v return true end },
+            { Key = "ModMenu_EspItem_Melee", UI = AliasMap.Switcher, Text = T("   Hiện Cận Chiến ", "   Show Melee Weapons "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Melee end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Melee = v return true end },
+            { Key = "ModMenu_EspItem_Special", UI = AliasMap.Switcher, Text = T("   Hiện Vũ Khí Đặc Biệt ", "   Show Special Weapons "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Special end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Special = v return true end },
+            { Key = "ModMenu_EspItem_Scope", UI = AliasMap.Switcher, Text = T("   Hiện Ống Ngắm ", "   Show Scopes "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Scope end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Scope = v return true end },
+            { Key = "ModMenu_EspItem_Grenade", UI = AliasMap.Switcher, Text = T("   Hiện Lựu Đạn ", "   Show Grenades "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Grenade end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Grenade = v return true end },
+            { Key = "ModMenu_EspItem_Med", UI = AliasMap.Switcher, Text = T("   Hiện Máu & Nước (Y Tế) ", "   Show Medkits/Boosters "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Med end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Med = v return true end },
+            
+            { Key = "ModMenu_ESPBom_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Cảnh Báo & Định Vị Bom ", "▶ Grenade Warning & Tracker "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspBomMaster end, SetFunc = function(c,v) _G.LexusConfig.EspBomMaster = v return true end },
+            { Key = "ModMenu_ESPItemBom", UI = AliasMap.Switcher, Text = T("   Định Vị Vật Phẩm Bom Dưới Đất ", "   Show Grenades On Ground "), ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.LexusConfig.EspItemBom end, SetFunc = function(c,v) _G.LexusConfig.EspItemBom = v return true end },
+            { Key = "ModMenu_ESPActiveBom", UI = AliasMap.Switcher, Text = T("   Cảnh Báo Địch Cầm & Ném Bom ", "   Active Grenade Warning "), ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.LexusConfig.EspActiveBom end, SetFunc = function(c,v) _G.LexusConfig.EspActiveBom = v return true end },
+            
+            
+            { Key = "ModMenu_ESPVehicle_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP Định Vị Xe ", "▶ Vehicle ESP "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspVehicle end, SetFunc = function(c,v) _G.LexusConfig.EspVehicle = v return true end },
+            { Key = "ModMenu_ESPVeh_Dacia", UI = AliasMap.Switcher, Text = T("   Hiện Xe Con (Dacia) ", "   Show Dacia "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Dacia end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Dacia = v return true end },
+            { Key = "ModMenu_ESPVeh_UAZ", UI = AliasMap.Switcher, Text = T("   Hiện Xe Jeep (UAZ) ", "   Show UAZ "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_UAZ end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_UAZ = v return true end },
+            { Key = "ModMenu_ESPVeh_Buggy", UI = AliasMap.Switcher, Text = T("   Hiện Xe Buggy ", "   Show Buggy "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Buggy end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Buggy = v return true end },
+            { Key = "ModMenu_ESPVeh_Coupe", UI = AliasMap.Switcher, Text = T("   Hiện Xe Thể Thao (Coupe RB) ", "   Show Coupe RB "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Coupe end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Coupe = v return true end },
+            { Key = "ModMenu_ESPVeh_Mirado", UI = AliasMap.Switcher, Text = T("   Hiện Xe Mirado ", "   Show Mirado "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Mirado end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Mirado = v return true end },
+            { Key = "ModMenu_ESPVeh_Motor", UI = AliasMap.Switcher, Text = T("   Hiện Xe Máy (Motor/Scooter) ", "   Show Motorcycles "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Motor end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Motor = v return true end },
+            { Key = "ModMenu_ESPVeh_Other", UI = AliasMap.Switcher, Text = T("   Hiện Xe Khác (Thuyền/BRDM...) ", "   Show Others (Boat/BRDM) "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Other end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Other = v return true end },
+            
+            { Key = "ModMenu_ESPAntenna", UI = AliasMap.Switcher, Text = T("ESP Antenna (Cột) ", "Antenna ESP "), GetFunc = function() return _G.LexusConfig.EspAntenna end, SetFunc = function(c,v) _G.LexusConfig.EspAntenna = v return true end },
+            { Key = "ModMenu_ESPOutline_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP Viền Địch (Bật HDR sẽ sáng) ", "▶ Outline ESP (HDR supported) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspOutline end, SetFunc = function(c,v) _G.LexusConfig.EspOutline = v return true end },
+            { Key = "ModMenu_ESPOutline_Color", UI = AliasMap.Slider, Text = T("   Màu Viền (1:Đỏ 2:Lục 3:Lam 4:Vàng 5:Tím 6:Trắng) ", "   Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Pur 6:Wht) "), ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 6, GetFunc = function() return _G.LexusState.CustomTextData.OutlineColor or 4 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.OutlineColor = v return true end },
+            { Key = "ModMenu_ESPOutline_Thickness", UI = AliasMap.Slider, Text = T("   Độ Dày Viền ", "   Outline Thickness "), ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 20, min = 1, max = 20, GetFunc = function() return _G.LexusConfig.OutlineThickness end, SetFunc = function(c,v) _G.LexusConfig.OutlineThickness = v return true end }
         }
 
         local StackAimbot = {
-            { Key = "ModMenu_Aimbot_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Aimbot Xa TÃ¹y Chá»nh", "â¶ Custom Long Range Aimbot"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.CustomAimbot end, SetFunc = function(c,v) _G.LexusConfig.CustomAimbot = v return true end },
-            { Key = "ModMenu_Aimbot_Speed", UI = AliasMap.Slider, Text = T("   Tá»c Äá» Aimbot Xa", "   Long Range Speed"), ExpandHandle = "ModMenu_Aimbot_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.OuterSpeed end, SetFunc = function(c,v) _G.LexusState.CustomTextData.OuterSpeed = v return true end },
-            { Key = "ModMenu_Aimbot_Recoil", UI = AliasMap.Slider, Text = T("   BÃ¹ Giáº­t GhÃ¬m TÃ¢m", "   Recoil Compensation"), ExpandHandle = "ModMenu_Aimbot_Ex", MinValue = 0, MaxValue = 50, min = 0, max = 50, GetFunc = function() return _G.LexusState.CustomTextData.OuterRecoil or 0 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.OuterRecoil = v return true end },
+            { Key = "ModMenu_Aimbot_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Aimbot Xa Tùy Chỉnh", "▶ Custom Long Range Aimbot"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.CustomAimbot end, SetFunc = function(c,v) _G.LexusConfig.CustomAimbot = v return true end },
+            { Key = "ModMenu_Aimbot_Speed", UI = AliasMap.Slider, Text = T("   Tốc Độ Aimbot Xa", "   Long Range Speed"), ExpandHandle = "ModMenu_Aimbot_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.OuterSpeed end, SetFunc = function(c,v) _G.LexusState.CustomTextData.OuterSpeed = v return true end },
+            { Key = "ModMenu_Aimbot_Recoil", UI = AliasMap.Slider, Text = T("   Bù Giật Ghìm Tâm", "   Recoil Compensation"), ExpandHandle = "ModMenu_Aimbot_Ex", MinValue = 0, MaxValue = 50, min = 0, max = 50, GetFunc = function() return _G.LexusState.CustomTextData.OuterRecoil or 0 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.OuterRecoil = v return true end },
 
-            { Key = "ModMenu_AimbotClose_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Aimbot Gáº§n TÃ¹y Chá»nh", "â¶ Custom Close Range Aimbot"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.CustomAimbotClose end, SetFunc = function(c,v) _G.LexusConfig.CustomAimbotClose = v return true end },
-            { Key = "ModMenu_AimbotClose_Speed", UI = AliasMap.Slider, Text = T("   Tá»c Äá» Aimbot Gáº§n", "   Close Range Speed"), ExpandHandle = "ModMenu_AimbotClose_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.InnerSpeed end, SetFunc = function(c,v) _G.LexusState.CustomTextData.InnerSpeed = v return true end },
+            { Key = "ModMenu_AimbotClose_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Aimbot Gần Tùy Chỉnh", "▶ Custom Close Range Aimbot"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.CustomAimbotClose end, SetFunc = function(c,v) _G.LexusConfig.CustomAimbotClose = v return true end },
+            { Key = "ModMenu_AimbotClose_Speed", UI = AliasMap.Slider, Text = T("   Tốc Độ Aimbot Gần", "   Close Range Speed"), ExpandHandle = "ModMenu_AimbotClose_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.InnerSpeed end, SetFunc = function(c,v) _G.LexusState.CustomTextData.InnerSpeed = v return true end },
 
-            { Key = "ModMenu_Magic_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Dá» Bá» BAN Máº NG Magic Bullet TÃ¹y Chá»nh", "â¶ (RISK BAN) Custom Magic Bullet"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.CustomMagicBullet end, SetFunc = function(c,v) _G.LexusConfig.CustomMagicBullet = v return true end },
-            { Key = "ModMenu_Magic_Head", UI = AliasMap.Slider, Text = T("   SÃ¡t ThÆ°Æ¡ng Äáº§u (0.0 - 5.0)", "   Head Damage (0.0 - 5.0)"), ExpandHandle = "ModMenu_Magic_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor(((_G.LexusState.CustomTextData.MagicHead or 1.0) / 5.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.MagicHead = (v / 100.0) * 5.0 return true end },
-            { Key = "ModMenu_Magic_Body", UI = AliasMap.Slider, Text = T("   SÃ¡t ThÆ°Æ¡ng ThÃ¢n (0.0 - 5.0)", "   Body Damage (0.0 - 5.0)"), ExpandHandle = "ModMenu_Magic_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor(((_G.LexusState.CustomTextData.MagicBody or 1.0) / 5.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.MagicBody = (v / 100.0) * 5.0 return true end },
-            { Key = "ModMenu_Magic_Legs", UI = AliasMap.Slider, Text = T("   SÃ¡t ThÆ°Æ¡ng ChÃ¢n (0.0 - 5.0)", "   Legs Damage (0.0 - 5.0)"), ExpandHandle = "ModMenu_Magic_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor(((_G.LexusState.CustomTextData.MagicLegs or 1.0) / 5.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.MagicLegs = (v / 100.0) * 5.0 return true end },
+            { Key = "ModMenu_Magic_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ DỄ BỊ BAN MẠNG Magic Bullet Tùy Chỉnh", "▶ (RISK BAN) Custom Magic Bullet"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.CustomMagicBullet end, SetFunc = function(c,v) _G.LexusConfig.CustomMagicBullet = v return true end },
+            { Key = "ModMenu_Magic_Head", UI = AliasMap.Slider, Text = T("   Sát Thương Đầu (0.0 - 5.0)", "   Head Damage (0.0 - 5.0)"), ExpandHandle = "ModMenu_Magic_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor(((_G.LexusState.CustomTextData.MagicHead or 1.0) / 5.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.MagicHead = (v / 100.0) * 5.0 return true end },
+            { Key = "ModMenu_Magic_Body", UI = AliasMap.Slider, Text = T("   Sát Thương Thân (0.0 - 5.0)", "   Body Damage (0.0 - 5.0)"), ExpandHandle = "ModMenu_Magic_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor(((_G.LexusState.CustomTextData.MagicBody or 1.0) / 5.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.MagicBody = (v / 100.0) * 5.0 return true end },
+            { Key = "ModMenu_Magic_Legs", UI = AliasMap.Slider, Text = T("   Sát Thương Chân (0.0 - 5.0)", "   Legs Damage (0.0 - 5.0)"), ExpandHandle = "ModMenu_Magic_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor(((_G.LexusState.CustomTextData.MagicLegs or 1.0) / 5.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.MagicLegs = (v / 100.0) * 5.0 return true end },
 
-            { Key = "ModMenu_HRecoil_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Giáº£m Giáº­t Ngang (Drop sÃºng nháº·t láº¡i Äá» load)", "â¶ Less Horizontal Recoil (Drop/Pick weapon)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.CustomHRecoil end, SetFunc = function(c,v) _G.LexusConfig.CustomHRecoil = v return true end },
-            { Key = "ModMenu_HRecoil_Val", UI = AliasMap.Slider, Text = T("   Chá» Sá» Giáº­t Ngang", "   Horizontal Recoil Value"), ExpandHandle = "ModMenu_HRecoil_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.LexusState.CustomTextData.HRecoil or 0.3) - 0.3) / 4.7) * 100 + 0.5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.HRecoil = 0.3 + (v / 100.0) * 4.7 return true end },
+            { Key = "ModMenu_HRecoil_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Giảm Giật Ngang (Drop súng nhặt lại để load)", "▶ Less Horizontal Recoil (Drop/Pick weapon)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.CustomHRecoil end, SetFunc = function(c,v) _G.LexusConfig.CustomHRecoil = v return true end },
+            { Key = "ModMenu_HRecoil_Val", UI = AliasMap.Slider, Text = T("   Chỉ Số Giật Ngang", "   Horizontal Recoil Value"), ExpandHandle = "ModMenu_HRecoil_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.LexusState.CustomTextData.HRecoil or 0.3) - 0.3) / 4.7) * 100 + 0.5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.HRecoil = 0.3 + (v / 100.0) * 4.7 return true end },
 
-            { Key = "ModMenu_VRecoil_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Giáº£m Giáº­t Dá»c (Drop sÃºng nháº·t láº¡i Äá» load)", "â¶ Less Vertical Recoil (Drop/Pick weapon)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.CustomVRecoil end, SetFunc = function(c,v) _G.LexusConfig.CustomVRecoil = v return true end },
-            { Key = "ModMenu_VRecoil_Val", UI = AliasMap.Slider, Text = T("   Chá» Sá» Giáº­t Dá»c", "   Vertical Recoil Value"), ExpandHandle = "ModMenu_VRecoil_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.LexusState.CustomTextData.VRecoil or 0.3) - 0.3) / 4.7) * 100 + 0.5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.VRecoil = 0.3 + (v / 100.0) * 4.7 return true end },
+            { Key = "ModMenu_VRecoil_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Giảm Giật Dọc (Drop súng nhặt lại để load)", "▶ Less Vertical Recoil (Drop/Pick weapon)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.CustomVRecoil end, SetFunc = function(c,v) _G.LexusConfig.CustomVRecoil = v return true end },
+            { Key = "ModMenu_VRecoil_Val", UI = AliasMap.Slider, Text = T("   Chỉ Số Giật Dọc", "   Vertical Recoil Value"), ExpandHandle = "ModMenu_VRecoil_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.LexusState.CustomTextData.VRecoil or 0.3) - 0.3) / 4.7) * 100 + 0.5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.VRecoil = 0.3 + (v / 100.0) * 4.7 return true end },
 
-            { Key = "ModMenu_LessShake", UI = AliasMap.Switcher, Text = T("Giáº£m Rung Náº©y Scope", "Less Scope Shake"), GetFunc = function() return _G.LexusConfig.LessShake end, SetFunc = function(c,v) _G.LexusConfig.LessShake = v return true end },
-            { Key = "ModMenu_Accuracy", UI = AliasMap.Switcher, Text = T("Äáº¡n Tháº³ng Táº¯p", "100% Accuracy"), GetFunc = function() return _G.LexusConfig.Accuracy end, SetFunc = function(c,v) _G.LexusConfig.Accuracy = v return true end },
-            { Key = "ModMenu_Crosshair", UI = AliasMap.Switcher, Text = T("TÃ¢m SÃºng Nhá»", "Small Crosshair"), GetFunc = function() return _G.LexusConfig.Crosshair end, SetFunc = function(c,v) _G.LexusConfig.Crosshair = v return true end },
+            { Key = "ModMenu_LessShake", UI = AliasMap.Switcher, Text = T("Giảm Rung Nẩy Scope", "Less Scope Shake"), GetFunc = function() return _G.LexusConfig.LessShake end, SetFunc = function(c,v) _G.LexusConfig.LessShake = v return true end },
+            { Key = "ModMenu_Accuracy", UI = AliasMap.Switcher, Text = T("Đạn Thẳng Tắp", "100% Accuracy"), GetFunc = function() return _G.LexusConfig.Accuracy end, SetFunc = function(c,v) _G.LexusConfig.Accuracy = v return true end },
+            { Key = "ModMenu_Crosshair", UI = AliasMap.Switcher, Text = T("Tâm Súng Nhỏ", "Small Crosshair"), GetFunc = function() return _G.LexusConfig.Crosshair end, SetFunc = function(c,v) _G.LexusConfig.Crosshair = v return true end },
             { Key = "ModMenu_AutoHead", UI = AliasMap.Switcher, Text = T("Aimbot Head", "Aimbot Head"), GetFunc = function() return _G.LexusConfig.AutoHead end, SetFunc = function(c,v) _G.LexusConfig.AutoHead = v return true end },
-            { Key = "ModMenu_GodMode", UI = AliasMap.Switcher, Text = T("Há»§y Diá»t (Báº¯n SiÃªu Nhanh)", "God Mode (Fast Shoot)"), GetFunc = function() return _G.LexusConfig.GodMode end, SetFunc = function(c,v) _G.LexusConfig.GodMode = v return true end }
+            { Key = "ModMenu_GodMode", UI = AliasMap.Switcher, Text = T("Hủy Diệt (Bắn Siêu Nhanh)", "God Mode (Fast Shoot)"), GetFunc = function() return _G.LexusConfig.GodMode end, SetFunc = function(c,v) _G.LexusConfig.GodMode = v return true end }
         }
 
        local StackAimbotV2 = {
-            { Key = "ModMenu_AT_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Báº­t Aimbot Roy & Custom", "â¶ Enable Custom Aimbot V2"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchEnable end, SetFunc = function(c,v) _G.LexusConfig.AimTouchEnable = v return true end },
-            { Key = "ModMenu_FovCircle_Main", UI = AliasMap.Switcher, Text = T("â¶ HIá»N THá» VÃNG FOV AIMBOT TREN MÃN HÃNH", "â¶ SHOW AIMBOT FOV CIRCLE"), GetFunc = function() return _G.LexusConfig.EspFovCircle end, SetFunc = function(c,v) _G.LexusConfig.EspFovCircle = v return true end },
+            { Key = "ModMenu_AT_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Bật Aimbot Roy & Custom", "▶ Enable Custom Aimbot V2"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchEnable end, SetFunc = function(c,v) _G.LexusConfig.AimTouchEnable = v return true end },
+            { Key = "ModMenu_FovCircle_Main", UI = AliasMap.Switcher, Text = T("▶ HIỂN THỊ VÒNG FOV AIMBOT TREN MÀN HÌNH", "▶ SHOW AIMBOT FOV CIRCLE"), GetFunc = function() return _G.LexusConfig.EspFovCircle end, SetFunc = function(c,v) _G.LexusConfig.EspFovCircle = v return true end },
             
-            -- HIPFIRE (TÃM TRáº®NG)
-            { Key = "ModMenu_AT_Hip_Ex", UI = AliasMap.TitleSwitcher, Text = T("   â¶ Aimbot TÃ¢m Tráº¯ng", "   â¶ Hipfire Aimbot"), ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchHipfire end, SetFunc = function(c,v) _G.LexusConfig.AimTouchHipfire = v return true end },
-            { Key = "ModMenu_AT_Hip_IgKnock", UI = AliasMap.Switcher, Text = T("      Bá» Qua Äá»ch Knock", "      Ignore Knocked"), ExpandHandle = "ModMenu_AT_Hip_Ex", GetFunc = function() return _G.LexusConfig.AimTouchHipIgKnock end, SetFunc = function(c,v) _G.LexusConfig.AimTouchHipIgKnock = v return true end },
-            { Key = "ModMenu_AT_Hip_IgBot", UI = AliasMap.Switcher, Text = T("      Bá» Qua Bot", "      Ignore Bots"), ExpandHandle = "ModMenu_AT_Hip_Ex", GetFunc = function() return _G.LexusConfig.AimTouchHipIgBot end, SetFunc = function(c,v) _G.LexusConfig.AimTouchHipIgBot = v return true end },
-            { Key = "ModMenu_AT_Hip_Vis", UI = AliasMap.Switcher, Text = T("      Check TÆ°á»ng (VisCheck)", "      Visibility Check"), ExpandHandle = "ModMenu_AT_Hip_Ex", GetFunc = function() return _G.LexusConfig.AimTouchHipVisCheck end, SetFunc = function(c,v) _G.LexusConfig.AimTouchHipVisCheck = v return true end },
-            { Key = "ModMenu_AT_Hip_Prio", UI = AliasMap.Slider, Text = T("      Æ¯u TiÃªn (1:TÃ¢m 2:Gáº§n 3:HP)", "      Priority (1:Crosshair 2:Distance 3:HP)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipPrio or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchHipPrio = val return true end },
-            { Key = "ModMenu_AT_Hip_Bone", UI = AliasMap.Slider, Text = T("      Vá» TrÃ­ (1:Äáº§u 2:Ngá»±c 3:Bá»¥ng 4:HÃ´ng)", "      Bone (1:Head 2:Chest 3:Stomach 4:Pelvis)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipBone or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchHipBone = val return true end },
-            { Key = "ModMenu_AT_Hip_Cond", UI = AliasMap.Slider, Text = T("      Äiá»u Kiá»n (1:Báº¯n má»i Aim, 2:LuÃ´n Aim)", "      Trigger (1:On Fire, 2:Always)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 2, min = 1, max = 2, Min = 1, Max = 2, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipCond or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 2 then val = 2 end; _G.LexusState.CustomTextData.AimTouchHipCond = val return true end },
-            { Key = "ModMenu_AT_Hip_Spd", UI = AliasMap.Slider, Text = T("      Äá» MÆ°á»£t / Tá»c Äá» (1-100)", "      Smoothness / Speed (1-100)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipSpeed or 50 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchHipSpeed = v return true end },
-            { Key = "ModMenu_AT_Hip_Dist", UI = AliasMap.Slider, Text = T("      Khoáº£ng CÃ¡ch (1-500m)", "      Distance Limit (1-500m)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.LexusState.CustomTextData.AimTouchHipDist or 250) / 5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchHipDist = v * 5 return true end },
-            { Key = "ModMenu_AT_Hip_FOV", UI = AliasMap.Slider, Text = T("      VÃ²ng FOV (1-100)", "      FOV Radius (1-100)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipFOV or 30 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchHipFOV = v return true end },
-            { Key = "ModMenu_AT_Hip_FOVColor", UI = AliasMap.Slider, Text = T("      MÃ u VÃ²ng FOV TÃ¢m Tráº¯ng (1-7)", "      Circle Color (1-7)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 7, min = 1, max = 7, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipFOVColor or 7 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchHipFOVColor = v return true end },
+            -- HIPFIRE (TÂM TRẮNG)
+            { Key = "ModMenu_AT_Hip_Ex", UI = AliasMap.TitleSwitcher, Text = T("   ▶ Aimbot Tâm Trắng", "   ▶ Hipfire Aimbot"), ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchHipfire end, SetFunc = function(c,v) _G.LexusConfig.AimTouchHipfire = v return true end },
+            { Key = "ModMenu_AT_Hip_IgKnock", UI = AliasMap.Switcher, Text = T("      Bỏ Qua Địch Knock", "      Ignore Knocked"), ExpandHandle = "ModMenu_AT_Hip_Ex", GetFunc = function() return _G.LexusConfig.AimTouchHipIgKnock end, SetFunc = function(c,v) _G.LexusConfig.AimTouchHipIgKnock = v return true end },
+            { Key = "ModMenu_AT_Hip_IgBot", UI = AliasMap.Switcher, Text = T("      Bỏ Qua Bot", "      Ignore Bots"), ExpandHandle = "ModMenu_AT_Hip_Ex", GetFunc = function() return _G.LexusConfig.AimTouchHipIgBot end, SetFunc = function(c,v) _G.LexusConfig.AimTouchHipIgBot = v return true end },
+            { Key = "ModMenu_AT_Hip_Vis", UI = AliasMap.Switcher, Text = T("      Check Tường (VisCheck)", "      Visibility Check"), ExpandHandle = "ModMenu_AT_Hip_Ex", GetFunc = function() return _G.LexusConfig.AimTouchHipVisCheck end, SetFunc = function(c,v) _G.LexusConfig.AimTouchHipVisCheck = v return true end },
+            { Key = "ModMenu_AT_Hip_Prio", UI = AliasMap.Slider, Text = T("      Ưu Tiên (1:Tâm 2:Gần 3:HP)", "      Priority (1:Crosshair 2:Distance 3:HP)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipPrio or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchHipPrio = val return true end },
+            { Key = "ModMenu_AT_Hip_Bone", UI = AliasMap.Slider, Text = T("      Vị Trí (1:Đầu 2:Ngực 3:Bụng 4:Hông)", "      Bone (1:Head 2:Chest 3:Stomach 4:Pelvis)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipBone or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchHipBone = val return true end },
+            { Key = "ModMenu_AT_Hip_Cond", UI = AliasMap.Slider, Text = T("      Điều Kiện (1:Bắn mới Aim, 2:Luôn Aim)", "      Trigger (1:On Fire, 2:Always)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 2, min = 1, max = 2, Min = 1, Max = 2, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipCond or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 2 then val = 2 end; _G.LexusState.CustomTextData.AimTouchHipCond = val return true end },
+            { Key = "ModMenu_AT_Hip_Spd", UI = AliasMap.Slider, Text = T("      Độ Mượt / Tốc Độ (1-100)", "      Smoothness / Speed (1-100)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipSpeed or 50 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchHipSpeed = v return true end },
+            { Key = "ModMenu_AT_Hip_Dist", UI = AliasMap.Slider, Text = T("      Khoảng Cách (1-500m)", "      Distance Limit (1-500m)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.LexusState.CustomTextData.AimTouchHipDist or 250) / 5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchHipDist = v * 5 return true end },
+            { Key = "ModMenu_AT_Hip_FOV", UI = AliasMap.Slider, Text = T("      Vòng FOV (1-100)", "      FOV Radius (1-100)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipFOV or 30 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchHipFOV = v return true end },
+            { Key = "ModMenu_AT_Hip_FOVColor", UI = AliasMap.Slider, Text = T("      Màu Vòng FOV Tâm Trắng (1-7)", "      Circle Color (1-7)"), ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 7, min = 1, max = 7, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchHipFOVColor or 7 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchHipFOVColor = v return true end },
 
             -- AIMBOT SHOTGUN
-            { Key = "ModMenu_AT_SG_Ex", UI = AliasMap.TitleSwitcher, Text = T("   â¶ Aimbot Shotgun", "   â¶ Shotgun Aimbot"), ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchSG end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSG = v return true end },
-            { Key = "ModMenu_AT_SG_AutoFire", UI = AliasMap.Switcher, Text = T("      Tá»± Äá»ng Báº¯n", "      Auto Fire"), ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSGAutoFire end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSGAutoFire = v return true end },
-            { Key = "ModMenu_AT_SG_IgKnock", UI = AliasMap.Switcher, Text = T("      Bá» Qua Äá»ch Knock", "      Ignore Knocked"), ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSGIgKnock end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSGIgKnock = v return true end },
-            { Key = "ModMenu_AT_SG_IgBot", UI = AliasMap.Switcher, Text = T("      Bá» Qua Bot", "      Ignore Bots"), ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSGIgBot end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSGIgBot = v return true end },
-            { Key = "ModMenu_AT_SG_Vis", UI = AliasMap.Switcher, Text = T("      Check TÆ°á»ng (VisCheck)", "      Visibility Check"), ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSGVisCheck end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSGVisCheck = v return true end },
-            { Key = "ModMenu_AT_SG_Prio", UI = AliasMap.Slider, Text = T("      Æ¯u TiÃªn (1:TÃ¢m 2:Gáº§n 3:HP)", "      Priority (1:Crosshair 2:Distance 3:HP)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGPrio or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchSGPrio = val return true end },
-            { Key = "ModMenu_AT_SG_Bone", UI = AliasMap.Slider, Text = T("      Vá» TrÃ­ (1:Äáº§u 2:Ngá»±c 3:Bá»¥ng 4:HÃ´ng)", "      Bone (1:Head 2:Chest 3:Stomach 4:Pelvis)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGBone or 2 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchSGBone = val return true end },
-            { Key = "ModMenu_AT_SG_Cond", UI = AliasMap.Slider, Text = T("      Äiá»u Kiá»n (1:Báº¯n má»i Aim, 2:LuÃ´n Aim)", "      Trigger (1:On Fire, 2:Always)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 2, min = 1, max = 2, Min = 1, Max = 2, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGCond or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 2 then val = 2 end; _G.LexusState.CustomTextData.AimTouchSGCond = val return true end },
-            { Key = "ModMenu_AT_SG_Spd", UI = AliasMap.Slider, Text = T("      Äá» MÆ°á»£t / Tá»c Äá» (1-100)", "      Smoothness / Speed (1-100)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGSpeed or 80 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSGSpeed = v return true end },
-            { Key = "ModMenu_AT_SG_Dist", UI = AliasMap.Slider, Text = T("      Khoáº£ng CÃ¡ch (1-100m)", "      Distance Limit (1-100m)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGDist or 30 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSGDist = v return true end },
-            { Key = "ModMenu_AT_SG_FOV", UI = AliasMap.Slider, Text = T("      VÃ²ng FOV (1-100)", "      FOV Radius (1-100)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGFOV or 40 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSGFOV = v return true end },
-            { Key = "ModMenu_AT_SG_FOVColor", UI = AliasMap.Slider, Text = T("      MÃ u VÃ²ng FOV Shotgun (1-7)", "      Circle Color (1-7)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 7, min = 1, max = 7, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGFOVColor or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSGFOVColor = v return true end },
+            { Key = "ModMenu_AT_SG_Ex", UI = AliasMap.TitleSwitcher, Text = T("   ▶ Aimbot Shotgun", "   ▶ Shotgun Aimbot"), ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchSG end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSG = v return true end },
+            { Key = "ModMenu_AT_SG_AutoFire", UI = AliasMap.Switcher, Text = T("      Tự Động Bắn", "      Auto Fire"), ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSGAutoFire end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSGAutoFire = v return true end },
+            { Key = "ModMenu_AT_SG_IgKnock", UI = AliasMap.Switcher, Text = T("      Bỏ Qua Địch Knock", "      Ignore Knocked"), ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSGIgKnock end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSGIgKnock = v return true end },
+            { Key = "ModMenu_AT_SG_IgBot", UI = AliasMap.Switcher, Text = T("      Bỏ Qua Bot", "      Ignore Bots"), ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSGIgBot end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSGIgBot = v return true end },
+            { Key = "ModMenu_AT_SG_Vis", UI = AliasMap.Switcher, Text = T("      Check Tường (VisCheck)", "      Visibility Check"), ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSGVisCheck end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSGVisCheck = v return true end },
+            { Key = "ModMenu_AT_SG_Prio", UI = AliasMap.Slider, Text = T("      Ưu Tiên (1:Tâm 2:Gần 3:HP)", "      Priority (1:Crosshair 2:Distance 3:HP)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGPrio or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchSGPrio = val return true end },
+            { Key = "ModMenu_AT_SG_Bone", UI = AliasMap.Slider, Text = T("      Vị Trí (1:Đầu 2:Ngực 3:Bụng 4:Hông)", "      Bone (1:Head 2:Chest 3:Stomach 4:Pelvis)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGBone or 2 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchSGBone = val return true end },
+            { Key = "ModMenu_AT_SG_Cond", UI = AliasMap.Slider, Text = T("      Điều Kiện (1:Bắn mới Aim, 2:Luôn Aim)", "      Trigger (1:On Fire, 2:Always)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 2, min = 1, max = 2, Min = 1, Max = 2, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGCond or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 2 then val = 2 end; _G.LexusState.CustomTextData.AimTouchSGCond = val return true end },
+            { Key = "ModMenu_AT_SG_Spd", UI = AliasMap.Slider, Text = T("      Độ Mượt / Tốc Độ (1-100)", "      Smoothness / Speed (1-100)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGSpeed or 80 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSGSpeed = v return true end },
+            { Key = "ModMenu_AT_SG_Dist", UI = AliasMap.Slider, Text = T("      Khoảng Cách (1-100m)", "      Distance Limit (1-100m)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGDist or 30 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSGDist = v return true end },
+            { Key = "ModMenu_AT_SG_FOV", UI = AliasMap.Slider, Text = T("      Vòng FOV (1-100)", "      FOV Radius (1-100)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGFOV or 40 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSGFOV = v return true end },
+            { Key = "ModMenu_AT_SG_FOVColor", UI = AliasMap.Slider, Text = T("      Màu Vòng FOV Shotgun (1-7)", "      Circle Color (1-7)"), ExpandHandle = "ModMenu_AT_SG_Ex", MinValue = 1, MaxValue = 7, min = 1, max = 7, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSGFOVColor or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSGFOVColor = v return true end },
             
-            -- SCOPE ALL (SÃNG THÆ¯á»NG KHI Má» SCOPE)
-            { Key = "ModMenu_AT_ScopeAll_Ex", UI = AliasMap.TitleSwitcher, Text = T("   â¶ Aimbot Má» Scope", "   â¶ Scope Aimbot"), ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchScopeAll end, SetFunc = function(c,v) _G.LexusConfig.AimTouchScopeAll = v return true end },
-            { Key = "ModMenu_AT_ScopeAll_IgKnock", UI = AliasMap.Switcher, Text = T("      Bá» Qua Äá»ch Knock", "      Ignore Knocked"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", GetFunc = function() return _G.LexusConfig.AimTouchScopeIgKnock end, SetFunc = function(c,v) _G.LexusConfig.AimTouchScopeIgKnock = v return true end },
-            { Key = "ModMenu_AT_ScopeAll_IgBot", UI = AliasMap.Switcher, Text = T("      Bá» Qua Bot", "      Ignore Bots"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", GetFunc = function() return _G.LexusConfig.AimTouchScopeIgBot end, SetFunc = function(c,v) _G.LexusConfig.AimTouchScopeIgBot = v return true end },
-            { Key = "ModMenu_AT_ScopeAll_Vis", UI = AliasMap.Switcher, Text = T("      Check TÆ°á»ng (VisCheck)", "      Visibility Check"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", GetFunc = function() return _G.LexusConfig.AimTouchScopeVisCheck end, SetFunc = function(c,v) _G.LexusConfig.AimTouchScopeVisCheck = v return true end },
-            { Key = "ModMenu_AT_ScopeAll_Prio", UI = AliasMap.Slider, Text = T("      Æ¯u TiÃªn (1:TÃ¢m 2:Gáº§n 3:HP)", "      Priority (1:Crosshair 2:Distance 3:HP)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopePrio or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchScopePrio = val return true end },
-            { Key = "ModMenu_AT_ScopeAll_Bone", UI = AliasMap.Slider, Text = T("      Vá» TrÃ­ (1:Äáº§u 2:Ngá»±c 3:Bá»¥ng 4:HÃ´ng)", "      Bone (1:Head 2:Chest 3:Stomach 4:Pelvis)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeBone or 2 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchScopeBone = val return true end },
-            { Key = "ModMenu_AT_ScopeAll_Cond", UI = AliasMap.Slider, Text = T("      Äiá»u Kiá»n (1:Báº¯n má»i Aim, 2:LuÃ´n Aim)", "      Trigger (1:On Fire, 2:Always)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 2, min = 1, max = 2, Min = 1, Max = 2, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeCond or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 2 then val = 2 end; _G.LexusState.CustomTextData.AimTouchScopeCond = val return true end },
-            { Key = "ModMenu_AT_ScopeAll_Spd", UI = AliasMap.Slider, Text = T("      Äá» MÆ°á»£t / Tá»c Äá» (1-100)", "      Smoothness / Speed (1-100)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeSpeed or 40 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopeSpeed = v return true end },
-            { Key = "ModMenu_AT_ScopeAll_Dist", UI = AliasMap.Slider, Text = T("      Khoáº£ng CÃ¡ch (1-500m)", "      Distance Limit (1-500m)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.LexusState.CustomTextData.AimTouchScopeDist or 300) / 5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopeDist = v * 5 return true end },
-            { Key = "ModMenu_AT_ScopeAll_Pred", UI = AliasMap.Slider, Text = T("      Dá»± ÄoÃ¡n HÆ°á»ng Cháº¡y", "      Prediction Value"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopePred or 0 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopePred = v return true end },
-            { Key = "ModMenu_AT_ScopeAll_Recoil", UI = AliasMap.Slider, Text = T("      BÃ¹ Giáº­t Tá»± Äá»ng", "      Auto Recoil Comp."), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 0, MaxValue = 50, min = 0, max = 50, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeRecoil or 0 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopeRecoil = v return true end },
-            { Key = "ModMenu_AT_ScopeAll_FOV", UI = AliasMap.Slider, Text = T("      VÃ²ng FOV (1-100)", "      FOV Radius (1-100)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeFOV or 20 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopeFOV = v return true end },
-            { Key = "ModMenu_AT_ScopeAll_FOVColor", UI = AliasMap.Slider, Text = T("      MÃ u VÃ²ng FOV Scope (1-7)", "      Circle Color (1-7)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 7, min = 1, max = 7, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeFOVColor or 6 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopeFOVColor = v return true end },
+            -- SCOPE ALL (SÚNG THƯỜNG KHI MỞ SCOPE)
+            { Key = "ModMenu_AT_ScopeAll_Ex", UI = AliasMap.TitleSwitcher, Text = T("   ▶ Aimbot Mở Scope", "   ▶ Scope Aimbot"), ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchScopeAll end, SetFunc = function(c,v) _G.LexusConfig.AimTouchScopeAll = v return true end },
+            { Key = "ModMenu_AT_ScopeAll_IgKnock", UI = AliasMap.Switcher, Text = T("      Bỏ Qua Địch Knock", "      Ignore Knocked"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", GetFunc = function() return _G.LexusConfig.AimTouchScopeIgKnock end, SetFunc = function(c,v) _G.LexusConfig.AimTouchScopeIgKnock = v return true end },
+            { Key = "ModMenu_AT_ScopeAll_IgBot", UI = AliasMap.Switcher, Text = T("      Bỏ Qua Bot", "      Ignore Bots"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", GetFunc = function() return _G.LexusConfig.AimTouchScopeIgBot end, SetFunc = function(c,v) _G.LexusConfig.AimTouchScopeIgBot = v return true end },
+            { Key = "ModMenu_AT_ScopeAll_Vis", UI = AliasMap.Switcher, Text = T("      Check Tường (VisCheck)", "      Visibility Check"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", GetFunc = function() return _G.LexusConfig.AimTouchScopeVisCheck end, SetFunc = function(c,v) _G.LexusConfig.AimTouchScopeVisCheck = v return true end },
+            { Key = "ModMenu_AT_ScopeAll_Prio", UI = AliasMap.Slider, Text = T("      Ưu Tiên (1:Tâm 2:Gần 3:HP)", "      Priority (1:Crosshair 2:Distance 3:HP)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopePrio or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchScopePrio = val return true end },
+            { Key = "ModMenu_AT_ScopeAll_Bone", UI = AliasMap.Slider, Text = T("      Vị Trí (1:Đầu 2:Ngực 3:Bụng 4:Hông)", "      Bone (1:Head 2:Chest 3:Stomach 4:Pelvis)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeBone or 2 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchScopeBone = val return true end },
+            { Key = "ModMenu_AT_ScopeAll_Cond", UI = AliasMap.Slider, Text = T("      Điều Kiện (1:Bắn mới Aim, 2:Luôn Aim)", "      Trigger (1:On Fire, 2:Always)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 2, min = 1, max = 2, Min = 1, Max = 2, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeCond or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 2 then val = 2 end; _G.LexusState.CustomTextData.AimTouchScopeCond = val return true end },
+            { Key = "ModMenu_AT_ScopeAll_Spd", UI = AliasMap.Slider, Text = T("      Độ Mượt / Tốc Độ (1-100)", "      Smoothness / Speed (1-100)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeSpeed or 40 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopeSpeed = v return true end },
+            { Key = "ModMenu_AT_ScopeAll_Dist", UI = AliasMap.Slider, Text = T("      Khoảng Cách (1-500m)", "      Distance Limit (1-500m)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.LexusState.CustomTextData.AimTouchScopeDist or 300) / 5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopeDist = v * 5 return true end },
+            { Key = "ModMenu_AT_ScopeAll_Pred", UI = AliasMap.Slider, Text = T("      Dự Đoán Hướng Chạy", "      Prediction Value"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopePred or 0 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopePred = v return true end },
+            { Key = "ModMenu_AT_ScopeAll_Recoil", UI = AliasMap.Slider, Text = T("      Bù Giật Tự Động", "      Auto Recoil Comp."), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 0, MaxValue = 50, min = 0, max = 50, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeRecoil or 0 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopeRecoil = v return true end },
+            { Key = "ModMenu_AT_ScopeAll_FOV", UI = AliasMap.Slider, Text = T("      Vòng FOV (1-100)", "      FOV Radius (1-100)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeFOV or 20 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopeFOV = v return true end },
+            { Key = "ModMenu_AT_ScopeAll_FOVColor", UI = AliasMap.Slider, Text = T("      Màu Vòng FOV Scope (1-7)", "      Circle Color (1-7)"), ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 7, min = 1, max = 7, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchScopeFOVColor or 6 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchScopeFOVColor = v return true end },
 
-            -- SCOPE SNIPER (SÃNG NGáº®M/Tá»A)
-            { Key = "ModMenu_AT_Sniper_Ex", UI = AliasMap.TitleSwitcher, Text = T("   â¶ Aimbot Má» Scope (SÃºng Ngáº¯m/Tá»a)", "   â¶ Sniper Aimbot"), ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchScopeSniper end, SetFunc = function(c,v) _G.LexusConfig.AimTouchScopeSniper = v return true end },
-            { Key = "ModMenu_AT_Sniper_IgKnock", UI = AliasMap.Switcher, Text = T("      Bá» Qua Äá»ch Knock", "      Ignore Knocked"), ExpandHandle = "ModMenu_AT_Sniper_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSniperIgKnock end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSniperIgKnock = v return true end },
-            { Key = "ModMenu_AT_Sniper_IgBot", UI = AliasMap.Switcher, Text = T("      Bá» Qua Bot", "      Ignore Bots"), ExpandHandle = "ModMenu_AT_Sniper_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSniperIgBot end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSniperIgBot = v return true end },
-            { Key = "ModMenu_AT_Sniper_Vis", UI = AliasMap.Switcher, Text = T("      Check TÆ°á»ng (VisCheck)", "      Visibility Check"), ExpandHandle = "ModMenu_AT_Sniper_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSniperVisCheck end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSniperVisCheck = v return true end },
-            { Key = "ModMenu_AT_Sniper_Prio", UI = AliasMap.Slider, Text = T("      Æ¯u TiÃªn (1:TÃ¢m 2:Gáº§n 3:HP)", "      Priority (1:Crosshair 2:Distance 3:HP)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperPrio or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchSniperPrio = val return true end },
-            { Key = "ModMenu_AT_Sniper_Bone", UI = AliasMap.Slider, Text = T("      Vá» TrÃ­ (1:Äáº§u 2:Ngá»±c 3:Bá»¥ng 4:HÃ´ng)", "      Bone (1:Head 2:Chest 3:Stomach 4:Pelvis)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperBone or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchSniperBone = val return true end },
-            { Key = "ModMenu_AT_Sniper_Cond", UI = AliasMap.Slider, Text = T("      Äiá»u Kiá»n (1:Báº¯n má»i Aim, 2:LuÃ´n Aim)", "      Trigger (1:On Fire, 2:Always)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 2, min = 1, max = 2, Min = 1, Max = 2, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperCond or 2 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 2 then val = 2 end; _G.LexusState.CustomTextData.AimTouchSniperCond = val return true end },
-            { Key = "ModMenu_AT_Sniper_Spd", UI = AliasMap.Slider, Text = T("      Äá» MÆ°á»£t / Tá»c Äá» (1-100)", "      Smoothness / Speed (1-100)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperSpeed or 30 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSniperSpeed = v return true end },
-            { Key = "ModMenu_AT_Sniper_Dist", UI = AliasMap.Slider, Text = T("      Khoáº£ng CÃ¡ch (1-500m)", "      Distance Limit (1-500m)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.LexusState.CustomTextData.AimTouchSniperDist or 400) / 5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSniperDist = v * 5 return true end },
-            { Key = "ModMenu_AT_Sniper_Pred", UI = AliasMap.Slider, Text = T("      Dá»± ÄoÃ¡n HÆ°á»ng Cháº¡y (0-100)", "      Prediction Value (0-100)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperPred or 0 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSniperPred = v return true end },
-            { Key = "ModMenu_AT_Sniper_FOV", UI = AliasMap.Slider, Text = T("      VÃ²ng FOV (1-100)", "      FOV Radius (1-100)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperFOV or 20 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSniperFOV = v return true end },
-            { Key = "ModMenu_AT_Sniper_FOVColor", UI = AliasMap.Slider, Text = T("      MÃ u VÃ²ng FOV Ngáº¯m/Tá»a (1-7)", "      Circle Color (1-7)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 7, min = 1, max = 7, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperFOVColor or 4 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSniperFOVColor = v return true end },
+            -- SCOPE SNIPER (SÚNG NGẮM/TỈA)
+            { Key = "ModMenu_AT_Sniper_Ex", UI = AliasMap.TitleSwitcher, Text = T("   ▶ Aimbot Mở Scope (Súng Ngắm/Tỉa)", "   ▶ Sniper Aimbot"), ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchScopeSniper end, SetFunc = function(c,v) _G.LexusConfig.AimTouchScopeSniper = v return true end },
+            { Key = "ModMenu_AT_Sniper_IgKnock", UI = AliasMap.Switcher, Text = T("      Bỏ Qua Địch Knock", "      Ignore Knocked"), ExpandHandle = "ModMenu_AT_Sniper_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSniperIgKnock end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSniperIgKnock = v return true end },
+            { Key = "ModMenu_AT_Sniper_IgBot", UI = AliasMap.Switcher, Text = T("      Bỏ Qua Bot", "      Ignore Bots"), ExpandHandle = "ModMenu_AT_Sniper_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSniperIgBot end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSniperIgBot = v return true end },
+            { Key = "ModMenu_AT_Sniper_Vis", UI = AliasMap.Switcher, Text = T("      Check Tường (VisCheck)", "      Visibility Check"), ExpandHandle = "ModMenu_AT_Sniper_Ex", GetFunc = function() return _G.LexusConfig.AimTouchSniperVisCheck end, SetFunc = function(c,v) _G.LexusConfig.AimTouchSniperVisCheck = v return true end },
+            { Key = "ModMenu_AT_Sniper_Prio", UI = AliasMap.Slider, Text = T("      Ưu Tiên (1:Tâm 2:Gần 3:HP)", "      Priority (1:Crosshair 2:Distance 3:HP)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperPrio or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchSniperPrio = val return true end },
+            { Key = "ModMenu_AT_Sniper_Bone", UI = AliasMap.Slider, Text = T("      Vị Trí (1:Đầu 2:Ngực 3:Bụng 4:Hông)", "      Bone (1:Head 2:Chest 3:Stomach 4:Pelvis)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 4, min = 1, max = 4, Min = 1, Max = 4, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperBone or 1 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 4 then val = 4 end; _G.LexusState.CustomTextData.AimTouchSniperBone = val return true end },
+            { Key = "ModMenu_AT_Sniper_Cond", UI = AliasMap.Slider, Text = T("      Điều Kiện (1:Bắn mới Aim, 2:Luôn Aim)", "      Trigger (1:On Fire, 2:Always)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 2, min = 1, max = 2, Min = 1, Max = 2, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperCond or 2 end, SetFunc = function(c,v) local val = math.floor(v+0.5); if val < 1 then val = 1 end; if val > 2 then val = 2 end; _G.LexusState.CustomTextData.AimTouchSniperCond = val return true end },
+            { Key = "ModMenu_AT_Sniper_Spd", UI = AliasMap.Slider, Text = T("      Độ Mượt / Tốc Độ (1-100)", "      Smoothness / Speed (1-100)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperSpeed or 30 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSniperSpeed = v return true end },
+            { Key = "ModMenu_AT_Sniper_Dist", UI = AliasMap.Slider, Text = T("      Khoảng Cách (1-500m)", "      Distance Limit (1-500m)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.LexusState.CustomTextData.AimTouchSniperDist or 400) / 5) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSniperDist = v * 5 return true end },
+            { Key = "ModMenu_AT_Sniper_Pred", UI = AliasMap.Slider, Text = T("      Dự Đoán Hướng Chạy (0-100)", "      Prediction Value (0-100)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperPred or 0 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSniperPred = v return true end },
+            { Key = "ModMenu_AT_Sniper_FOV", UI = AliasMap.Slider, Text = T("      Vòng FOV (1-100)", "      FOV Radius (1-100)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperFOV or 20 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSniperFOV = v return true end },
+            { Key = "ModMenu_AT_Sniper_FOVColor", UI = AliasMap.Slider, Text = T("      Màu Vòng FOV Ngắm/Tỉa (1-7)", "      Circle Color (1-7)"), ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 7, min = 1, max = 7, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchSniperFOVColor or 4 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchSniperFOVColor = v return true end },
 
-            -- AIMBOT SÃNG Cá»I (MORTAR)
-            { Key = "ModMenu_AT_Mortar_Ex", UI = AliasMap.TitleSwitcher, Text = T("   â¶ Aimbot SÃºng Cá»i (Mortar)", "   â¶ Mortar Aimbot"), ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchMortar end, SetFunc = function(c,v) _G.LexusConfig.AimTouchMortar = v return true end },
-            { Key = "ModMenu_AT_Mortar_Pred", UI = AliasMap.Slider, Text = T("      Dá»± ÄoÃ¡n HÆ°á»ng Cháº¡y (0-100)", "      Prediction Value (0-100)"), ExpandHandle = "ModMenu_AT_Mortar_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchMortarPred or 0 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchMortarPred = v return true end },
-            { Key = "ModMenu_AT_Mortar_FOV", UI = AliasMap.Slider, Text = T("      VÃ²ng FOV (1-360)", "      FOV Radius (1-360)"), ExpandHandle = "ModMenu_AT_Mortar_Ex", MinValue = 1, MaxValue = 360, min = 1, max = 360, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchMortarFOV or 360 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchMortarFOV = v return true end },
-            { Key = "ModMenu_AT_Mortar_FOVColor", UI = AliasMap.Slider, Text = T("      MÃ u VÃ²ng FOV Cá»i (1-7)", "      Circle Color (1-7)"), ExpandHandle = "ModMenu_AT_Mortar_Ex", MinValue = 1, MaxValue = 7, min = 1, max = 7, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchMortarFOVColor or 5 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchMortarFOVColor = v return true end }
+            -- AIMBOT SÚNG CỐI (MORTAR)
+            { Key = "ModMenu_AT_Mortar_Ex", UI = AliasMap.TitleSwitcher, Text = T("   ▶ Aimbot Súng Cối (Mortar)", "   ▶ Mortar Aimbot"), ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.AimTouchMortar end, SetFunc = function(c,v) _G.LexusConfig.AimTouchMortar = v return true end },
+            { Key = "ModMenu_AT_Mortar_Pred", UI = AliasMap.Slider, Text = T("      Dự Đoán Hướng Chạy (0-100)", "      Prediction Value (0-100)"), ExpandHandle = "ModMenu_AT_Mortar_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchMortarPred or 0 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchMortarPred = v return true end },
+            { Key = "ModMenu_AT_Mortar_FOV", UI = AliasMap.Slider, Text = T("      Vòng FOV (1-360)", "      FOV Radius (1-360)"), ExpandHandle = "ModMenu_AT_Mortar_Ex", MinValue = 1, MaxValue = 360, min = 1, max = 360, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchMortarFOV or 360 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchMortarFOV = v return true end },
+            { Key = "ModMenu_AT_Mortar_FOVColor", UI = AliasMap.Slider, Text = T("      Màu Vòng FOV Cối (1-7)", "      Circle Color (1-7)"), ExpandHandle = "ModMenu_AT_Mortar_Ex", MinValue = 1, MaxValue = 7, min = 1, max = 7, GetFunc = function() return _G.LexusState.CustomTextData.AimTouchMortarFOVColor or 5 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.AimTouchMortarFOVColor = v return true end }
         }
 
         local StackSkin = {
             
-            { Key = "ModMenu_ModEmote", UI = AliasMap.Switcher, Text = T("Má» KhÃ³a Full HÃ nh Äá»ng VIP (Emotes)", "Unlock All VIP Emotes"), GetFunc = function() return _G.LexusConfig.ModEmote end, SetFunc = function(c,v) _G.LexusConfig.ModEmote = v return true end },
-            { Key = "ModMenu_ModSkin", UI = AliasMap.Switcher, Text = T("Há» Thá»ng Mod Skin VIP (Má» tÃºi Äá» chá»n)", "VIP Mod Skin System (Open inventory)"), GetFunc = function() return _G.LexusConfig.ModSkin end, SetFunc = function(c,v) _G.LexusConfig.ModSkin = v return true end },
-            { Key = "ModMenu_SkinDeadBox", UI = AliasMap.Switcher, Text = T("Skin HÃ²m XÃ¡c (Än theo skin SÃºng/Xe)", "Deadbox Skin (Sync with Weapon)"), GetFunc = function() return _G.LexusConfig.SkinDeadBox end, SetFunc = function(c,v) _G.LexusConfig.SkinDeadBox = v return true end },
-            { Key = "ModMenu_SkinAttachment", UI = AliasMap.Switcher, Text = T("Skin Phá»¥ Kiá»n SÃºng (NÃ²ng, Tay cáº§m...)", "Weapon Attachment Skin"), GetFunc = function() return _G.LexusConfig.SkinAttachment end, SetFunc = function(c,v) _G.LexusConfig.SkinAttachment = v return true end },
+            { Key = "ModMenu_ModEmote", UI = AliasMap.Switcher, Text = T("Mở Khóa Full Hành Động VIP (Emotes)", "Unlock All VIP Emotes"), GetFunc = function() return _G.LexusConfig.ModEmote end, SetFunc = function(c,v) _G.LexusConfig.ModEmote = v return true end },
+            { Key = "ModMenu_ModSkin", UI = AliasMap.Switcher, Text = T("Hệ Thống Mod Skin VIP (Mở túi đồ chọn)", "VIP Mod Skin System (Open inventory)"), GetFunc = function() return _G.LexusConfig.ModSkin end, SetFunc = function(c,v) _G.LexusConfig.ModSkin = v return true end },
+            { Key = "ModMenu_SkinDeadBox", UI = AliasMap.Switcher, Text = T("Skin Hòm Xác (Ăn theo skin Súng/Xe)", "Deadbox Skin (Sync with Weapon)"), GetFunc = function() return _G.LexusConfig.SkinDeadBox end, SetFunc = function(c,v) _G.LexusConfig.SkinDeadBox = v return true end },
+            { Key = "ModMenu_SkinAttachment", UI = AliasMap.Switcher, Text = T("Skin Phụ Kiện Súng (Nòng, Tay cầm...)", "Weapon Attachment Skin"), GetFunc = function() return _G.LexusConfig.SkinAttachment end, SetFunc = function(c,v) _G.LexusConfig.SkinAttachment = v return true end },
             { Key = "ModMenu_KillMessage", UI = AliasMap.Switcher, Text = T("Kill Messenger VIP", "VIP Kill Messenger"), GetFunc = function() return _G.LexusConfig.KillMessage end, SetFunc = function(c,v) _G.LexusConfig.KillMessage = v return true end },
-            { Key = "ModMenu_KillCountUI", UI = AliasMap.Switcher, Text = T("Bá» Äáº¿m Kill (Hiá»n thá» sá» Kill vÅ© khÃ­)", "Kill Counter UI"), GetFunc = function() return _G.LexusConfig.KillCountUI end, SetFunc = function(c,v) _G.LexusConfig.KillCountUI = v return true end },
-            { Key = "ModMenu_SkinOpenLink", UI = AliasMap.Switcher, Text = T("HÆ°á»ng Dáº«n Mod Skin MÅ©/Balo (Link)", "Mod Skin Guide (Link)"), GetFunc = function() return _G.LexusConfig.SkinOpenLink end, SetFunc = function(c,v) _G.LexusConfig.SkinOpenLink = v; if v == true then pcall(function() local Web = require("client.slua.logic.url.logic_webview_sdk"); if Web and Web.OpenURL then Web:OpenURL("https://t.me/dung0610") end end) end return true end },
+            { Key = "ModMenu_KillCountUI", UI = AliasMap.Switcher, Text = T("Bộ Đếm Kill (Hiển thị số Kill vũ khí)", "Kill Counter UI"), GetFunc = function() return _G.LexusConfig.KillCountUI end, SetFunc = function(c,v) _G.LexusConfig.KillCountUI = v return true end },
+            { Key = "ModMenu_SkinOpenLink", UI = AliasMap.Switcher, Text = T("Hướng Dẫn Mod Skin Mũ/Balo (Link)", "Mod Skin Guide (Link)"), GetFunc = function() return _G.LexusConfig.SkinOpenLink end, SetFunc = function(c,v) _G.LexusConfig.SkinOpenLink = v; if v == true then pcall(function() local Web = require("client.slua.logic.url.logic_webview_sdk"); if Web and Web.OpenURL then Web:OpenURL("https://t.me/dung0610") end end) end return true end },
         }
 
         local StackCombat = {
-            { Key = "ModMenu_FakeHWID", UI = AliasMap.Switcher, Text = T("Äá»i HWID áº¢o (Chá»ng Ghim ID Thiáº¿t Bá»)", "Fake HWID (Anti-Ban)"), GetFunc = function() return _G.LexusConfig.FakeHWID end, SetFunc = function(c,v) _G.LexusConfig.FakeHWID = v return true end },
+            { Key = "ModMenu_FakeHWID", UI = AliasMap.Switcher, Text = T("Đổi HWID Ảo (Chống Ghim ID Thiết Bị)", "Fake HWID (Anti-Ban)"), GetFunc = function() return _G.LexusConfig.FakeHWID end, SetFunc = function(c,v) _G.LexusConfig.FakeHWID = v return true end },
             
-            { Key = "ModMenu_Ipad_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Ipad View", "â¶ Ipad View"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.IpadView end, SetFunc = function(c,v) _G.LexusConfig.IpadView = v return true end },
-            { Key = "ModMenu_Ipad_FOV", UI = AliasMap.Slider, Text = T("   GÃ³c NhÃ¬n FOV", "   FOV Value"), ExpandHandle = "ModMenu_Ipad_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return (_G.LexusState.CustomTextData.IpadViewFOV or 120) - 90 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.IpadViewFOV = 90 + v return true end },
+            { Key = "ModMenu_Ipad_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Ipad View", "▶ Ipad View"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.IpadView end, SetFunc = function(c,v) _G.LexusConfig.IpadView = v return true end },
+            { Key = "ModMenu_Ipad_FOV", UI = AliasMap.Slider, Text = T("   Góc Nhìn FOV", "   FOV Value"), ExpandHandle = "ModMenu_Ipad_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return (_G.LexusState.CustomTextData.IpadViewFOV or 120) - 90 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.IpadViewFOV = 90 + v return true end },
 
-            { Key = "ModMenu_IpadVeh_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Ipad View LÃ¡i Xe", "â¶ Ipad View Vehicle"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.IpadViewVehicle end, SetFunc = function(c,v) _G.LexusConfig.IpadViewVehicle = v return true end },
-            { Key = "ModMenu_IpadVeh_FOV", UI = AliasMap.Slider, Text = T("   FOV Khi LÃ¡i Xe", "   Vehicle FOV Value"), ExpandHandle = "ModMenu_IpadVeh_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return (_G.LexusState.CustomTextData.IpadViewVehicleFOV or 120) - 90 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.IpadViewVehicleFOV = 90 + v return true end },
+            { Key = "ModMenu_IpadVeh_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Ipad View Lái Xe", "▶ Ipad View Vehicle"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.IpadViewVehicle end, SetFunc = function(c,v) _G.LexusConfig.IpadViewVehicle = v return true end },
+            { Key = "ModMenu_IpadVeh_FOV", UI = AliasMap.Slider, Text = T("   FOV Khi Lái Xe", "   Vehicle FOV Value"), ExpandHandle = "ModMenu_IpadVeh_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return (_G.LexusState.CustomTextData.IpadViewVehicleFOV or 120) - 90 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.IpadViewVehicleFOV = 90 + v return true end },
 
-            { Key = "ModMenu_IpadScope_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Ipad View Khi Má» Scope", "â¶ Ipad View Scope"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.IpadViewScope end, SetFunc = function(c,v) _G.LexusConfig.IpadViewScope = v return true end },
-            { Key = "ModMenu_IpadScope_FOV", UI = AliasMap.Slider, Text = T("   FOV Khi Má» Scope (30-120)", "   Scope FOV (30-120)"), ExpandHandle = "ModMenu_IpadScope_Ex", MinValue = 30, MaxValue = 120, min = 30, max = 120, GetFunc = function() return _G.LexusState.CustomTextData.IpadViewScopeFOV or 60 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.IpadViewScopeFOV = v return true end },
+            { Key = "ModMenu_IpadScope_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Ipad View Khi Mở Scope", "▶ Ipad View Scope"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.IpadViewScope end, SetFunc = function(c,v) _G.LexusConfig.IpadViewScope = v return true end },
+            { Key = "ModMenu_IpadScope_FOV", UI = AliasMap.Slider, Text = T("   FOV Khi Mở Scope (30-120)", "   Scope FOV (30-120)"), ExpandHandle = "ModMenu_IpadScope_Ex", MinValue = 30, MaxValue = 120, min = 30, max = 120, GetFunc = function() return _G.LexusState.CustomTextData.IpadViewScopeFOV or 60 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.IpadViewScopeFOV = v return true end },
 
-            { Key = "ModMenu_BugMan_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ KÃ©o DÃ£n MÃ n HÃ¬nh (NhÃ¢n Váº­t Máº­p)", "â¶ Screen Stretch (Fat Body)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.BugManEnable end, SetFunc = function(c,v) _G.LexusConfig.BugManEnable = v return true end },
-            { Key = "ModMenu_BugMan_Ratio", UI = AliasMap.Slider, Text = T("   Äá» KÃ©o DÃ£n", "   Stretch Ratio"), ExpandHandle = "ModMenu_BugMan_Ex", MinValue = 110, MaxValue = 200, min = 110, max = 200, GetFunc = function() return _G.LexusState.CustomTextData.BugManRatio or 133 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.BugManRatio = v return true end },
+            { Key = "ModMenu_BugMan_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Kéo Dãn Màn Hình (Nhân Vật Mập)", "▶ Screen Stretch (Fat Body)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.BugManEnable end, SetFunc = function(c,v) _G.LexusConfig.BugManEnable = v return true end },
+            { Key = "ModMenu_BugMan_Ratio", UI = AliasMap.Slider, Text = T("   Độ Kéo Dãn", "   Stretch Ratio"), ExpandHandle = "ModMenu_BugMan_Ex", MinValue = 110, MaxValue = 200, min = 110, max = 200, GetFunc = function() return _G.LexusState.CustomTextData.BugManRatio or 133 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.BugManRatio = v return true end },
 
-            { Key = "ModMenu_165FPS", UI = AliasMap.Switcher, Text = T("Má» KhÃ³a 165 FPS", "Unlock 165 FPS"), GetFunc = function() return _G.LexusConfig.UnlockFPS end, SetFunc = function(c,v) _G.LexusConfig.UnlockFPS = v; if v then _G.LexusState.GraphicsUnlocked = false end return true end },
+            { Key = "ModMenu_165FPS", UI = AliasMap.Switcher, Text = T("Mở Khóa 165 FPS", "Unlock 165 FPS"), GetFunc = function() return _G.LexusConfig.UnlockFPS end, SetFunc = function(c,v) _G.LexusConfig.UnlockFPS = v; if v then _G.LexusState.GraphicsUnlocked = false end return true end },
             
-            { Key = "ModMenu_WallXuyenTuong", UI = AliasMap.Switcher, Text = T("Wall XuyÃªn TÆ°á»ng V1 (Chá» nhÃ¬n xuyÃªn)", "Wallhack V1 (See through)"), GetFunc = function() return _G.LexusConfig.WallXuyenTuong end, SetFunc = function(c,v) _G.LexusConfig.WallXuyenTuong = v return true end },
-            { Key = "ModMenu_ColorBodyV2", UI = AliasMap.Switcher, Text = T("TÃ´ MÃ u Äá»ch V2 (Chams CÆ¡ Báº£n)", "Chams V2 (Basic Color)"), GetFunc = function() return _G.LexusConfig.ColorBodyV2 end, SetFunc = function(c,v) _G.LexusConfig.ColorBodyV2 = v return true end },
-            { Key = "ModMenu_ColorBodyNew", UI = AliasMap.Switcher, Text = T("WALL MÃU NEW (Xanh/Äá» SÃ¡ng Engine)", "NEW ENGINE CHAMS (Red/Green)"), GetFunc = function() return _G.LexusConfig.ColorBodyNew end, SetFunc = function(c,v) _G.LexusConfig.ColorBodyNew = v return true end },
-            { Key = "ModMenu_ColorBodyV3_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ WALL V2 + MÃU V3 (TÃ¹y Chá»nh MÃ u)", "â¶ WALL V2 + CHAMS V3 (Custom)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.ColorBodyV3 end, SetFunc = function(c,v) _G.LexusConfig.ColorBodyV3 = v return true end },
-            { Key = "ModMenu_V3_Hidden", UI = AliasMap.Slider, Text = T("   MÃ u Sau TÆ°á»ng (1:Äá» 2:Lá»¥c 3:Lam 4:VÃ ng 5:TÃ­m 6:Tráº¯ng)", "   Hidden Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Pur 6:Wht)"), ExpandHandle = "ModMenu_ColorBodyV3_Ex", MinValue = 1, MaxValue = 6, GetFunc = function() return _G.LexusState.CustomTextData.ColorV3Hidden or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.ColorV3Hidden = v return true end },
-            { Key = "ModMenu_V3_Vis", UI = AliasMap.Slider, Text = T("   MÃ u Lá» Diá»n (1:Äá» 2:Lá»¥c 3:Lam 4:VÃ ng 5:TÃ­m 6:Tráº¯ng)", "   Visible Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Pur 6:Wht)"), ExpandHandle = "ModMenu_ColorBodyV3_Ex", MinValue = 1, MaxValue = 6, GetFunc = function() return _G.LexusState.CustomTextData.ColorV3Visible or 2 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.ColorV3Visible = v return true end },
-            { Key = "ModMenu_V3_Thick", UI = AliasMap.Slider, Text = T("   Äá» DÃ y Viá»n HDR Lá» Diá»n", "   HDR Outline Thickness"), ExpandHandle = "ModMenu_ColorBodyV3_Ex", MinValue = 1, MaxValue = 20, GetFunc = function() return _G.LexusState.CustomTextData.ColorV3Thickness or 4 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.ColorV3Thickness = v return true end },
+            { Key = "ModMenu_WallXuyenTuong", UI = AliasMap.Switcher, Text = T("Wall Xuyên Tường V1 (Chỉ nhìn xuyên)", "Wallhack V1 (See through)"), GetFunc = function() return _G.LexusConfig.WallXuyenTuong end, SetFunc = function(c,v) _G.LexusConfig.WallXuyenTuong = v return true end },
+            { Key = "ModMenu_ColorBodyV2", UI = AliasMap.Switcher, Text = T("Tô Màu Địch V2 (Chams Cơ Bản)", "Chams V2 (Basic Color)"), GetFunc = function() return _G.LexusConfig.ColorBodyV2 end, SetFunc = function(c,v) _G.LexusConfig.ColorBodyV2 = v return true end },
+            { Key = "ModMenu_ColorBodyNew", UI = AliasMap.Switcher, Text = T("WALL MÀU NEW (Xanh/Đỏ Sáng Engine)", "NEW ENGINE CHAMS (Red/Green)"), GetFunc = function() return _G.LexusConfig.ColorBodyNew end, SetFunc = function(c,v) _G.LexusConfig.ColorBodyNew = v return true end },
+            { Key = "ModMenu_ColorBodyV3_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ WALL V2 + MÀU V3 (Tùy Chỉnh Màu)", "▶ WALL V2 + CHAMS V3 (Custom)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.ColorBodyV3 end, SetFunc = function(c,v) _G.LexusConfig.ColorBodyV3 = v return true end },
+            { Key = "ModMenu_V3_Hidden", UI = AliasMap.Slider, Text = T("   Màu Sau Tường (1:Đỏ 2:Lục 3:Lam 4:Vàng 5:Tím 6:Trắng)", "   Hidden Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Pur 6:Wht)"), ExpandHandle = "ModMenu_ColorBodyV3_Ex", MinValue = 1, MaxValue = 6, GetFunc = function() return _G.LexusState.CustomTextData.ColorV3Hidden or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.ColorV3Hidden = v return true end },
+            { Key = "ModMenu_V3_Vis", UI = AliasMap.Slider, Text = T("   Màu Lộ Diện (1:Đỏ 2:Lục 3:Lam 4:Vàng 5:Tím 6:Trắng)", "   Visible Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Pur 6:Wht)"), ExpandHandle = "ModMenu_ColorBodyV3_Ex", MinValue = 1, MaxValue = 6, GetFunc = function() return _G.LexusState.CustomTextData.ColorV3Visible or 2 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.ColorV3Visible = v return true end },
+            { Key = "ModMenu_V3_Thick", UI = AliasMap.Slider, Text = T("   Độ Dày Viền HDR Lộ Diện", "   HDR Outline Thickness"), ExpandHandle = "ModMenu_ColorBodyV3_Ex", MinValue = 1, MaxValue = 20, GetFunc = function() return _G.LexusState.CustomTextData.ColorV3Thickness or 4 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.ColorV3Thickness = v return true end },
             
-            { Key = "ModMenu_WallVehicle", UI = AliasMap.Switcher, Text = T("Wall PhÆ°Æ¡ng Tiá»n", "Vehicle Wallhack"), GetFunc = function() return _G.LexusConfig.WallVehicle end, SetFunc = function(c,v) _G.LexusConfig.WallVehicle = v return true end },
+            { Key = "ModMenu_WallVehicle", UI = AliasMap.Switcher, Text = T("Wall Phương Tiện", "Vehicle Wallhack"), GetFunc = function() return _G.LexusConfig.WallVehicle end, SetFunc = function(c,v) _G.LexusConfig.WallVehicle = v return true end },
 
-            { Key = "ModMenu_WhiteBody", UI = AliasMap.Switcher, Text = T("NgÆ°á»i Tráº¯ng", "White Body"), GetFunc = function() return _G.LexusConfig.WhiteBody end, SetFunc = function(c,v) _G.LexusConfig.WhiteBody = v return true end },
-            { Key = "ModMenu_BlackSky", UI = AliasMap.Switcher, Text = T("Trá»i Tá»i (Black Sky)", "Black Sky"), GetFunc = function() return _G.LexusConfig.BlackSky end, SetFunc = function(c,v) _G.LexusConfig.BlackSky = v return true end },
-            { Key = "ModMenu_RemoveFog", UI = AliasMap.Switcher, Text = T("XÃ³a SÆ°Æ¡ng MÃ¹", "Remove Fog"), GetFunc = function() return _G.LexusConfig.RemoveFog end, SetFunc = function(c,v) _G.LexusConfig.RemoveFog = v return true end },
-            { Key = "ModMenu_RemoveGrass", UI = AliasMap.Switcher, Text = T("XÃ³a Cá»", "Remove Grass"), GetFunc = function() return _G.LexusConfig.RemoveGrass end, SetFunc = function(c,v) _G.LexusConfig.RemoveGrass = v return true end },
-            { Key = "ModMenu_RemoveTrees", UI = AliasMap.Switcher, Text = T("XÃ³a CÃ¢y", "Remove Trees"), GetFunc = function() return _G.LexusConfig.RemoveTrees end, SetFunc = function(c,v) _G.LexusConfig.RemoveTrees = v return true end },
-            { Key = "ModMenu_WallClimb", UI = AliasMap.Switcher, Text = T("Leo TÆ°á»ng", "Wall Climb"), GetFunc = function() return _G.LexusConfig.WallClimb end, SetFunc = function(c,v) _G.LexusConfig.WallClimb = v return true end },
-            { Key = "ModMenu_FastCar_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Xe Nhanh Bay", "â¶ Fast Car / Flying Car"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.FastCar end, SetFunc = function(c,v) _G.LexusConfig.FastCar = v return true end },
-            { Key = "ModMenu_FastCar_Speed", UI = AliasMap.Slider, Text = T("   Tá»c Äá» Xe Má»©c (1-100)", "   Car Speed Limit (1-100)"), ExpandHandle = "ModMenu_FastCar_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.LexusState.CustomTextData.FastCarSpeed or 3000) / 60) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.FastCarSpeed = v * 60 return true end },
+            { Key = "ModMenu_WhiteBody", UI = AliasMap.Switcher, Text = T("Người Trắng", "White Body"), GetFunc = function() return _G.LexusConfig.WhiteBody end, SetFunc = function(c,v) _G.LexusConfig.WhiteBody = v return true end },
+            { Key = "ModMenu_BlackSky", UI = AliasMap.Switcher, Text = T("Trời Tối (Black Sky)", "Black Sky"), GetFunc = function() return _G.LexusConfig.BlackSky end, SetFunc = function(c,v) _G.LexusConfig.BlackSky = v return true end },
+            { Key = "ModMenu_RemoveFog", UI = AliasMap.Switcher, Text = T("Xóa Sương Mù", "Remove Fog"), GetFunc = function() return _G.LexusConfig.RemoveFog end, SetFunc = function(c,v) _G.LexusConfig.RemoveFog = v return true end },
+            { Key = "ModMenu_RemoveGrass", UI = AliasMap.Switcher, Text = T("Xóa Cỏ", "Remove Grass"), GetFunc = function() return _G.LexusConfig.RemoveGrass end, SetFunc = function(c,v) _G.LexusConfig.RemoveGrass = v return true end },
+            { Key = "ModMenu_RemoveTrees", UI = AliasMap.Switcher, Text = T("Xóa Cây", "Remove Trees"), GetFunc = function() return _G.LexusConfig.RemoveTrees end, SetFunc = function(c,v) _G.LexusConfig.RemoveTrees = v return true end },
+            { Key = "ModMenu_WallClimb", UI = AliasMap.Switcher, Text = T("Leo Tường", "Wall Climb"), GetFunc = function() return _G.LexusConfig.WallClimb end, SetFunc = function(c,v) _G.LexusConfig.WallClimb = v return true end },
+            { Key = "ModMenu_FastCar_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Xe Nhanh Bay", "▶ Fast Car / Flying Car"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.FastCar end, SetFunc = function(c,v) _G.LexusConfig.FastCar = v return true end },
+            { Key = "ModMenu_FastCar_Speed", UI = AliasMap.Slider, Text = T("   Tốc Độ Xe Mức (1-100)", "   Car Speed Limit (1-100)"), ExpandHandle = "ModMenu_FastCar_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.LexusState.CustomTextData.FastCarSpeed or 3000) / 60) end, SetFunc = function(c,v) _G.LexusState.CustomTextData.FastCarSpeed = v * 60 return true end },
 
-            { Key = "ModMenu_WeaponGlow_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ Glow Viá»n SÃºng (PhÃ¡t sÃ¡ng HDR)", "â¶ Weapon Glow (HDR)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.WeaponGlow end, SetFunc = function(c,v) _G.LexusConfig.WeaponGlow = v return true end },
-            { Key = "ModMenu_WeaponGlowColor", UI = AliasMap.Slider, Text = T("   MÃ u SÃºng (1:Äá» 2:Lá»¥c 3:Lam 4:VÃ ng 5:Rainbow)", "   Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Rnb)"), ExpandHandle = "ModMenu_WeaponGlow_Ex", MinValue = 1, MaxValue = 5, GetFunc = function() return _G.LexusState.CustomTextData.WeaponGlowColor or 5 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.WeaponGlowColor = v return true end },
-            { Key = "ModMenu_WeaponGlowThick", UI = AliasMap.Slider, Text = T("   Äá» DÃ y Viá»n SÃºng", "   Glow Thickness"), ExpandHandle = "ModMenu_WeaponGlow_Ex", MinValue = 1, MaxValue = 15, GetFunc = function() return _G.LexusState.CustomTextData.WeaponGlowThickness or 3 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.WeaponGlowThickness = v return true end }
+            { Key = "ModMenu_WeaponGlow_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Glow Viền Súng (Phát sáng HDR)", "▶ Weapon Glow (HDR)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.WeaponGlow end, SetFunc = function(c,v) _G.LexusConfig.WeaponGlow = v return true end },
+            { Key = "ModMenu_WeaponGlowColor", UI = AliasMap.Slider, Text = T("   Màu Súng (1:Đỏ 2:Lục 3:Lam 4:Vàng 5:Rainbow)", "   Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Rnb)"), ExpandHandle = "ModMenu_WeaponGlow_Ex", MinValue = 1, MaxValue = 5, GetFunc = function() return _G.LexusState.CustomTextData.WeaponGlowColor or 5 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.WeaponGlowColor = v return true end },
+            { Key = "ModMenu_WeaponGlowThick", UI = AliasMap.Slider, Text = T("   Độ Dày Viền Súng", "   Glow Thickness"), ExpandHandle = "ModMenu_WeaponGlow_Ex", MinValue = 1, MaxValue = 15, GetFunc = function() return _G.LexusState.CustomTextData.WeaponGlowThickness or 3 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.WeaponGlowThickness = v return true end }
         }
 
         local StackESPV2 = {
-            { Key = "ModMenu_ESP9_Ex", UI = AliasMap.TitleSwitcher, Text = T("â¶ ESP VIP (RedBox & Marker ThÆ°á»£ng Äá»nh)", "â¶ ESP VIP (RedBox & Marker)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspLoai9 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai9 = v return true end },
-            { Key = "ModMenu_ESP9_Count", UI = AliasMap.Switcher, Text = T("   Hiá»n Báº£ng Äáº¿m NgÆ°á»i", "   Show Player Count"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_Count end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Count = v return true end },
-            { Key = "ModMenu_ESP9_Name", UI = AliasMap.Switcher, Text = T("   Hiá»n TÃªn NgÆ°á»i ChÆ¡i", "   Show Player Name"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_Name end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Name = v return true end },
-            { Key = "ModMenu_ESP9_Dist", UI = AliasMap.Switcher, Text = T("   Hiá»n Khoáº£ng CÃ¡ch", "   Show Distance"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_Distance end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Distance = v return true end },
-            { Key = "ModMenu_ESP9_HP", UI = AliasMap.Switcher, Text = T("   Hiá»n Thanh MÃ¡u", "   Show Health Bar"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_HP end, SetFunc = function(c,v) _G.LexusConfig.Esp9_HP = v return true end },
-            { Key = "ModMenu_ESP9_Team", UI = AliasMap.Switcher, Text = T("   Hiá»n Khung MÃ u Team", "   Show Team Color Box"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_Team end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Team = v return true end },
-            { Key = "ModMenu_ESP9_Weapon", UI = AliasMap.Switcher, Text = T("   Hiá»n Icon SÃºng", "   Show Weapon Icon"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_Weapon end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Weapon = v return true end },
+            { Key = "ModMenu_ESP9_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP VIP (RedBox & Marker Thượng Đỉnh)", "▶ ESP VIP (RedBox & Marker)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspLoai9 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai9 = v return true end },
+            { Key = "ModMenu_ESP9_Count", UI = AliasMap.Switcher, Text = T("   Hiện Bảng Đếm Người", "   Show Player Count"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_Count end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Count = v return true end },
+            { Key = "ModMenu_ESP9_Name", UI = AliasMap.Switcher, Text = T("   Hiện Tên Người Chơi", "   Show Player Name"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_Name end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Name = v return true end },
+            { Key = "ModMenu_ESP9_Dist", UI = AliasMap.Switcher, Text = T("   Hiện Khoảng Cách", "   Show Distance"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_Distance end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Distance = v return true end },
+            { Key = "ModMenu_ESP9_HP", UI = AliasMap.Switcher, Text = T("   Hiện Thanh Máu", "   Show Health Bar"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_HP end, SetFunc = function(c,v) _G.LexusConfig.Esp9_HP = v return true end },
+            { Key = "ModMenu_ESP9_Team", UI = AliasMap.Switcher, Text = T("   Hiện Khung Màu Team", "   Show Team Color Box"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_Team end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Team = v return true end },
+            { Key = "ModMenu_ESP9_Weapon", UI = AliasMap.Switcher, Text = T("   Hiện Icon Súng", "   Show Weapon Icon"), ExpandHandle = "ModMenu_ESP9_Ex", GetFunc = function() return _G.LexusConfig.Esp9_Weapon end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Weapon = v return true end },
             
-            { Key = "ModMenu_ESP9_Line", UI = AliasMap.TitleSwitcher, Text = T("   â¶ Hiá»n DÃ¢y Ná»i (Snapline)", "   â¶ Show Snapline"), ExpandHandle = "ModMenu_ESP9_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.Esp9_Line end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Line = v return true end },
-            { Key = "ModMenu_ESP9_Line_Thick", UI = AliasMap.Slider, Text = T("      Äá» DÃ y DÃ¢y Ná»i", "      Line Thickness"), ExpandHandle = "ModMenu_ESP9_Line", MinValue = 1, MaxValue = 10, min = 1, max = 10, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_LineThick or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_LineThick = v return true end },
-            { Key = "ModMenu_ESP9_Line_VisColor", UI = AliasMap.Slider, Text = T("      MÃ u Lá» Diá»n (1-30 Báº£ng MÃ u TÃ¹y Chá»n)", "      Visible Color (1-30)"), ExpandHandle = "ModMenu_ESP9_Line", MinValue = 1, MaxValue = 30, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_LineVisColor or 2 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_LineVisColor = v return true end },
-            { Key = "ModMenu_ESP9_Line_HidColor", UI = AliasMap.Slider, Text = T("      MÃ u Sau TÆ°á»ng (1-30 Báº£ng MÃ u TÃ¹y Chá»n)", "      Hidden Color (1-30)"), ExpandHandle = "ModMenu_ESP9_Line", MinValue = 1, MaxValue = 30, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_LineHidColor or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_LineHidColor = v return true end },
+            { Key = "ModMenu_ESP9_Line", UI = AliasMap.TitleSwitcher, Text = T("   ▶ Hiện Dây Nối (Snapline)", "   ▶ Show Snapline"), ExpandHandle = "ModMenu_ESP9_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.Esp9_Line end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Line = v return true end },
+            { Key = "ModMenu_ESP9_Line_Thick", UI = AliasMap.Slider, Text = T("      Độ Dày Dây Nối", "      Line Thickness"), ExpandHandle = "ModMenu_ESP9_Line", MinValue = 1, MaxValue = 10, min = 1, max = 10, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_LineThick or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_LineThick = v return true end },
+            { Key = "ModMenu_ESP9_Line_VisColor", UI = AliasMap.Slider, Text = T("      Màu Lộ Diện (1-30 Bảng Màu Tùy Chọn)", "      Visible Color (1-30)"), ExpandHandle = "ModMenu_ESP9_Line", MinValue = 1, MaxValue = 30, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_LineVisColor or 2 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_LineVisColor = v return true end },
+            { Key = "ModMenu_ESP9_Line_HidColor", UI = AliasMap.Slider, Text = T("      Màu Sau Tường (1-30 Bảng Màu Tùy Chọn)", "      Hidden Color (1-30)"), ExpandHandle = "ModMenu_ESP9_Line", MinValue = 1, MaxValue = 30, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_LineHidColor or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_LineHidColor = v return true end },
 
-            { Key = "ModMenu_ESP9_Skeleton", UI = AliasMap.TitleSwitcher, Text = T("   â¶ Hiá»n Khung XÆ°Æ¡ng (CÃ³ Thá» GÃ¢y Lag)", "   â¶ Show Skeleton"), ExpandHandle = "ModMenu_ESP9_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.Esp9_Skeleton end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Skeleton = v return true end },
-            { Key = "ModMenu_ESP9_Skel_Thick", UI = AliasMap.Slider, Text = T("      Äá» DÃ y Khung XÆ°Æ¡ng", "      Skeleton Thickness"), ExpandHandle = "ModMenu_ESP9_Skeleton", MinValue = 1, MaxValue = 10, min = 1, max = 10, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_SkelThick or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_SkelThick = v return true end },
-            { Key = "ModMenu_ESP9_Skel_VisColor", UI = AliasMap.Slider, Text = T("      MÃ u Lá» Diá»n (1-30 Báº£ng MÃ u TÃ¹y Chá»n)", "      Visible Color (1-30)"), ExpandHandle = "ModMenu_ESP9_Skeleton", MinValue = 1, MaxValue = 30, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_SkelVisColor or 2 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_SkelVisColor = v return true end },
-            { Key = "ModMenu_ESP9_Skel_HidColor", UI = AliasMap.Slider, Text = T("      MÃ u Sau TÆ°á»ng (1-30 Báº£ng MÃ u TÃ¹y Chá»n)", "      Hidden Color (1-30)"), ExpandHandle = "ModMenu_ESP9_Skeleton", MinValue = 1, MaxValue = 30, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_SkelHidColor or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_SkelHidColor = v return true end }
+            { Key = "ModMenu_ESP9_Skeleton", UI = AliasMap.TitleSwitcher, Text = T("   ▶ Hiện Khung Xương (Có Thể Gây Lag)", "   ▶ Show Skeleton"), ExpandHandle = "ModMenu_ESP9_Ex", ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.Esp9_Skeleton end, SetFunc = function(c,v) _G.LexusConfig.Esp9_Skeleton = v return true end },
+            { Key = "ModMenu_ESP9_Skel_Thick", UI = AliasMap.Slider, Text = T("      Độ Dày Khung Xương", "      Skeleton Thickness"), ExpandHandle = "ModMenu_ESP9_Skeleton", MinValue = 1, MaxValue = 10, min = 1, max = 10, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_SkelThick or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_SkelThick = v return true end },
+            { Key = "ModMenu_ESP9_Skel_VisColor", UI = AliasMap.Slider, Text = T("      Màu Lộ Diện (1-30 Bảng Màu Tùy Chọn)", "      Visible Color (1-30)"), ExpandHandle = "ModMenu_ESP9_Skeleton", MinValue = 1, MaxValue = 30, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_SkelVisColor or 2 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_SkelVisColor = v return true end },
+            { Key = "ModMenu_ESP9_Skel_HidColor", UI = AliasMap.Slider, Text = T("      Màu Sau Tường (1-30 Bảng Màu Tùy Chọn)", "      Hidden Color (1-30)"), ExpandHandle = "ModMenu_ESP9_Skeleton", MinValue = 1, MaxValue = 30, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_SkelHidColor or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_SkelHidColor = v return true end }
         }
 
-        -- Khá»i táº¡o danh má»¥c Menu cÆ¡ báº£n
+        -- Khởi tạo danh mục Menu cơ bản
         local menuCategories = {
             { Key = "Cat_ESP", Text = 999001, Stack = StackESP },
             { Key = "Cat_Aimbot", Text = 999002, Stack = StackAimbot },
@@ -1382,12 +1382,12 @@ function _G.InitModMenuTab()
             { Key = "Cat_Combat", Text = 999004, Stack = StackCombat }
         }
         
-        -- Chá» thÃªm Tab ESP V2 náº¿u ÄÆ°á»£c cho phÃ©p táº£i
+        -- Chỉ thêm Tab ESP V2 nếu được cho phép tải
         if _G.EnableLogicESPV2 then
             table.insert(menuCategories, 2, { Key = "Cat_ESPV2", Text = 999006, Stack = StackESPV2 })
         end
         
-        -- Chá» thÃªm Tab Mod Skin náº¿u ÄÆ°á»£c cho phÃ©p táº£i
+        -- Chỉ thêm Tab Mod Skin nếu được cho phép tải
         if _G.EnableLogicModSkin then
             table.insert(menuCategories, { Key = "Cat_Skin", Text = 999005, Stack = StackSkin })
         end
@@ -1443,12 +1443,12 @@ local function ShowLexusVIPMenu()
         if not Msg or not Msg.Show then return end
 
         local function Step_ScamAlert()
-            local title = _G.LexusLang == "EN" and "SCAM ALERT" or "Cáº¢NH BÃO SCAM MOD"
+            local title = _G.LexusLang == "EN" and "SCAM ALERT" or "CẢNH BÁO SCAM MOD"
             local content = _G.LexusLang == "EN" 
                 and "Join my Telegram to avoid scammers selling free mods. Zalo 0922520900 TELE @dung0610" 
-                or "Tham Gia Telegram TÃ´i Äá» TrÃ¡nh CÃ¡c ThÃ nh Pháº§n BÃ¡n Mod Free. Zalo 0922520900 TELE @dung0610\nÄá»T Máº¸ NHá»®NG CON CHÃ ÄN Cáº®P MOD Bá» DÅ¨NG XONG MÃA NÃY Ná» NHá»¤C CHáº¾T Máº¸ HAHAHA TAO CHá» CÃ DUY NHáº¤T 1 TÃI KHOáº¢N TELE 1 TÃI KHOáº¢N ZALO NHÃ Cáº¨N THáº¬N NHÃ"
+                or "Tham Gia Telegram Tôi Để Tránh Các Thành Phần Bán Mod Free. Zalo 0922520900 TELE @dung0610\nĐỊT MẸ NHỮNG CON CHÓ ĂN CẮP MOD BỐ DŨNG XONG MÚA NÀY NỌ NHỤC CHẾT MẸ HAHAHA TAO CHỈ CÓ DUY NHẤT 1 TÀI KHOẢN TELE 1 TÀI KHOẢN ZALO NHÉ CẨN THẬN NHÉ"
             local btn1 = _G.LexusLang == "EN" and "JOIN" or "THAM GIA"
-            local btn2 = _G.LexusLang == "EN" and "CLOSE" or "ÄÃNG"
+            local btn2 = _G.LexusLang == "EN" and "CLOSE" or "ĐÓNG"
 
             Msg.Show(1, title, content, function() local Web = require("client.slua.logic.url.logic_webview_sdk"); if Web and Web.OpenURL then Web:OpenURL("https://t.me/TV89AAsSEHYxMTE9") end end, function() end, btn1, btn2)
             _G.LexusState.MenuStep = 99
@@ -1456,12 +1456,12 @@ local function ShowLexusVIPMenu()
         end
 
         local function Step_Welcome()
-            local title = _G.LexusLang == "EN" and "WELCOME TO VIP MOD" or "CHÃO Má»ªNG MÃY"
+            local title = _G.LexusLang == "EN" and "WELCOME TO VIP MOD" or "CHÀO MỪNG MÀY"
             local content = _G.LexusLang == "EN" 
                 and "Hi, Dung here. The VIP MENU is now inside Game Settings!\nIMPORTANT: Enable fewer features to avoid lag. Play safe!" 
-                or "NÃ y Tao LÃ  DÅ©ng ÄÃ¢y. MÃ y khÃ´ng cáº§n dÃ¹ng combo hay config ngoÃ i ná»¯a vÃ¬ giá» ÄÃ£ cÃ³ MENU VIP trong CÃ i Äáº·t game!\nNHÆ¯NG MÃY HÃY NGHE TAO NÃI NÃY, Báº¬T ÃT CHá»¨C NÄNG THÃI LAG Láº®M HIá»U KHÃNG TAO Sá»¢ MÃY MÃY CHá»U ÄÃO Ná»I THÃI, Vá»I Láº I Báº®N Äá»ªNG Lá» Báº®N Ká»¸ TÃ LÃ SAFE"
-            local btn1 = _G.LexusLang == "EN" and "OPEN GAME MENU" or "Má» MENU TRONG GAME"
-            local btn2 = _G.LexusLang == "EN" and "CLOSE" or "ÄÃNG"
+                or "Này Tao Là Dũng Đây. Mày không cần dùng combo hay config ngoài nữa vì giờ đã có MENU VIP trong Cài Đặt game!\nNHƯNG MÀY HÃY NGHE TAO NÓI NÀY, BẬT ÍT CHỨC NĂNG THÔI LAG LẮM HIỂU KHÔNG TAO SỢ MÁY MÀY CHỊU ĐÉO NỔI THÔI, VỚI LẠI BẮN ĐỪNG LỘ BẮN KỸ TÍ LÀ SAFE"
+            local btn1 = _G.LexusLang == "EN" and "OPEN GAME MENU" or "MỞ MENU TRONG GAME"
+            local btn2 = _G.LexusLang == "EN" and "CLOSE" or "ĐÓNG"
 
             Msg.Show(1, title, content, 
             function() 
@@ -1469,7 +1469,7 @@ local function ShowLexusVIPMenu()
                 if _G.LexusLang == "EN" then
                     Notify("VIP MOD MENU ADDED!\nOpen Settings (Gear icon) -> VIP MOD MENU to toggle features.")
                 else
-                    Notify("ÄÃ THÃM 'VIP MOD MENU' VÃO PHáº¦N CÃI Äáº¶T Cá»¦A GAME!\nHÃ£y má» CÃ i Äáº·t (RÄng CÆ°a) -> VIP MOD MENU Äá» báº­t/táº¯t.")
+                    Notify("ĐÃ THÊM 'VIP MOD MENU' VÀO PHẦN CÀI ĐẶT CỦA GAME!\nHãy mở Cài Đặt (Răng Cưa) -> VIP MOD MENU để bật/tắt.")
                 end
                 Step_ScamAlert()
             end, 
@@ -1477,17 +1477,17 @@ local function ShowLexusVIPMenu()
         end
 
         local function Step_AskModSkin()
-            local title = _G.LexusLang == "EN" and "LOAD MOD SKIN SYSTEM?" or "Cáº¢NH BÃO: Táº¢I Há» THá»NG MOD SKIN V7.5?"
+            local title = _G.LexusLang == "EN" and "LOAD MOD SKIN SYSTEM?" or "CẢNH BÁO: TẢI HỆ THỐNG MOD SKIN V7.5?"
             local content = _G.LexusLang == "EN" 
                 and "Mod Skin is very heavy and risky. Do you want to load it into memory?" 
-                or "Há» thá»ng Mod Skin V7.5 (SÃºng, Xe, Trang Phá»¥c) ráº¥t náº·ng vÃ  lag\nBáº¡n cÃ³ muá»n náº¡p dá»¯ liá»u Skin vÃ o RAM khÃ´ng?\n(Náº¿u mÃ¡y yáº¿u sá»£ lag hÃ£y chá»n KHÃNG)"
-            local btn1 = _G.LexusLang == "EN" and "YES (LOAD)" or "CÃ (Náº P SKIN)"
-            local btn2 = _G.LexusLang == "EN" and "NO (SKIP)" or "KHÃNG (Bá» QUA)"
+                or "Hệ thống Mod Skin V7.5 (Súng, Xe, Trang Phục) rất nặng và lag\nBạn có muốn nạp dữ liệu Skin vào RAM không?\n(Nếu máy yếu sợ lag hãy chọn KHÔNG)"
+            local btn1 = _G.LexusLang == "EN" and "YES (LOAD)" or "CÓ (NẠP SKIN)"
+            local btn2 = _G.LexusLang == "EN" and "NO (SKIP)" or "KHÔNG (BỎ QUA)"
 
             Msg.Show(2, title, content,
             function()
                 _G.EnableLogicModSkin = true
-                if _G.LoadModSkinSystem then _G.LoadModSkinSystem() end -- KÃCH HOáº T NGAY Láº¬P Tá»¨C
+                if _G.LoadModSkinSystem then _G.LoadModSkinSystem() end -- KÍCH HOẠT NGAY LẬP TỨC
                 Step_Welcome()
             end,
             function()
@@ -1497,17 +1497,17 @@ local function ShowLexusVIPMenu()
         end
 
         local function Step_AskESPV2()
-            local title = _G.LexusLang == "EN" and "LOAD ESP V2 (REDBOX)?" or "Táº¢I LOGIC ESP V2 (REDBOX) KHÃNG?"
+            local title = _G.LexusLang == "EN" and "LOAD ESP V2 (REDBOX)?" or "TẢI LOGIC ESP V2 (REDBOX) KHÔNG?"
             local content = _G.LexusLang == "EN" 
                 and "ESP V2 includes Snapline, Skeleton, and RedBox. It consumes more CPU. Load it?" 
-                or "Logic ESP Loáº¡i 9 (Khung XÆ°Æ¡ng, DÃ¢y Ná»i, RedBox) cá»±c ká»³ náº·ng vÃ  cÃ³ thá» gÃ¢y tá»¥t FPS.\nBáº¡n cÃ³ muá»n náº¡p nÃ³ vÃ o RAM khÃ´ng?\n(Chá» dÃ¹ng náº¿u mÃ¡y khá»e, mÃ¡y yáº¿u vui lÃ²ng chá»n KHÃNG)"
-            local btn1 = _G.LexusLang == "EN" and "YES (LOAD)" or "CÃ (Táº¢I ESP V2)"
-            local btn2 = _G.LexusLang == "EN" and "NO (SKIP)" or "KHÃNG (DÃNG ESP THÆ¯á»NG)"
+                or "Logic ESP Loại 9 (Khung Xương, Dây Nối, RedBox) cực kỳ nặng và có thể gây tụt FPS.\nBạn có muốn nạp nó vào RAM không?\n(Chỉ dùng nếu máy khỏe, máy yếu vui lòng chọn KHÔNG)"
+            local btn1 = _G.LexusLang == "EN" and "YES (LOAD)" or "CÓ (TẢI ESP V2)"
+            local btn2 = _G.LexusLang == "EN" and "NO (SKIP)" or "KHÔNG (DÙNG ESP THƯỜNG)"
 
             Msg.Show(2, title, content,
             function()
                 _G.EnableLogicESPV2 = true
-                if _G.LoadESPV2System then _G.LoadESPV2System() end -- KÃCH HOáº T NGAY Láº¬P Tá»¨C
+                if _G.LoadESPV2System then _G.LoadESPV2System() end -- KÍCH HOẠT NGAY LẬP TỨC
                 Step_AskModSkin()
             end,
             function()
@@ -1517,7 +1517,7 @@ local function ShowLexusVIPMenu()
         end
 
         local function Step_SelectLanguage()
-            Msg.Show(2, "SELECT LANGUAGE / CHá»N NGÃN NGá»®", "Please select your preferred language.\nVui lÃ²ng chá»n ngÃ´n ngá»¯ báº¡n muá»n sá»­ dá»¥ng.",
+            Msg.Show(2, "SELECT LANGUAGE / CHỌN NGÔN NGỮ", "Please select your preferred language.\nVui lòng chọn ngôn ngữ bạn muốn sử dụng.",
             function()
                 _G.LexusLang = "VN"
                 Step_AskESPV2()
@@ -1525,19 +1525,19 @@ local function ShowLexusVIPMenu()
             function()
                 _G.LexusLang = "EN"
                 Step_AskESPV2()
-            end, "TIáº¾NG VIá»T", "ENGLISH")
+            end, "TIẾNG VIỆT", "ENGLISH")
         end
 
         local function Step_LegalNotice()
-            local legal_title = "ThÃ´ng BÃ¡o Tá»« Admin @dung0610 - Announcement from Admin @dung0610"
-            local legal_content = "HÃY LÆ¯á»T XUá»NG Äá» Äá»C Äáº¦Y Äá»¦ - SCROLL DOWN TO READ THE FULL ARTICLE\n\nESP V2  = VÄng Game Má»t Sá» MÃ¡y ( Game crashes on some devices )\nMAGIC BULLET = RISK BAN X\nGLOBAL = SAFE â( AN TOÃN )\nVNG = SAFE â( AN TOÃN )\nKOREA = SAFR â(AN TOÃN)\nTAIWAN = SAFE â( AN TOÃN )\n\nVIE ChÃ o CÃ¡c Báº¡n ÄÃ¢y LÃ  Báº£n Mod TÃ´i LÃ m, HÃ£y Cáº©n Tháº­n Äá»«ng Giao Dá»ch Mua BÃ¡n Vá»i Ai NgoÃ i TÃ´i Telegram @dung0610 Zalo 0922520900, Náº¿u Ai NgoÃ i TÃ´i MÃ  Giao Dá»ch Vá»i Báº¡n Vá» CÃ¡c Báº£n Mod NÃ y ThÃ¬ Xin ChÃºc Má»«ng Báº¡n Bá» Lá»«a Rá»i HaHaHa, Náº¿u Báº¡n Trong KÃªnh Telegram Cá»§a TÃ´i Vui LÃ²ng Äá»c CÃ¡c HÆ°á»ng Dáº«n CÃ¡c Chá»©c NÄng, Äá»«ng Há»i Nhá»¯ng Thá»© Chá»©ng Minh MÃ¬nh Ngu NhÃ©\n\nENGLISH Hi everyone, this is a mod I created. Please be careful and do not conduct any transactions with anyone other than me (Telegram: @dung0610, Zalo: 0922520900). If anyone else tries to trade these mods with youâcongratulations, you've been scammed! Hahaha. If you are in my Telegram channel, please read the instructions on the features; don't ask questions that just prove your stupidity."
-            local legal_btnOK = "Äá»ng Ã (Agree)"
-            local legal_btnCancel = "Há»§y (cancel)"
+            local legal_title = "Thông Báo Từ Admin @dung0610 - Announcement from Admin @dung0610"
+            local legal_content = "HÃY LƯỚT XUỐNG ĐỂ ĐỌC ĐẦY ĐỦ - SCROLL DOWN TO READ THE FULL ARTICLE\n\nESP V2  = Văng Game Một Số Máy ( Game crashes on some devices )\nMAGIC BULLET = RISK BAN X\nGLOBAL = SAFE ✓( AN TOÀN )\nVNG = SAFE ✓( AN TOÀN )\nKOREA = SAFR ✓(AN TOÀN)\nTAIWAN = SAFE ✓( AN TOÀN )\n\nVIE Chào Các Bạn Đây Là Bản Mod Tôi Làm, Hãy Cẩn Thận Đừng Giao Dịch Mua Bán Với Ai Ngoài Tôi Telegram @dung0610 Zalo 0922520900, Nếu Ai Ngoài Tôi Mà Giao Dịch Với Bạn Về Các Bản Mod Này Thì Xin Chúc Mừng Bạn Bị Lừa Rồi HaHaHa, Nếu Bạn Trong Kênh Telegram Của Tôi Vui Lòng Đọc Các Hướng Dẫn Các Chức Năng, Đừng Hỏi Những Thứ Chứng Minh Mình Ngu Nhé\n\nENGLISH Hi everyone, this is a mod I created. Please be careful and do not conduct any transactions with anyone other than me (Telegram: @dung0610, Zalo: 0922520900). If anyone else tries to trade these mods with you—congratulations, you've been scammed! Hahaha. If you are in my Telegram channel, please read the instructions on the features; don't ask questions that just prove your stupidity."
+            local legal_btnOK = "Đồng Ý (Agree)"
+            local legal_btnCancel = "Hủy (cancel)"
             local legal_url = "https://t.me/dung0610" 
 
             local legal_msg = require("client.slua.logic.common.logic_common_legal_msg")
             if not legal_msg then
-                -- Náº¿u game thiáº¿u thÆ° viá»n legal, fallback chuyá»n luÃ´n sang báº£ng chá»n ngÃ´n ngá»¯
+                -- Nếu game thiếu thư viện legal, fallback chuyển luôn sang bảng chọn ngôn ngữ
                 Step_SelectLanguage()
                 return
             end
@@ -1550,11 +1550,11 @@ local function ShowLexusVIPMenu()
                 btnOKText = legal_btnOK,
                 btnCancelText = legal_btnCancel, 
                 acceptFunc = function()
-                    -- Báº¥m Confirm -> Má» báº£ng chá»n ngÃ´n ngá»¯
+                    -- Bấm Confirm -> Mở bảng chọn ngôn ngữ
                     Step_SelectLanguage()
                 end,
                 refuseFunc = function()
-                    -- Báº¥m Join Channel -> Má» link Telegram -> Má» báº£ng chá»n ngÃ´n ngá»¯
+                    -- Bấm Join Channel -> Mở link Telegram -> Mở bảng chọn ngôn ngữ
                     local KismetSystemLibrary = import("KismetSystemLibrary")
                     if KismetSystemLibrary then
                         KismetSystemLibrary:LaunchURL(legal_url)
@@ -1565,13 +1565,13 @@ local function ShowLexusVIPMenu()
         end
 
         _G.LexusState.MenuStep = 1
-        -- Gá»i báº£ng Legal Notice Äáº§u tiÃªn thay vÃ¬ báº£ng chá»n NgÃ´n Ngá»¯
+        -- Gọi bảng Legal Notice đầu tiên thay vì bảng chọn Ngôn Ngữ
         Step_LegalNotice() 
     end)
 end
 
 -- ========================================== 
--- LOGIC Má» KHÃA 165 FPS VÃ UI IPAD VIEW 
+-- LOGIC MỞ KHÓA 165 FPS VÀ UI IPAD VIEW 
 -- ========================================== 
 local function InitializeGraphicsUnlock() 
     if isExpired then return end
@@ -1726,7 +1726,7 @@ local function InitializeGraphicsUnlock()
 end
 
 -- ========================================== 
--- KHá»I Táº O Há» THá»NG ESP (Gá»C)
+-- KHỞI TẠO HỆ THỐNG ESP (GỐC)
 -- ========================================== 
 local function InitializeNativeESP() 
     if _G.LexusState.NativeESPReady then return end
@@ -1745,18 +1745,18 @@ local function InitializeNativeESP()
                 cfg[1006].bUseLuaWorldSocketName = true
                 cfg[1006].WorldPositionOffset = FVector(0, 0, -30) 
             end 
-            -- [FIX ESP LOáº I 4] Thay vÃ¬ dÃ¹ng 1003 dá» bá» game xÃ³a, ta táº¡o ID Äá»c quyá»n 8888
+            -- [FIX ESP LOẠI 4] Thay vì dùng 1003 dễ bị game xóa, ta tạo ID độc quyền 8888
             cfg[8888] = { 
                 UIPathName = "/Game/Mod/EvoBase/BluePrints/UIBP/QuickSign/QuickSign_TipHitEnemy_UIBP_New.QuickSign_TipHitEnemy_UIBP_New_C",
                 MaxWidgetNum = 99, 
                 MaxShowDistance = 6000000, 
                 bBindOutScreen = true,
                 bBindBlocked = true, 
-                bIsBindingActor = true,     -- Báº¯t buá»c pháº£i cÃ³ Äá» bÃ¡m theo Äá»ch
+                bIsBindingActor = true,     -- Bắt buộc phải có để bám theo địch
                 BindSocketName = "head",
                 bUseLuaWorldSocketName = true, 
                 WorldPositionOffset = FVector(0, 0, 30),
-                bNeedPreLoad = true,        -- Báº¯t buá»c cÃ³ Äá» load sáºµn UI (chá»ng lá»i)
+                bNeedPreLoad = true,        -- Bắt buộc có để load sẵn UI (chống lỗi)
                 Priority = 2 
             } 
             cfg[9999] = { 
@@ -1789,11 +1789,11 @@ end
 -- ========================================== 
 local function GetAllSkeletalMeshes(enemy, markData)
     local curTime = os.clock()
-    -- [FIX VÄNG GAME]: Giáº£m thá»i gian Cache xuá»ng 0.5s. Giá»¯ 3.0s Bot cháº¿t Mesh biáº¿n máº¥t sáº½ gÃ¢y Crash C++
+    -- [FIX VĂNG GAME]: Giảm thời gian Cache xuống 0.5s. Giữ 3.0s Bot chết Mesh biến mất sẽ gây Crash C++
     if markData and markData.CachedMeshes and markData.CachedMeshTime and (curTime - markData.CachedMeshTime < 0.5) then
         local validMeshes = {}
         for _, cachedMesh in ipairs(markData.CachedMeshes) do
-            -- Kiá»m tra thÃªm Äiá»u kiá»n IsPendingKill Äá» cháº¯c cháº¯n Mesh chÆ°a bá» game xÃ³a
+            -- Kiểm tra thêm điều kiện IsPendingKill để chắc chắn Mesh chưa bị game xóa
             local isPendingKill = false
             pcall(function() if type(cachedMesh.IsPendingKill) == "function" then isPendingKill = cachedMesh:IsPendingKill() end end)
             
@@ -1830,7 +1830,7 @@ local function GetAllSkeletalMeshes(enemy, markData)
 end
 
 -- ========================================== 
--- HÃM XUYÃN TÆ¯á»NG & RESTORE Gá»C
+-- HÀM XUYÊN TƯỜNG & RESTORE GỐC
 -- ==========================================
 local function UndoWallXuyenTuong(enemy, markData)
     pcall(function()
@@ -1885,8 +1885,8 @@ local function ApplyColorBodyV2(enemy, pc, markData)
         local meshes = GetAllSkeletalMeshes(enemy, markData)
         if #meshes == 0 then return end
         
-        -- [FIX CHá»NG GIáº¬T LAG ÄÃNG NGÆ¯á»I]: Giá»i háº¡n tia Raycast Check TÆ°á»ng 0.3s má»t láº§n
-        -- TrÃ¡nh viá»c báº¯n hÃ ng nghÃ¬n tia váº­t lÃ½ má»i giÃ¢y lÃ m chÃ¡y CPU
+        -- [FIX CHỐNG GIẬT LAG ĐÔNG NGƯỜI]: Giới hạn tia Raycast Check Tường 0.3s một lần
+        -- Tránh việc bắn hàng nghìn tia vật lý mỗi giây làm cháy CPU
         local curTime = os.clock()
         if markData.LastVisCheckTime == nil or (curTime - markData.LastVisCheckTime) > 0.3 then
             markData.LastVisCheckTime = curTime
@@ -1911,10 +1911,10 @@ local function ApplyColorBodyV2(enemy, pc, markData)
         local currentMeshCount = #meshes
         local isMeshChanged = (markData.LastMeshCount ~= currentMeshCount)
         
-        -- Náº¿u chÆ°a cÃ³ sá»± Äá»i mÃ u / Äá»i sá» lÆ°á»£ng quáº§n Ã¡o thÃ¬ ngáº¯t luÃ´n, tiáº¿t kiá»m CPU
+        -- Nếu chưa có sự đổi màu / đổi số lượng quần áo thì ngắt luôn, tiết kiệm CPU
         if not isMeshChanged and markData.LastHiddenState == hidden and markData.LastColorHash == colorHash then return end
         
-        -- [FIX RAM]: XÃ³a Material rÃ¡c cÅ© Äi khi Äá»ch Äá»i vÅ© khÃ­/Ã¡o giÃ¡p Äá» trÃ¡nh rÃ¡c VRAM
+        -- [FIX RAM]: Xóa Material rác cũ đi khi địch đổi vũ khí/áo giáp để tránh rác VRAM
         if isMeshChanged and markData.MIDs then
             markData.MIDs = {}
         end
@@ -1943,7 +1943,7 @@ local function ApplyColorBodyV2(enemy, pc, markData)
                         if string.find(matName, "Master_Mask", 1, true) then
                             if not markData.MIDs then markData.MIDs = {} end
                             
-                            -- [FIX RÃC RAM]: Thay vÃ¬ dÃ¹ng tostring(mesh) sinh rÃ¡c chuá»i, dÃ¹ng index cá»¥c bá»
+                            -- [FIX RÁC RAM]: Thay vì dùng tostring(mesh) sinh rác chuỗi, dùng index cục bộ
                             local meshKey = "Mesh_" .. tostring(meshIndex)
                             
                             if not markData.MIDs[meshKey] then markData.MIDs[meshKey] = {} end
@@ -1953,7 +1953,7 @@ local function ApplyColorBodyV2(enemy, pc, markData)
                                 markData.MIDs[meshKey][i] = mid
                             end
                             if Valid(mid) then
-                                mid:SetVectorParameterValue("é¢è²", finalColor)
+                                mid:SetVectorParameterValue("颜色", finalColor)
                                 mid:SetVectorParameterValue("Extra Light Color", finalColor)
                                 mid:SetVectorParameterValue("Para_Color", finalColor)
                                 mid:SetVectorParameterValue("Para_ColorTint", finalColor)
@@ -1990,7 +1990,7 @@ local function UndoColorBodyV2(enemy, markData)
                         for i, mid in pairs(markData.MIDs[meshKey]) do
                             if Valid(mid) then
                                 local defC = {R=1, G=1, B=1, A=1}
-                                mid:SetVectorParameterValue("é¢è²", defC)
+                                mid:SetVectorParameterValue("颜色", defC)
                                 mid:SetVectorParameterValue("Extra Light Color", defC)
                                 mid:SetVectorParameterValue("Para_Color", defC)
                                 mid:SetVectorParameterValue("Para_ColorTint", defC)
@@ -2015,8 +2015,8 @@ local function UndoColorBodyV2(enemy, markData)
 end
 
 -- ==========================================
--- CHá»¨C NÄNG MÃU V3 (TÃCH BIá»T Tá»ª MÃ NGUá»N Cá»¦A Báº N - HOáº T Äá»NG QUA Bá» Äá»M Z-BUFFER)
--- [ÄÃ FIX Lá»I Máº¤T MÃU KHI Äá»I LOD & Tá»I Æ¯U CHá»NG DROP FPS KHI ÄÃNG NGÆ¯á»I]
+-- CHỨC NĂNG MÀU V3 (TÁCH BIỆT TỪ MÃ NGUỒN CỦA BẠN - HOẠT ĐỘNG QUA BỘ ĐỆM Z-BUFFER)
+-- [ĐÃ FIX LỖI MẤT MÀU KHI ĐỔI LOD & TỐI ƯU CHỐNG DROP FPS KHI ĐÔNG NGƯỜI]
 -- ==========================================
 local function ApplyColorBodyV3(enemy, markData)
     pcall(function()
@@ -2028,28 +2028,28 @@ local function ApplyColorBodyV3(enemy, markData)
         local visChoice = cData.ColorV3Visible or 2
         local v3Thick = cData.ColorV3Thickness or 4
         
-        -- Táº¡o mÃ£ bÄm Äá» phÃ¡t hiá»n ngÆ°á»i dÃ¹ng kÃ©o thanh Äá»i mÃ u/Äá» dÃ y
+        -- Tạo mã băm để phát hiện người dùng kéo thanh đổi màu/độ dày
         local currentHash = string.format("%d_%d_%d", hidChoice, visChoice, v3Thick)
         local colorChanged = (markData.LastColorV3Hash ~= currentHash)
         markData.LastColorV3Hash = currentHash
 
         local function GetColorRGB(choice)
-            if choice == 1 then return 255, 0, 0 end -- Äá»
-            if choice == 2 then return 0, 255, 0 end -- Lá»¥c
+            if choice == 1 then return 255, 0, 0 end -- Đỏ
+            if choice == 2 then return 0, 255, 0 end -- Lục
             if choice == 3 then return 0, 0, 255 end -- Lam
-            if choice == 4 then return 255, 255, 0 end -- VÃ ng
-            if choice == 5 then return 255, 0, 255 end -- TÃ­m/Há»ng
-            if choice == 6 then return 255, 255, 255 end -- Tráº¯ng
-            return 255, 0, 0 -- Máº·c Äá»nh Äá»
+            if choice == 4 then return 255, 255, 0 end -- Vàng
+            if choice == 5 then return 255, 0, 255 end -- Tím/Hồng
+            if choice == 6 then return 255, 255, 255 end -- Trắng
+            return 255, 0, 0 -- Mặc định đỏ
         end
 
         local hR, hG, hB = GetColorRGB(hidChoice)
         local vR, vG, vB = GetColorRGB(visChoice)
 
-        -- MÃ u Sau TÆ°á»ng (invisColor)
+        -- Màu Sau Tường (invisColor)
         local invisColor = { R=hR, G=hG, B=hB, A=255, r=hR, g=hG, b=hB, a=255 }
         
-        -- MÃ u Viá»n Lá» Diá»n HDR (visColor)
+        -- Màu Viền Lộ Diện HDR (visColor)
         local glowIntensity = 80.0 
         local LinearColorClass = import("LinearColor") or _G.FLinearColor
         local visColor = LinearColorClass and LinearColorClass((vR/255)*glowIntensity, (vG/255)*glowIntensity, (vB/255)*glowIntensity, 1.0) or { R=vR*glowIntensity, G=vG*glowIntensity, B=vB*glowIntensity, A=255 }
@@ -2083,7 +2083,7 @@ local function ApplyColorBodyV3(enemy, markData)
                     local currentCached = markData.MIDs_V3[compKey][i]
                     local needUpdateColor = false
                     
-                    -- Náº¿u chÆ°a cÃ³ MID hoáº·c ngÆ°á»i dÃ¹ng kÃ©o thanh Äá»i mÃ u -> Cáº­p nháº­t láº¡i
+                    -- Nếu chưa có MID hoặc người dùng kéo thanh đổi màu -> Cập nhật lại
                     if not Valid(currentCached) then
                         local newMid = comp:CreateAndSetMaterialInstanceDynamic(i)
                         if Valid(newMid) then 
@@ -2097,7 +2097,7 @@ local function ApplyColorBodyV3(enemy, markData)
                     
                     if Valid(currentCached) and needUpdateColor then
                         pcall(function()
-                            currentCached:SetVectorParameterValue("é¢è²", invisColor)
+                            currentCached:SetVectorParameterValue("颜色", invisColor)
                             currentCached:SetVectorParameterValue("Extra Light Color", invisColor)
                             currentCached:SetVectorParameterValue("Para_Color", invisColor)
                             currentCached:SetVectorParameterValue("Para_ColorTint", invisColor)
@@ -2165,7 +2165,7 @@ local function UndoColorBodyV3(enemy, markData)
                             if Valid(mid) then
                                 pcall(function()
                                     local defC = {R=1, G=1, B=1, A=1, r=1, g=1, b=1, a=1}
-                                    mid:SetVectorParameterValue("é¢è²", defC)
+                                    mid:SetVectorParameterValue("颜色", defC)
                                     mid:SetVectorParameterValue("Extra Light Color", defC)
                                     mid:SetVectorParameterValue("Para_Color", defC)
                                     mid:SetVectorParameterValue("Tint", defC)
@@ -2184,17 +2184,17 @@ local function UndoColorBodyV3(enemy, markData)
                 end
             end
             markData.ColorV3Applied = false
-            markData.LastMeshCountV3 = 0 -- Reset bá» Äáº¿m mesh Äá» cÃ³ thá» báº­t láº¡i sau
+            markData.LastMeshCountV3 = 0 -- Reset bộ đếm mesh để có thể bật lại sau
             if markData.MIDs_V3 then markData.MIDs_V3 = nil end
         end
     end)
 end
 -- ==========================================
--- CHá»¨C NÄNG WALL MÃU NEW (ÄÆ¯á»¢C Äá»NG Bá» VÃO Há» THá»NG VIP Tá»I Æ¯U)
+-- CHỨC NĂNG WALL MÀU NEW (ĐƯỢC ĐỒNG BỘ VÀO HỆ THỐNG VIP TỐI ƯU)
 -- ==========================================
 local function ApplyColorBodyNew(enemy, markData)
     pcall(function()
-        -- KÃ­ch hoáº¡t Console Command náº¿u chÆ°a báº­t (Chá» gá»i 1 láº§n)
+        -- Kích hoạt Console Command nếu chưa bật (Chỉ gọi 1 lần)
         if not _G.ConsoleNewWallReady then
             local KismetSystemLibrary = import("KismetSystemLibrary")
             local world = slua.getWorld()
@@ -2207,10 +2207,10 @@ local function ApplyColorBodyNew(enemy, markData)
             end
         end
 
-        -- Láº¥y toÃ n bá» Mesh cá»§a káº» Äá»ch
+        -- Lấy toàn bộ Mesh của kẻ địch
         local meshes = GetAllSkeletalMeshes(enemy, markData)
         
-        -- ThÃªm lÆ°á»i cá»§a vÅ© khÃ­ Äang cáº§m trÃªn tay
+        -- Thêm lưới của vũ khí đang cầm trên tay
         local weapon = nil
         pcall(function() weapon = enemy:GetCurrentWeapon() end)
         if slua.isValid(weapon) and slua.isValid(weapon.Mesh) then
@@ -2220,19 +2220,19 @@ local function ApplyColorBodyNew(enemy, markData)
         local isBot = markData.AK_IS_BOT or false
         local currentMeshCount = #meshes
         
-        -- [Tá»I Æ¯U FPS TUYá»T Äá»I] - CHáº¾ Äá» NGá»¦ ÄÃNG (CACHE)
-        -- Táº¡o mÃ£ bÄm nháº­n diá»n: Náº¿u sá» lÆ°á»£ng quáº§n Ã¡o/sÃºng cá»§a Äá»ch khÃ´ng Äá»i, bá» qua vÃ²ng láº·p C++ cá»±c náº·ng bÃªn dÆ°á»i
+        -- [TỐI ƯU FPS TUYỆT ĐỐI] - CHẾ ĐỘ NGỦ ĐÔNG (CACHE)
+        -- Tạo mã băm nhận diện: Nếu số lượng quần áo/súng của địch không đổi, bỏ qua vòng lặp C++ cực nặng bên dưới
         local stateHash = (isBot and "BOT" or "PLAYER") .. "_" .. tostring(currentMeshCount)
         
         if markData.LastColorNewHash == stateHash and markData.ColorNewApplied then
-            return -- Má»i thá»© ÄÃ£ ÄÆ°á»£c tÃ´ mÃ u trÆ°á»c ÄÃ³, ngáº¯t hÃ m táº¡i ÄÃ¢y Äá» trÃ¡nh Äá»t CPU!
+            return -- Mọi thứ đã được tô màu trước đó, ngắt hàm tại đây để tránh đốt CPU!
         end
         
-        -- Náº¿u cÃ³ sá»± thay Äá»i (má»i báº­t, Äá»ch Äá»i sÃºng, lá»¥m Äá»), tiáº¿n hÃ nh cáº­p nháº­t mÃ u vÃ  lÆ°u Cache
+        -- Nếu có sự thay đổi (mới bật, địch đổi súng, lụm đồ), tiến hành cập nhật màu và lưu Cache
         markData.LastColorNewHash = stateHash
         markData.ColorNewApplied = true
 
-        -- Chá» Load bá» mÃ u khi thá»±c sá»± cáº§n xá»­ lÃ½
+        -- Chỉ Load bộ màu khi thực sự cần xử lý
         local LinearColorClass = import("LinearColor") or _G.FLinearColor
         local c_vis = LinearColorClass and LinearColorClass(0, 100, 0, 1) or {R=0, G=100, B=0, A=1}
         local c_occ = LinearColorClass and LinearColorClass(100, 0, 0, 1) or {R=100, G=0, B=0, A=1}
@@ -2294,13 +2294,13 @@ local function UndoColorBodyNew(enemy, markData)
                 end
             end
             markData.ColorNewApplied = false
-            markData.LastColorNewHash = "" -- XÃ³a Cache Äá» láº§n sau báº­t láº¡i sáº½ tÃ­nh toÃ¡n láº¡i mÆ°á»£t mÃ 
+            markData.LastColorNewHash = "" -- Xóa Cache để lần sau bật lại sẽ tính toán lại mượt mà
         end
     end)
 end
 
 -- ========================================== 
--- Há» THá»NG AIMBOT V2 TÃCH Há»¢P Má»I (UPDATE KISMET SMOOTH)
+-- HỆ THỐNG AIMBOT V2 TÍCH HỢP MỚI (UPDATE KISMET SMOOTH)
 -- ========================================== 
 _G.GetEnemyTargetsFromActors = function(radius)
     local result = {}
@@ -2364,11 +2364,11 @@ _G.AimTouch = function()
                 isShotgun = true 
             end
             
-            if wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") or wName:find("M1") or wName:find("DSR") then
+               if wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") or wName:find("M1") or wName:find("DSR") then
                 isSniper = true
             end
 
-            if wName:lower():find("mortar") or wName:lower():find("cá»i") then
+            if wName:lower():find("mortar") or wName:lower():find("cối") then
                 isMortar = true
             end
             
@@ -2381,7 +2381,7 @@ _G.AimTouch = function()
             end
         end
 
-        -- LOGIC NHáº¢ CÃ SÃNG Náº¾U Máº¤T Má»¤C TIÃU / Äá»CH CHáº¾T HOáº¶C SHOTGUN Háº¾T Äáº N
+        -- LOGIC NHẢ CÒ SÚNG NẾU MẤT MỤC TIÊU / ĐỊCH CHẾT HOẶC SHOTGUN HẾT ĐẠN
         if _G.LexusState.IsAutoFiring then
             pcall(function()
                 player.bIsWeaponFiring = false
@@ -2393,7 +2393,7 @@ _G.AimTouch = function()
             _G.LexusState.IsAutoFiring = false
         end
 
-        -- SHOTGUN Háº¾T Äáº N NGÆ¯NG AIM Äá» GAME Náº P Äáº N
+        -- SHOTGUN HẾT ĐẠN NGƯNG AIM ĐỂ GAME NẠP ĐẠN
         if isShotgun and currentAmmo <= 0 then
             return
         end
@@ -2408,11 +2408,11 @@ _G.AimTouch = function()
         local igKnock = false
         local igBot = false
         
-        -- Logic thÃªm vÃ o: Dá»± ÄoÃ¡n vÃ  BÃ¹ giáº­t
+        -- Logic thêm vào: Dự đoán và Bù giật
         local predVal = 0 
         local recoilCompVal = 0 
 
-        -- PHÃN LOáº I Cáº¤U HÃNH THEO TRáº NG THÃI HIá»N Táº I
+        -- PHÂN LOẠI CẤU HÌNH THEO TRẠNG THÁI HIỆN TẠI
         if isMortar and _G.LexusConfig.AimTouchMortar then
             local isPlaced = false
             pcall(function()
@@ -2456,7 +2456,7 @@ _G.AimTouch = function()
                 useVisCheck = _G.LexusConfig.AimTouchSniperVisCheck
                 igKnock = _G.LexusConfig.AimTouchSniperIgKnock
                 igBot = _G.LexusConfig.AimTouchSniperIgBot
-                predVal = _G.LexusState.CustomTextData.AimTouchSniperPred or 0 -- Láº¥y giÃ¡ trá» dá»± ÄoÃ¡n Sniper
+                predVal = _G.LexusState.CustomTextData.AimTouchSniperPred or 0 -- Lấy giá trị dự đoán Sniper
             elseif _G.LexusConfig.AimTouchScopeAll then
                 cond = _G.LexusState.CustomTextData.AimTouchScopeCond or 1
                 if cond == 1 and not isFiring then return end
@@ -2468,8 +2468,8 @@ _G.AimTouch = function()
                 useVisCheck = _G.LexusConfig.AimTouchScopeVisCheck
                 igKnock = _G.LexusConfig.AimTouchScopeIgKnock
                 igBot = _G.LexusConfig.AimTouchScopeIgBot
-                predVal = _G.LexusState.CustomTextData.AimTouchScopePred or 0 -- Láº¥y giÃ¡ trá» dá»± ÄoÃ¡n SÃºng thÆ°á»ng
-                recoilCompVal = _G.LexusState.CustomTextData.AimTouchScopeRecoil or 0 -- Láº¥y giÃ¡ trá» bÃ¹ giáº­t
+                predVal = _G.LexusState.CustomTextData.AimTouchScopePred or 0 -- Lấy giá trị dự đoán Súng thường
+                recoilCompVal = _G.LexusState.CustomTextData.AimTouchScopeRecoil or 0 -- Lấy giá trị bù giật
             else
                 return
             end
@@ -2541,7 +2541,7 @@ _G.AimTouch = function()
                 if tIsBot then goto continue end
             end
             
-            -- [FIX Tá»¤T FPS]: KhÃ³a tia Raycast check tÆ°á»ng, chá» quÃ©t 0.2s má»t láº§n (Äá»§ mÆ°á»£t mÃ  khÃ´ng chÃ¡y CPU)
+            -- [FIX TỤT FPS]: Khóa tia Raycast check tường, chỉ quét 0.2s một lần (Đủ mượt mà không cháy CPU)
             if useVisCheck then
                 local curTime = os.clock()
                 local tId = type(target.GetUniqueID) == "function" and target:GetUniqueID() or tostring(target)
@@ -2627,7 +2627,7 @@ _G.AimTouch = function()
             end
         end)
 
-        -- LOGIC ÄOÃN HÆ¯á»NG SÃNG Cá»I
+        -- LOGIC ĐOÁN HƯỚNG SÚNG CỐI
         if isMortar and _G.LexusConfig.AimTouchMortar and predVal > 0 then
             pcall(function()
                 if tVelocity and (tVelocity.X ~= 0 or tVelocity.Y ~= 0) then
@@ -2640,18 +2640,18 @@ _G.AimTouch = function()
             end)
         end
 
-        -- LOGIC 1: PREDICTION (SÃNG THÆ¯á»NG)
+        -- LOGIC 1: PREDICTION (SÚNG THƯỜNG)
         if not isMortar and predVal > 0 then
             pcall(function()
-                -- Náº¿u Äá»ch Äang di chuyá»n
+                -- Nếu địch đang di chuyển
                 if tVelocity and (tVelocity.X ~= 0 or tVelocity.Y ~= 0) then
-                    local distToEnemy = player:GetDistanceTo(bestTarget) / 100.0 -- Khoáº£ng cÃ¡ch mÃ©t
+                    local distToEnemy = player:GetDistanceTo(bestTarget) / 100.0 -- Khoảng cách mét
                     
-                    -- TÃ­nh toÃ¡n thá»i gian Äáº¡n bay (Time-Of-Flight) tá» lá» thuáº­n vá»i khoáº£ng cÃ¡ch vÃ  biáº¿n truyá»n vÃ o
-                    -- Há» sá» 800.0 Äáº¡i diá»n cho tá»c Äá» Äáº¡n rÆ¡i giáº£ láº­p, 50.0 lÃ  má»©c trung bÃ¬nh slider
+                    -- Tính toán thời gian đạn bay (Time-Of-Flight) tỉ lệ thuận với khoảng cách và biến truyền vào
+                    -- Hệ số 800.0 đại diện cho tốc độ đạn rơi giả lập, 50.0 là mức trung bình slider
                     local ToF = (distToEnemy / 800.0) * (predVal / 50.0) 
                     
-                    -- Dá»ch chuyá»n toáº¡ Äá» Aim lÃªn trÆ°á»c hÆ°á»ng cháº¡y
+                    -- Dịch chuyển toạ độ Aim lên trước hướng chạy
                     finalBonePos.X = finalBonePos.X + (tVelocity.X * ToF)
                     finalBonePos.Y = finalBonePos.Y + (tVelocity.Y * ToF)
                 end
@@ -2667,7 +2667,7 @@ _G.AimTouch = function()
         local deltaYaw = rot.Yaw - currentRot.Yaw
         local deltaPitch = rot.Pitch - currentRot.Pitch
         
-        -- [Báº®T Äáº¦U FIX] BÃ¹ trá»« chÃªnh lá»ch Camera khi má» á»ng ngáº¯m (ADS) Äá» khÃ´ng bá» lá»ch tÃ¢m
+        -- [BẮT ĐẦU FIX] Bù trừ chênh lệch Camera khi mở ống ngắm (ADS) để không bị lệch tâm
         if isADS then
             local camRot = nil
             if type(camManager.GetCameraRotation) == "function" then
@@ -2678,7 +2678,7 @@ _G.AimTouch = function()
                 deltaPitch = deltaPitch - (camRot.Pitch - currentRot.Pitch)
             end
         end
-        -- [Káº¾T THÃC FIX]
+        -- [KẾT THÚC FIX]
 
         if deltaYaw > 180 then deltaYaw = deltaYaw - 360 end
         if deltaYaw < -180 then deltaYaw = deltaYaw + 360 end
@@ -2696,13 +2696,13 @@ _G.AimTouch = function()
         local finalPitch = currentRot.Pitch + (deltaPitch * smoothFactor)
         local finalYaw = currentRot.Yaw + (deltaYaw * smoothFactor)
         
-        -- LOGIC 2: RECOIL COMPENSATION (ÃP TÃM / BÃ GIáº¬T TRÃNH Báº®N QUÃ Äáº¦U)
+        -- LOGIC 2: RECOIL COMPENSATION (ÉP TÂM / BÙ GIẬT TRÁNH BẮN QUÁ ĐẦU)
         if recoilCompVal > 0 and isFiring then
             local pullDownForce = (recoilCompVal / 50.0) * 1.5 
             finalPitch = finalPitch - pullDownForce
         end
         
-        -- LOGIC TÃNH TOÃN GÃC Báº®N THáº¬T Sá»° CHO SÃNG Cá»I
+        -- LOGIC TÍNH TOÁN GÓC BẮN THẬT SỰ CHO SÚNG CỐI
         if isMortar and _G.LexusConfig.AimTouchMortar then
             local targetPos = { X = finalBonePos.X, Y = finalBonePos.Y, Z = finalBonePos.Z }
             local launchPos = camLoc
@@ -2799,7 +2799,7 @@ _G.AimTouch = function()
 end
 
 -- ========================================== 
--- Há» THá»NG WALL & ESP Váº¬T PHáº¨M/PHÆ¯Æ NG TIá»N SIÃU MÆ¯á»¢T (OPTIMIZED DÆ¯á»I 70M)
+-- HỆ THỐNG WALL & ESP VẬT PHẨM/PHƯƠNG TIỆN SIÊU MƯỢT (OPTIMIZED DƯỚI 70M)
 -- ========================================== 
 local ItemDatabase = {
     -- AR
@@ -2816,7 +2816,7 @@ local ItemDatabase = {
     -- Shotgun
     [104001] = { name = "S686", cat = "Shotgun", color = {R=0,G=255,B=0,A=255} }, [104003] = { name = "S12K", cat = "Shotgun", color = {R=0,G=255,B=0,A=255} },
     [104004] = { name = "DBS", cat = "Shotgun", color = {R=0,G=255,B=0,A=255} }, 
-    -- SÃºng mÃ¡y (Gá»p vÃ o AR cho gá»n hoáº·c hiá»n luÃ´n)
+    -- Súng máy (Gộp vào AR cho gọn hoặc hiện luôn)
     [105001] = { name = "M249", cat = "AR", color = {R=255,G=255,B=255,A=255} }, [105002] = { name = "DP-28", cat = "AR", color = {R=255,G=255,B=255,A=255} }, 
     -- Scope
     [203004] = { name = "4x Scope", cat = "Scope", color = {R=0,G=0,B=255,A=255} }, [203005] = { name = "8x Scope", cat = "Scope", color = {R=0,G=0,B=255,A=255} }, 
@@ -2829,7 +2829,7 @@ _G.AppliedVehicleWall = {}
 _G.AppliedItemESP = {}
 
 -- ========================================== 
--- Há» THá»NG WALL & ESP Váº¬T PHáº¨M/PHÆ¯Æ NG TIá»N SIÃU MÆ¯á»¢T (FULL 100% Gá»C)
+-- HỆ THỐNG WALL & ESP VẬT PHẨM/PHƯƠNG TIỆN SIÊU MƯỢT (FULL 100% GỐC)
 -- ========================================== 
 local C_AR      = {R = 255, G = 255, B = 0, A = 255}
 local C_SMG     = {R = 0, G = 255, B = 255, A = 255}
@@ -2841,7 +2841,7 @@ local C_Special = {R = 255, G = 0, B = 255, A = 255}
 local C_Melee   = {R = 150, G = 150, B = 150, A = 255}
 local C_Scope   = {R = 0, G = 0, B = 255, A = 255}
 local C_Grenade = {R = 255, G = 165, B = 0, A = 255}
-local C_Med     = {R = 50, G = 255, B = 50, A = 255} -- MÃ u Xanh cho MÃ¡u/NÆ°á»c
+local C_Med     = {R = 50, G = 255, B = 50, A = 255} -- Màu Xanh cho Máu/Nước
 
 local ItemDatabase = {
     -- AR
@@ -2885,7 +2885,7 @@ local ItemDatabase = {
     [105107] = { name = "Tank MG", cat = "LMG", color = C_LMG }, [105108] = { name = "Tank Flare Gun", cat = "LMG", color = C_LMG },
     [105116] = { name = "Lib Autocannon", cat = "LMG", color = C_LMG }, [105117] = { name = "Jet Missile", cat = "LMG", color = C_LMG },
     [105118] = { name = "Jet Autocannon", cat = "LMG", color = C_LMG },
-    -- Pistol & PhÃ¡o sÃ¡ng
+    -- Pistol & Pháo sáng
     [106001] = { name = "P92", cat = "Pistol", color = C_Pistol }, [106002] = { name = "P1911", cat = "Pistol", color = C_Pistol },
     [106003] = { name = "R1895", cat = "Pistol", color = C_Pistol }, [106004] = { name = "P18C", cat = "Pistol", color = C_Pistol },
     [106005] = { name = "R45", cat = "Pistol", color = C_Pistol }, [106006] = { name = "Sawed-off", cat = "Pistol", color = C_Pistol },
@@ -2895,8 +2895,8 @@ local ItemDatabase = {
     [106013] = { name = "Stun Gun", cat = "Pistol", color = C_Pistol }, [106101] = { name = "Vehicle Flare", cat = "Pistol", color = C_Pistol },
     [106103] = { name = "Flare Gun", cat = "Pistol", color = C_Pistol }, [106106] = { name = "Flare (Empty)", cat = "Pistol", color = C_Pistol },
     [106107] = { name = "Respawn Flare", cat = "Pistol", color = C_Pistol }, [106203] = { name = "Magnet Gun", cat = "Pistol", color = C_Pistol },
-    -- Äáº·c biá»t
-    [107011] = { name = "SÃºng Cá»i", cat = "Special", color = C_Special }, [307006] = { name = "Äáº¡n Cá»i", cat = "Special", color = C_Special },
+    -- Đặc biệt
+    [107011] = { name = "Súng Cối", cat = "Special", color = C_Special }, [307006] = { name = "Đạn Cối", cat = "Special", color = C_Special },
     [107001] = { name = "Crossbow", cat = "Special", color = C_Special }, [107002] = { name = "RPG-7", cat = "Special", color = C_Special },
     [107003] = { name = "Riot shield", cat = "Special", color = C_Special }, [107004] = { name = "Combat Drone", cat = "Special", color = C_Special },
     [107005] = { name = "Panzerfaust", cat = "Special", color = C_Special }, [107006] = { name = "RPG-7", cat = "Special", color = C_Special },
@@ -2914,7 +2914,7 @@ local ItemDatabase = {
     [107099] = { name = "M3E1-A", cat = "Special", color = C_Special }, [107901] = { name = "Zombie Piercer", cat = "Special", color = C_Special },
     [107903] = { name = "Mounted RPG", cat = "Special", color = C_Special }, [107904] = { name = "Helicopter RPG", cat = "Special", color = C_Special },
     [107911] = { name = "M3E1-B Missile", cat = "Special", color = C_Special },
-    -- Cáº­n chiáº¿n
+    -- Cận chiến
     [108001] = { name = "Machete", cat = "Melee", color = C_Melee }, [108002] = { name = "Crowbar", cat = "Melee", color = C_Melee },
     [108003] = { name = "Sickle", cat = "Melee", color = C_Melee }, [108004] = { name = "Pan", cat = "Melee", color = C_Melee },
     [108005] = { name = "Dagger", cat = "Melee", color = C_Melee }, [108006] = { name = "Mutation Blade", cat = "Melee", color = C_Melee },
@@ -2924,24 +2924,24 @@ local ItemDatabase = {
     [203003] = { name = "2x Scope", cat = "Scope", color = C_Scope }, [203004] = { name = "4x Scope", cat = "Scope", color = C_Scope },
     [203005] = { name = "8x Scope", cat = "Scope", color = C_Scope }, [203014] = { name = "3x Scope", cat = "Scope", color = C_Scope },
     [203015] = { name = "6x Scope", cat = "Scope", color = C_Scope },
-    -- Lá»±u Äáº¡n
+    -- Lựu đạn
     [602001] = { name = "Stun Grenade", cat = "Grenade", color = C_Grenade }, [602002] = { name = "Smoke Grenade", cat = "Grenade", color = C_Grenade },
     [602003] = { name = "Molotov", cat = "Grenade", color = C_Grenade }, [602004] = { name = "Frag Grenade", cat = "Grenade", color = C_Grenade },
     
-    -- Váº­t pháº©m Y táº¿ (MÃ¡u, NÆ°á»c, Phá»¥c Há»i)
-    [601001] = { name = "NÆ°á»c TÄng Lá»±c", cat = "Med", color = C_Med }, [601002] = { name = "TiÃªm Adrenaline", cat = "Med", color = C_Med },
-    [601003] = { name = "Thuá»c Giáº£m Äau", cat = "Med", color = C_Med }, [601004] = { name = "BÄng Gáº¡c", cat = "Med", color = C_Med },
-    [601005] = { name = "Bá» SÆ¡ Cá»©u", cat = "Med", color = C_Med }, [601006] = { name = "Bá» Cá»©u ThÆ°Æ¡ng", cat = "Med", color = C_Med },
-    [601009] = { name = "BÄng Gáº¡c Nhanh", cat = "Med", color = C_Med }, [601010] = { name = "SÆ¡ Cá»©u Nhanh", cat = "Med", color = C_Med },
-    [601011] = { name = "BÄng Gáº¡c QÄ", cat = "Med", color = C_Med }, [601012] = { name = "NÆ°á»c Äáº­m Äáº·c", cat = "Med", color = C_Med },
-    [601020] = { name = "BÄng Gáº¡c", cat = "Med", color = C_Med }, [601021] = { name = "Bá» SÆ¡ Cá»©u", cat = "Med", color = C_Med },
-    [601022] = { name = "Bá» Cá»©u ThÆ°Æ¡ng", cat = "Med", color = C_Med }, [601023] = { name = "TiÃªm Adrenaline", cat = "Med", color = C_Med },
-    [601061] = { name = "Bá» Cá»©u ThÆ°Æ¡ng", cat = "Med", color = C_Med }, [601077] = { name = "SÆ¡ Cá»©u Chiáº¿n Thuáº­t", cat = "Med", color = C_Med },
-    [601078] = { name = "SÆ¡ Cá»©u ToÃ n NÄng", cat = "Med", color = C_Med }, [601079] = { name = "Cá»©u ThÆ°Æ¡ng ToÃ n NÄng", cat = "Med", color = C_Med },
-    [601080] = { name = "BÄng Gáº¡c QÄ", cat = "Med", color = C_Med }, [601081] = { name = "NÆ°á»c Äáº­m Äáº·c", cat = "Med", color = C_Med },
-    [601084] = { name = "SÆ¡ Cá»©u Nhanh", cat = "Med", color = C_Med }, [601085] = { name = "Cá»©u ThÆ°Æ¡ng Nhanh", cat = "Med", color = C_Med },
-    [601095] = { name = "MÃ¡y AED (Há»i Sinh)", cat = "Med", color = C_Med }, [601096] = { name = "Chuáº©n Bá» Chiáº¿n Äáº¥u", cat = "Med", color = C_Med },
-    [602054] = { name = "Tiáº¿p Táº¿ Y Táº¿", cat = "Med", color = C_Med }, [602069] = { name = "Cá»©u Trá»£ Kháº©n Cáº¥p", cat = "Med", color = C_Med }
+    -- Vật phẩm Y tế (Máu, Nước, Phục Hồi)
+    [601001] = { name = "Nước Tăng Lực", cat = "Med", color = C_Med }, [601002] = { name = "Tiêm Adrenaline", cat = "Med", color = C_Med },
+    [601003] = { name = "Thuốc Giảm Đau", cat = "Med", color = C_Med }, [601004] = { name = "Băng Gạc", cat = "Med", color = C_Med },
+    [601005] = { name = "Bộ Sơ Cứu", cat = "Med", color = C_Med }, [601006] = { name = "Bộ Cứu Thương", cat = "Med", color = C_Med },
+    [601009] = { name = "Băng Gạc Nhanh", cat = "Med", color = C_Med }, [601010] = { name = "Sơ Cứu Nhanh", cat = "Med", color = C_Med },
+    [601011] = { name = "Băng Gạc QĐ", cat = "Med", color = C_Med }, [601012] = { name = "Nước Đậm Đặc", cat = "Med", color = C_Med },
+    [601020] = { name = "Băng Gạc", cat = "Med", color = C_Med }, [601021] = { name = "Bộ Sơ Cứu", cat = "Med", color = C_Med },
+    [601022] = { name = "Bộ Cứu Thương", cat = "Med", color = C_Med }, [601023] = { name = "Tiêm Adrenaline", cat = "Med", color = C_Med },
+    [601061] = { name = "Bộ Cứu Thương", cat = "Med", color = C_Med }, [601077] = { name = "Sơ Cứu Chiến Thuật", cat = "Med", color = C_Med },
+    [601078] = { name = "Sơ Cứu Toàn Năng", cat = "Med", color = C_Med }, [601079] = { name = "Cứu Thương Toàn Năng", cat = "Med", color = C_Med },
+    [601080] = { name = "Băng Gạc QĐ", cat = "Med", color = C_Med }, [601081] = { name = "Nước Đậm Đặc", cat = "Med", color = C_Med },
+    [601084] = { name = "Sơ Cứu Nhanh", cat = "Med", color = C_Med }, [601085] = { name = "Cứu Thương Nhanh", cat = "Med", color = C_Med },
+    [601095] = { name = "Máy AED (Hồi Sinh)", cat = "Med", color = C_Med }, [601096] = { name = "Chuẩn Bị Chiến Đấu", cat = "Med", color = C_Med },
+    [602054] = { name = "Tiếp Tế Y Tế", cat = "Med", color = C_Med }, [602069] = { name = "Cứu Trợ Khẩn Cấp", cat = "Med", color = C_Med }
 }
 
 _G.CachedItems = {}
@@ -2952,13 +2952,13 @@ _G.AppliedItemESP = {}
 _G.RunOptimizedItemAndVehicleESP = function(pc)
     local curTime = os.clock()
 
-    -- 1. QUÃT ACTOR VÃ Xá»¬ LÃ Váº¬T LÃ 1.0 GIÃY / Láº¦N (Chá»ng Drop FPS khi nháº·t Äá»)
+    -- 1. QUÉT ACTOR VÀ XỬ LÝ VẬT LÝ 1.0 GIÂY / LẦN (Chống Drop FPS khi nhặt đồ)
     if curTime - _G.LastScanItemTime > 1.0 then
         _G.LastScanItemTime = curTime
         local player = GameplayData.GetPlayerCharacter()
         if not slua.isValid(player) then return end
 
-        -- Xá»¬ LÃ WALL PHÆ¯Æ NG TIá»N (Giá»¯ nguyÃªn khoáº£ng cÃ¡ch nhÃ¬n xa 200m)
+        -- XỬ LÝ WALL PHƯƠNG TIỆN (Giữ nguyên khoảng cách nhìn xa 200m)
         if _G.LexusConfig.WallVehicle then
             local ASTExtraVehicleBase = import("STExtraVehicleBase")
             if ASTExtraVehicleBase then
@@ -2992,7 +2992,7 @@ _G.RunOptimizedItemAndVehicleESP = function(pc)
             end
         else _G.AppliedVehicleWall = {} end
 
-        -- Xá»¬ LÃ ESP VÃ CHAMS Váº¬T PHáº¨M (Äá»nh vá» chá»¯ & Glow dÆ°á»i 70m)
+        -- XỬ LÝ ESP VÀ CHAMS VẬT PHẨM (Định vị chữ & Glow dưới 70m)
         if _G.LexusConfig.EspItem_Master then
             local APickUpWrapperActor = import("PickUpWrapperActor") or import("STPickupWrapperActor")
             if APickUpWrapperActor then
@@ -3003,20 +3003,20 @@ _G.RunOptimizedItemAndVehicleESP = function(pc)
                     for i = 0, count - 1 do
                         local item = Actors:Get(i)
                         
-                        -- [FIX Káº¸T Váº¬T PHáº¨M] Kiá»m tra xem item cÃ³ Äang chá» bá» xÃ³a khÃ´ng
+                        -- [FIX KẸT VẬT PHẨM] Kiểm tra xem item có đang chờ bị xóa không
                         local isPendingKill = false
                         pcall(function() if type(item.IsPendingKill) == "function" then isPendingKill = item:IsPendingKill() end end)
 
-                        -- Chá» quÃ©t cÃ¡c váº­t pháº©m Há»£p Lá», KhÃ´ng Bá» áº¨n (bHidden) vÃ  ChÆ°a Bá» XÃ³a
+                        -- Chỉ quét các vật phẩm Hợp Lệ, Không Bị Ẩn (bHidden) và Chưa Bị Xóa
                         if slua.isValid(item) and not item.bHidden and not isPendingKill then
                             local dist = player:GetDistanceTo(item)
-                            -- Giá»i háº¡n 70m (7000 units), báº£o Äáº£m khÃ´ng hao CPU
+                            -- Giới hạn 70m (7000 units), bảo đảm không hao CPU
                             if dist <= 7000 then
                                 local itemId = item.DefineID and item.DefineID.TypeSpecificID or item.DefineId
                                 local itemData = ItemDatabase[itemId]
                                 
                                 if itemData then
-                                    -- Check xem cÃ´ng táº¯c phÃ¢n loáº¡i cÃ³ Äang báº­t khÃ´ng?
+                                    -- Check xem công tắc phân loại có đang bật không?
                                     local isShow = false
                                     if itemData.cat == "AR" and _G.LexusConfig.EspItem_AR then isShow = true
                                     elseif itemData.cat == "Sniper" and _G.LexusConfig.EspItem_Sniper then isShow = true
@@ -3031,7 +3031,7 @@ _G.RunOptimizedItemAndVehicleESP = function(pc)
                                     elseif itemData.cat == "Med" and _G.LexusConfig.EspItem_Med then isShow = true
                                     end
 
-                                    -- Chá» xá»­ lÃ½ máº£ng vÃ  váº½ Glow náº¿u Äang báº­t
+                                    -- Chỉ xử lý mảng và vẽ Glow nếu đang bật
                                     if isShow then
                                         table.insert(_G.CachedItems, item)
 
@@ -3079,12 +3079,12 @@ _G.RunOptimizedItemAndVehicleESP = function(pc)
         end
     end
 
-    -- 2. Váº¼ TÃN Váº¬T PHáº¨M LIÃN Tá»¤C VÃO KHUNG HÃNH (Ráº¥t nháº¹, cháº¡y má»i frame)
+    -- 2. VẼ TÊN VẬT PHẨM LIÊN TỤC VÀO KHUNG HÌNH (Rất nhẹ, chạy mỗi frame)
     if _G.LexusConfig.EspItem_Master and slua.isValid(pc) and pc.MyHUD then
         local hud = pc.MyHUD
         local player = GameplayData.GetPlayerCharacter()
         for _, item in ipairs(_G.CachedItems) do
-            -- [Tá»I Æ¯U FPS Tá»I ÄA] Chá» check bHidden (cá»±c nháº¹), bá» qua pcall tá»n CPU á» vÃ²ng láº·p má»i frame
+            -- [TỐI ƯU FPS TỐI ĐA] Chỉ check bHidden (cực nhẹ), bỏ qua pcall tốn CPU ở vòng lặp mỗi frame
             if slua.isValid(item) and not item.bHidden then
                 local itemId = item.DefineID and item.DefineID.TypeSpecificID or item.DefineId
                 if itemId and ItemDatabase[itemId] then
@@ -3105,14 +3105,14 @@ end
 
 
 -- ========================================== 
--- UI WIDGET Äáº¾M Äá»CH & KHOáº¢NG CÃCH Gáº¦N NHáº¤T (NEW ESP LOGIC)
+-- UI WIDGET ĐẾM ĐỊCH & KHOẢNG CÁCH GẦN NHẤT (NEW ESP LOGIC)
 -- ========================================== 
 local BTN_BP = "/Game/UMG/UI_BP/Common/BaseComponent/CommonBaseComponent_TextButton_UIBP.CommonBaseComponent_TextButton_UIBP"
 local EnemyCounterWidget = nil
 local WarningTargetWidget = nil
 local LastCounterTime = 0
 
--- THÃM HÃM Dá»N Dáº¸P WIDGET KHI THOÃT TRáº¬N
+-- THÊM HÀM DỌN DẸP WIDGET KHI THOÁT TRẬN
 function _G.CleanUpEnemyCounterWidget()
     if EnemyCounterWidget and slua.isValid(EnemyCounterWidget) then
         EnemyCounterWidget:RemoveFromParent()
@@ -3125,7 +3125,7 @@ function _G.CleanUpEnemyCounterWidget()
     WarningTargetWidget = nil
 end
 
--- Táº O UI: Äáº¾M Äá»CH (Gá»C)
+-- TẠO UI: ĐẾM ĐỊCH (GỐC)
 local function CreateEnemyCounterWidget()
     if EnemyCounterWidget then
         if slua.isValid(EnemyCounterWidget) then return EnemyCounterWidget else EnemyCounterWidget = nil end
@@ -3137,7 +3137,7 @@ local function CreateEnemyCounterWidget()
         require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10500)
         
         if btn.RichText_Content then
-            btn.RichText_Content:SetText("Káº» Äá»ch: 0  |  Gáº§n Nháº¥t: 0m")
+            btn.RichText_Content:SetText("Kẻ Địch: 0  |  Gần Nhất: 0m")
             local fontInfo = btn.RichText_Content.Font
             if fontInfo then fontInfo.Size = 16 btn.RichText_Content:SetFont(fontInfo) end
         end
@@ -3156,7 +3156,7 @@ local function CreateEnemyCounterWidget()
     return EnemyCounterWidget
 end
 
--- Táº O UI: Cáº¢NH BÃO Äá»CH NGáº®M (Äá»C Láº¬P)
+-- TẠO UI: CẢNH BÁO ĐỊCH NGẮM (ĐỘC LẬP)
 local function CreateWarningTargetWidget()
     if WarningTargetWidget then
         if slua.isValid(WarningTargetWidget) then return WarningTargetWidget else WarningTargetWidget = nil end
@@ -3165,11 +3165,11 @@ local function CreateWarningTargetWidget()
     pcall(function()
         local btn = slua.loadUI(BTN_BP)
         if not btn or not slua.isValid(btn) then return end
-        require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10501) -- Z-Order cao hÆ¡n Äá» ná»i lÃªn
+        require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10501) -- Z-Order cao hơn để nổi lên
         
         if btn.RichText_Content then
-            -- Chá»¯ mÃ u Äá» cáº£nh bÃ¡o máº¡nh
-            btn.RichText_Content:SetText("Äá»CH ÄANG NHÃN Vá» PHÃA Báº N")
+            -- Chữ màu đỏ cảnh báo mạnh
+            btn.RichText_Content:SetText("ĐỊCH ĐANG NHÌN VỀ PHÍA BẠN")
             local fontInfo = btn.RichText_Content.Font
             if fontInfo then fontInfo.Size = 18 btn.RichText_Content:SetFont(fontInfo) end
         end
@@ -3179,16 +3179,16 @@ local function CreateWarningTargetWidget()
         if slot then
             slot:SetAnchors(FAnchors(0.5, 0, 0.5, 0))
             slot:SetAlignment(FVector2D(0.5, 0))
-            slot:SetPosition(FVector2D(0, 75)) -- Náº±m bÃªn dÆ°á»i UI Äáº¿m Äá»ch (Y=75)
+            slot:SetPosition(FVector2D(0, 75)) -- Nằm bên dưới UI đếm địch (Y=75)
             slot:SetSize(FVector2D(260, 36))
         end
-        btn:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed) -- Máº·c Äá»nh áº©n, chá» hiá»n khi bá» ngáº¯m
+        btn:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed) -- Mặc định ẩn, chỉ hiện khi bị ngắm
         WarningTargetWidget = btn
     end)
     return WarningTargetWidget
 end
 
--- VÃNG Láº¶P CHUNG (TÃNH TOÃN 1 Láº¦N CHO Cáº¢ 2 UI Äá» CHá»NG DROP FPS)
+-- VÒNG LẶP CHUNG (TÍNH TOÁN 1 LẦN CHO CẢ 2 UI ĐỂ CHỐNG DROP FPS)
 local function _M_DrawCounter()
     if isExpired then
         _G.CleanUpEnemyCounterWidget()
@@ -3214,7 +3214,7 @@ local function _M_DrawCounter()
             widgetCounter:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
         end
 
-        -- [Tá»I Æ¯U FPS] KhÃ³a nhá»p tÃ­nh toÃ¡n 0.5 giÃ¢y / láº§n Äá» trÃ¡nh quÃ¡ táº£i CPU
+        -- [TỐI ƯU FPS] Khóa nhịp tính toán 0.5 giây / lần để tránh quá tải CPU
         local curTime = os.clock()
         if (curTime - LastCounterTime) > 0.5 then
             LastCounterTime = curTime
@@ -3222,7 +3222,7 @@ local function _M_DrawCounter()
             local myTeam = player.TeamID or (type(player.GetTeamID) == "function" and player:GetTeamID()) or 0
             local count = 0
             local nearest = 9999
-            local isBeingTargeted = false -- Tráº¡ng thÃ¡i cáº£nh bÃ¡o
+            local isBeingTargeted = false -- Trạng thái cảnh báo
             
             local KismetMathLibrary = import("KismetMathLibrary")
             local pc = player:GetPlayerControllerSafety()
@@ -3251,7 +3251,7 @@ local function _M_DrawCounter()
                             if d < nearest then nearest = d end
                             
                             -- ========================================================
-                            -- LOGIC CHECK Äá»CH NGáº®M (Chá» tÃ­nh khi khoáº£ng cÃ¡ch < 400m)
+                            -- LOGIC CHECK ĐỊCH NGẮM (Chỉ tính khi khoảng cách < 400m)
                             -- ========================================================
                             if _G.LexusConfig.EspAimWarning and not isBeingTargeted and d < 400 then
                                 local eLoc = type(tPawn.K2_GetActorLocation) == "function" and tPawn:K2_GetActorLocation()
@@ -3274,9 +3274,9 @@ local function _M_DrawCounter()
                                         local dPitch = math.abs(eRot.Pitch - lookRot.Pitch)
                                         if dPitch > 180 then dPitch = 360 - dPitch end
                                         
-                                        -- Äá»ch hÆ°á»ng nÃ²ng sÃºng sai lá»ch < 15 Äá»
+                                        -- Địch hướng nòng súng sai lệch < 15 độ
                                         if dYaw < 15 and dPitch < 20 then
-                                            -- Ãp dá»¥ng logic Check TÆ°á»ng (VisCheck)
+                                            -- Áp dụng logic Check Tường (VisCheck)
                                             if _G.LexusConfig.EspAimWarningVisCheck then
                                                 if slua.isValid(pc) and type(pc.LineOfSightTo) == "function" then
                                                     if pc:LineOfSightTo(tPawn) then
@@ -3284,7 +3284,7 @@ local function _M_DrawCounter()
                                                     end
                                                 end
                                             else
-                                                -- XuyÃªn tÆ°á»ng bÃ¡o luÃ´n
+                                                -- Xuyên tường báo luôn
                                                 isBeingTargeted = true
                                             end
                                         end
@@ -3297,12 +3297,12 @@ local function _M_DrawCounter()
                 end
             end
 
-            -- Cáº­p nháº­t ná»i dung UI Äáº¿m Äá»ch (Khung 1)
+            -- Cập nhật nội dung UI đếm địch (Khung 1)
             if widgetCounter and widgetCounter.RichText_Content then
-                widgetCounter.RichText_Content:SetText(string.format("Äá»ch Xung Quanh: %d  |  Gáº§n Nháº¥t: %dm", count, count > 0 and nearest or 0))
+                widgetCounter.RichText_Content:SetText(string.format("Địch Xung Quanh: %d  |  Gần Nhất: %dm", count, count > 0 and nearest or 0))
             end
 
-            -- áº¨n/Hiá»n UI Cáº£nh bÃ¡o Äá»c láº­p (Khung 2)
+            -- Ẩn/Hiện UI Cảnh báo độc lập (Khung 2)
             if widgetWarning and slua.isValid(widgetWarning) then
                 if _G.LexusConfig.EspAimWarning and isBeingTargeted then
                     widgetWarning:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
@@ -3352,12 +3352,12 @@ function RedBoxOverlay.Create()
     local FLinearColor = import("LinearColor") or FLinearColor
     local FVector2D = import("Vector2D") or FVector2D
     
-    -- Viá»n Äá» bÃªn ngoÃ i (Red Border)
+    -- Viền đỏ bên ngoài (Red Border)
     local redBorder = nil
     pcall(function() redBorder = CGame:NewObjectFromPath("/Script/UMG.Border", Container) end)
     if redBorder and slua.isValid(redBorder) then
         pcall(function()
-            redBorder:SetBrushColor(FLinearColor(0.8, 0.0, 0.0, 0.9)) -- Viá»n Äá»
+            redBorder:SetBrushColor(FLinearColor(0.8, 0.0, 0.0, 0.9)) -- Viền đỏ
             redBorder:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
         end)
         local slotRed = Container:AddChildToCanvas(redBorder)
@@ -3367,17 +3367,17 @@ function RedBoxOverlay.Create()
         end
     end
 
-    -- Khung ná»n Äen bÃªn trong (Black Background)
+    -- Khung nền đen bên trong (Black Background)
     local blackBorder = nil
     pcall(function() blackBorder = CGame:NewObjectFromPath("/Script/UMG.Border", Container) end)
     if blackBorder and slua.isValid(blackBorder) then
         pcall(function()
-            blackBorder:SetBrushColor(FLinearColor(0.05, 0.05, 0.05, 0.95)) -- Ná»n Äen nhÃ¡m
+            blackBorder:SetBrushColor(FLinearColor(0.05, 0.05, 0.05, 0.95)) -- Nền đen nhám
             blackBorder:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
         end)
         local slotBlack = Container:AddChildToCanvas(blackBorder)
         if slotBlack then
-            -- Thá»¥t vÃ o 1.5 pixel má»i bÃªn Äá» táº¡o viá»n Äá» 1.5px
+            -- Thụt vào 1.5 pixel mỗi bên để tạo viền đỏ 1.5px
             slotBlack:SetPosition(FVector2D(1.5, 1.5))
             slotBlack:SetSize(FVector2D(RedBoxOverlay.Width - 3, RedBoxOverlay.Height - 3))
         end
@@ -3385,7 +3385,7 @@ function RedBoxOverlay.Create()
 
     local FSlateColor = import("SlateColor") or import("/Script/SlateCore.SlateColor")
     
-    -- Chá»¯ Enemy: X | Bot: Y
+    -- Chữ Enemy: X | Bot: Y
     local txtBlock = nil
     pcall(function() txtBlock = CGame:NewObjectFromPath("/Script/UMG.TextBlock", Container) end)
     if txtBlock and slua.isValid(txtBlock) then
@@ -3540,27 +3540,27 @@ PlayerMapMarker.ESPWidgetZOrder = 2
 
 PlayerMapMarker.bShowDistance = true
 PlayerMapMarker.DistanceUnit = "m"
-PlayerMapMarker.WeaponIconBrushW = 96 -- [SIZE 70%] Gá»c 138
-PlayerMapMarker.WeaponIconBrushH = 48 -- [SIZE 70%] Gá»c 69
+PlayerMapMarker.WeaponIconBrushW = 96 -- [SIZE 70%] Gốc 138
+PlayerMapMarker.WeaponIconBrushH = 48 -- [SIZE 70%] Gốc 69
 PlayerMapMarker.HPWidgetSwitcherTypeIndex = 0
 PlayerMapMarker.HPWidgetSwitcherType2Index = 0
 PlayerMapMarker.bForceSwitcherIndexEveryUpdate = true
 
 PlayerMapMarker.bUseSnapLines = true
-PlayerMapMarker.SnapLineThickness = 1.0 -- [SIZE 70%] Gá»c 1.5
+PlayerMapMarker.SnapLineThickness = 1.0 -- [SIZE 70%] Gốc 1.5
 PlayerMapMarker.SnapLineOriginY = 50
 PlayerMapMarker.SnapLineOriginOffsetX = 0
 PlayerMapMarker.SnapLineHeadOffsetX = 0
-PlayerMapMarker.SnapLineHeadOffsetY = -14 -- [SIZE 70%] Gá»c -20
-PlayerMapMarker.SnapLineColor = FLinearColor and FLinearColor(0.6, 0.0, 0.0, 1.0) or {R=150, G=0, B=0, A=255} -- Äá» Äáº­m
+PlayerMapMarker.SnapLineHeadOffsetY = -14 -- [SIZE 70%] Gốc -20
+PlayerMapMarker.SnapLineColor = FLinearColor and FLinearColor(0.6, 0.0, 0.0, 1.0) or {R=150, G=0, B=0, A=255} -- Đỏ Đậm
 PlayerMapMarker.SnapLineOpacity = 0.7
 
--- ====== Báº®T Äáº¦U: Cáº¤U HÃNH SKELETON (Tá»ª CODE MáºªU) ======
-PlayerMapMarker.bUseSkeleton = true                      -- TÃ¹y chá»n báº­t Skeleton
-PlayerMapMarker.SkeletonThickness = 0.8                  -- [SIZE 70%] Gá»c 1.2                  
+-- ====== BẮT ĐẦU: CẤU HÌNH SKELETON (TỪ CODE MẪU) ======
+PlayerMapMarker.bUseSkeleton = true                      -- Tùy chọn bật Skeleton
+PlayerMapMarker.SkeletonThickness = 0.8                  -- [SIZE 70%] Gốc 1.2                  
 PlayerMapMarker.SkeletonColor = nil                      
 PlayerMapMarker.SkeletonOpacity = 0.8  
--- [Tá»I Æ¯U FPS] Ráº¥t quan trá»ng: Chá» váº½ Khung xÆ°Æ¡ng dÆ°á»i 80 mÃ©t. Váº½ xÆ°Æ¡ng á» quÃ¡ xa sáº½ khiáº¿n mÃ¡y lag tung cháº£o.
+-- [TỐI ƯU FPS] Rất quan trọng: Chỉ vẽ Khung xương dưới 80 mét. Vẽ xương ở quá xa sẽ khiến máy lag tung chảo.
 PlayerMapMarker.SkeletonMaxDistance = 20000             
 PlayerMapMarker.bUseVisibilityColor = true              
 PlayerMapMarker.SkeletonVisibleColor = FLinearColor and FLinearColor(0.0, 1.0, 0.0, 0.8) or {R=0,G=255,B=0,A=200}
@@ -3598,7 +3598,7 @@ PlayerMapMarker.BoneNameFallbacks = {
     ["calf_l"] = {"calf_l", "Calf_L", "shin_l"},
     ["foot_l"] = {"foot_l", "Foot_L", "foot_l_socket"},
 }
--- ====== Káº¾T THÃC: Cáº¤U HÃNH SKELETON ======
+-- ====== KẾT THÚC: CẤU HÌNH SKELETON ======
 
 PlayerMapMarker.MapAddedFlag = 4
 PlayerMapMarker.nUpdateInterval = 0.5
@@ -3627,7 +3627,7 @@ PlayerMapMarker._CachedMyKey = nil
 PlayerMapMarker.WidgetComps = {}
 PlayerMapMarker._bAllPathsFailed = false
 PlayerMapMarker._bLightUpdateScheduled = false
--- [Tá»I Æ¯U FPS] Giáº£m tá»c Äá» render tá»« 50 xuá»ng 25 FPS (Äá»§ mÆ°á»£t mÃ  khÃ´ng gÃ¢y chÃ¡y CPU)
+-- [TỐI ƯU FPS] Giảm tốc độ render từ 50 xuống 25 FPS (Đủ mượt mà không gây cháy CPU)
 PlayerMapMarker._LightUpdateInterval = 0.04 
 PlayerMapMarker._bDistanceUpdateScheduled = false
 PlayerMapMarker._DistanceUpdateInterval = 0.1
@@ -3939,7 +3939,7 @@ function PlayerMapMarker.InitESPCanvas()
 
     if not ParentCanvas then return false end
     PlayerMapMarker.ESPCanvas = ParentCanvas
-    -- ÄÃ Bá» VÃNG Láº¶P QUÃT RÃC GÃY DROP FPS TRONG HÃM NÃY
+    -- ĐÃ BỎ VÒNG LẶP QUÉT RÁC GÂY DROP FPS TRONG HÀM NÀY
     return true
 end
 
@@ -3988,28 +3988,28 @@ function PlayerMapMarker.GetTeamColor(TeamID)
         return FLinearColor and FLinearColor(0.2, 0.4, 1.0, 1.0) or {R=50,G=100,B=255,A=255} 
     end
     
-    -- Khá»i táº¡o báº£ng 15 mÃ u sáº¯c rá»±c rá»¡ vÃ  dá» phÃ¢n biá»t
+    -- Khởi tạo bảng 15 màu sắc rực rỡ và dễ phân biệt
     local TeamColors = {
-        [1]  = {R=255, G=50,  B=50,  A=255, fR=1.0, fG=0.2, fB=0.2}, -- Äá»
-        [2]  = {R=50,  G=255, B=50,  A=255, fR=0.2, fG=1.0, fB=0.2}, -- Lá»¥c (Xanh lÃ¡)
-        [3]  = {R=50,  G=100, B=255, A=255, fR=0.2, fG=0.4, fB=1.0}, -- Lam (Xanh dÆ°Æ¡ng)
-        [4]  = {R=255, G=255, B=50,  A=255, fR=1.0, fG=1.0, fB=0.2}, -- VÃ ng
-        [5]  = {R=255, G=50,  B=255, A=255, fR=1.0, fG=0.2, fB=1.0}, -- TÃ­m / Há»ng Äáº­m
-        [6]  = {R=50,  G=255, B=255, A=255, fR=0.2, fG=1.0, fB=1.0}, -- Xanh Ngá»c BÃ­ch (Cyan)
+        [1]  = {R=255, G=50,  B=50,  A=255, fR=1.0, fG=0.2, fB=0.2}, -- Đỏ
+        [2]  = {R=50,  G=255, B=50,  A=255, fR=0.2, fG=1.0, fB=0.2}, -- Lục (Xanh lá)
+        [3]  = {R=50,  G=100, B=255, A=255, fR=0.2, fG=0.4, fB=1.0}, -- Lam (Xanh dương)
+        [4]  = {R=255, G=255, B=50,  A=255, fR=1.0, fG=1.0, fB=0.2}, -- Vàng
+        [5]  = {R=255, G=50,  B=255, A=255, fR=1.0, fG=0.2, fB=1.0}, -- Tím / Hồng Đậm
+        [6]  = {R=50,  G=255, B=255, A=255, fR=0.2, fG=1.0, fB=1.0}, -- Xanh Ngọc Bích (Cyan)
         [7]  = {R=255, G=150, B=50,  A=255, fR=1.0, fG=0.6, fB=0.2}, -- Cam
-        [8]  = {R=150, G=50,  B=255, A=255, fR=0.6, fG=0.2, fB=1.0}, -- TÃ­m Äáº­m
-        [9]  = {R=200, G=255, B=50,  A=255, fR=0.8, fG=1.0, fB=0.2}, -- VÃ ng Chanh
-        [10] = {R=50,  G=150, B=255, A=255, fR=0.2, fG=0.6, fB=1.0}, -- Xanh NÆ°á»c Biá»n
-        [11] = {R=255, G=100, B=150, A=255, fR=1.0, fG=0.4, fB=0.6}, -- Há»ng Nháº¡t
-        [12] = {R=100, G=255, B=150, A=255, fR=0.4, fG=1.0, fB=0.6}, -- Xanh TrÃ 
-        [13] = {R=150, G=150, B=50,  A=255, fR=0.6, fG=0.6, fB=0.2}, -- MÃ u Olive
-        [14] = {R=50,  G=200, B=150, A=255, fR=0.2, fG=0.8, fB=0.6}, -- Xanh RÃªu
-        [15] = {R=255, G=200, B=50,  A=255, fR=1.0, fG=0.8, fB=0.2}  -- VÃ ng Kim
+        [8]  = {R=150, G=50,  B=255, A=255, fR=0.6, fG=0.2, fB=1.0}, -- Tím Đậm
+        [9]  = {R=200, G=255, B=50,  A=255, fR=0.8, fG=1.0, fB=0.2}, -- Vàng Chanh
+        [10] = {R=50,  G=150, B=255, A=255, fR=0.2, fG=0.6, fB=1.0}, -- Xanh Nước Biển
+        [11] = {R=255, G=100, B=150, A=255, fR=1.0, fG=0.4, fB=0.6}, -- Hồng Nhạt
+        [12] = {R=100, G=255, B=150, A=255, fR=0.4, fG=1.0, fB=0.6}, -- Xanh Trà
+        [13] = {R=150, G=150, B=50,  A=255, fR=0.6, fG=0.6, fB=0.2}, -- Màu Olive
+        [14] = {R=50,  G=200, B=150, A=255, fR=0.2, fG=0.8, fB=0.6}, -- Xanh Rêu
+        [15] = {R=255, G=200, B=50,  A=255, fR=1.0, fG=0.8, fB=0.2}  -- Vàng Kim
     }
     
-    -- DÃ¹ng thuáº­t toÃ¡n Modulo Äá» xoay vÃ²ng mÃ u. 
-    -- VÃ­ dá»¥: Team 16 chia 15 dÆ° 1 sáº½ dÃ¹ng láº¡i mÃ u sá» 1.
-    -- Äáº£m báº£o 100 ngÆ°á»i (25 team) trong tráº­n Äá»u ÄÆ°á»£c tá»± Äá»ng gáº¯n mÃ u, chung team = chung mÃ u.
+    -- Dùng thuật toán Modulo để xoay vòng màu. 
+    -- Ví dụ: Team 16 chia 15 dư 1 sẽ dùng lại màu số 1.
+    -- Đảm bảo 100 người (25 team) trong trận đều được tự động gắn màu, chung team = chung màu.
     local colorIndex = (TeamID % 15)
     if colorIndex == 0 then colorIndex = 15 end 
     
@@ -4107,7 +4107,7 @@ end
 function PlayerMapMarker.ApplyTeamColor(Widget, TeamID)
     if not Widget or not Widget.Container then return end
     
-    -- [THÃM Má»I] Check cÃ´ng táº¯c táº¯t Ã mÃ u team
+    -- [THÊM MỚI] Check công tắc tắt Ô màu team
     if not _G.LexusConfig.Esp9_Team then
         pcall(function()
             local W = Widget.Container
@@ -4376,7 +4376,7 @@ function PlayerMapMarker.AddWeaponIconToESP(WidgetData, Character)
     local Container = WidgetData.Container
     if not slua.isValid(Container) then return end
 
-    -- [THÃM Má»I] Check cÃ´ng táº¯c Táº¯t Icon SÃºng
+    -- [THÊM MỚI] Check công tắc Tắt Icon Súng
     if not _G.LexusConfig.Esp9_Weapon then
         pcall(function()
             local chainNames = {"Border_WeaponColor", "Border_Weapon", "Border_WeaponIcon", "SizeBox_Weapon", "ScaleBox_Weapon", "Switcher_WeaponIcon"}
@@ -4968,7 +4968,7 @@ function PlayerMapMarker.UpdateESPPositionWithPC(Widget, WorldLoc, PC, CanvasPos
                 end
             end
 
-            -- [FIX VIP] XÃ³a vá»t Äen trÃªn Äáº§u khi táº¯t háº¿t UI
+            -- [FIX VIP] Xóa vệt đen trên đầu khi tắt hết UI
             local bShowAnyUI = _G.LexusConfig.Esp9_Name or _G.LexusConfig.Esp9_Distance or _G.LexusConfig.Esp9_HP or _G.LexusConfig.Esp9_Team or _G.LexusConfig.Esp9_Weapon
             if bShowAnyUI then
                 Container:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
@@ -4979,7 +4979,7 @@ function PlayerMapMarker.UpdateESPPositionWithPC(Widget, WorldLoc, PC, CanvasPos
             if not Widget._OffsetResetDone then
                 pcall(function() Container:SetRenderTranslation(FVector2D and FVector2D(0.0, 0.0) or {X=0, Y=0}) end)
                 
-                -- [SIZE 85% UI UE4] TÄng size to hÆ¡n má»t chÃºt cho dá» nhÃ¬n (Gá»c lÃ  1.0, cÅ© lÃ  0.7)
+                -- [SIZE 85% UI UE4] Tăng size to hơn một chút cho dễ nhìn (Gốc là 1.0, cũ là 0.7)
                 pcall(function() Container:SetRenderScale(FVector2D and FVector2D(0.90, 0.90) or {X=0.90, Y=0.90}) end)
                 
                 if Widget and type(Widget) == "table" then
@@ -5020,7 +5020,7 @@ function PlayerMapMarker.UpdateESPText(Widget, Text)
     local function applyTextAndCenter(w, txt)
         if not w or not slua.isValid(w) then return end
         
-        -- Náº¿u chá»¯ rá»ng (do ngÆ°á»i chÆ¡i ÄÃ£ táº¯t TÃªn & Khoáº£ng cÃ¡ch) thÃ¬ áº¨N Widget Äi
+        -- Nếu chữ rỗng (do người chơi đã tắt Tên & Khoảng cách) thì ẨN Widget đi
         if txt == "" then
             pcall(function() w:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed) end)
             return
@@ -5029,7 +5029,7 @@ function PlayerMapMarker.UpdateESPText(Widget, Text)
         end
 
         pcall(function() w:SetText(txt) end)
-        -- ÃP MÃU CAM CHO CHá»® & Sá» MÃT 
+        -- ÉP MÀU CAM CHO CHỮ & SỐ MÉT 
         pcall(function()
             local FSlateColor = import("SlateColor") or import("/Script/SlateCore.SlateColor")
             local orangeColor = FLinearColor and FLinearColor(1.0, 1.0, 1.0, 1.0) or {R=255, G=255, B=255, A=255}
@@ -5094,7 +5094,7 @@ end
 
 function PlayerMapMarker.UpdateESPHealth(Widget, pct)
     if not Widget then return end
-    -- XÃ³a dÃ²ng Cache LastPct Äá» nÃ³ Ã©p update liÃªn tá»¥c khi báº¡n gáº¡t cÃ´ng táº¯c
+    -- Xóa dòng Cache LastPct để nó ép update liên tục khi bạn gạt công tắc
     Widget.LastPct = pct
 
     local bShowHP = _G.LexusConfig.Esp9_HP
@@ -5106,7 +5106,7 @@ function PlayerMapMarker.UpdateESPHealth(Widget, pct)
                 if W.WidgetSwitcher_Type and slua.isValid(W.WidgetSwitcher_Type) then pcall(function() if W.WidgetSwitcher_Type.SetActiveWidgetIndex then W.WidgetSwitcher_Type:SetActiveWidgetIndex(PlayerMapMarker.HPWidgetSwitcherTypeIndex) end end) end
                 if W.WidgetSwitcher_Type2 and slua.isValid(W.WidgetSwitcher_Type2) then pcall(function() if W.WidgetSwitcher_Type2.SetActiveWidgetIndex then W.WidgetSwitcher_Type2:SetActiveWidgetIndex(PlayerMapMarker.HPWidgetSwitcherType2Index) end end) end
                 
-                -- Cáº­p nháº­t áº©n/hiá»n Box chá»©a thanh mÃ¡u
+                -- Cập nhật ẩn/hiện Box chứa thanh máu
                 if W.SizeBox_HP and slua.isValid(W.SizeBox_HP) then 
                     if bShowHP then
                         W.SizeBox_HP:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
@@ -5118,7 +5118,7 @@ function PlayerMapMarker.UpdateESPHealth(Widget, pct)
         end)
     end
 
-    -- Cháº·n Äoáº¡n code cáº­p nháº­t mÃ u bÃªn dÆ°á»i náº¿u cÃ´ng táº¯c táº¯t
+    -- Chặn đoạn code cập nhật màu bên dưới nếu công tắc tắt
     if not bShowHP then return end
 
     if Widget.HealthFill then
@@ -5138,25 +5138,25 @@ function PlayerMapMarker.UpdateESPHealth(Widget, pct)
                 if Widget.HealthFill.SetPercent then
                     Widget.HealthFill:SetPercent(pct)
                     
-                    -- [FIX VIP] XÃ³a bá» rÃ o cáº£n IsOriginalProgressBar Äá» ÃP MÃU má»i lÃºc
+                    -- [FIX VIP] Xóa bỏ rào cản IsOriginalProgressBar để ÉP MÀU mọi lúc
                     local color
                     if pct > 0.5 then 
-                        -- MÃ¡u nhiá»u: Xanh LÃ¡ CÃ¢y
+                        -- Máu nhiều: Xanh Lá Cây
                         color = FLinearColor and FLinearColor(0.0, 1.0, 0.0, 1.0) or {R=0,G=255,B=0,A=255}
                     elseif pct > 0.25 then 
-                        -- Ná»­a mÃ¡u: Cam/VÃ ng
+                        -- Nửa máu: Cam/Vàng
                         color = FLinearColor and FLinearColor(1.0, 0.5, 0.0, 1.0) or {R=255,G=128,B=0,A=255}
                     else 
-                        -- Yáº¿u mÃ¡u: Äá»
+                        -- Yếu máu: Đỏ
                         color = FLinearColor and FLinearColor(1.0, 0.0, 0.0, 1.0) or {R=255,G=0,B=0,A=255} 
                     end
                     
-                    -- 1. Ãp mÃ u báº±ng hÃ m chuáº©n
+                    -- 1. Ép màu bằng hàm chuẩn
                     if Widget.HealthFill.SetFillColorAndOpacity then 
                         Widget.HealthFill:SetFillColorAndOpacity(color) 
                     end
                     
-                    -- 2. Ãp mÃ u sÃ¢u vÃ o Style (Kháº¯c phá»¥c triá»t Äá» lá»i mÃ u tráº¯ng xÃ¡m cá»§a UI gá»c UE4)
+                    -- 2. Ép màu sâu vào Style (Khắc phục triệt để lỗi màu trắng xám của UI gốc UE4)
                     pcall(function()
                         if Widget.IsOriginalProgressBar then
                             local style = Widget.HealthFill.WidgetStyle
@@ -5309,7 +5309,7 @@ function PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fro
     local angle_rad = (math.atan2 and math.atan2(dy, dx)) or math.atan(dy, dx)
     local angle = angle_rad * 57.29577951308232
 
-    -- [Tá»I Æ¯U FPS] ThÃªm Threshold cho Snapline, KHÃNG báº¯t UI váº½ láº¡i náº¿u Äá»ch chá» nhÃ­ch vÃ i pixel
+    -- [TỐI ƯU FPS] Thêm Threshold cho Snapline, KHÔNG bắt UI vẽ lại nếu địch chỉ nhích vài pixel
     local threshold = 2.0
     LineData.lastToX = LineData.lastToX or -999
     LineData.lastToY = LineData.lastToY or -999
@@ -5352,7 +5352,7 @@ function PlayerMapMarker.ClearAllSnapLines()
     PlayerMapMarker.SnapLineWidgets = {}
 end
 
--- ====== Báº®T Äáº¦U: LOGIC SKELETON Tá»ª CODE MáºªU ======
+-- ====== BẮT ĐẦU: LOGIC SKELETON TỪ CODE MẪU ======
 function PlayerMapMarker.ScreenPixelToCanvasLocalRaw(PC, screenX, screenY)
     local scaleX = PlayerMapMarker._CanvasScaleX or 1.0
     local scaleY = PlayerMapMarker._CanvasScaleY or 1.0
@@ -5413,7 +5413,7 @@ end
 function PlayerMapMarker.IsPlayerVisible(PC, Character)
     if not IsValid(PC) or not IsValid(Character) then return false end
     local now = os.clock()
-    -- [Tá»I Æ¯U ESP V2] TÄng Cache Check TÆ°á»ng lÃªn 0.3s/Äá»ch. Raycast lÃ  tÃ¡c vá»¥ váº­t lÃ½ Náº¶NG NHáº¤T game.
+    -- [TỐI ƯU ESP V2] Tăng Cache Check Tường lên 0.3s/địch. Raycast là tác vụ vật lý NẶNG NHẤT game.
     if Character._lastVisTime and (now - Character._lastVisTime) < 0.3 then
         return Character._cachedIsVisible or false
     end
@@ -5549,7 +5549,7 @@ function PlayerMapMarker.UpdateSkeletonLines(KeyStr, Character, PC, bVisible, Te
 
     local lineColor = nil
     if PlayerMapMarker.bUseVisibilityColor then
-        -- [OPT ESP V2] Láº¥y trá»±c tiáº¿p káº¿t quáº£ Raycast tá»« vÃ²ng ngoÃ i truyá»n vÃ o, KHÃNG gá»i láº¡i IsPlayerVisible
+        -- [OPT ESP V2] Lấy trực tiếp kết quả Raycast từ vòng ngoài truyền vào, KHÔNG gọi lại IsPlayerVisible
         if bTargetVisible == nil then
             bTargetVisible = PlayerMapMarker.IsPlayerVisible(PC, Character)
         end
@@ -5559,9 +5559,9 @@ function PlayerMapMarker.UpdateSkeletonLines(KeyStr, Character, PC, bVisible, Te
         lineColor = PlayerMapMarker.SkeletonColor or TeamColor or FLinearColor(1.0, 1.0, 1.0, PlayerMapMarker.SkeletonOpacity or 0.8)
     end
 
-    -- [MÆ¯á»¢T MÃ Tá»I Æ¯U] Cache vá» trÃ­ xÆ°Æ¡ng 3D theo chuyá»n Äá»ng cá»§a Äá»ch: chá» tÃ¬m xÆ°Æ¡ng láº¡i khi
-    -- Äá»ch Dá»CH CHUYá»N. Khi chá» xoay camera (Äá»ch Äá»©ng yÃªn) => dÃ¹ng láº¡i cache, chá» chiáº¿u láº¡i
-    -- ra mÃ n hÃ¬nh => mÆ°á»£t hÆ¡n nhiá»u mÃ  gáº§n nhÆ° khÃ´ng tá»n thÃªm CPU.
+    -- [MƯỢT MÀ TỐI ƯU] Cache vị trí xương 3D theo chuyển động của địch: chỉ tìm xương lại khi
+    -- địch DỊCH CHUYỂN. Khi chỉ xoay camera (địch đứng yên) => dùng lại cache, chỉ chiếu lại
+    -- ra màn hình => mượt hơn nhiều mà gần như không tốn thêm CPU.
     local cache = Character._cachedBones3D
     if not cache then cache = {} Character._cachedBones3D = cache end
     local moveKey = nil
@@ -5621,7 +5621,7 @@ function PlayerMapMarker.UpdateSkeletonLines(KeyStr, Character, PC, bVisible, Te
                     local toX = currentCanvasX
                     local toY = currentCanvasY
 
-                    -- [OPT ESP V2] NgÆ°á»¡ng dá»ch chuyá»n mÃ n hÃ¬nh: cÃ ng xa cÃ ng Ã­t pháº£i váº½ láº¡i
+                    -- [OPT ESP V2] Ngưỡng dịch chuyển màn hình: càng xa càng ít phải vẽ lại
                     local threshold = 0.5
                     if dist > 20000 then threshold = 3.0
                     elseif dist > 12000 then threshold = 2.0
@@ -5696,7 +5696,7 @@ function PlayerMapMarker.ClearAllSkeletonLines()
     end
     PlayerMapMarker.SkeletonWidgets = {}
 end
--- ====== Káº¾T THÃC: LOGIC SKELETON ======
+-- ====== KẾT THÚC: LOGIC SKELETON ======
 
 function PlayerMapMarker.ClearAllESP()
     pcall(function() RedBoxOverlay.Stop() end)
@@ -5708,7 +5708,7 @@ function PlayerMapMarker.ClearAllESP()
     PlayerMapMarker.ClearAllSnapLines()
     PlayerMapMarker.ClearAllSkeletonLines()
     
-    -- XÃA Bá» VÃNG Láº¶P Náº¶NG GETCHILDRENCOUNT(), CHá» Cáº¦N Há»¦Y LIÃN Káº¾T Äá» GAME Tá»° XÃA RÃC
+    -- XÓA BỎ VÒNG LẶP NẶNG GETCHILDRENCOUNT(), CHỈ CẦN HỦY LIÊN KẾT ĐỂ GAME TỰ XÓA RÁC
     PlayerMapMarker.ESPCanvas = nil
     PlayerMapMarker._OBHeadWidgetClass = nil
     PlayerMapMarker._OBHeadWidgetLoadFailed = false
@@ -5719,19 +5719,19 @@ end
 function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
     if not PlayerMapMarker.bUseScreenESP then return end
     
-    -- Äá»ng bá» Config DÃ¢y vÃ  XÆ°Æ¡ng
+    -- Đồng bộ Config Dây và Xương
     PlayerMapMarker.bUseSnapLines = _G.LexusConfig.Esp9_Line
     PlayerMapMarker.bUseSkeleton = _G.LexusConfig.Esp9_Skeleton
 
-    -- Ãp dá»¥ng tÃ¹y chá»nh Äá» DÃ y & 30 MÃ u
+    -- Áp dụng tùy chỉnh Độ Dày & 30 Màu
     local function GetEspColor(idx, alpha)
         local FC = _G.FLinearColor or import("LinearColor")
         local colors = {
-            {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, {1.0, 1.0, 0.0}, {1.0, 0.0, 1.0}, {1.0, 1.0, 1.0}, -- 1-6 (CÆ¡ báº£n)
-            {0.0, 1.0, 1.0}, {1.0, 0.5, 0.0}, {1.0, 0.4, 0.7}, {0.6, 0.3, 0.0}, {0.5, 1.0, 0.0}, {0.0, 0.5, 0.5}, -- 7-12 (Cyan, Cam, Há»ng, NÃ¢u, Lime...)
-            {0.0, 0.0, 0.5}, {0.5, 0.0, 0.0}, {0.5, 0.5, 0.0}, {0.75, 0.75, 0.75}, {1.0, 0.84, 0.0}, {0.5, 0.0, 1.0}, -- 13-18 (Navy, Maroon, XÃ¡m, VÃ ng Gold...)
-            {0.53, 0.81, 0.92}, {1.0, 0.5, 0.31}, {0.98, 0.5, 0.45}, {0.94, 0.9, 0.55}, {0.87, 0.63, 0.87}, {0.85, 0.44, 0.84}, -- 19-24 (Da trá»i, San hÃ´, Máº­n...)
-            {0.29, 0.0, 0.51}, {0.25, 0.88, 0.82}, {0.6, 1.0, 0.6}, {0.86, 0.08, 0.24}, {0.82, 0.41, 0.12}, {0.5, 1.0, 0.83}  -- 25-30 (ChÃ m, Lá»¥c báº£o, Äá» Crimson...)
+            {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, {1.0, 1.0, 0.0}, {1.0, 0.0, 1.0}, {1.0, 1.0, 1.0}, -- 1-6 (Cơ bản)
+            {0.0, 1.0, 1.0}, {1.0, 0.5, 0.0}, {1.0, 0.4, 0.7}, {0.6, 0.3, 0.0}, {0.5, 1.0, 0.0}, {0.0, 0.5, 0.5}, -- 7-12 (Cyan, Cam, Hồng, Nâu, Lime...)
+            {0.0, 0.0, 0.5}, {0.5, 0.0, 0.0}, {0.5, 0.5, 0.0}, {0.75, 0.75, 0.75}, {1.0, 0.84, 0.0}, {0.5, 0.0, 1.0}, -- 13-18 (Navy, Maroon, Xám, Vàng Gold...)
+            {0.53, 0.81, 0.92}, {1.0, 0.5, 0.31}, {0.98, 0.5, 0.45}, {0.94, 0.9, 0.55}, {0.87, 0.63, 0.87}, {0.85, 0.44, 0.84}, -- 19-24 (Da trời, San hô, Mận...)
+            {0.29, 0.0, 0.51}, {0.25, 0.88, 0.82}, {0.6, 1.0, 0.6}, {0.86, 0.08, 0.24}, {0.82, 0.41, 0.12}, {0.5, 1.0, 0.83}  -- 25-30 (Chàm, Lục bảo, Đỏ Crimson...)
         }
         idx = math.floor(tonumber(idx) or 1)
         if idx < 1 or idx > 30 then idx = 1 end
@@ -5810,7 +5810,7 @@ function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
                 SeenKeys[KeyStr] = true
                 local ESPData = PlayerMapMarker.ESPWidgets[KeyStr]
 
-                -- [THÃM Má»I] Check Báº­t Táº¯t TÃªn vÃ  Khoáº£ng CÃ¡ch
+                -- [THÊM MỚI] Check Bật Tắt Tên và Khoảng Cách
                 local Text = ""
                 if _G.LexusConfig.Esp9_Name then Text = Name end
                 if _G.LexusConfig.Esp9_Distance and DistStr and DistStr ~= "" then
@@ -5868,11 +5868,11 @@ function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
                     ESPData.Name = Name
                     ESPData.LastDistStr = DistStr
                     if bIsAlive then
-                        -- XÃ³a chá»¯ "if TeamID ~= ESPData.TeamID" Äá» nÃ³ quÃ©t mÃ u Team liÃªn tá»¥c, Än cÃ´ng táº¯c láº­p tá»©c
+                        -- Xóa chữ "if TeamID ~= ESPData.TeamID" để nó quét màu Team liên tục, ăn công tắc lập tức
                         ESPData.TeamID = TeamID
                         PlayerMapMarker.ApplyTeamColor(ESPData.Widget, TeamID)
                         
-                        -- Ãp quÃ©t Text liÃªn tá»¥c
+                        -- Ép quét Text liên tục
                         ESPData.Widget._LastESPText = nil
                         PlayerMapMarker.UpdateESPText(ESPData.Widget, Text)
                         PlayerMapMarker.UpdateESPPositionWithPC(ESPData.Widget, Loc, PC, CanvasPos)
@@ -5922,7 +5922,7 @@ function PlayerMapMarker.UpdateESPLight()
     if RedBoxOverlay and RedBoxOverlay.bActive then RedBoxOverlay.UpdatePosition() end
     if not PlayerMapMarker.bUseScreenESP then return end
 
-    -- [OPT ESP V2] Tá»± phÃ¡t hiá»n mÃ¡y yáº¿u: vÃ²ng láº·p bá» trá» > 0.08s liÃªn tá»¥c -> tá»± Äá»ng báº­t cháº¿ Äá» SiÃªu Nháº¹
+    -- [OPT ESP V2] Tự phát hiện máy yếu: vòng lặp bị trễ > 0.08s liên tục -> tự động bật chế độ Siêu Nhẹ
     local realNow = os.clock()
     local lastReal = PlayerMapMarker._lastLightRealTime or 0
     if lastReal > 0 and realNow > lastReal then
@@ -5942,16 +5942,14 @@ function PlayerMapMarker.UpdateESPLight()
     PlayerMapMarker._LightTickCount = (PlayerMapMarker._LightTickCount or 0) + 1
     local nTick = PlayerMapMarker._LightTickCount
     local bWeak = PlayerMapMarker._bWeakDevice == true
-    local lodStep = 1
-    if bWeak then lodStep = 2 end   -- 弱设备时减少更新频率
-    -- MÃ¡y yáº¿u: má»i 4 láº§n gá»i má»i xá»­ lÃ½ 1 láº§n (hiá»u quáº£ ~10Hz) -> háº¿t káº¹t FPS, mÃ¡t mÃ¡y
+    -- Máy yếu: mỗi 4 lần gọi mới xử lý 1 lần (hiệu quả ~10Hz) -> hết kẹt FPS, mát máy
     if bWeak and (nTick % 4 ~= 0) then return end
 
-    -- Äá»ng bá» Config DÃ¢y vÃ  XÆ°Æ¡ng
+    -- Đồng bộ Config Dây và Xương
     PlayerMapMarker.bUseSnapLines = _G.LexusConfig.Esp9_Line
     PlayerMapMarker.bUseSkeleton = _G.LexusConfig.Esp9_Skeleton
     
-    -- Ãp dá»¥ng tÃ¹y chá»nh Äá» DÃ y & 30 MÃ u
+    -- Áp dụng tùy chỉnh Độ Dày & 30 Màu
     local function GetEspColor(idx, alpha)
         local FC = _G.FLinearColor or import("LinearColor")
         local colors = {
@@ -5988,7 +5986,7 @@ function PlayerMapMarker.UpdateESPLight()
     local fromX, fromY = 0, 0
     if PlayerMapMarker.bUseSnapLines then fromX, fromY = PlayerMapMarker.GetSnapLineStartPos(PC) end
 
-    -- TÃ­nh khoáº£ng cÃ¡ch LOD tá»« báº£n thÃ¢n
+    -- Tính khoảng cách LOD từ bản thân
     local MyLoc = PlayerMapMarker._CachedMyLoc or PlayerMapMarker.GetMyLocation()
 
     for KeyStr, ESPData in pairs(PlayerMapMarker.ESPWidgets) do
@@ -6005,7 +6003,7 @@ function PlayerMapMarker.UpdateESPLight()
                 PlayerMapMarker.RemoveSnapLine(KeyStr)
                 PlayerMapMarker.RemoveSkeletonLines(KeyStr)
             else
-                -- [FIX VIP] Giá»¯ nguyÃªn tÃ­nh nÄng Báº­t/Táº¯t UI tÃ¹y Ã½ cá»§a báº¡n
+                -- [FIX VIP] Giữ nguyên tính năng Bật/Tắt UI tùy ý của bạn
                 local bShowAnyUI = _G.LexusConfig.Esp9_Name or _G.LexusConfig.Esp9_Distance or _G.LexusConfig.Esp9_HP or _G.LexusConfig.Esp9_Team or _G.LexusConfig.Esp9_Weapon
                 if bShowAnyUI then
                     pcall(function() Container:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
@@ -6016,7 +6014,7 @@ function PlayerMapMarker.UpdateESPLight()
 
                 local Loc = PlayerMapMarker.GetESPLocation(Character)
                 if Loc then
-                    -- TÃ­nh khoáº£ng cÃ¡ch 2D Äá» chia má»©c Äá» váº½ (LOD)
+                    -- Tính khoảng cách 2D để chia mức độ vẽ (LOD)
                     local distU = 0
                     if MyLoc then
                         local dx = (Loc.X or 0) - (MyLoc.X or 0)
@@ -6024,7 +6022,7 @@ function PlayerMapMarker.UpdateESPLight()
                         distU = math.sqrt(dx * dx + dy * dy)
                     end
 
-                    -- [OPT ESP V2] LOD theo Khoáº£ng cÃ¡ch (Äá»ch xa khÃ´ng cáº§n váº½ láº¡i tá»«ng mi-li-giÃ¢y)
+                    -- [OPT ESP V2] LOD theo Khoảng cách (Địch xa không cần vẽ lại từng mi-li-giây)
                     local lodStep = 1
                     if distU > 25000 then lodStep = 4
                     elseif distU > 10000 then lodStep = 2 end
@@ -6034,7 +6032,7 @@ function PlayerMapMarker.UpdateESPLight()
                         local bOnScreen, CanvasPos = PlayerMapMarker.ProjectWorldToCanvasLocal(PC, Loc)
                         PlayerMapMarker.UpdateESPPositionWithPC(Widget, Loc, PC, CanvasPos)
                         
-                        -- [Tá»I Æ¯U SIÃU KHá»¦NG] TÃ­nh Raycast ÄÃºng 1 Láº¦N cho cáº£ DÃ¢y vÃ  XÆ°Æ¡ng
+                        -- [TỐI ƯU SIÊU KHỦNG] Tính Raycast đúng 1 LẦN cho cả Dây và Xương
                         local bTargetVisible = nil
                         if (PlayerMapMarker.bUseSnapLines or PlayerMapMarker.bUseSkeleton) and distU <= 20000 then
                             bTargetVisible = PlayerMapMarker.IsPlayerVisible(PC, Character)
@@ -6097,14 +6095,14 @@ function PlayerMapMarker.UpdateESPDistances()
                     local Name = ESPData.Name or "Unknown"
                     local Text = ""
                     
-                    -- Äá»ng bá» vá»i cÃ´ng táº¯c ESP 9
+                    -- Đồng bộ với công tắc ESP 9
                     if _G.LexusConfig.Esp9_Name then Text = Name end
                     if _G.LexusConfig.Esp9_Distance and DistStr and DistStr ~= "" then
                         if Text ~= "" then Text = string.format("%s [%s]", Text, DistStr) else Text = string.format("[%s]", DistStr) end
                     end
                     
                     ESPData.LastDistStr = DistStr
-                    -- Ãp Widget quÃªn text cÅ© Äá» váº½ láº¡i chá»¯ Rá»ng
+                    -- Ép Widget quên text cũ để vẽ lại chữ Rỗng
                     Widget._LastESPText = nil 
                     PlayerMapMarker.UpdateESPText(Widget, Text)
                 end
@@ -6152,7 +6150,7 @@ function PlayerMapMarker.ScanAndUpdate()
         end
     end
 
-    -- [THÃM Má»I] Báº­t Táº¯t Báº£ng Äáº¿m NgÆ°á»i
+    -- [THÊM MỚI] Bật Tắt Bảng Đếm Người
     if _G.LexusConfig.Esp9_Count then
         if RedBoxOverlay.bActive then RedBoxOverlay.SetCounts(realPlayers, botPlayers)
         else RedBoxOverlay.Start() end
@@ -6168,14 +6166,14 @@ function PlayerMapMarker.ScanAndUpdate()
 end
 
 function PlayerMapMarker.AttachTimers()
-    -- [ÄÃ FIX] Bá» trá»ng hÃ m nÃ y Äá» há»§y hoÃ n toÃ n viá»c sá»­ dá»¥ng AddGameTimer rÃ¡c gÃ¢y lag
+    -- [ĐÃ FIX] Bỏ trống hàm này để hủy hoàn toàn việc sử dụng AddGameTimer rác gây lag
 end
 
 function PlayerMapMarker.Start()
     if PlayerMapMarker.bActive then return end
     PlayerMapMarker.bActive = true
     PlayerMapMarker._FrameCount = 0
-    -- [ÄÃ FIX] Gom chung vÃ o MainLoop, khÃ´ng tá»± táº¡o Timer áº£o ná»¯a
+    -- [ĐÃ FIX] Gom chung vào MainLoop, không tự tạo Timer ảo nữa
 end
 
 function PlayerMapMarker.Stop()
@@ -6185,22 +6183,22 @@ function PlayerMapMarker.Stop()
 end
 
 _G.PlayerMapMarker = PlayerMapMarker
-end -- Káº¾T THÃC HÃM LoadESPV2System
+end -- KẾT THÚC HÀM LoadESPV2System
 
 -- ==========================================
--- VÃNG FOV AIMBOT V2
+-- VÒNG FOV AIMBOT V2
 -- ==========================================
 _G.FovCircleOverlay = {
     Container = nil,
     WidgetSlot = nil,
     Lines = {},
-    NumSegments = 45, -- [Tá»I Æ¯U] Giáº£m tá»« 90 xuá»ng 45 (Giáº£m 50% gÃ¡nh náº·ng UI mÃ  váº«n mÆ°á»£t)
+    NumSegments = 45, -- [TỐI ƯU] Giảm từ 90 xuống 45 (Giảm 50% gánh nặng UI mà vẫn mượt)
     Thickness = 1.5,  
     LastRadius = -1,
     LastColor = -1,
     LastCX = -1,
     LastCY = -1,
-    PrecalcMath = nil -- [Tá»I Æ¯U] Bá» nhá» Äá»m toÃ¡n há»c chá»ng drop FPS
+    PrecalcMath = nil -- [TỐI ƯU] Bộ nhớ đệm toán học chống drop FPS
 }
 
 local function GetFOVColor(idx)
@@ -6269,7 +6267,7 @@ function _G.FovCircleOverlay.Create()
 end
 
 function _G.FovCircleOverlay.Update(pc, player)
-    -- Chá» phá»¥ thuá»c duy nháº¥t vÃ o cÃ´ng táº¯c "HIá»N THá» VÃNG FOV AIMBOT"
+    -- Chỉ phụ thuộc duy nhất vào công tắc "HIỂN THỊ VÒNG FOV AIMBOT"
     if not _G.LexusConfig.EspFovCircle then
         if _G.FovCircleOverlay.Container and slua.isValid(_G.FovCircleOverlay.Container) then
             pcall(function() _G.FovCircleOverlay.Container:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed) end)
@@ -6279,13 +6277,13 @@ function _G.FovCircleOverlay.Update(pc, player)
     end
 
     local fovVal = 30
-    local colIdx = 7 -- Máº·c Äá»nh lÃ  tráº¯ng
+    local colIdx = 7 -- Mặc định là trắng
     
     local cData = _G.LexusState.CustomTextData
     local WEAPON_TYPE = _G.__AimTouch_WeaponType or "NORMAL"
     local isADS = player.bIsGunADS or false
 
-    -- Äá»c BÃ¡n KÃ­nh FOV vÃ  MÃ u Sáº¯c TÆ°Æ¡ng á»¨ng cho tá»«ng loáº¡i sÃºng
+    -- Đọc Bán Kính FOV và Màu Sắc Tương Ứng cho từng loại súng
     if WEAPON_TYPE == "MORTAR" then
         fovVal = cData.AimTouchMortarFOV or 360
         colIdx = tonumber(cData.AimTouchMortarFOVColor) or 5
@@ -6319,7 +6317,7 @@ function _G.FovCircleOverlay.Update(pc, player)
     local centerY = rawCY
     local scaleX = 1.0
 
-    -- [GIáº¢I PHÃP Äá»C Láº¬P Tá»I THÆ¯á»¢NG] Tá»± Äá»ng tÃ­nh toÃ¡n khung viá»n, notch/tai thá» báº±ng Engine cá»§a Game (KhÃ´ng phá»¥ thuá»c vÃ o ESP V2)
+    -- [GIẢI PHÁP ĐỘC LẬP TỐI THƯỢNG] Tự động tính toán khung viền, notch/tai thỏ bằng Engine của Game (Không phụ thuộc vào ESP V2)
     pcall(function()
         local parentCanvas = _G.FovCircleOverlay.Container:GetParent()
         if not slua.isValid(parentCanvas) then return end
@@ -6370,7 +6368,7 @@ function _G.FovCircleOverlay.Update(pc, player)
     local rawRadius = (fovVal / 100.0) * (vpX / 2.0)
     local targetRadius = rawRadius * scaleX
 
-    -- Náº¿u báº¡n táº¯t ESP lÃ m Game xÃ³a lá»p váº½ cá»§a FOV -> Tá»± Äá»ng nháº­n diá»n vÃ  váº½ láº¡i ngay láº­p tá»©c
+    -- Nếu bạn tắt ESP làm Game xóa lớp vẽ của FOV -> Tự động nhận diện và vẽ lại ngay lập tức
     if _G.FovCircleOverlay.Container and slua.isValid(_G.FovCircleOverlay.Container) then
         local parent = nil
         pcall(function() parent = _G.FovCircleOverlay.Container:GetParent() end)
@@ -6382,7 +6380,7 @@ function _G.FovCircleOverlay.Update(pc, player)
     if not _G.FovCircleOverlay.Create() then return end
     pcall(function() _G.FovCircleOverlay.Container:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
 
-    -- [Tá»I Æ¯U 1] ThÃªm sai sá» 0.5 pixel Äá» trÃ¡nh phÃ¡ vá»¡ Cache liÃªn tá»¥c vÃ¬ rung láº¯c mÃ n hÃ¬nh
+    -- [TỐI ƯU 1] Thêm sai số 0.5 pixel để tránh phá vỡ Cache liên tục vì rung lắc màn hình
     if math.abs(_G.FovCircleOverlay.LastRadius - targetRadius) < 0.5 
        and _G.FovCircleOverlay.LastColor == colIdx 
        and math.abs(_G.FovCircleOverlay.LastCX - centerX) < 0.5 
@@ -6402,7 +6400,7 @@ function _G.FovCircleOverlay.Update(pc, player)
 
     local numSegments = _G.FovCircleOverlay.NumSegments
 
-    -- [Tá»I Æ¯U 2] TÃ­nh toÃ¡n Sin/Cos sáºµn 1 Láº¦N DUY NHáº¤T (Chá»ng chÃ¡y CPU má»i khung hÃ¬nh)
+    -- [TỐI ƯU 2] Tính toán Sin/Cos sẵn 1 LẦN DUY NHẤT (Chống cháy CPU mỗi khung hình)
     if not _G.FovCircleOverlay.PrecalcMath then
         _G.FovCircleOverlay.PrecalcMath = {}
         local angleStep = 360.0 / numSegments
@@ -6435,7 +6433,7 @@ function _G.FovCircleOverlay.Update(pc, player)
         for i = 1, numSegments do
             local mathData = _G.FovCircleOverlay.PrecalcMath[i]
             
-            -- Chá» dÃ¹ng phÃ©p nhÃ¢n cÆ¡ báº£n siÃªu nháº¹ thay vÃ¬ tÃ­nh toÃ¡n lÆ°á»£ng giÃ¡c phá»©c táº¡p
+            -- Chỉ dùng phép nhân cơ bản siêu nhẹ thay vì tính toán lượng giác phức tạp
             local x1 = targetRadius * mathData.c1
             local y1 = targetRadius * mathData.s1
             local dist = targetRadius * mathData.dist_unit
@@ -6464,7 +6462,7 @@ function _G.CleanUpFovCircleOverlay()
 end
 
 -- ==========================================
--- Há» THá»NG HIá»N THá» "DUNGCU" Äá»C Láº¬P Tá»NG THá» (Báº¢O Vá» CHá»NG ESP CLEAR)
+-- HỆ THỐNG HIỂN THỊ "DUNGCU" ĐỘC LẬP TỔNG THỂ (BẢO VỆ CHỐNG ESP CLEAR)
 -- ==========================================
 local DungCuOverlay = {
     Widget = nil,
@@ -6481,11 +6479,11 @@ local function CleanUpPermanentDungCu()
 end
 
 local function EnsurePermanentDungCu()
-    -- BÆ¯á»C Báº¢O Vá»: Cáº¥y khiÃªn chá»ng láº¡i cá» mÃ¡y dá»n rÃ¡c cá»§a ESP V2
+    -- BƯỚC BẢO VỆ: Cấy khiên chống lại cỗ máy dọn rác của ESP V2
     if _G.PlayerMapMarker and not _G.DungCu_Protected then
         local old_IsOurESPWidget = _G.PlayerMapMarker.IsOurESPWidget
         _G.PlayerMapMarker.IsOurESPWidget = function(w)
-            -- BÃ¡o cho há» thá»ng biáº¿t ÄÃ¢y KHÃNG PHáº¢I lÃ  rÃ¡c cá»§a ESP, Cáº¤M XÃA!
+            -- Báo cho hệ thống biết đây KHÔNG PHẢI là rác của ESP, CẤM XÓA!
             if DungCuOverlay.Widget and w == DungCuOverlay.Widget then 
                 return false 
             end
@@ -6498,7 +6496,7 @@ local function EnsurePermanentDungCu()
         _G.DungCu_Protected = true
     end
 
-    -- 1. Náº¿u chá»¯ ÄÃ£ cÃ³ trÃªn mÃ n hÃ¬nh, Ã©p bÃ¡m theo toáº¡ Äá» Äá»c láº­p hoÃ n toÃ n
+    -- 1. Nếu chữ đã có trên màn hình, ép bám theo toạ độ độc lập hoàn toàn
     if DungCuOverlay.Widget and slua.isValid(DungCuOverlay.Widget) then 
         pcall(function() DungCuOverlay.Widget:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
         pcall(function()
@@ -6529,7 +6527,7 @@ local function EnsurePermanentDungCu()
         return 
     end
 
-    -- 2. Náº¿u chÆ°a cÃ³, tiáº¿n hÃ nh váº½ má»i
+    -- 2. Nếu chưa có, tiến hành vẽ mới
     local ParentCanvas = nil
     pcall(function()
         local InGameUITools = require("GameLua.Mod.BaseMod.Common.UI.InGameUITools")
@@ -6546,7 +6544,7 @@ local function EnsurePermanentDungCu()
     pcall(function() txtTitle = CGame:NewObjectFromPath("/Script/UMG.TextBlock", ParentCanvas) end)
     if txtTitle and slua.isValid(txtTitle) then
         pcall(function()
-            txtTitle:SetText("FREEV19DUNGCU")
+            txtTitle:SetText("FREEV18DC") -- BẠN CÓ THỂ ĐỔI CHỮ DUNGCU THÀNH TÊN BẠN MUỐN Ở ĐÂY
             local FLinearColor = import("LinearColor") or _G.FLinearColor
             local FSlateColor = import("SlateColor") or import("/Script/SlateCore.SlateColor")
             local redLinear = FLinearColor and FLinearColor(1.0, 0.0, 0.0, 1.0) or {R=255, G=0, B=0, A=255}
@@ -6579,25 +6577,25 @@ local function EnsurePermanentDungCu()
 end
 
 -- ========================================== 
--- VÃNG Láº¶P CHÃNH (MAIN LOOP) Tá»I Æ¯U Cá»°C Máº NH
+-- VÒNG LẶP CHÍNH (MAIN LOOP) TỐI ƯU CỰC MẠNH
 -- ========================================== 
 local function MainLoop()
     if isExpired then return end
 
     -- =====================================================================
-    -- Há» THá»NG Láº¤Y HWID Gá»C & Äá»I HWID áº¢O (SPOOFER) CHá»NG BAN
+    -- HỆ THỐNG LẤY HWID GỐC & ĐỔI HWID ẢO (SPOOFER) CHỐNG BAN
     -- =====================================================================
     pcall(function()
         local SystemLib = import("KismetSystemLibrary")
         if SystemLib and not _G.FakeHWID_Hooked then
-            -- LÆ°u láº¡i hÃ m láº¥y HWID gá»c
+            -- Lưu lại hàm lấy HWID gốc
             _G.Original_GetDeviceId = SystemLib.GetDeviceId
 
-            -- Ghi ÄÃ¨ hÃ m cá»§a game
+            -- Ghi đè hàm của game
             SystemLib.GetDeviceId = function(...)
                 if _G.LexusConfig.FakeHWID then
                     if not _G.FakeHWID_String then
-                        -- Táº¡o ngáº«u nhiÃªn má»t HWID áº£o 32 kÃ½ tá»±
+                        -- Tạo ngẫu nhiên một HWID ảo 32 ký tự
                         local chars = "0123456789abcdef"
                         local hwid = ""
                         for i = 1, 32 do 
@@ -6605,11 +6603,11 @@ local function MainLoop()
                         end
                         _G.FakeHWID_String = hwid
                     end
-                    -- Tráº£ vá» HWID áº£o
+                    -- Trả về HWID ảo
                     return _G.FakeHWID_String
                 end
                 
-                -- Náº¿u táº¯t Fake HWID thÃ¬ tráº£ vá» HWID tháº­t
+                -- Nếu tắt Fake HWID thì trả về HWID thật
                 if _G.Original_GetDeviceId then return _G.Original_GetDeviceId(...) end
                 return "UNKNOWN"
             end
@@ -6617,7 +6615,7 @@ local function MainLoop()
         end
     end)
 
-    -- HÃ m Äá»c láº­p Äá» báº¡n láº¥y HWID Gá»c (náº¿u sau nÃ y cáº§n hiá»n thá»)
+    -- Hàm độc lập để bạn lấy HWID Gốc (nếu sau này cần hiển thị)
     _G.GetOriginalHWID = function()
         if _G.Original_GetDeviceId then
             return tostring(_G.Original_GetDeviceId())
@@ -6640,7 +6638,7 @@ local function MainLoop()
     local localPlayer = nil
     if Valid(pc) then localPlayer = pc:GetPlayerCharacterSafety() end 
 
-    -- XÃA Sáº CH SÃNH SANH RÃC KHá»I RAM KHI Báº N CHáº¾T, Äá»I MAP, VÃO Sáº¢NH (ÄÃ FIX MEMORY LEAK)
+    -- XÓA SẠCH SÀNH SANH RÁC KHỎI RAM KHI BẠN CHẾT, ĐỔI MAP, VÀO SẢNH (ĐÃ FIX MEMORY LEAK)
     if not Valid(localPlayer) then 
         if _G.PlayerMapMarker and type(_G.PlayerMapMarker.Stop) == "function" then
             _G.PlayerMapMarker.Stop()
@@ -6653,7 +6651,7 @@ local function MainLoop()
             for markId, _ in pairs(_G.LexusState.TrackedMarks) do SafeRemoveMark(markId) end
         end
         
-        -- XÃA TRIá»T Äá» Bá» NHá» Äá»M Cá»¦A Táº¤T Cáº¢ CÃC ESP (Chá»ng vÄng game)
+        -- XÓA TRIỆT ĐỂ BỘ NHỚ ĐỆM CỦA TẤT CẢ CÁC ESP (Chống văng game)
         _G.AppliedVehicleWall = {}
         _G.AppliedItemESP = {}
         _G.CachedItems = {}
@@ -6701,33 +6699,33 @@ local function MainLoop()
     InitializeNativeESP()
     ShowLexusVIPMenu()
 
-    -- [Gá»I LOGIC DUNGCU] LuÃ´n cháº¡y Äá»c láº­p khÃ´ng cáº§n cÃ´ng táº¯c
+    -- [GỌI LOGIC DUNGCU] Luôn chạy độc lập không cần công tắc
     EnsurePermanentDungCu()
     
-    -- [Gá»I LOGIC ESP ITEM VÃ VEHICLE VÃO VÃNG Láº¶P]
+    -- [GỌI LOGIC ESP ITEM VÀ VEHICLE VÀO VÒNG LẶP]
     if _G.LexusConfig.WallVehicle or _G.LexusConfig.EspItem_Master then
         _G.RunOptimizedItemAndVehicleESP(pc)
     end
     
-    -- [TÃCH Há»¢P] LOGIC Báº¬T/Táº®T ESP LOáº I 9 VÃO MAINLOOP (KHÃNG DÃNG TIMER GÃY LAG)
+    -- [TÍCH HỢP] LOGIC BẬT/TẮT ESP LOẠI 9 VÀO MAINLOOP (KHÔNG DÙNG TIMER GÂY LAG)
     if _G.LexusConfig.EspLoai9 then
         if _G.PlayerMapMarker then
             if not _G.PlayerMapMarker.bActive then _G.PlayerMapMarker.Start() end
             
             local curTime = os.clock()
-            -- QuÃ©t má»¥c tiÃªu 0.5s/Láº§n (Nháº¹ mÃ¡y)
+            -- Quét mục tiêu 0.5s/Lần (Nhẹ máy)
             if not _G.LastEsp9Scan or (curTime - _G.LastEsp9Scan) > 0.5 then
                 _G.LastEsp9Scan = curTime
                 pcall(function() _G.PlayerMapMarker.ScanAndUpdate() end)
             end
             
-            -- Cáº­p nháº­t khoáº£ng cÃ¡ch 0.1s/Láº§n
+            -- Cập nhật khoảng cách 0.1s/Lần
             if not _G.LastEsp9Dist or (curTime - _G.LastEsp9Dist) > 0.1 then
                 _G.LastEsp9Dist = curTime
                 pcall(function() _G.PlayerMapMarker.UpdateESPDistances() end)
             end
             
-            -- Cáº­p nháº­t vá» trÃ­ váº½ ESP theo khung hÃ¬nh (TrÆ¡n Tru)
+            -- Cập nhật vị trí vẽ ESP theo khung hình (Trơn Tru)
             pcall(function() _G.PlayerMapMarker.UpdateESPLight() end)
         end
     else
@@ -6736,7 +6734,7 @@ local function MainLoop()
         end
     end
     
-    -- LOGIC IPAD VIEW (ÄI Bá», LÃI XE VÃ Má» SCOPE) ÄÃ NÃNG Cáº¤P
+    -- LOGIC IPAD VIEW (ĐI BỘ, LÁI XE VÀ MỞ SCOPE) ĐÃ NÂNG CẤP
     pcall(function()
         local isAiming = false
         if localPlayer.bIsWeaponAiming or localPlayer.bIsGunADS then isAiming = true end
@@ -6747,7 +6745,7 @@ local function MainLoop()
         local uVehCam = localPlayer.VehicleCameraComponent
         local camMgr = pc.PlayerCameraManager
 
-        -- 1. Xá»¬ LÃ KHI ÄANG Má» SCOPE (NGáº®M Báº®N)
+        -- 1. XỬ LÝ KHI ĐANG MỞ SCOPE (NGẮM BẮN)
         if isAiming then
             if _G.LexusConfig.IpadViewScope and _G.LexusState.CustomTextData then
                 local targetScope = _G.LexusState.CustomTextData.IpadViewScopeFOV or 60
@@ -6757,21 +6755,21 @@ local function MainLoop()
                     if type(camMgr.SetFOV) == "function" then camMgr:SetFOV(targetScope) end
                 end
             else
-                -- Náº¿u táº¯t Ipad Scope, tráº£ láº¡i FOV tháº­t cá»§a Game Äá» ngáº¯m chuáº©n
+                -- Nếu tắt Ipad Scope, trả lại FOV thật của Game để ngắm chuẩn
                 if type(pc.FOV) == "function" then pc:FOV(0) end
                 if Valid(camMgr) and type(camMgr.UnlockFOV) == "function" then camMgr:UnlockFOV() end
             end
-            return -- Ngáº¯t logic Äi bá»/xe vÃ¬ Æ°u tiÃªn Scope
+            return -- Ngắt logic đi bộ/xe vì ưu tiên Scope
         end
 
-        -- 2. Xá»¬ LÃ KHI KHÃNG NGáº®M Báº®N (ÄI Bá» HOáº¶C LÃI XE)
-        -- Phá»¥c há»i camera náº¿u trÆ°á»c ÄÃ³ vá»«a táº¯t Scope
+        -- 2. XỬ LÝ KHI KHÔNG NGẮM BẮN (ĐI BỘ HOẶC LÁI XE)
+        -- Phục hồi camera nếu trước đó vừa tắt Scope
         if not isInVehicle or not _G.LexusConfig.IpadViewVehicle then
             if type(pc.FOV) == "function" then pc:FOV(0) end
             if Valid(camMgr) and type(camMgr.UnlockFOV) == "function" then camMgr:UnlockFOV() end
         end
 
-        -- Äi Bá»
+        -- Đi Bộ
         if not isInVehicle then
             if _G.LexusConfig.IpadView and _G.LexusState.CustomTextData then
                 local targetTPP = _G.LexusState.CustomTextData.IpadViewFOV or 120
@@ -6785,7 +6783,7 @@ local function MainLoop()
             end
         end
 
-        -- LÃ¡i Xe
+        -- Lái Xe
         if isInVehicle then
             if _G.LexusConfig.IpadViewVehicle and _G.LexusState.CustomTextData then
                 local targetVeh = _G.LexusState.CustomTextData.IpadViewVehicleFOV or 120
@@ -6810,7 +6808,7 @@ local function MainLoop()
     end)
 
     -- ========================================================
-    -- LOGIC AIMBOT V2 ROYAL/CUSTOM VÃ VÃNG FOV
+    -- LOGIC AIMBOT V2 ROYAL/CUSTOM VÀ VÒNG FOV
     -- ========================================================
     pcall(function()
         local ui_util = require("client.common.ui_util")
@@ -6833,11 +6831,11 @@ local function MainLoop()
             local wID = type(weapon.GetWeaponID) == "function" and weapon:GetWeaponID() or 0
             if (wID >= 1030000 and wID < 1040000) or wName:find("S686") or wName:find("S1897") or wName:find("S12") or wName:find("DBS") or wName:find("M1014") then 
                 _G.__AimTouch_WeaponType = "SHOTGUN"
-            elseif wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") or wName:find("M1") or wName:find("DSR") then
+            elseif wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("Mk14") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") then
                 _G.__AimTouch_WeaponType = "SNIPER"
-            elseif wName:lower():find("mortar") or wName:lower():find("cá»i") then
+            elseif wName:lower():find("mortar") or wName:lower():find("cối") then
                 _G.__AimTouch_WeaponType = "MORTAR"
-            elseif wName:lower():find("crossbow") or wName:lower():find("ná»") then
+            elseif wName:lower():find("crossbow") or wName:lower():find("nỏ") then
                 _G.__AimTouch_WeaponType = "CROSSBOW"
             elseif wName:lower():find("bow") or wName:lower():find("cung") then
                 _G.__AimTouch_WeaponType = "BOW"
@@ -6855,14 +6853,14 @@ local function MainLoop()
         pcall(function() _G.FovCircleOverlay.Update(pc, localPlayer) end)
     end
     
-    -- [THÃM Má»I] LOGIC GLOW SÃNG (Äá»C Láº¬P & SIÃU MÆ¯á»¢T 0.5s/Láº§n - Äáº¢M Báº¢O 0% DROP FPS)
+    -- [THÊM MỚI] LOGIC GLOW SÚNG (ĐỘC LẬP & SIÊU MƯỢT 0.5s/Lần - ĐẢM BẢO 0% DROP FPS)
     if not _G.LastGlowTime or (os.clock() - _G.LastGlowTime) > 0.5 then
         _G.LastGlowTime = os.clock()
         if _G.ApplyWeaponGlow then _G.ApplyWeaponGlow(localPlayer) end
     end
 
     -- ========================================================
-    -- LOGIC BÃ GIáº¬T (GHÃM TÃM) CHá» DÃNH RIÃNG CHO AIMBOT Gá»C (ÄÃ FIX LAG ÄÃNG NGÆ¯á»I)
+    -- LOGIC BÙ GIẬT (GHÌM TÂM) CHỈ DÀNH RIÊNG CHO AIMBOT GỐC (ĐÃ FIX LAG ĐÔNG NGƯỜI)
     -- ========================================================
     pcall(function()
         if _G.LexusConfig.CustomAimbot and localPlayer.bIsWeaponFiring and localPlayer.bIsGunADS then
@@ -6870,7 +6868,7 @@ local function MainLoop()
             if outerRecoilVal > 0 then
                 local curTime = os.clock()
                 
-                -- [FIX CPU Cá»°C Máº NH]: QuÃ©t má»¥c tiÃªu 0.2s/láº§n thay vÃ¬ 100 láº§n/giÃ¢y Äá» trÃ¡nh quÃ¡ táº£i mÃ¡y khi check FOV
+                -- [FIX CPU CỰC MẠNH]: Quét mục tiêu 0.2s/lần thay vì 100 lần/giây để tránh quá tải máy khi check FOV
                 if not _G.RecoilTargetCacheTime or (curTime - _G.RecoilTargetCacheTime) > 0.2 then
                     _G.RecoilTargetCacheTime = curTime
                     _G.HasRecoilTargetCached = false
@@ -6922,14 +6920,14 @@ local function MainLoop()
     end)
     
     -- ========================================================
-    -- THá»°C THI MOD SKIN ÄÆ¯á»¢C TÃCH Há»¢P TRá»°C TIáº¾P VÃO MAIN LOOP (Tá»I Æ¯U TUYá»T Äá»I)
+    -- THỰC THI MOD SKIN ĐƯỢC TÍCH HỢP TRỰC TIẾP VÀO MAIN LOOP (TỐI ƯU TUYỆT ĐỐI)
     -- ========================================================
     -- ========================================================
-    -- THá»°C THI MOD SKIN HÃM XÃC / PET / KILL MESSAGE / ÃP V7.5 CHáº Y
+    -- THỰC THI MOD SKIN HÒM XÁC / PET / KILL MESSAGE / ÉP V7.5 CHẠY
     -- ========================================================
     if _G.LexusConfig.ModSkin then
         local curTime = os.clock()
-        -- TÄng thá»i gian check tá»« 1.0s lÃªn 2.5s Äá» chá»ng Spam giáº­t lag khi Báº­t/Táº¯t cÃ´ng táº¯c
+        -- Tăng thời gian check từ 1.0s lên 2.5s để chống Spam giật lag khi Bật/Tắt công tắc
         if not _G.LastSkinUpdateTime or (curTime - _G.LastSkinUpdateTime) > 2.5 then
             _G.LastSkinUpdateTime = curTime
             pcall(function()
@@ -6942,12 +6940,12 @@ local function MainLoop()
                     end
 
                     if _G.AddOutfit then
-                        -- [PHÃN LUá»NG NGá»¦ ÄÃNG RÃ RÃNG]
+                        -- [PHÂN LUỒNG NGỦ ĐÔNG RÕ RÀNG]
                         if _G.AddOutfit.isInRealMatch() then
-                            -- LUá»NG 1: TRONG TRáº¬N (Sáº¢NH NGá»¦ ÄÃNG)
+                            -- LUỒNG 1: TRONG TRẬN (SẢNH NGỦ ĐÔNG)
                             _G.AddOutfitLobbyRestored = false 
                             
-                            -- [FIX FPS] CHIA NHá» TIáº¾N TRÃNH Táº¢I SKIN (STAGGERED LOADING)
+                            -- [FIX FPS] CHIA NHỎ TIẾN TRÌNH TẢI SKIN (STAGGERED LOADING)
                             local ticker = require("common.time_ticker")
                             if ticker and ticker.AddTimerOnce then
                                 _G.AddOutfit.matchApplyAllSlots(localPlayer)
@@ -6975,7 +6973,7 @@ local function MainLoop()
                                 end
                             end
                         else
-                            -- LUá»NG 2: NGOÃI Sáº¢NH LOBBY (TRONG TRáº¬N NGá»¦ ÄÃNG)
+                            -- LUỒNG 2: NGOÀI SẢNH LOBBY (TRONG TRẬN NGỦ ĐÔNG)
                             _G.AddOutfit.reapplyLobbyEquipped()
                         end
                     end
@@ -6984,7 +6982,7 @@ local function MainLoop()
         end
     end
 
-    -- CHáº¶N HIGGSBOSON THEO THá»I GIAN THá»°C LÃM AN TOÃN TUYá»T Äá»I MÃ KHÃNG GÃY VÄNG GAME
+    -- CHẶN HIGGSBOSON THEO THỜI GIAN THỰC LÀM AN TOÀN TUYỆT ĐỐI MÀ KHÔNG GÂY VĂNG GAME
     pcall(function()
         if Valid(pc) then
             if pc.HiggsBoson then pc.HiggsBoson.bMHActive = false; pc.HiggsBoson.bCallPreReplication = false end
@@ -6992,7 +6990,7 @@ local function MainLoop()
         end
     end)
 
-    -- HOÃN TRáº¢ VÃ THIáº¾T Láº¬P AIMBOT HEAD COMPONENT Báº¬T/Táº®T Tá»¨C THÃ
+    -- HOÀN TRẢ VÀ THIẾT LẬP AIMBOT HEAD COMPONENT BẬT/TẮT TỨC THÌ
     pcall(function()
         local autoComp = localPlayer.AutoAimComp
         if Valid(autoComp) then
@@ -7094,10 +7092,10 @@ local function MainLoop()
                         local currentSpeed = math.sqrt(currentVel.X^2 + currentVel.Y^2)
                         local minSpeedToBoost = 50.0   
                         
-                        -- Tá»c Äá» thá»±c táº¿ ÄÃ£ ÄÆ°á»£c fix nhÃ¢n lÃªn tá»« thanh kÃ©o (Max 6000.0)
+                        -- Tốc độ thực tế đã được fix nhân lên từ thanh kéo (Max 6000.0)
                         local maxSpeed = _G.LexusState.CustomTextData.FastCarSpeed or 3000.0        
                         
-                        -- Cá» Äá»nh gia tá»c náº¡p máº¡nh Äá» xe vá»t láº¹ (tráº£ láº¡i 1.5 gá»c)
+                        -- Cố định gia tốc nạp mạnh để xe vọt lẹ (trả lại 1.5 gốc)
                         local accelFactor = 1.5
                         
                         local brakeFactor = 0.85       
@@ -7129,7 +7127,7 @@ local function MainLoop()
         end)
     end
 
-    -- HOÃN TRáº¢ Äá» Há»A NGAY Láº¬P Tá»¨C Náº¾U Táº®T (Táº®T LÃ Táº®T LIá»N)
+    -- HOÀN TRẢ ĐỒ HỌA NGAY LẬP TỨC NẾU TẮT (TẮT LÀ TẮT LIỀN)
     local now = os.clock()
     pcall(function()
         local lsg = require("client.slua.logic.setting.logic_setting_graphics")
@@ -7145,7 +7143,7 @@ local function MainLoop()
                 _G.LexusState.PrevGraphicsState.RemoveGrass = false
             end
 
-            -- LOGIC XÃA CÃY
+            -- LOGIC XÓA CÂY
             if _G.LexusConfig.RemoveTrees and not _G.LexusState.PrevGraphicsState.RemoveTrees then
                 gi:ExecuteCMD("foliage.DensityScale", "0")
                 gi:ExecuteCMD("r.Foliage.DensityScale", "0")
@@ -7380,7 +7378,7 @@ local function MainLoop()
                 _G.LexusState.LastMagicConfigHash = currentMagicHash
             end
         else
-            -- KHI MAGIC BULLET Bá» Táº®T, RESTORE Láº I HASH Vá» 0
+            -- KHI MAGIC BULLET BỊ TẮT, RESTORE LẠI HASH VỀ 0
             if _G.LexusState.LastMagicConfigHash ~= "OFF" then
                 _G.LexusState.MagicUpdateVersion = (_G.LexusState.MagicUpdateVersion or 0) + 1
                 _G.LexusState.LastMagicConfigHash = "OFF"
@@ -7406,7 +7404,7 @@ local function MainLoop()
                 SafeRemoveMark(data.hpMark)
                 SafeRemoveMark(data.distMark)
                 
-                -- [FIX RAM]: Dá»n rÃ¡c AimTouch VisCheck cá»§a Äá»ch ÄÃ£ cháº¿t hoáº·c vÄng quÃ¡ xa
+                -- [FIX RAM]: Dọn rác AimTouch VisCheck của địch đã chết hoặc văng quá xa
                 if _G.AimTouchVisCache and _G.AimTouchVisCache[key] then
                     _G.AimTouchVisCache[key] = nil
                 end
@@ -7473,11 +7471,11 @@ local function MainLoop()
                 markData.enemy = enemy 
 
                 if not bIsReallyDead then
-                    -- [FIX Lá»I Máº¤T MÃU KHI NHáº¢Y DÃ/Há»I SINH]: Kiá»m tra xem Äá»ch cÃ³ bá» Äá»i Actor (nhÃ¢n váº­t má»i) khÃ´ng.
-                    -- Náº¿u cÃ³, xÃ³a toÃ n bá» Marker (UI) bá» káº¹t á» xÃ¡c cÅ© Äá» code bÃªn dÆ°á»i váº½ láº¡i lÃªn nhÃ¢n váº­t má»i.
+                    -- [FIX LỖI MẤT MÁU KHI NHẢY DÙ/HỒI SINH]: Kiểm tra xem địch có bị đổi Actor (nhân vật mới) không.
+                    -- Nếu có, xóa toàn bộ Marker (UI) bị kẹt ở xác cũ để code bên dưới vẽ lại lên nhân vật mới.
                     if markData.lastEnemyActor ~= enemy then
                         if markData.hpMark then SafeRemoveMark(markData.hpMark); markData.hpMark = nil end
-                        if markData.hpMark8 then SafeRemoveMark(markData.hpMark8); markData.hpMark8 = nil end -- XÃ³a luÃ´n rÃ¡c cá»§a ESP 8
+                        if markData.hpMark8 then SafeRemoveMark(markData.hpMark8); markData.hpMark8 = nil end -- Xóa luôn rác của ESP 8
                         if markData.distMark then SafeRemoveMark(markData.distMark); markData.distMark = nil end
                         if markData.radarMark then SafeRemoveMark(markData.radarMark); markData.radarMark = nil end
                         
@@ -7501,7 +7499,7 @@ local function MainLoop()
                     end
                     local isMeshChanged = (markData.LastMeshCountWall ~= currentMeshCount)
 
-                    -- ÄÃ Tá»I Æ¯U Cá»°C Ká»²: Chá» Apply khi tháº­t sá»± cáº§n
+                    -- ĐÃ TỐI ƯU CỰC KỲ: Chỉ Apply khi thật sự cần
                     if _G.LexusConfig.WallXuyenTuong then
                         if isMeshChanged or not markData.WallhackApplied then
                             ApplyWallXuyenTuong(enemy, markData)
@@ -7512,38 +7510,38 @@ local function MainLoop()
                         UndoWallXuyenTuong(enemy, markData)
                     end
 
-                    -- ÄÃ Tá»I Æ¯U Cá»°C Ká»²
+                    -- ĐÃ TỐI ƯU CỰC KỲ
                     if _G.LexusConfig.ColorBodyV2 then 
-                        -- TRONG HÃM NÃY TÃI ÄÃ GIá»I Háº N PC:LINEOFSIGHTTO Láº I Äá» TRÃNH QUÃ Táº¢I CPU
+                        -- TRONG HÀM NÀY TÔI ĐÃ GIỚI HẠN PC:LINEOFSIGHTTO LẠI ĐỂ TRÁNH QUÁ TẢI CPU
                         ApplyColorBodyV2(enemy, pc, markData) 
                     else
                         UndoColorBodyV2(enemy, markData)
                     end
                     
-                    -- CHá»¨C NÄNG MÃU V3 (Lá» DIá»N XANH LÃ + SAU TÆ¯á»NG MÃU Äá») Ráº¤T á»N Äá»NH
+                    -- CHỨC NĂNG MÀU V3 (LỘ DIỆN XANH LÁ + SAU TƯỜNG MÀU ĐỎ) RẤT ỔN ĐỊNH
                     if _G.LexusConfig.ColorBodyV3 then 
                         ApplyColorBodyV3(enemy, markData)
                     else
                         UndoColorBodyV3(enemy, markData)
                     end
-                    -- CHá»¨C NÄNG WALL MÃU NEW
+                    -- CHỨC NĂNG WALL MÀU NEW
                     if _G.LexusConfig.ColorBodyNew then 
                         ApplyColorBodyNew(enemy, markData)
                     else
                         UndoColorBodyNew(enemy, markData)
                     end
 
-                    -- BUG MÃN: KÃO DÃN Káºº Äá»CH LÃM HITBOX TO RA (FAT BODY) - ÄÃ Tá»I Æ¯U
+                    -- BUG MÀN: KÉO DÃN KẺ ĐỊCH LÀM HITBOX TO RA (FAT BODY) - ĐÃ TỐI ƯU
                     pcall(function()
                         if Valid(eMesh) then
                             local targetScale = 1.0
                             if _G.LexusConfig.BugManEnable and _G.LexusState.CustomTextData then
                                 targetScale = 177.0 / (_G.LexusState.CustomTextData.BugManRatio or 133)
                                 if targetScale < 1.0 then targetScale = 1.0 end
-                                if targetScale > 2.0 then targetScale = 2.0 end -- Chá»ng lá»i Äá» há»a náº¿u kÃ©o quÃ¡ má»©c
+                                if targetScale > 2.0 then targetScale = 2.0 end -- Chống lỗi đồ họa nếu kéo quá mức
                             end
                             
-                            -- [FIX RÃC RAM]: Chá» giÃ£n xÆ°Æ¡ng khi cÃ³ sá»± thay Äá»i (Báº­t/táº¯t hoáº·c kÃ©o thanh trÆ°á»£t)
+                            -- [FIX RÁC RAM]: Chỉ giãn xương khi có sự thay đổi (Bật/tắt hoặc kéo thanh trượt)
                             if markData.LastFatScale ~= targetScale then
                                 eMesh:SetRelativeScale3D(FVector(targetScale, targetScale, 1.0))
                                 markData.LastFatScale = targetScale
@@ -7551,15 +7549,15 @@ local function MainLoop()
                         end
                     end)
 
-                    -- LOGIC MAGIC BULLET (ÄÃ FIX LAG ÄÃNG NGÆ¯á»I Báº°NG UNIQUE ID)
+                    -- LOGIC MAGIC BULLET (ĐÃ FIX LAG ĐÔNG NGƯỜI BẰNG UNIQUE ID)
                     pcall(function()
                         local EnemyMesh = eMesh
                         if slua.isValid(EnemyMesh) then
-                            -- [FIX CPU Cá»°C Máº NH]: DÃ¹ng ID tháº­t cá»§a nhÃ¢n váº­t. KhÃ´ng dÃ¹ng tostring() vÃ¬ SLUA tá»± xÃ³a/táº¡o láº¡i chuá»i liÃªn tá»¥c
-                            -- gÃ¢y lá»i tÃ­nh toÃ¡n láº¡i 50 khung xÆ°Æ¡ng láº·p Äi láº·p láº¡i khi ÄÃ´ng ngÆ°á»i.
+                            -- [FIX CPU CỰC MẠNH]: Dùng ID thật của nhân vật. Không dùng tostring() vì SLUA tự xóa/tạo lại chuỗi liên tục
+                            -- gây lỗi tính toán lại 50 khung xương lặp đi lặp lại khi đông người.
                             local uniqueID = type(enemy.GetUniqueID) == "function" and enemy:GetUniqueID() or tostring(enemy.PlayerKey or enemy)
                             
-                            -- Chá» tÃ­nh toÃ¡n xÆ°Æ¡ng ÄÃNG 1 Láº¦N DUY NHáº¤T cho má»i káº» Äá»ch (trá»« khi báº¡n kÃ©o thanh chá»nh size)
+                            -- Chỉ tính toán xương ĐÚNG 1 LẦN DUY NHẤT cho mỗi kẻ địch (trừ khi bạn kéo thanh chỉnh size)
                             if markData.MagicBulletHash == _G.LexusState.LastMagicConfigHash and markData.MagicTargetID == uniqueID then
                                 return 
                             end
@@ -7572,7 +7570,7 @@ local function MainLoop()
                                 local PhysAssetName = "DefaultPhys"
                                 pcall(function() PhysAssetName = PhysicsAsset:GetName() end)
                                 
-                                -- Tá»i Æ°u cáº¥p 2: Náº¿u bá» xÆ°Æ¡ng nÃ y ÄÃ£ tá»«ng ÄÆ°á»£c phÃ³ng to bá»i má»t káº» Äá»ch khÃ¡c, dÃ¹ng luÃ´n, khÃ´ng cháº¡y vÃ²ng láº·p
+                                -- Tối ưu cấp 2: Nếu bộ xương này đã từng được phóng to bởi một kẻ địch khác, dùng luôn, không chạy vòng lặp
                                 if _G.AK_ModdedPhysAssets[PhysAssetName] ~= _G.LexusState.LastMagicConfigHash then
                                     
                                     if not _G.AK_OrigHitboxes then _G.AK_OrigHitboxes = {} end
@@ -7645,7 +7643,7 @@ local function MainLoop()
                                 EnemyMesh.PhysicsAssetOverride = PhysicsAsset
                                 
                                 markData.MagicBulletHash = _G.LexusState.LastMagicConfigHash
-                                markData.MagicTargetID = uniqueID -- LÆ°u ID tÄ©nh
+                                markData.MagicTargetID = uniqueID -- Lưu ID tĩnh
                             end
                         end
                     end)
@@ -7689,49 +7687,49 @@ local function MainLoop()
                     if _G.LexusConfig.EspLoai6 then
                         pcall(function()
                             local curTime = os.clock()
-                            -- Tá»I Æ¯U Cá»°C Äá» 1: KhoÃ¡ nhá»p váº½ HUD 20 FPS (0.05s/láº§n) thay vÃ¬ 100 FPS
-                            -- Game váº«n mÆ°á»£t, nhÆ°ng CPU khÃ´ng bá» chÃ¡y vÃ¬ spam lá»nh AddDebugText
+                            -- TỐI ƯU CỰC ĐỘ 1: Khoá nhịp vẽ HUD 20 FPS (0.05s/lần) thay vì 100 FPS
+                            -- Game vẫn mượt, nhưng CPU không bị cháy vì spam lệnh AddDebugText
                             if markData.LastEsp6Time == nil or (curTime - markData.LastEsp6Time) >= 0.05 then
                                 markData.LastEsp6Time = curTime
                                 
                                 local MyHUD = Cached_MyHUD
                                 if Valid(MyHUD) and Valid(eMesh) and aLoc then
                                     if distM <= 250 then
-                                        -- Láº¥y toáº¡ Äá» Äáº§u tiÃªn quyáº¿t, náº¿u khÃ´ng cÃ³ hÃ m nÃ y thÃ¬ bá» qua
+                                        -- Lấy toạ độ Đầu tiên quyết, nếu không có hàm này thì bỏ qua
                                         if type(eMesh.GetSocketLocation) == "function" then
                                             for _, bName in ipairs(GLOBAL_BONE_LIST) do
                                                 
-                                                -- Tá»I Æ¯U Cá»°C Äá» 2: Äá»ch xa hÆ¡n 50m chá» váº½ Äáº§u, Cá», HÃ´ng. Bá» qua tay chÃ¢n Äá»¡ rÃ¡c
+                                                -- TỐI ƯU CỰC ĐỘ 2: Địch xa hơn 50m chỉ vẽ Đầu, Cổ, Hông. Bỏ qua tay chân đỡ rác
                                                 if distM > 50 and (bName ~= "head" and bName ~= "pelvis" and bName ~= "neck_01") then
-                                                    -- Skip khÃ´ng váº½ tay chÃ¢n á» xa
+                                                    -- Skip không vẽ tay chân ở xa
                                                 else
                                                     local wLoc = eMesh:GetSocketLocation(bName)
                                                     if wLoc then
-                                                        -- TÃ­nh Offset chuáº©n cho HUD
+                                                        -- Tính Offset chuẩn cho HUD
                                                         local offset = {X = wLoc.X - aLoc.X, Y = wLoc.Y - aLoc.Y, Z = wLoc.Z - aLoc.Z}
                                                         
-                                                        local mark = "âª"
+                                                        local mark = "▪"
                                                         local fixedSize = 0.25 
                                                         local color = C_CYAN
                                                         
                                                         if bName == "head" then 
-                                                            mark = "â"
+                                                            mark = "●"
                                                             fixedSize = 0.45
                                                             color = C_RED
                                                         elseif bName == "pelvis" or bName == "neck_01" then 
-                                                            mark = "âª"
+                                                            mark = "▪"
                                                             fixedSize = 0.35
                                                             color = C_YELLOW 
                                                         end
                                                         
-                                                        -- Váº½ Äiá»m neo cá»§a khá»p xÆ°Æ¡ng (Thá»i gian sá»ng 0.06s Äá» ná»i mÆ°á»£t vá»i frame 0.05s)
+                                                        -- Vẽ điểm neo của khớp xương (Thời gian sống 0.06s để nối mượt với frame 0.05s)
                                                         MyHUD:AddDebugText(mark, enemy, 0.06, offset, offset, color, true, false, true, nil, fixedSize, true)
                                                     end
                                                 end
                                             end
                                         end
-                                        -- LÆ¯U Ã: ÄÃ XOÃ Bá» HOÃN TOÃN TÃNH NÄNG Váº¼ DÃY Ná»I (GLOBAL_CONNECTIONS)
-                                        -- VÃ¬ dÃ¹ng dáº¥u cháº¥m "." xáº¿p thÃ nh dÃ¢y lÃ  nguyÃªn nhÃ¢n chÃ­nh gÃ¢y drop FPS 
+                                        -- LƯU Ý: ĐÃ XOÁ BỎ HOÀN TOÀN TÍNH NĂNG VẼ DÂY NỐI (GLOBAL_CONNECTIONS)
+                                        -- Vì dùng dấu chấm "." xếp thành dây là nguyên nhân chính gây drop FPS 
                                     end
                                 end
                             end
@@ -7747,19 +7745,19 @@ local function MainLoop()
                                 if distM <= 400 then
                                     local stateText = ""
                                     
-                                    -- 1. Xá»­ lÃ½ TÆ° Tháº¿
+                                    -- 1. Xử lý Tư Thế
                                     if _G.LexusConfig.Esp7_TuThe then
                                         local pose = nil
                                         if enemy.PoseState then pose = enemy.PoseState
                                         elseif type(enemy.GetPoseState) == "function" then pose = enemy:GetPoseState() end
                                         
-                                        if pose == 0 or pose == "Stand" then stateText = "Äá»©ng"
-                                        elseif pose == 1 or pose == "Crouch" then stateText = "Ngá»i"
-                                        elseif pose == 2 or pose == "Prone" then stateText = "Náº±m"
-                                        else stateText = "Äá»©ng" end
+                                        if pose == 0 or pose == "Stand" then stateText = "Đứng"
+                                        elseif pose == 1 or pose == "Crouch" then stateText = "Ngồi"
+                                        elseif pose == 2 or pose == "Prone" then stateText = "Nằm"
+                                        else stateText = "Đứng" end
                                     end
                                     
-                                    -- 2. Xá»­ lÃ½ VÅ© KhÃ­
+                                    -- 2. Xử lý Vũ Khí
                                     if _G.LexusConfig.Esp7_VuKhi then
                                         local curTime = os.clock()
                                         if markData.AK_LAST_WEP_TIME == nil or curTime > markData.AK_LAST_WEP_TIME + 1.5 then
@@ -7768,20 +7766,20 @@ local function MainLoop()
                                             elseif type(enemy.GetCurrentWeapon) == "function" then eWeapon = enemy:GetCurrentWeapon()
                                             elseif enemy.WeaponManagerComponent then eWeapon = enemy.WeaponManagerComponent.CurrentWeaponReplicated end
                                             
-                                            local weaponName = "Tay KhÃ´ng"
+                                            local weaponName = "Tay Không"
                                             if Valid(eWeapon) then if type(eWeapon.GetWeaponName) == "function" then weaponName = eWeapon:GetWeaponName() end end
                                             markData.AK_CACHED_WEP_NAME = tostring(weaponName)
                                             markData.AK_LAST_WEP_TIME = curTime
                                         end
 
                                         if stateText ~= "" then
-                                            stateText = stateText .. " - " .. (markData.AK_CACHED_WEP_NAME or "Tay KhÃ´ng")
+                                            stateText = stateText .. " - " .. (markData.AK_CACHED_WEP_NAME or "Tay Không")
                                         else
-                                            stateText = (markData.AK_CACHED_WEP_NAME or "Tay KhÃ´ng")
+                                            stateText = (markData.AK_CACHED_WEP_NAME or "Tay Không")
                                         end
                                     end
 
-                                    -- 3. Váº½ lÃªn mÃ n hÃ¬nh náº¿u cÃ³ báº­t 1 trong 2
+                                    -- 3. Vẽ lên màn hình nếu có bật 1 trong 2
                                     if stateText ~= "" then
                                         local textColor = isBot and C_CYAN or C_YELLOW
                                         local dynamicScale = math.max(0.5, 0.8 - (distM / 400))
@@ -7792,7 +7790,7 @@ local function MainLoop()
                         end)
                     end
 
-                    -- ÄÃ Tá»I Æ¯U Cá»°C Ká»²: Chá» SetVisibility cho UI khung mÃ¡u khi tháº­t sá»± cáº§n
+                    -- ĐÃ TỐI ƯU CỰC KỲ: Chỉ SetVisibility cho UI khung máu khi thật sự cần
                     if showFrameUI then
                         pcall(function()
                             local SecurityCommonUtils = Cached_SecurityCommonUtils
@@ -7850,7 +7848,7 @@ local function MainLoop()
                                     elseif hpPercent < 0.7 then hpColor = C_YELLOW end
                                     if isKnock then hpColor = C_RED end
                                     
-                                    -- Váº¼ TÃN NGÆ¯á»I CHÆ I
+                                    -- VẼ TÊN NGƯỜI CHƠI
                                     if _G.LexusConfig.Esp3ShowName then
                                         local enemyName = "Enemy"
                                         pcall(function() if enemy.PlayerName then enemyName = enemy.PlayerName elseif type(enemy.GetPlayerName) == "function" then enemyName = enemy:GetPlayerName() end end)
@@ -7859,7 +7857,7 @@ local function MainLoop()
                                         hud:AddDebugText(enemyName, enemy, 0.06, {X=0, Y=0, Z=-370}, {X=0, Y=0, Z=-370}, C_WHITE, true, false, true, nil, dynamicScale * 1.1, true)
                                     end
                                     
-                                    -- Váº¼ THANH MÃU
+                                    -- VẼ THANH MÁU
                                     if _G.LexusConfig.Esp3ShowHP then
                                         if not isKnock then
                                             local segments = 6
@@ -7868,7 +7866,7 @@ local function MainLoop()
                                             local spacing = 10.0 * dynamicScale 
                                             for j = 1, segments do
                                                 local color = (j <= filled) and hpColor or {R=30,G=30,B=30,A=180}
-                                                hud:AddDebugText("â", enemy, 0.06, {X=0, Y=-115, Z=startZ + (j * spacing)}, {X=0, Y=-115, Z=startZ + (j * spacing)}, color, true, false, true, nil, dynamicScale * 1.2, true)
+                                                hud:AddDebugText("█", enemy, 0.06, {X=0, Y=-115, Z=startZ + (j * spacing)}, {X=0, Y=-115, Z=startZ + (j * spacing)}, color, true, false, true, nil, dynamicScale * 1.2, true)
                                             end
                                             hud:AddDebugText(string.format("%d%%", math.floor(hpPercent * 100)), enemy, 0.06, {X=0, Y=-60, Z=startZ - 12}, {X=0, Y=-60, Z=startZ - 12}, hpColor, true, false, true, nil, dynamicScale * 0.8, true)
                                         else
@@ -7892,7 +7890,7 @@ local function MainLoop()
                         end)
                     end
 
-                    -- [ESP LOáº I 1 (ÄÃ£ Fix Lá»i)]: Giá»¯ nguyÃªn thanh mÃ¡u (hpMark) vÃ  khoáº£ng cÃ¡ch (distMark)
+                    -- [ESP LOẠI 1 (Đã Fix Lỗi)]: Giữ nguyên thanh máu (hpMark) và khoảng cách (distMark)
                     if _G.LexusConfig.EspVip then
                         if markData.hpMark == nil then markData.hpMark = SafeAddMark(1006, FVector(0,0,0), 0, "", 4, enemy) end
                         if markData.distMark == nil then markData.distMark = SafeAddMark(9999, FVector(0,0,0), 0, "", 4, enemy) end
@@ -7901,7 +7899,7 @@ local function MainLoop()
                         if markData.distMark then SafeRemoveMark(markData.distMark); markData.distMark = nil end
                     end
 
-                    -- [ESP LOáº I 8 Äá»C Láº¬P (ÄÃ£ Fix Lá»i)]: Copy logic thanh mÃ¡u ESP 1, nhÆ°ng cháº¡y biáº¿n hpMark8 riÃªng biá»t
+                    -- [ESP LOẠI 8 ĐỘC LẬP (Đã Fix Lỗi)]: Copy logic thanh máu ESP 1, nhưng chạy biến hpMark8 riêng biệt
                     if _G.LexusConfig.EspLoai8 then
                         if markData.hpMark8 == nil then markData.hpMark8 = SafeAddMark(1006, FVector(0,0,0), 0, "", 4, enemy) end
                     else
@@ -7909,7 +7907,7 @@ local function MainLoop()
                     end
                     
                     if _G.LexusConfig.EspRadar then
-                        -- Sá»­a lá»i káº¹t biáº¿n (nil/false/0) vÃ  gá»i ID 8888 Äá»c quyá»n
+                        -- Sửa lỗi kẹt biến (nil/false/0) và gọi ID 8888 độc quyền
                         if not markData.radarMark or markData.radarMark == 0 then 
                             markData.radarMark = SafeAddMark(8888, FVector(0,0,0), 0, "", 4, enemy) 
                         end
@@ -7920,7 +7918,7 @@ local function MainLoop()
                         end
                     end
                     
-                    -- [ESP OUTLINE - Y CHANG 100% LOGIC Lá» DIá»N V3]: PhÃ¡t sÃ¡ng TÃ¹y Chá»nh MÃ u HDR
+                    -- [ESP OUTLINE - Y CHANG 100% LOGIC LỘ DIỆN V3]: Phát sáng Tùy Chỉnh Màu HDR
                     if _G.LexusConfig.EspOutline then
                         pcall(function()
                             local outColorChoice = _G.LexusState.CustomTextData.OutlineColor or 4
@@ -7932,13 +7930,13 @@ local function MainLoop()
                             
                             if markData.OutlineState ~= outlineHash or markData.LastMeshCountOutline ~= currentMeshCount then
                                 
-                                local r, g, b = 255, 255, 0 -- VÃ ng (Máº·c Äá»nh)
-                                if outColorChoice == 1 then r, g, b = 255, 0, 0 -- Äá»
-                                elseif outColorChoice == 2 then r, g, b = 0, 255, 0 -- Lá»¥c
+                                local r, g, b = 255, 255, 0 -- Vàng (Mặc định)
+                                if outColorChoice == 1 then r, g, b = 255, 0, 0 -- Đỏ
+                                elseif outColorChoice == 2 then r, g, b = 0, 255, 0 -- Lục
                                 elseif outColorChoice == 3 then r, g, b = 0, 0, 255 -- Lam
-                                elseif outColorChoice == 4 then r, g, b = 255, 255, 0 -- VÃ ng
-                                elseif outColorChoice == 5 then r, g, b = 255, 0, 255 -- TÃ­m/Há»ng
-                                elseif outColorChoice == 6 then r, g, b = 255, 255, 255 end -- Tráº¯ng
+                                elseif outColorChoice == 4 then r, g, b = 255, 255, 0 -- Vàng
+                                elseif outColorChoice == 5 then r, g, b = 255, 0, 255 -- Tím/Hồng
+                                elseif outColorChoice == 6 then r, g, b = 255, 255, 255 end -- Trắng
 
                                 local glowIntensity = 80.0
                                 local LinearColorClass = import("LinearColor") or _G.FLinearColor
@@ -7946,28 +7944,28 @@ local function MainLoop()
 
                                 for _, comp in ipairs(meshes) do
                                     if Valid(comp) then
-                                        -- Báº®T BUá»C GIá»NG V3: Ãp Shading Model Äá» kÃ­ch hoáº¡t phÃ¡t sÃ¡ng HDR (Bloom)
+                                        -- BẮT BUỘC GIỐNG V3: Ép Shading Model để kích hoạt phát sáng HDR (Bloom)
                                         pcall(function()
                                             comp.UseScopeDistanceCulling = false 
                                             comp.PrimitiveShadingStrategy = 1
                                             comp.ShadingRate = 6
                                         end)
 
-                                        -- Y CHANG V3: Váº½ Outline ÄÃ¨ lÃªn trÃªn báº±ng hÃ m gá»c cá»§a Engine
+                                        -- Y CHANG V3: Vẽ Outline đè lên trên bằng hàm gốc của Engine
                                         if comp.SetDrawIdeaOutline then
                                             comp:SetDrawIdeaOutline(true)
                                             if comp.OverrideIdeaOutlineColor then
                                                 comp:OverrideIdeaOutlineColor(true, glowDynamic)
                                             end
                                             if comp.OverrideIdeaOutlineThickness then
-                                                -- Äá» to cá»§a viá»n Än theo thanh kÃ©o trong Menu cá»§a báº¡n
+                                                -- Độ to của viền ăn theo thanh kéo trong Menu của bạn
                                                 comp:OverrideIdeaOutlineThickness(true, _G.LexusConfig.OutlineThickness)
                                             end
                                         end
                                     end
                                 end
                                 markData.OutlineState = outlineHash
-                                markData.LastMeshCountOutline = currentMeshCount -- LÆ°u láº¡i sá» lÆ°á»£ng phá»¥ kiá»n hiá»n táº¡i
+                                markData.LastMeshCountOutline = currentMeshCount -- Lưu lại số lượng phụ kiện hiện tại
                             end
                         end)
                     else
@@ -7976,7 +7974,7 @@ local function MainLoop()
                                 local meshes = GetAllSkeletalMeshes(enemy, markData)
                                 for _, comp in ipairs(meshes) do
                                     if Valid(comp) then
-                                        -- HoÃ n tráº£ Shading Model vá» máº·c Äá»nh khi táº¯t
+                                        -- Hoàn trả Shading Model về mặc định khi tắt
                                         pcall(function()
                                             comp.PrimitiveShadingStrategy = 0
                                             comp.ShadingRate = 1
@@ -7999,7 +7997,7 @@ local function MainLoop()
                         markData.radarMark = nil
                         SafeRemoveMark(markData.hpMark)
                         markData.hpMark = nil
-                        SafeRemoveMark(markData.hpMark8) -- Dá»n dáº¹p ESP 8
+                        SafeRemoveMark(markData.hpMark8) -- Dọn dẹp ESP 8
                         markData.hpMark8 = nil
                         SafeRemoveMark(markData.distMark)
                         markData.distMark = nil
@@ -8041,16 +8039,16 @@ local function MainLoop()
         end
 
         if _G.LexusConfig.EspLoai7 and _G.LexusConfig.Esp7_SoLuong then
-            _M_DrawCounter() -- Gá»i hÃ m Widget UMG xá»n xÃ²
+            _M_DrawCounter() -- Gọi hàm Widget UMG xịn xò
         else
-            -- Táº¯t cÃ´ng táº¯c thÃ¬ cho áº©n Widget Äi
+            -- Tắt công tắc thì cho ẩn Widget đi
             if EnemyCounterWidget and slua.isValid(EnemyCounterWidget) then
                 EnemyCounterWidget:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
             end
         end
 
         -- ==========================================================
-        -- [LOGIC ESP BOM VVIP] - OPTIMIZED WITH WEAK CACHE (100% Gá»C, KHÃNG LAG)
+        -- [LOGIC ESP BOM VVIP] - OPTIMIZED WITH WEAK CACHE (100% GỐC, KHÔNG LAG)
         -- ==========================================================
         if _G.LexusConfig.EspBomMaster and (_G.LexusConfig.EspItemBom or _G.LexusConfig.EspActiveBom) then
             pcall(function()
@@ -8060,7 +8058,7 @@ local function MainLoop()
                     if not _G.CachedActorClass_ForBomb then _G.CachedActorClass_ForBomb = import("Actor") end 
                     if not _G.CachedProjArray then _G.CachedProjArray = slua.Array(UEnums.EPropertyClass.Object, _G.CachedActorClass_ForBomb) end
                     
-                    -- Khá»i táº¡o Cache sá»­ dá»¥ng Weak Table Äá» game tá»± xÃ³a rÃ¡c, khÃ´ng trÃ n RAM
+                    -- Khởi tạo Cache sử dụng Weak Table để game tự xóa rác, không tràn RAM
                     if not _G.ActorBombCacheInit then
                         _G.NonBombCache = setmetatable({}, { __mode = "k" })
                         _G.BombCache = setmetatable({}, { __mode = "k" })
@@ -8073,7 +8071,7 @@ local function MainLoop()
                     if gameInstance and _G.CachedGameplayStatics then
                         local curTime = os.clock()
                         
-                        -- LUá»NG QUÃT Dá»® LIá»U Náº¶NG: Cháº¡y 0.5s/láº§n thay vÃ¬ má»i frame
+                        -- LUỒNG QUÉT DỮ LIỆU NẶNG: Chạy 0.5s/lần thay vì mỗi frame
                         if not _G.LastBombScanTime or (curTime - _G.LastBombScanTime) > 0.5 then
                             _G.LastBombScanTime = curTime
                             local allActors = _G.CachedGameplayStatics.GetAllActorsOfClass(gameInstance, _G.CachedActorClass_ForBomb, _G.CachedProjArray)
@@ -8085,8 +8083,8 @@ local function MainLoop()
                                 for _, actor in pairs(allActors) do
                                     if slua.isValid(actor) and not actor.bHidden and not actor.bTearOff then
                                         
-                                        -- 1. KIá»M TRA Bá» NHá» Äá»M (CACHE) SIÃU Tá»C
-                                        -- Náº¿u actor nÃ y ÄÃ£ tá»«ng quÃ©t vÃ  KHÃNG PHáº¢I BOM -> Bá» qua láº­p tá»©c (Giáº£m 99% Lag)
+                                        -- 1. KIỂM TRA BỘ NHỚ ĐỆM (CACHE) SIÊU TỐC
+                                        -- Nếu actor này đã từng quét và KHÔNG PHẢI BOM -> Bỏ qua lập tức (Giảm 99% Lag)
                                         if not _G.NonBombCache[actor] then
                                             local bType = 0
                                             local isItem = false
@@ -8096,7 +8094,7 @@ local function MainLoop()
                                                 bType = isKnownBomb.type
                                                 isItem = isKnownBomb.isItem
                                             else
-                                                -- Láº§n Äáº§u tiÃªn tháº¥y Actor nÃ y, tiáº¿n hÃ nh kiá»m tra tÃªn (Ráº¥t Ã­t khi xáº£y ra)
+                                                -- Lần đầu tiên thấy Actor này, tiến hành kiểm tra tên (Rất ít khi xảy ra)
                                                 local nameLower = nil
                                                 pcall(function() nameLower = string.lower(type(actor.GetName) == "function" and actor:GetName() or tostring(actor)) end)
                                                 
@@ -8132,7 +8130,7 @@ local function MainLoop()
                                                     end
                                                 end
                                                 
-                                                -- LÆ°u káº¿t quáº£ vÃ o Cache
+                                                -- Lưu kết quả vào Cache
                                                 if bType > 0 then
                                                     _G.BombCache[actor] = { type = bType, isItem = isItem }
                                                 else
@@ -8140,7 +8138,7 @@ local function MainLoop()
                                                 end
                                             end
                                             
-                                            -- Náº¿u lÃ  Bom há»£p lá» (tá»« Cache hoáº·c vá»«a tÃ¬m ra)
+                                            -- Nếu là Bom hợp lệ (từ Cache hoặc vừa tìm ra)
                                             if bType > 0 then
                                                 local isPendingKill = false
                                                 pcall(function() if type(actor.IsPendingKill) == "function" then isPendingKill = actor:IsPendingKill() end end)
@@ -8152,7 +8150,7 @@ local function MainLoop()
                                                         table.insert(activeBombs, {act = actor, type = bType})
                                                     end
                                                 else
-                                                    -- XÃ³a khá»i cache náº¿u bomb ÄÃ£ ná»/biáº¿n máº¥t
+                                                    -- Xóa khỏi cache nếu bomb đã nổ/biến mất
                                                     _G.BombCache[actor] = nil
                                                 end
                                             end
@@ -8183,10 +8181,10 @@ local function MainLoop()
                                         local zOffset = isItem and 15 or 25
                                         
                                         if bType == 1 then displayName = "Boom"; bombColor = isItem and {R=255, G=100, B=100, A=255} or C_RED
-                                        elseif bType == 2 then displayName = "KHÃI"; bombColor = isItem and {R=200, G=200, B=200, A=255} or C_WHITE
-                                        elseif bType == 3 then displayName = "Lá»¬A"; bombColor = isItem and {R=255, G=160, B=50, A=255} or {R=255, G=100, B=0, A=255}
-                                        elseif bType == 4 then displayName = "MÃ"; bombColor = isItem and {R=150, G=255, B=255, A=255} or C_CYAN
-                                        elseif bType == 5 then displayName = "Äáº N KHÃI"; bombColor = isItem and {R=150, G=255, B=150, A=255} or {R=100, G=255, B=100, A=255} end
+                                        elseif bType == 2 then displayName = "KHÓI"; bombColor = isItem and {R=200, G=200, B=200, A=255} or C_WHITE
+                                        elseif bType == 3 then displayName = "LỬA"; bombColor = isItem and {R=255, G=160, B=50, A=255} or {R=255, G=100, B=0, A=255}
+                                        elseif bType == 4 then displayName = "MÙ"; bombColor = isItem and {R=150, G=255, B=255, A=255} or C_CYAN
+                                        elseif bType == 5 then displayName = "ĐẠN KHÓI"; bombColor = isItem and {R=150, G=255, B=150, A=255} or {R=100, G=255, B=100, A=255} end
                                         
                                         local text = string.format("%s [%dm]", displayName, math.floor(distM))
                                         local shouldTimerRun = not isItem 
@@ -8233,7 +8231,7 @@ local function MainLoop()
         -- [LOGIC ESP XE - VEHICLE ESP VVIP] - OPTIMIZED
         -- ==========================================================
         -- ==========================================================
-        -- [LOGIC ESP XE - VEHICLE ESP VVIP] - OPTIMIZED KHÃNG MÃU (SIÃU NHáº¸)
+        -- [LOGIC ESP XE - VEHICLE ESP VVIP] - OPTIMIZED KHÔNG MÁU (SIÊU NHẸ)
         -- ==========================================================
         if _G.LexusConfig.EspVehicle then
             pcall(function()
@@ -8249,7 +8247,7 @@ local function MainLoop()
                     if gameInstance and _G.CachedGameplayStatics then
                         local curTime = os.clock()
 
-                        -- LUá»NG QUÃT CHÃNH: 1.0s quÃ©t 1 láº§n.
+                        -- LUỒNG QUÉT CHÍNH: 1.0s quét 1 lần.
                         if not _G.LastVehicleScanTime or (curTime - _G.LastVehicleScanTime) > 1.0 then
                             _G.LastVehicleScanTime = curTime
                             local allVehicles = _G.CachedGameplayStatics.GetAllActorsOfClass(gameInstance, _G.CachedActorClass_ForVehicle, _G.CachedVehicleArray)
@@ -8281,8 +8279,8 @@ local function MainLoop()
                                             elseif string.find(nameLower, "scooter") then displayName = "Scooter"
                                             elseif string.find(nameLower, "coupe") then displayName = "Coupe RB"
                                             elseif string.find(nameLower, "brdm") then displayName = "BRDM"
-                                            elseif string.find(nameLower, "boat") or string.find(nameLower, "aquarail") then displayName = "Thuyá»n"
-                                            elseif string.find(nameLower, "glider") then displayName = "TÃ u lÆ°á»£n"
+                                            elseif string.find(nameLower, "boat") or string.find(nameLower, "aquarail") then displayName = "Thuyền"
+                                            elseif string.find(nameLower, "glider") then displayName = "Tàu lượn"
                                             else displayName = "Xe (" .. string.sub(vehName, 1, 8) .. ")" end
 
                                             table.insert(activeVehicles, {act = veh, name = displayName, hasDriver = hasDriver})
@@ -8337,12 +8335,12 @@ local function ExpiredTick()
         pcall(function()
             local Msg = require("client.slua.logic.common.logic_common_msg_box")
             if Msg and Msg.Show then
-                Msg.Show(1, "MOD Háº¾T Háº N Sá»¬ Dá»¤NG", "PHIÃN Báº¢N MOD Cá»¦A Báº N ÄÃ Háº¾T Háº N!\nVUI LÃNG INBOX ADMIN Äá» GIA Háº N.\nInbox Tele @dung0610 Zalo 0922520900 Äá» Mua Náº¿u Ai ÄÃ³ ÄÃ£ BÃ¡n Cho Báº¡n Thá»© NÃ y NgoÃ i TÃ´i ThÃ¬ Xin ChÃºc Má»«ng Báº¡n ÄÃ£ Bá» Lá»«a", 
+                Msg.Show(1, "MOD HẾT HẠN SỬ DỤNG", "PHIÊN BẢN MOD CỦA BẠN ĐÃ HẾT HẠN!\nVUI LÒNG INBOX ADMIN ĐỂ GIA HẠN.\nInbox Tele @dung0610 Zalo 0922520900 Để Mua Nếu Ai Đó Đã Bán Cho Bạn Thứ Này Ngoài Tôi Thì Xin Chúc Mừng Bạn Đã Bị Lừa", 
                 function() 
                     local Web = require("client.slua.logic.url.logic_webview_sdk")
                     if Web and Web.OpenURL then Web:OpenURL("https://t.me/dung0610") end 
                 end, 
-                function() end, "INBOX CHá»¦ MOD", "ÄÃNG")
+                function() end, "INBOX CHỦ MOD", "ĐÓNG")
                 _G.LexusNotifiedPopup = true 
             end
         end)
@@ -8359,7 +8357,7 @@ end
 local function FastTick() 
     if isExpired then 
         if not _G.LexusNotifiedExpire then
-            Notify("MOD ÄÃ Háº¾T Háº N! VUI LÃNG INBOX ADMIN Äá» GIA Háº N!\nInbox Tele @dung0610 Zalo 0922520900 Äá» Mua Náº¿u Ai ÄÃ³ ÄÃ£ BÃ¡n Cho Báº¡n Thá»© NÃ y NgoÃ i TÃ´i ThÃ¬ Xin ChÃºc Má»«ng Báº¡n ÄÃ£ Bá» Lá»«a")
+            Notify("MOD ĐÃ HẾT HẠN! VUI LÒNG INBOX ADMIN ĐỂ GIA HẠN!\nInbox Tele @dung0610 Zalo 0922520900 Để Mua Nếu Ai Đó Đã Bán Cho Bạn Thứ Này Ngoài Tôi Thì Xin Chúc Mừng Bạn Đã Bị Lừa")
             _G.LexusNotifiedExpire = true
             ExpiredTick() 
         end
@@ -8376,13 +8374,13 @@ end
 
 if not isExpired then
     FastTick() 
-    Notify("Báº¡n Äang ChÆ¡i Mod Vvip 4 Cá»§a TÃ´i Náº¿u ChÆ°a CÃ³ Key Inbox Tele @dung0610 Zalo 0922520900 Äá» Mua Náº¿u Ai ÄÃ³ ÄÃ£ BÃ¡n Cho Báº¡n Thá»© NÃ y NgoÃ i TÃ´i ThÃ¬ Xin ChÃºc Má»«ng Báº¡n ÄÃ£ Bá» Lá»«a")
+    Notify("Bạn Đang Chơi Mod Vvip 4 Của Tôi Nếu Chưa Có Key Inbox Tele @dung0610 Zalo 0922520900 Để Mua Nếu Ai Đó Đã Bán Cho Bạn Thứ Này Ngoài Tôi Thì Xin Chúc Mừng Bạn Đã Bị Lừa")
 else
     FastTick() 
 end
 
 -- ===================================================================================
--- SYSTEM HOOKS Tá»ª BYPASS Má»I
+-- SYSTEM HOOKS TỪ BYPASS MỚI
 -- ===================================================================================
 local function InitAllModSystems()
     if isExpired then return end 
@@ -8415,7 +8413,7 @@ end
 _G.LoadModSkinSystem = function()
 if _G.IsModSkinLoaded then return end
 _G.IsModSkinLoaded = true
--- Báº£ng map ID phá»¥ kiá»n gá»c ra index máº£ng
+-- Bảng map ID phụ kiện gốc ra index mảng
 _G.BaseAttachToIndex = {
     [201010]=1, [201005]=1, [201004]=1, [201009]=2, [201003]=2, [201002]=2, 
     [201011]=3, [201007]=3, [201006]=3, [204012]=4, [204005]=4, [204008]=4, 
@@ -8425,7 +8423,7 @@ _G.BaseAttachToIndex = {
     [205002]=20, [205003]=20, [205001]=20, [203018]=21, [204014]=22 
 }
 
--- DÃN ID PHá»¤ KIá»N Cá»¦A Báº N VÃO BÃN TRONG NGOáº¶C NHá»N DÆ¯á»I ÄÃY âââ
+-- DÁN ID PHỤ KIỆN CỦA BẠN VÀO BÊN TRONG NGOẶC NHỌN DƯỚI ĐÂY ↓↓↓
 _G.VIP_Attachments = {
     
     [1101004236]={1010042307,1010042306,1010042308,1010042304,1010042300,1010042305,1010042299,1010042298,1010042297,1010042296,1010042295,1010042294,0,1010042314,1010042309,1010042316,1010042317,1010042318,1010042310,1010042315,1010042319,0},
@@ -8530,13 +8528,13 @@ _G.VIP_Attachments = {
     [1105001069]={0,0,0,1050010639,1050010638,1050010640,1050010637,1050010636,1050010635,1050010634,1050010633,1050010645,0,0,0,0,0,0,0,1050010643,1050010646,1050010644},
     [1105002091]={0,0,0,0,0,0,1050020847,1050020846,1050020845,1050020844,1050020843,1050020842,0,0,0,0,0,0,0,0,0,1050020848},
     [1105010019]={0,0,0,0,0,0,1050100144,1050100143,1050100142,1050100141,1050100139,1050100138,0,0,0,0,0,0,0,0,0,0},
-    -- [ AUG Cá»­u VÄ© Cuá»ng Ná» - Dáº¡ng CÆ¡ Báº£n (MÃ u Äá») ]
+    -- [ AUG Cửu Vĩ Cuồng Nộ - Dạng Cơ Bản (Màu Đỏ) ]
     [1101006098] = {1010060925,1010060926,1010060927,1010060919,0,1010060924,1010060918,1010060917,1010060916,1010060915,1010060914,1010060913,0,1010060930,1010060928,1010060929,1010060935,1010060934,1010060933,0,1010060936,0},
-    [1101008170] = {1010081653,1010081652,1010081654,1010081648,1010081649,1010081650,1010081647,1010081646,1010081645,1010081644,1010081643,1010081642,0,1010081656,1010081655,1010081659,1010081658,1010081657,1010081660,0,1010081662,0},
-    -- [ AUG Cá»­u VÄ© Cuá»ng Ná» - Dáº¡ng Tá»i ThÆ°á»£ng (MÃ u VÃ ng) ]
+
+    -- [ AUG Cửu Vĩ Cuồng Nộ - Dạng Tối Thượng (Màu Vàng) ]
     [1101006106] = {1010061004,1010061005,1010061006,1010060999,1010061000,1010061003,1010060998,1010060997,1010060996,1010060995,1010060994,1010060993,0,1010061009,1010061007,1010061008,1010061014,1010061013,1010061010,0,1010061015,0},
 }
--- DÃN ID PHá»¤ KIá»N Cá»¦A Báº N VÃO TRÃN ÄÃY âââ
+-- DÁN ID PHỤ KIỆN CỦA BẠN VÀO TRÊN ĐÂY ↑↑↑
 
 local cached_GameplayStatics = nil
 local cached_PlayerTombBox = nil
@@ -8568,7 +8566,7 @@ _G.DeadBox_TemperRequest = function(PlayerController)
     local GameInstance = UI_Util and UI_Util.GetGameInstance()
     if not GameInstance or not cached_GameplayStatics then return end
 
-    -- Tá»i Æ°u: Láº¥y trÆ°á»c ID ngÆ°á»i chÆ¡i vÃ  ID sÃºng/xe á» ngoÃ i vÃ²ng láº·p Äá» trÃ¡nh tÃ­nh toÃ¡n láº¡i
+    -- Tối ưu: Lấy trước ID người chơi và ID súng/xe ở ngoài vòng lặp để tránh tính toán lại
     local myPlayerKey = PlayerController.PlayerKey
     local currentBoxSkinId = 0
     pcall(function()
@@ -8576,13 +8574,13 @@ _G.DeadBox_TemperRequest = function(PlayerController)
         if slua.isValid(curVeh) and _G.CurrentEquipVehicleID and _G.CurrentEquipVehicleID ~= 0 then
             currentBoxSkinId = tonumber(tostring(_G.CurrentEquipVehicleID) .. "1") or 0
         else
-            -- [FIX CHUáº¨N VIP]: Láº¥y ID cá»§a vÅ© khÃ­ Äang cáº§m trÃªn tay Äá» xuáº¥t ÄÃºng hÃ²m xÃ¡c, Bá» vÃ²ng láº·p Äá» chá»ng Drop FPS
+            -- [FIX CHUẨN VIP]: Lấy ID của vũ khí đang cầm trên tay để xuất đúng hòm xác, Bỏ vòng lặp để chống Drop FPS
             local curWeapon = PlayerCharacter.GetCurrentWeapon and PlayerCharacter:GetCurrentWeapon() or PlayerCharacter.CurrentWeapon
             if slua.isValid(curWeapon) then
                 local defineIDObj = curWeapon.GetItemDefineID and curWeapon:GetItemDefineID()
                 local curWeaponID = (defineIDObj and slua.isValid(defineIDObj)) and defineIDObj.TypeSpecificID or 0
                 
-                -- Äá»i chiáº¿u vá»i kho Skin ÄÃ£ lÆ°u Äá» láº¥y ÄÃºng ID Skin hiá»n táº¡i
+                -- Đối chiếu với kho Skin đã lưu để lấy đúng ID Skin hiện tại
                 if curWeaponID > 0 and _G.AddOutfitLastAppliedSkin and _G.AddOutfitLastAppliedSkin[curWeaponID] then
                     local skinID = _G.AddOutfitLastAppliedSkin[curWeaponID]
                     if skinID and skinID > 1000000 then 
@@ -8603,7 +8601,7 @@ _G.DeadBox_TemperRequest = function(PlayerController)
         local deadBoxActor = type(deadBoxes.Get) == "function" and deadBoxes:Get(i-1) or deadBoxes[i]
         if slua.isValid(deadBoxActor) and not deadBoxActor.bIsTDSkinApplied then
             local damageCauser = deadBoxActor.DamageCauser
-            -- So sÃ¡nh cá»±c nhanh báº±ng MyPlayerKey ÄÃ£ cache
+            -- So sánh cực nhanh bằng MyPlayerKey đã cache
             if slua.isValid(damageCauser) and damageCauser.PlayerKey == myPlayerKey then
                 local DeadBoxAvatarComponent = deadBoxActor.DeadBoxAvatarComponent_BP
                 if slua.isValid(DeadBoxAvatarComponent) then
@@ -8619,7 +8617,7 @@ _G.DeadBox_TemperRequest = function(PlayerController)
     end
 end
 
---[[ AddOutfit v7.5 â TÃ­ch há»£p há» thá»ng chá»n Skin qua tá»§ Äá» (Wardrobe) ]]
+--[[ AddOutfit v7.5 — Tích hợp hệ thống chọn Skin qua tủ đồ (Wardrobe) ]]
 local F = {}
 local DEBUG = false  
 function F.log(...)
@@ -8639,319 +8637,320 @@ local MATCH_CONFIG = {
     weaponSkins = {},
 }
 
--- Báº£ng ID cÃ¡c siÃªu xe (ThÃªm tá»± do náº¿u cÃ³ ID má»i)
+-- Bảng ID các siêu xe (Thêm tự do nếu có ID mới)
 local ITEMS = {
     -- ==============================================================================
-    -- Há» THá»NG Gá»C Cá»¦A V7.5 (KHÃNG ÄÆ¯á»¢C XÃA DÃNG NÃY)
+    -- HỆ THỐNG GỐC CỦA V7.5 (KHÔNG ĐƯỢC XÓA DÒNG NÀY)
     -- ==============================================================================
     703029, 703044, 703046, 703048, 1400010, 1400062, 1400070, 1400083, 1400100, 1400106, 1400112, 1400117, 1400134, 1407917, 1400170, 1407921,1407995,
     1400172, 1400173, 1400174, 1400175, 1400177, 1400179, 1400180, 1400228, 1400231, 1400233, 1400236, 1400237, 1400238, 1400242, 1400244,
     202408070, 202408071, 202408072, 202408073, 202408074, 202408075,
     1407905, 1407906, 1407907, 1407908, 1407909, 1407910, 1407911, 1407912, 1407913, 1407914, 1407915, 1407916, 1410585,
     -- ==============================================================================
-    -- 1. SÃNG NÃNG Cáº¤P (CHá» Láº¤Y Cáº¤P Äá» CAO NHáº¤T Cá»¦A Tá»ªNG KHáº¨U SÃNG)
+    -- 1. SÚNG NÂNG CẤP (CHỈ LẤY CẤP ĐỘ CAO NHẤT CỦA TỪNG KHẨU SÚNG)
     -- ==============================================================================
     -- [ M416 ]
-    1101004163, -- HoÃ ng Gia Lá»ng Láº«y - M416 (Cáº¥p 8)
-    1101004201, -- Báº¡ch LÃ¢n Nháº£ Ngá»c - M416 (Cáº¥p 8)
-    1101004209, -- Thá»§y Triá»u Dáº­y SÃ³ng - M416 (Cáº¥p 8)
-    1101004218, -- Ma áº¢nh - M416 (Cáº¥p 8)
-    1101004226, -- Phong áº¤n U Minh - M416 (Cáº¥p 8)
-    1101004236, -- Lam SÆ° Äoáº¡t Má»nh - M416 (Cáº¥p 8)
-    1101004246, -- Há»a LiÃªn - M416 (Cáº¥p 8)
-    1101004046, -- BÄng giÃ¡ - M416 (Cáº¥p 7)
-    1101004062, -- ChÃº há» - M416 (Cáº¥p 7)
-    1101004078, -- Káº» lang thang - M416 (Cáº¥p 7)
-    1101004086, -- BÃ² SÃ¡t Gáº§m Gá»« - M416 (Cáº¥p 7)
-    1101004098, -- Tiáº¿ng Gá»i Hoang DÃ£ - M416 (Cáº¥p 7)
-    1101004138, -- LÃµi CÃ´ng Nghá» - M416 (Cáº¥p 7)
+    1101004163, -- Hoàng Gia Lộng Lẫy - M416 (Cấp 8)
+    1101004201, -- Bạch Lân Nhả Ngọc - M416 (Cấp 8)
+    1101004209, -- Thủy Triều Dậy Sóng - M416 (Cấp 8)
+    1101004218, -- Ma Ảnh - M416 (Cấp 8)
+    1101004226, -- Phong Ấn U Minh - M416 (Cấp 8)
+    1101004236, -- Lam Sư Đoạt Mệnh - M416 (Cấp 8)
+    1101004246, -- Hỏa Liên - M416 (Cấp 8)
+    1101004046, -- Băng giá - M416 (Cấp 7)
+    1101004062, -- Chú hề - M416 (Cấp 7)
+    1101004078, -- Kẻ lang thang - M416 (Cấp 7)
+    1101004086, -- Bò Sát Gầm Gừ - M416 (Cấp 7)
+    1101004098, -- Tiếng Gọi Hoang Dã - M416 (Cấp 7)
+    1101004138, -- Lõi Công Nghệ - M416 (Cấp 7)
 
     -- [ AKM ]
-    1101001174, -- Báº¡o ChÃºa Bá» Láº¡c - AKM (Cáº¥p 8)
-    1101001213, -- ÄÃ´ Äá»c Háº£i Long Tinh - AKM (Cáº¥p 8)
-    1101001242, -- NgÃ y PhÃ¡n Quyáº¿t - AKM (Cáº¥p 8)
-    1101001265, -- Thá»i Quang Kháº£ Biáº¿n - AKM (Cáº¥p 8)
-    1101001276, -- Huyá»n Tháº§n - AKM (Cáº¥p 8)
-    1101001063, -- Huyá»n thoáº¡i Seven Seas - AKM (Cáº¥p 7)
-    1101001089, -- BÄng giÃ¡ - AKM (Cáº¥p 7)
-    1101001103, -- HÃ³a Tháº¡ch - AKM (Cáº¥p 7)
-    1101001116, -- BÃ­ NgÃ´ Kinh Dá» - AKM (Cáº¥p 7)
-    1101001128, -- Long VÆ°Æ¡ng - AKM (Cáº¥p 7)
-    1101001143, -- Háº£i Táº·c VÃ ng - AKM (Cáº¥p 7)
-    1101001154, -- NgÆ°á»i Giáº£i MÃ£ - AKM (Cáº¥p 7)
-    1101001231, -- Thá» Tinh Nghá»ch - AKM (Cáº¥p 7)
-    1101001249, -- ThÃ¡nh Quang (TrÄng Tháº§n) - AKM (Cáº¥p 7)
-    1101001256, -- ThÃ¡nh Quang (LÃ´ng VÅ© HoÃ ng Kim) - AKM (Cáº¥p 7)
-    1101001042, -- Ãnh kim - AKM (Cáº¥p 6)
-    1101001068, -- Há» gáº§m gá»« - AKM (Cáº¥p 5)
+    1101001174, -- Bạo Chúa Bộ Lạc - AKM (Cấp 8)
+    1101001213, -- Đô Đốc Hải Long Tinh - AKM (Cấp 8)
+    1101001242, -- Ngày Phán Quyết - AKM (Cấp 8)
+    1101001265, -- Thời Quang Khả Biến - AKM (Cấp 8)
+    1101001276, -- Huyễn Thần - AKM (Cấp 8)
+    1101001063, -- Huyền thoại Seven Seas - AKM (Cấp 7)
+    1101001089, -- Băng giá - AKM (Cấp 7)
+    1101001103, -- Hóa Thạch - AKM (Cấp 7)
+    1101001116, -- Bí Ngô Kinh Dị - AKM (Cấp 7)
+    1101001128, -- Long Vương - AKM (Cấp 7)
+    1101001143, -- Hải Tặc Vàng - AKM (Cấp 7)
+    1101001154, -- Người Giải Mã - AKM (Cấp 7)
+    1101001231, -- Thỏ Tinh Nghịch - AKM (Cấp 7)
+    1101001249, -- Thánh Quang (Trăng Thần) - AKM (Cấp 7)
+    1101001256, -- Thánh Quang (Lông Vũ Hoàng Kim) - AKM (Cấp 7)
+    1101001042, -- Ánh kim - AKM (Cấp 6)
+    1101001068, -- Hổ gầm gừ - AKM (Cấp 5)
 
     -- [ SCAR-L ]
-    1101003146, -- Gai TÃ  Ãc - SCAR-L (Cáº¥p 8)
-    1101003167, -- Ma VÆ°Æ¡ng Huyáº¿t Há»n - SCAR-L (Cáº¥p 8)
-    1101003227, -- ThiÃªn Äiá»u - SCAR-L (Cáº¥p 8)
-    1101003057, -- SÃºng nÆ°á»c - SCAR-L (Cáº¥p 7)
-    1101003070, -- BÃ­ NgÃ´ Ma QuÃ¡i - SCAR-L (Cáº¥p 7)
-    1101003080, -- Chiáº¿n Dá»ch VÃ¬ NgÃ y Mai - SCAR-L (Cáº¥p 7)
-    1101003099, -- Drop Da Bass - SCAR-L (Cáº¥p 7)
-    1101003119, -- Tinh thá» Hextech SCAR-L (Cáº¥p 7)
-    1101003188, -- CÃ¡i Ãm Cá»§a ChÃº Há» - SCAR-L (Cáº¥p 7)
-    1101003195, -- ThÃ¡nh Ná»¯ Huyá»n áº¢o - SCAR-L (Cáº¥p 7)
-    1101003208, -- VÆ°Æ¡ng Quá»c Huyá»n áº¢o - SCAR-L (Cáº¥p 7)
-    1101003219, -- KÃ­nh Pha LÃª - SCAR-L (Cáº¥p 7)
-    1101003173, -- Ãnh SÃ¡ng HoÃ ng Tá»c - SCAR-L (Cáº¥p 5)
-    1101003212, -- MÃ¨o Än Váº·t - SCAR-L (Cáº¥p 3)
+    1101003146, -- Gai Tà Ác - SCAR-L (Cấp 8)
+    1101003167, -- Ma Vương Huyết Hồn - SCAR-L (Cấp 8)
+    1101003227, -- Thiên Điểu - SCAR-L (Cấp 8)
+    1101003057, -- Súng nước - SCAR-L (Cấp 7)
+    1101003070, -- Bí Ngô Ma Quái - SCAR-L (Cấp 7)
+    1101003080, -- Chiến Dịch Vì Ngày Mai - SCAR-L (Cấp 7)
+    1101003099, -- Drop Da Bass - SCAR-L (Cấp 7)
+    1101003119, -- Tinh thể Hextech SCAR-L (Cấp 7)
+    1101003188, -- Cái Ôm Của Chú Hề - SCAR-L (Cấp 7)
+    1101003195, -- Thánh Nữ Huyền Ảo - SCAR-L (Cấp 7)
+    1101003208, -- Vương Quốc Huyền Ảo - SCAR-L (Cấp 7)
+    1101003219, -- Kính Pha Lê - SCAR-L (Cấp 7)
+    1101003173, -- Ánh Sáng Hoàng Tộc - SCAR-L (Cấp 5)
+    1101003212, -- Mèo Ăn Vặt - SCAR-L (Cấp 3)
 
     -- [ M762 ]
-    1101008081, -- Vá» KhÃ¡ch Ná»i Loáº¡n - M762 (Cáº¥p 8)
-    1101008104, -- LÃµi Sao Huyá»n áº¢o - M762 (Cáº¥p 8)
-    1101008146, -- Báº¡ch Cá»t U Minh - M762 (Cáº¥p 8)
-    1101008154, -- Khung XÆ°Æ¡ng - M762 (Cáº¥p 8)
-    1101008051, -- Báº£n Nháº¡c TÃ¬nh YÃªu - M762 (Cáº¥p 7)
-    1101008061, -- PhÃ¡t Báº¯n ChÃ­ Máº¡ng - M762 (Cáº¥p 7)
-    1101008070, -- GACKT MOONSAGA - M762 (Cáº¥p 7)
-    1101008116, -- Biá»u TÆ°á»£ng BÃ³ng ÄÃ¡ Messi - M762 (Cáº¥p 7)
-    1101008126, -- Huyáº¿t Rá»ng - M762 (Cáº¥p 7)
-    1101008136, -- TiÃªn Linh LÆ°u Ly - M762 (Cáº¥p 7)
-    1101008163, -- Cá» Váº­t Háº¯c Ãm - M762 (Cáº¥p 7)
-    1101008026, -- Pony BÃ© Nhá» - M762 (Cáº¥p 5)
-    1101008036, 1101008170,-- ÄÃ³a Sen Pháº«n Ná» - M762 (Cáº¥p 5)
+    1101008081, -- Vị Khách Nổi Loạn - M762 (Cấp 8)
+    1101008104, -- Lõi Sao Huyền Ảo - M762 (Cấp 8)
+    1101008146, -- Bạch Cốt U Minh - M762 (Cấp 8)
+    1101008154, -- Khung Xương - M762 (Cấp 8)
+    1101008051, -- Bản Nhạc Tình Yêu - M762 (Cấp 7)
+    1101008061, -- Phát Bắn Chí Mạng - M762 (Cấp 7)
+    1101008070, -- GACKT MOONSAGA - M762 (Cấp 7)
+    1101008116, -- Biểu Tượng Bóng Đá Messi - M762 (Cấp 7)
+    1101008126, -- Huyết Rồng - M762 (Cấp 7)
+    1101008136, -- Tiên Linh Lưu Ly - M762 (Cấp 7)
+    1101008163, -- Cổ Vật Hắc Ám - M762 (Cấp 7)
+    1101008026, -- Pony Bé Nhỏ - M762 (Cấp 5)
+    1101008036, -- Đóa Sen Phẫn Nộ - M762 (Cấp 5)
+    1101008170, 
 
     -- [ AUG ]
-    1101006062, -- Tinh Linh BÄng GiÃ¡ - AUG (Cáº¥p 8)
-    1101006085, -- Hoa Há»ng Ma Má» - AUG (Cáº¥p 8)
-    1101006075, -- Há»a Ca - AUG (Cáº¥p 7)
-    1101006033, -- GÃ¡nh Xiáº¿c Rong - AUG (Cáº¥p 5)
-    1101006044, -- Evangelion Angel Thá»© 4 - AUG (Cáº¥p 5)
-    1101006067, -- Ãc Má»ng Biá»n SÃ¢u - AUG (Cáº¥p 5)
+    1101006062, -- Tinh Linh Băng Giá - AUG (Cấp 8)
+    1101006085, -- Hoa Hồng Ma Mị - AUG (Cấp 8)
+    1101006075, -- Hỏa Ca - AUG (Cấp 7)
+    1101006033, -- Gánh Xiếc Rong - AUG (Cấp 5)
+    1101006044, -- Evangelion Angel Thứ 4 - AUG (Cấp 5)
+    1101006067, -- Ác Mộng Biển Sâu - AUG (Cấp 5)
 
     -- [ GROZA ]
-    1101005038, -- Ryomen Sukuna - Groza (Cáº¥p 7)
-    1101005052, -- Lá»­a U Minh - Groza (Cáº¥p 7)
-    1101005098, -- Godzilla Bá»c Lá»­a - Groza (Cáº¥p 7)
-    1101005019, -- Ká»µ Binh Rá»«ng SÃ¢u - GROZA (Cáº¥p 5)
-    1101005025, -- ÄÃªm Huyá»n áº¢o - GROZA (Cáº¥p 5)
-    1101005043, -- Tráº­n Chiáº¿n Sáº¯c MÃ u - Groza (Cáº¥p 5)
-    1101005082, -- Lá»ng ÄÃ¨n BÃ­ NgÃ´ - Groza (Cáº¥p 5)
-    1101005090, -- Di TÃ­ch ThÆ°á»£ng Cá» - Groza (Cáº¥p 5)
-    1101005105, -- Singam Roar - Groza (Cáº¥p 5)
+    1101005038, -- Ryomen Sukuna - Groza (Cấp 7)
+    1101005052, -- Lửa U Minh - Groza (Cấp 7)
+    1101005098, -- Godzilla Bốc Lửa - Groza (Cấp 7)
+    1101005019, -- Kỵ Binh Rừng Sâu - GROZA (Cấp 5)
+    1101005025, -- Đêm Huyền Ảo - GROZA (Cấp 5)
+    1101005043, -- Trận Chiến Sắc Màu - Groza (Cấp 5)
+    1101005082, -- Lồng Đèn Bí Ngô - Groza (Cấp 5)
+    1101005090, -- Di Tích Thượng Cổ - Groza (Cấp 5)
+    1101005105, -- Singam Roar - Groza (Cấp 5)
 
     -- [ QBZ & Mk47 & G36C & Honey Badger & FAMAS & ASM Abakan & ACE32 ]
-    1101007046, -- CÃ´ng ChÃºa Háº¯c Ãm - QBZ (Cáº¥p 7)
-    1101007062, -- Hoa Kiáº¿m ChÃ­ Máº¡ng - QBZ (Cáº¥p 7)
-    1101007071, -- ThiÃªn Má»nh - QBZ (Cáº¥p 7)
-    1101007025, -- Ãnh DÆ°Æ¡ng - QBZ (Cáº¥p 5)
-    1101007036, -- CÃ n QuÃ©t - QBZ (Cáº¥p 5)
-    1101007079, -- BÄng Quyá»n - QBZ (Cáº¥p 5)
-    1101009019, -- Thá» Tinh QuÃ¡i - Mk47 (Cáº¥p 3)
-    1101010029, -- Xung Nhá»p SÃ¢n Cá» - G36C (Cáº¥p 5)
-    1101012033, -- Cá» Má»c Chiáº¿n KhÃ­ - Honey Badger (Cáº¥p 7)
-    1101012009, -- Sáº¯c MÃ u Huyá»n áº¢o - Honey Badger (Cáº¥p 5)
-    1101012018, -- Thanh Ãm Du DÆ°Æ¡ng - Honey Badger (Cáº¥p 5)
-    1101012024, -- Honey Badger Mikey (Cáº¥p 5)
-    1101100012, -- Äáº¿ VÆ°Æ¡ng Tháº§n Vá»±c - FAMAS (Cáº¥p 8)
-    1101100018, -- áº¢o áº¢nh Äiá»n Tá»­ - FAMAS (Cáº¥p 5)
-    1101101007, -- Uy VÅ© Háº¯c Äiá»u - ASM Abakan (Cáº¥p 7)
-    1101102025, -- Thá»§y QuÃ¡i - ACE32 (Cáº¥p 8)
-    1101102041, -- TiÃªn Tri Äiá»m LÃ nh - ACE32 (Cáº¥p 8)
-    1101102049, -- ThÃ¬ Tháº§m CÃ¡nh BÆ°á»m - ACE32 (Cáº¥p 8)
-    1101102007, -- Kamehameha - ACE32 (Cáº¥p 7)
-    1101102017, -- Ngá»c BÃ­ch - ACE32 (Cáº¥p 7)
-    1101102032, -- CÃ¡o Tinh Nghá»ch - ACE32 (Cáº¥p 5)
+    1101007046, -- Công Chúa Hắc Ám - QBZ (Cấp 7)
+    1101007062, -- Hoa Kiếm Chí Mạng - QBZ (Cấp 7)
+    1101007071, -- Thiên Mệnh - QBZ (Cấp 7)
+    1101007025, -- Ánh Dương - QBZ (Cấp 5)
+    1101007036, -- Càn Quét - QBZ (Cấp 5)
+    1101007079, -- Băng Quyền - QBZ (Cấp 5)
+    1101009019, -- Thỏ Tinh Quái - Mk47 (Cấp 3)
+    1101010029, -- Xung Nhịp Sân Cỏ - G36C (Cấp 5)
+    1101012033, -- Cổ Mộc Chiến Khí - Honey Badger (Cấp 7)
+    1101012009, -- Sắc Màu Huyền Ảo - Honey Badger (Cấp 5)
+    1101012018, -- Thanh Âm Du Dương - Honey Badger (Cấp 5)
+    1101012024, -- Honey Badger Mikey (Cấp 5)
+    1101100012, -- Đế Vương Thần Vực - FAMAS (Cấp 8)
+    1101100018, -- Ảo Ảnh Điện Tử - FAMAS (Cấp 5)
+    1101101007, -- Uy Vũ Hắc Điểu - ASM Abakan (Cấp 7)
+    1101102025, -- Thủy Quái - ACE32 (Cấp 8)
+    1101102041, -- Tiên Tri Điềm Lành - ACE32 (Cấp 8)
+    1101102049, -- Thì Thầm Cánh Bướm - ACE32 (Cấp 8)
+    1101102007, -- Kamehameha - ACE32 (Cấp 7)
+    1101102017, -- Ngọc Bích - ACE32 (Cấp 7)
+    1101102032, -- Cáo Tinh Nghịch - ACE32 (Cấp 5)
 
     -- [ SMG (UZI, UMP45, Vector, Thompson, Bizon, MP5K, P90) ]
-    1102001120, -- BÄng GiÃ¡ - UZI (Cáº¥p 8)
-    1102001130, -- Xiá»ng XÃ­ch Há»a Ngá»¥c - UZI (Cáº¥p 7)
-    1102001024, -- Savagery - UZI (Cáº¥p 6)
-    1102001036, -- Váº­t Tá» Tháº§n BÃ­ - UZI (Cáº¥p 5)
-    1102001058, -- Khoáº£nh Kháº¯c Báº¥t Ngá» - UZI (Cáº¥p 5)
-    1102001069, -- UZI Quang HÃ³a (Cáº¥p 5)
-    1102001089, -- Ma PhÃ¡p - UZI (Cáº¥p 5)
-    1102001103, -- Cam TÆ°Æ¡i MÃ¡t - UZI (Cáº¥p 5)
-    1102001102, -- MÃ¡y Ãp TrÃ¡i CÃ¢y - UZI (Cáº¥p 5)
-    1102002438, -- Song Tá»­ Chiáº¿n - UMP45 (Cáº¥p 8)
-    1102002446, -- Song Tá»­ Äá» Tháº«m - UMP45 (Cáº¥p 8)
-    1102002043, -- Há»a long - UMP45 (Cáº¥p 7)
-    1102002061, -- áº¢o Má»ng Cháº¿t ChÃ³c - UMP45 (Cáº¥p 7)
-    1102002136, -- BÄng GiÃ¡ - UMP45 (Cáº¥p 7)
-    1102002424, -- Tháº§n KhÃ­ Anukhra - UMP45 (Cáº¥p 7)
-    1102002053, -- EMP - UMP45 (Cáº¥p 5)
-    1102002070, -- Äá» Tá» Báº¡ch Kim - UMP45 (Cáº¥p 5)
-    1102002090, -- Cuá»c Chiáº¿n 8-Bit - UMP45 (Cáº¥p 5)
-    1102002112, -- NgÃ y GiÃ¡ng Sinh - UMP45 (Cáº¥p 5)
-    1102002117, -- Ong Báº¯p CÃ y - UMP45 (Cáº¥p 5)
-    1102002129, -- Con SÃ³ng Lá» Há»i - UMP45 (Cáº¥p 5)
-    1102002143, -- PUBGM X NewJeans - UMP45 (Cáº¥p 5)
-    1102003080, -- CÃ¡nh Rá»ng - Vector (Cáº¥p 7)
-    1102003100, -- Tuyáº¿t Diá»t áº¢nh - Vector (Cáº¥p 7)
-    1102003020, -- Nanh DÆ¡i Huyáº¿t Tá»c - Vector (Cáº¥p 5)
-    1102003031, -- Hoa Há»ng ÄÃªm - Vector (Cáº¥p 5)
-    1102003039, -- Gáº¥u Tinh Nghá»ch - Vector (Cáº¥p 5)
-    1102003052, -- BÃ¡ TÆ°á»c VÃ ng - Vector (Cáº¥p 5)
-    1102003065, -- LÆ°á»¡i Liá»m VÃ ng - Vector (Cáº¥p 5)
-    1102003072, -- SÃ¡t Thá»§ Tá»i ThÆ°á»£ng - Vector (Cáº¥p 5)
-    1102003090, -- KMF Lancelot - Vector (Cáº¥p 5)
-    1102004018, -- Káº¹o ngá»t - Thompson (Cáº¥p 5)
-    1102004034, -- MÃ¡y Cháº¡y HÆ¡i NÆ°á»c - Thompson (Cáº¥p 5)
-    1102004048, -- Tá»­ Äáº±ng - Thompson SMG (Cáº¥p 3)
-    1102005064, -- Quang áº¢o Äiá»n Tá»­ - PP-19 Bizon (Cáº¥p 7)
-    1102005007, -- Táº¯c KÃ¨ - PP-19 Bizon (Cáº¥p 5)
-    1102005020, -- Skullcrusher - PP-19 Bizon (Cáº¥p 5)
-    1102005041, -- Tháº§n Binh VÃµ Thuáº­t - PP-19 Bizon (Cáº¥p 5)
-    1102005052, -- DP Quantum Quake - Bizon (Cáº¥p 5)
-    1102005057, -- LÃ¢n SÆ° - PP-19 Bizon (Cáº¥p 5)
-    1102005072, -- Huyáº¿t Táº¿ - PP-19 Bizon (Cáº¥p 5)
-    1102005078, -- SAKAMOTO SHOP - PP-19 (Cáº¥p 5)
-    1102007019, -- PUBGM X QWER - MP5K (Cáº¥p 5)
-    1102007022, -- Pixel Cá» Äiá»n - MP5K (Cáº¥p 3)
-    1102105012, -- MiÃªu Ná»¯ CÃ´ng Nghá» - P90 (Cáº¥p 7)
-    1102105028, -- ThiÃªn MÃ£ - P90 (Cáº¥p 7)
-    1102105018, -- MÃ³ng Vuá»t HoÃ ng Kim - P90 (Cáº¥p 5)
+    1102001120, -- Băng Giá - UZI (Cấp 8)
+    1102001130, -- Xiềng Xích Hỏa Ngục - UZI (Cấp 7)
+    1102001024, -- Savagery - UZI (Cấp 6)
+    1102001036, -- Vật Tổ Thần Bí - UZI (Cấp 5)
+    1102001058, -- Khoảnh Khắc Bất Ngờ - UZI (Cấp 5)
+    1102001069, -- UZI Quang Hóa (Cấp 5)
+    1102001089, -- Ma Pháp - UZI (Cấp 5)
+    1102001103, -- Cam Tươi Mát - UZI (Cấp 5)
+    1102001102, -- Máy Ép Trái Cây - UZI (Cấp 5)
+    1102002438, -- Song Tử Chiến - UMP45 (Cấp 8)
+    1102002446, -- Song Tử Đỏ Thẫm - UMP45 (Cấp 8)
+    1102002043, -- Hỏa long - UMP45 (Cấp 7)
+    1102002061, -- Ảo Mộng Chết Chóc - UMP45 (Cấp 7)
+    1102002136, -- Băng Giá - UMP45 (Cấp 7)
+    1102002424, -- Thần Khí Anukhra - UMP45 (Cấp 7)
+    1102002053, -- EMP - UMP45 (Cấp 5)
+    1102002070, -- Đồ Tể Bạch Kim - UMP45 (Cấp 5)
+    1102002090, -- Cuộc Chiến 8-Bit - UMP45 (Cấp 5)
+    1102002112, -- Ngày Giáng Sinh - UMP45 (Cấp 5)
+    1102002117, -- Ong Bắp Cày - UMP45 (Cấp 5)
+    1102002129, -- Con Sóng Lễ Hội - UMP45 (Cấp 5)
+    1102002143, -- PUBGM X NewJeans - UMP45 (Cấp 5)
+    1102003080, -- Cánh Rồng - Vector (Cấp 7)
+    1102003100, -- Tuyết Diệt Ảnh - Vector (Cấp 7)
+    1102003020, -- Nanh Dơi Huyết Tộc - Vector (Cấp 5)
+    1102003031, -- Hoa Hồng Đêm - Vector (Cấp 5)
+    1102003039, -- Gấu Tinh Nghịch - Vector (Cấp 5)
+    1102003052, -- Bá Tước Vàng - Vector (Cấp 5)
+    1102003065, -- Lưỡi Liềm Vàng - Vector (Cấp 5)
+    1102003072, -- Sát Thủ Tối Thượng - Vector (Cấp 5)
+    1102003090, -- KMF Lancelot - Vector (Cấp 5)
+    1102004018, -- Kẹo ngọt - Thompson (Cấp 5)
+    1102004034, -- Máy Chạy Hơi Nước - Thompson (Cấp 5)
+    1102004048, -- Tử Đằng - Thompson SMG (Cấp 3)
+    1102005064, -- Quang Ảo Điện Tử - PP-19 Bizon (Cấp 7)
+    1102005007, -- Tắc Kè - PP-19 Bizon (Cấp 5)
+    1102005020, -- Skullcrusher - PP-19 Bizon (Cấp 5)
+    1102005041, -- Thần Binh Võ Thuật - PP-19 Bizon (Cấp 5)
+    1102005052, -- DP Quantum Quake - Bizon (Cấp 5)
+    1102005057, -- Lân Sư - PP-19 Bizon (Cấp 5)
+    1102005072, -- Huyết Tế - PP-19 Bizon (Cấp 5)
+    1102005078, -- SAKAMOTO SHOP - PP-19 (Cấp 5)
+    1102007019, -- PUBGM X QWER - MP5K (Cấp 5)
+    1102007022, -- Pixel Cổ Điển - MP5K (Cấp 3)
+    1102105012, -- Miêu Nữ Công Nghệ - P90 (Cấp 7)
+    1102105028, -- Thiên Mã - P90 (Cấp 7)
+    1102105018, -- Móng Vuốt Hoàng Kim - P90 (Cấp 5)
 
     -- [ SNIPER & MARKSMAN RIFLE (Kar98, M24, AWM, SKS, SLR, Mk14, etc.) ]
-    1103001202, -- BÄng YÃªu - Kar98K (Cáº¥p 8)
-    1103001060, -- Dáº¥u nanh Pháº«n ná» - Kar98K (Cáº¥p 7)
-    1103001079, -- Kukulkan Cuá»ng Ná» - Kar98K (Cáº¥p 7)
-    1103001101, -- Ãnh TrÄng - Kar98K (Cáº¥p 7)
-    1103001129, -- Gackt Moon - Kar98K (Cáº¥p 7)
-    1103001146, -- CÃ¡ Máº­p Titan - Kar98K (Cáº¥p 7)
-    1103001154, -- Máº­t MÃ£ Cháº¿t ChÃ³c - Kar98K (Cáº¥p 7)
-    1103001179, -- Äiá»n Cá»±c TÃ­m - Kar98K (Cáº¥p 7)
-    1103001191, -- Há»ng Há»a Diá»m - Kar98K (Cáº¥p 7)
-    1103001085, -- ÄÃªm Nháº¡c Rock - Kar98K (Cáº¥p 5)
-    1103001160, -- Thá»£ SÄn Tinh VÃ¢n - Kar98K (Cáº¥p 5)
-    1103001183, -- Nhá»p Äiá»u MÃ¨o Con - Kar98K (Cáº¥p 3)
-    1103002030, -- Quyá»n TrÆ°á»£ng Pharaoh - M24 (Cáº¥p 7)
-    1103002059, -- Tuáº§n HoÃ n Sá»± Sá»ng - M24 (Cáº¥p 7)
-    1103002087, -- Nhá»p Äiá»u HoÃ n Má»¹ - M24 (Cáº¥p 7)
-    1103002106, -- Minh Nguyá»t Cáº¥m Vá»±c - M24 (Cáº¥p 7)
-    1103002156, -- BÃ¬nh Minh BÃ³ng Tá»i - M24 (Cáº¥p 7)
-    1103002049, -- Há» Äiá»p Phu NhÃ¢n - M24 (Cáº¥p 5)
-    1103002047, -- Giai Äiá»u ChÃ­ Máº¡ng - M24 (Cáº¥p 5)
-    1103002094, -- CÃ´ng Nghá» Cao - M24 (Cáº¥p 5)
-    1103003022, -- Neon - AWM (Cáº¥p 7)
-    1103003030, -- Chá» Huy Chiáº¿n TrÆ°á»ng - AWM (Cáº¥p 7)
-    1103003042, -- Godzilla - AWM (Cáº¥p 7)
-    1103003051, -- Äáº¡i Long Cáº§u Vá»ng - AWM (Cáº¥p 7)
-    1103003062, -- Há»a PhÆ°á»£ng HoÃ ng - AWM (Cáº¥p 7)
-    1103003079, -- Huyáº¿t Háº£i ThiÃªn Long - AWM (Cáº¥p 7)
-    1103003087, -- Thanh Hoa XÃ  - AWM (Cáº¥p 7)
-    1103003099, -- Háº¯c KhÃ­ - AWM (Cáº¥p 7)
-    1103003092, -- Há»ng Hoang - AWM (Cáº¥p 5)
-    1103004037, -- QuÃ½ BÃ  Äá» - SKS (Cáº¥p 7)
-    1103004046, -- Rá»«ng ThÃ©p - SKS (Cáº¥p 5)
-    1103004058, -- NÄng LÆ°á»£ng BÄng Tuyáº¿t - SKS (Cáº¥p 5)
-    1103004080, -- Khiáº¿t Hoa Ná» Rá» - SKS (Cáº¥p 5)
-    1103004087, -- Giai Äiá»u Tá»­ Tháº§n - SKS (Cáº¥p 5)
-    1103005024, -- Quáº¡ Äen - VSS (Cáº¥p 5)
-    1103005048, -- Trinh SÃ¡t Tuyáº¿t Tráº¯ng - VSS (Cáº¥p 3)
-    1103009022, -- MÃ¹a Hoa ÄÃ o - SLR (Cáº¥p 5)
-    1103009037, -- Ngá»n Lá»­a Ma Thuáº­t - SLR (Cáº¥p 5)
-    1103009051, -- Ma Má»ng - SLR (Cáº¥p 5)
-    1103009042, -- Thanh Ãm Háº£i Huyá»n - SLR (Cáº¥p 3)
-    1103006030, -- SÃ´ng BÄng - Mini14 (Cáº¥p 7)
-    1103006046, -- NÃ©t Äáº¹p Thuáº§n Khiáº¿t - Mini14 (Cáº¥p 5)
-    1103006058, -- MÃ¨o ChiÃªu TÃ i - Mini14 (Cáº¥p 5)
-    1103006063, -- Tay Äua Gan Dáº¡ - Mini14 (Cáº¥p 5)
-    1103006075, -- Nhá»p Chiáº¿n Nhanh - Mini14 (Cáº¥p 5)
-    1103007028, -- VÆ°Æ¡ng Quá»c Rá»ng - Mk14 (Cáº¥p 8)
-    1103007020, -- Sá»©c Máº¡nh NgÃ¢n HÃ  - Mk14 (Cáº¥p 5)
-    1103007038, -- Rá»ng Sá»¯a Má»m Máº¡i - Mk14 (Cáº¥p 5)
-    1103007043, -- Há»p QuÃ  May Máº¯n - Mk14 (Cáº¥p 5)
-    1103012010, -- Khá»§ng Long Ephialtes - AMR (Cáº¥p 8)
-    1103012019, -- Há»a Tháº§n - AMR (Cáº¥p 7)
-    1103012031, -- VÃ´ Ãm Ly Biá»t - AMR (Cáº¥p 7)
-    1103012039, -- Äáº¡i Chiáº¿n Huyá»n Sáº¯c - AMR (Cáº¥p 7)
-    1103012024, -- Tinh Thá» Onyx - AMR (Cáº¥p 5)
-    1103100007, -- ThÃº SÄn Má»i - Mk12 (Cáº¥p 5)
-    1103102007, -- Chiáº¿n Háº¡m VÅ© Trá»¥ - DSR (Cáº¥p 7)
-    1103103007, -- Vinh Quang Chiáº¿n Binh - M1 Garand (Cáº¥p 7)
+    1103001202, -- Băng Yêu - Kar98K (Cấp 8)
+    1103001060, -- Dấu nanh Phẫn nộ - Kar98K (Cấp 7)
+    1103001079, -- Kukulkan Cuồng Nộ - Kar98K (Cấp 7)
+    1103001101, -- Ánh Trăng - Kar98K (Cấp 7)
+    1103001129, -- Gackt Moon - Kar98K (Cấp 7)
+    1103001146, -- Cá Mập Titan - Kar98K (Cấp 7)
+    1103001154, -- Mật Mã Chết Chóc - Kar98K (Cấp 7)
+    1103001179, -- Điện Cực Tím - Kar98K (Cấp 7)
+    1103001191, -- Hồng Hỏa Diệm - Kar98K (Cấp 7)
+    1103001085, -- Đêm Nhạc Rock - Kar98K (Cấp 5)
+    1103001160, -- Thợ Săn Tinh Vân - Kar98K (Cấp 5)
+    1103001183, -- Nhịp Điệu Mèo Con - Kar98K (Cấp 3)
+    1103002030, -- Quyền Trượng Pharaoh - M24 (Cấp 7)
+    1103002059, -- Tuần Hoàn Sự Sống - M24 (Cấp 7)
+    1103002087, -- Nhịp Điệu Hoàn Mỹ - M24 (Cấp 7)
+    1103002106, -- Minh Nguyệt Cấm Vực - M24 (Cấp 7)
+    1103002156, -- Bình Minh Bóng Tối - M24 (Cấp 7)
+    1103002049, -- Hồ Điệp Phu Nhân - M24 (Cấp 5)
+    1103002047, -- Giai Điệu Chí Mạng - M24 (Cấp 5)
+    1103002094, -- Công Nghệ Cao - M24 (Cấp 5)
+    1103003022, -- Neon - AWM (Cấp 7)
+    1103003030, -- Chỉ Huy Chiến Trường - AWM (Cấp 7)
+    1103003042, -- Godzilla - AWM (Cấp 7)
+    1103003051, -- Đại Long Cầu Vồng - AWM (Cấp 7)
+    1103003062, -- Hỏa Phượng Hoàng - AWM (Cấp 7)
+    1103003079, -- Huyết Hải Thiên Long - AWM (Cấp 7)
+    1103003087, -- Thanh Hoa Xà - AWM (Cấp 7)
+    1103003099, -- Hắc Khí - AWM (Cấp 7)
+    1103003092, -- Hồng Hoang - AWM (Cấp 5)
+    1103004037, -- Quý Bà Đỏ - SKS (Cấp 7)
+    1103004046, -- Rừng Thép - SKS (Cấp 5)
+    1103004058, -- Năng Lượng Băng Tuyết - SKS (Cấp 5)
+    1103004080, -- Khiết Hoa Nở Rộ - SKS (Cấp 5)
+    1103004087, -- Giai Điệu Tử Thần - SKS (Cấp 5)
+    1103005024, -- Quạ Đen - VSS (Cấp 5)
+    1103005048, -- Trinh Sát Tuyết Trắng - VSS (Cấp 3)
+    1103009022, -- Mùa Hoa Đào - SLR (Cấp 5)
+    1103009037, -- Ngọn Lửa Ma Thuật - SLR (Cấp 5)
+    1103009051, -- Ma Mộng - SLR (Cấp 5)
+    1103009042, -- Thanh Âm Hải Huyền - SLR (Cấp 3)
+    1103006030, -- Sông Băng - Mini14 (Cấp 7)
+    1103006046, -- Nét Đẹp Thuần Khiết - Mini14 (Cấp 5)
+    1103006058, -- Mèo Chiêu Tài - Mini14 (Cấp 5)
+    1103006063, -- Tay Đua Gan Dạ - Mini14 (Cấp 5)
+    1103006075, -- Nhịp Chiến Nhanh - Mini14 (Cấp 5)
+    1103007028, -- Vương Quốc Rồng - Mk14 (Cấp 8)
+    1103007020, -- Sức Mạnh Ngân Hà - Mk14 (Cấp 5)
+    1103007038, -- Rồng Sữa Mềm Mại - Mk14 (Cấp 5)
+    1103007043, -- Hộp Quà May Mắn - Mk14 (Cấp 5)
+    1103012010, -- Khủng Long Ephialtes - AMR (Cấp 8)
+    1103012019, -- Hỏa Thần - AMR (Cấp 7)
+    1103012031, -- Vô Âm Ly Biệt - AMR (Cấp 7)
+    1103012039, -- Đại Chiến Huyễn Sắc - AMR (Cấp 7)
+    1103012024, -- Tinh Thể Onyx - AMR (Cấp 5)
+    1103100007, -- Thú Săn Mồi - Mk12 (Cấp 5)
+    1103102007, -- Chiến Hạm Vũ Trụ - DSR (Cấp 7)
+    1103103007, -- Vinh Quang Chiến Binh - M1 Garand (Cấp 7)
 
     -- [ SHOTGUN & MACHINE GUN (S12K, DBS, M249, DP-28, MG3...) ]
-    1104001035, -- Äá»c Há»n - S686 (Cáº¥p 5)
-    1104002022, -- Cháº¡ng Váº¡ng - S1897 (Cáº¥p 5)
-    1104002049, -- Xung KÃ­ch Sáº¯c MÃ u - S1897 (Cáº¥p 3)
-    1104003026, -- S12K GACKT (Cáº¥p 7)
-    1104003037, -- KÃ­ch Hoáº¡t NguyÃªn Tá»­ - S12K (Cáº¥p 5)
-    1104003046, -- TrÃ¡i Tim Cyber - S12K (Cáº¥p 5)
-    1104004035, -- Chiáº¿n GiÃ¡p QuÃ¡i ThÃº - DBS (Cáº¥p 5)
-    1104004041, -- Sandsinger - DBS (Cáº¥p 5)
-    1104004051, -- Okarun - DBS (Cáº¥p 5)
-    1104004024, -- BÃ¡o Sáº¯c MÃ u - DBS (Cáº¥p 3)
-    1104102004, -- TÃ n TÃ­ch HoÃ ng Kim - NS2000 (Cáº¥p 3)
-    1105001034, -- PhÃ¡o GiÃ¡ng Sinh - M249 (Cáº¥p 7)
-    1105001048, -- Ná»¯ Äáº¿ Ãnh SÃ¡ng - M249 (Cáº¥p 7)
-    1105001069, -- VÆ°Æ¡ng Quyá»n Háº¯c Ãm - M249 (Cáº¥p 7)
-    1105001020, -- Ná»¯ HoÃ ng BÄng GiÃ¡ M249 V (Cáº¥p 5)
-    1105001054, -- Stargaze Fury - M249 (Cáº¥p 5)
-    1105001062, -- Graffiti ÄÆ°á»ng Phá» - M249 (Cáº¥p 5)
-    1105001075, -- CÃ¡ Máº­p ThÃ©p - M249 (Cáº¥p 4)
-    1105002091, -- Huyáº¿t Há»a - DP28 (Cáº¥p 8)
-    1105002018, -- SÃ¡t Thá»§ BÃ­ áº¨n - DP-28 (Cáº¥p 5)
-    1105002035, -- Ngá»c Long - DP-28 (Cáº¥p 5)
-    1105002058, -- Chiáº¿n Binh HÃ ng Háº£i - DP28 (Cáº¥p 5)
-    1105002063, -- Rá»ng Tháº§n Shenron - DP-28 (Cáº¥p 5)
-    1105002071, -- Chiáº¿n SÄ© Tháº§n GiÃ¡p - DP-28 (Cáº¥p 5)
-    1105002076, -- MÃ¨o Sá» HÃ³a - DP-28 (Cáº¥p 5)
-    1105002083, -- DP-28 Frieren's Staff (Cáº¥p 5)
-    1105002096, -- Há» Tá»c - DP-28 (Cáº¥p 3)
-    1105010019, -- Chiáº¿n Tháº§n Báº§u Trá»i - MG3 (Cáº¥p 7)
-    1105010008, -- ThiÃªn Khung - MG3 (Cáº¥p 5)
-    1105010026, -- Mina Ashiro - MG3 (Cáº¥p 5)
+    1104001035, -- Độc Hồn - S686 (Cấp 5)
+    1104002022, -- Chạng Vạng - S1897 (Cấp 5)
+    1104002049, -- Xung Kích Sắc Màu - S1897 (Cấp 3)
+    1104003026, -- S12K GACKT (Cấp 7)
+    1104003037, -- Kích Hoạt Nguyên Tử - S12K (Cấp 5)
+    1104003046, -- Trái Tim Cyber - S12K (Cấp 5)
+    1104004035, -- Chiến Giáp Quái Thú - DBS (Cấp 5)
+    1104004041, -- Sandsinger - DBS (Cấp 5)
+    1104004051, -- Okarun - DBS (Cấp 5)
+    1104004024, -- Báo Sắc Màu - DBS (Cấp 3)
+    1104102004, -- Tàn Tích Hoàng Kim - NS2000 (Cấp 3)
+    1105001034, -- Pháo Giáng Sinh - M249 (Cấp 7)
+    1105001048, -- Nữ Đế Ánh Sáng - M249 (Cấp 7)
+    1105001069, -- Vương Quyền Hắc Ám - M249 (Cấp 7)
+    1105001020, -- Nữ Hoàng Băng Giá M249 V (Cấp 5)
+    1105001054, -- Stargaze Fury - M249 (Cấp 5)
+    1105001062, -- Graffiti Đường Phố - M249 (Cấp 5)
+    1105001075, -- Cá Mập Thép - M249 (Cấp 4)
+    1105002091, -- Huyết Họa - DP28 (Cấp 8)
+    1105002018, -- Sát Thủ Bí Ẩn - DP-28 (Cấp 5)
+    1105002035, -- Ngọc Long - DP-28 (Cấp 5)
+    1105002058, -- Chiến Binh Hàng Hải - DP28 (Cấp 5)
+    1105002063, -- Rồng Thần Shenron - DP-28 (Cấp 5)
+    1105002071, -- Chiến Sĩ Thần Giáp - DP-28 (Cấp 5)
+    1105002076, -- Mèo Số Hóa - DP-28 (Cấp 5)
+    1105002083, -- DP-28 Frieren's Staff (Cấp 5)
+    1105002096, -- Hồ Tộc - DP-28 (Cấp 3)
+    1105010019, -- Chiến Thần Bầu Trời - MG3 (Cấp 7)
+    1105010008, -- Thiên Khung - MG3 (Cấp 5)
+    1105010026, -- Mina Ashiro - MG3 (Cấp 5)
 
-    -- [ Cáº¬N CHIáº¾N & VÅ¨ KHÃ KHÃC (Skorpion, Ná», Cháº£o, Dao...) ]
-    1106008013, -- Máº­t MÃ£ VÃ ng - Skorpion (Cáº¥p 5)
-    1106008022, -- BÃ­ áº¨n Tinh TÃº - Skorpion (Cáº¥p 3)
-    1106011008, -- Rá»ng Ráº¯n LÃªn MÃ¢y - MP7 KÃ©p (Cáº¥p 5)
-    1106011003, -- Thá»£ SÄn Káº¹o - MP7 (Cáº¥p 3)
-    1107001018, -- ChÃºa Há» Thá»nh Ná» - Ná» (Cáº¥p 3)
-    1107098003, -- Rung Cháº¥n CÃ´ng Nghá» - MGL (Cáº¥p 3)
-    1108001057, -- SÄn Rá»ng - Dao (Cáº¥p 3)
-    1108001064, -- Äoáº£n Kiáº¿m Yor SPYÃFAMILY (Cáº¥p 3)
-    1108001069, -- Ki Sword (Cáº¥p 3)
-    1108001081, -- RÃ¬u Godzilla Bá»c Lá»­a (Cáº¥p 3)
-    1108001085, -- Kiáº¿m Trung ÄoÃ n Trinh SÃ¡t Cáº¥p 3
-    1108001098, -- ThÆ°Æ¡ng Äáº£o NgÆ°á»£c ThiÃªn ÄÆ°á»ng - Dao (Cáº¥p 3)
-    1108001104, -- XÃ­ch Tay - Dao (Cáº¥p 3)
-    1108002059, -- Äinh Ba Thá»§y Triá»u Thá»nh Ná» (Cáº¥p 5)
-    1108004125, -- HÅ© Máº­t Ong - Cháº£o (Cáº¥p 5)
-    1108004160, -- CÃ¡ Sáº¥u - Cháº£o (Cáº¥p 5)
-    1108004145, -- ÄÃªm Nháº¡c Rock - Cháº£o (Cáº¥p 5)
-    1108004283, -- Vinh Quang - Cháº£o (Cáº¥p 6)
-    1108004337, -- Cháº£o Äiá»n NguyÃªn Tá»­ (Cáº¥p 6)
-    1108004356, -- GÃ  RÃ¡n - Cháº£o (Cáº¥p 3)
-    1108004365, -- Yokai Huyá»n BÃ­ - Cháº£o (Cáº¥p 3)
-    1108004377, -- Cháº£o CÃ¡nh Cá»¥t Vui Váº» (Cáº¥p 5)
-    1108004416, -- Quáº¡t VÅ© Äiá»u NÃ³ng Bá»ng - Cháº£o (Cáº¥p 3)
-    1108005050, -- Rá»ng BÄng GiÃ¡ - Dao GÄm (Cáº¥p 3)
+    -- [ CẬN CHIẾN & VŨ KHÍ KHÁC (Skorpion, Nỏ, Chảo, Dao...) ]
+    1106008013, -- Mật Mã Vàng - Skorpion (Cấp 5)
+    1106008022, -- Bí Ẩn Tinh Tú - Skorpion (Cấp 3)
+    1106011008, -- Rồng Rắn Lên Mây - MP7 Kép (Cấp 5)
+    1106011003, -- Thợ Săn Kẹo - MP7 (Cấp 3)
+    1107001018, -- Chúa Hề Thịnh Nộ - Nỏ (Cấp 3)
+    1107098003, -- Rung Chấn Công Nghệ - MGL (Cấp 3)
+    1108001057, -- Săn Rồng - Dao (Cấp 3)
+    1108001064, -- Đoản Kiếm Yor SPY×FAMILY (Cấp 3)
+    1108001069, -- Ki Sword (Cấp 3)
+    1108001081, -- Rìu Godzilla Bốc Lửa (Cấp 3)
+    1108001085, -- Kiếm Trung Đoàn Trinh Sát Cấp 3
+    1108001098, -- Thương Đảo Ngược Thiên Đường - Dao (Cấp 3)
+    1108001104, -- Xích Tay - Dao (Cấp 3)
+    1108002059, -- Đinh Ba Thủy Triều Thịnh Nộ (Cấp 5)
+    1108004125, -- Hũ Mật Ong - Chảo (Cấp 5)
+    1108004160, -- Cá Sấu - Chảo (Cấp 5)
+    1108004145, -- Đêm Nhạc Rock - Chảo (Cấp 5)
+    1108004283, -- Vinh Quang - Chảo (Cấp 6)
+    1108004337, -- Chảo Điện Nguyên Tử (Cấp 6)
+    1108004356, -- Gà Rán - Chảo (Cấp 3)
+    1108004365, -- Yokai Huyền Bí - Chảo (Cấp 3)
+    1108004377, -- Chảo Cánh Cụt Vui Vẻ (Cấp 5)
+    1108004416, -- Quạt Vũ Điệu Nóng Bỏng - Chảo (Cấp 3)
+    1108005050, -- Rồng Băng Giá - Dao Găm (Cấp 3)
 
     -- ==============================================================================
-    -- 2. FULL SIÃU XE (VIP VEHICLES)
+    -- 2. FULL SIÊU XE (VIP VEHICLES)
     -- ==============================================================================
     -- [ McLaren ]
-    1961007, -- McLaren 570S (Äen)
-    1961010, -- McLaren 570S (Tráº¯ng)
-    1961012, -- McLaren 570S (Há»ng)
-    1961013, -- McLaren 570S (VÃ ng Tráº¯ng)
-    1961014, -- McLaren 570S (VÃ ng Äen)
-    1961015, -- McLaren 570S (Ãnh Kim)
-    1961147, -- McLaren P1 (Trá»i Sao)
-    1961148, -- McLaren P1 (Há»ng Rá»±c Rá»¡)
-    1961149, -- McLaren P1 (VÃ ng NÃºi Lá»­a)
-    1907054, -- Xe Äua Äá»i McLaren F1 (Äiá»n Tá»­)
-    1907058, -- Xe Äua Äá»i McLaren F1
-    1907059, -- Xe Äua Äá»i McLaren F1 (Chiáº¿n Tháº¯ng)
+    1961007, -- McLaren 570S (Đen)
+    1961010, -- McLaren 570S (Trắng)
+    1961012, -- McLaren 570S (Hồng)
+    1961013, -- McLaren 570S (Vàng Trắng)
+    1961014, -- McLaren 570S (Vàng Đen)
+    1961015, -- McLaren 570S (Ánh Kim)
+    1961147, -- McLaren P1 (Trời Sao)
+    1961148, -- McLaren P1 (Hồng Rực Rỡ)
+    1961149, -- McLaren P1 (Vàng Núi Lửa)
+    1907054, -- Xe Đua Đội McLaren F1 (Điện Tử)
+    1907058, -- Xe Đua Đội McLaren F1
+    1907059, -- Xe Đua Đội McLaren F1 (Chiến Thắng)
 
     -- [ Koenigsegg ]
-    1961016, -- Koenigsegg Jesko (XÃ¡m Báº¡c)
-    1961017, -- Koenigsegg Jesko (Cáº§u Vá»ng)
-    1961018, -- Koenigsegg Jesko (BÃ¬nh Minh)
+    1961016, -- Koenigsegg Jesko (Xám Bạc)
+    1961017, -- Koenigsegg Jesko (Cầu Vồng)
+    1961018, -- Koenigsegg Jesko (Bình Minh)
     1961029, -- Koenigsegg One:1 Gilt
     1961030, -- Koenigsegg One:1 Cyber Nebula
     1961031, -- Koenigsegg One:1 Jade
     1961032, -- Koenigsegg One:1 Phoenix
-    1903074, -- Koenigsegg Gemera (XÃ¡m Báº¡c)
-    1903075, -- Koenigsegg Gemera (Cáº§u Vá»ng)
-    1903076, -- Koenigsegg Gemera (BÃ¬nh Minh)
+    1903074, -- Koenigsegg Gemera (Xám Bạc)
+    1903075, -- Koenigsegg Gemera (Cầu Vồng)
+    1903076, -- Koenigsegg Gemera (Bình Minh)
 
     -- [ Lamborghini ]
     1961020, -- Lamborghini Aventador SVJ Verde Alceo
@@ -8966,16 +8965,16 @@ local ITEMS = {
     1908067, -- Lamborghini Urus Giallo Inti
 
     -- [ Bugatti ]
-    1961041, -- Bugatti Veyron 16.4 (Sáº¯c MÃ u)
-    1961042, -- Bugatti Veyron 16.4 (VÃ ng)
+    1961041, -- Bugatti Veyron 16.4 (Sắc Màu)
+    1961042, -- Bugatti Veyron 16.4 (Vàng)
     1961043, -- Bugatti Veyron 16.4
     1961044, -- Bugatti La Voiture Noire
-    1961045, -- Bugatti La Voiture Noire (Há»£p Kim)
-    1961046, -- Bugatti La Voiture Noire (Chiáº¿n Binh)
-    1961047, -- Bugatti La Voiture Noire (Tinh VÃ¢n)
-    1961151, -- Bugatti Bolide (LÆ°á»¡i GÆ°Æ¡ng)
-    1961152, -- Bugatti Bolide (Bá» Ngáº¡n)
-    1961153, -- Bugatti Bolide (áº¢o áº¢nh Há» BÄng)
+    1961045, -- Bugatti La Voiture Noire (Hợp Kim)
+    1961046, -- Bugatti La Voiture Noire (Chiến Binh)
+    1961047, -- Bugatti La Voiture Noire (Tinh Vân)
+    1961151, -- Bugatti Bolide (Lưỡi Gương)
+    1961152, -- Bugatti Bolide (Bỉ Ngạn)
+    1961153, -- Bugatti Bolide (Ảo Ảnh Hồ Băng)
 
     -- [ Aston Martin ]
     1961048, -- Aston Martin Valkyrie (Luminous Diamond)
@@ -8996,15 +8995,15 @@ local ITEMS = {
     1961057, -- Pagani Imola (Arctic Aegis)
 
     -- [ Bentley ]
-    1961137, -- Bentley Batur (Kim CÆ°Æ¡ng Láº¥p LÃ¡nh)
-    1961138, -- Bentley Batur (Táº­n CÃ¹ng Thá»i Gian)
-    1961139, -- Bentley Betayga Azure (VÆ°Æ¡ng Quá»c Huyá»n áº¢o)
-    1903200, -- Bentley Flying Spur Mulliner (Tinh VÃ¢n Xanh)
-    1903201, -- Bentley Flying Spur Mulliner (DÃ²ng Cháº£y Vá»nh Háº¹p)
-    1908094, -- Bentley Betayga Azure (MÆ°a Hoa)
-    1908095, -- Bentley Betayga Azure (ÄÃªm YÃªn TÄ©nh)
-    1915008, -- Bentley Continental GTC Mulliner (Má»ng Cáº£nh Lung Linh)
-    1915009, -- Bentley Continental GTC Mulliner (QuÃ½ Tá»c Ão TÃ­m)
+    1961137, -- Bentley Batur (Kim Cương Lấp Lánh)
+    1961138, -- Bentley Batur (Tận Cùng Thời Gian)
+    1961139, -- Bentley Betayga Azure (Vương Quốc Huyền Ảo)
+    1903200, -- Bentley Flying Spur Mulliner (Tinh Vân Xanh)
+    1903201, -- Bentley Flying Spur Mulliner (Dòng Chảy Vịnh Hẹp)
+    1908094, -- Bentley Betayga Azure (Mưa Hoa)
+    1908095, -- Bentley Betayga Azure (Đêm Yên Tĩnh)
+    1915008, -- Bentley Continental GTC Mulliner (Mộng Cảnh Lung Linh)
+    1915009, -- Bentley Continental GTC Mulliner (Quý Tộc Áo Tím)
 
     -- [ Maserati ]
     1961038, -- Maserati MC20 Bianco Audace
@@ -9033,47 +9032,47 @@ local ITEMS = {
     1908189, -- Dodge Hornet - Sunburst
 
     -- [ Porsche ]
-    1961062, -- Porsche 918 Spyder (DÃ²ng NÆ°á»c)
-    1961063, -- Porsche 918 Spyder (964 Báº¡c Ãnh Kim)
-    1961064, -- Porsche 918 Spyder (Há»ng)
-    1903218, -- Porsche Panamera Turbo S (Lam Ngá»c)
+    1961062, -- Porsche 918 Spyder (Dòng Nước)
+    1961063, -- Porsche 918 Spyder (964 Bạc Ánh Kim)
+    1961064, -- Porsche 918 Spyder (Hồng)
+    1903218, -- Porsche Panamera Turbo S (Lam Ngọc)
     1903219, -- Porsche Panamera Turbo S (Xanh Viper)
-    1908108, -- Porsche Cayenne Turbo GT (ÄÆ°á»ng Äua Rá»±c Lá»­a)
+    1908108, -- Porsche Cayenne Turbo GT (Đường Đua Rực Lửa)
     1908109, -- Porsche Cayenne Turbo GT (Cam Dung Nham)
-    1915021, -- Porsche 911 Carrera 4 GTS Cabriolet (NgÃ n Sao)
-    1915022, -- Porsche 911 Carrera 4 GTS Cabriolet (Äá» Ruby)
+    1915021, -- Porsche 911 Carrera 4 GTS Cabriolet (Ngàn Sao)
+    1915022, -- Porsche 911 Carrera 4 GTS Cabriolet (Đỏ Ruby)
 
     -- [ Shelby / Ford ]
-    1961058, -- Shelby 427 Cobra (Xanh & Tráº¯ng)
-    1961059, -- Shelby 427 Cobra (Graffiti Phá»¥c Cá»)
-    1903210, -- Shelby GT500 (Äen & Äá»)
-    1903211, -- Shelby GT500 (NgÆ°á»i NgoÃ i HÃ nh Tinh Cyber)
-    1961068, -- Ford Mustang GTD (Huyá»n Thoáº¡i Xanh TÆ°Æ¡i)
-    1961069, -- Ford Mustang GTD (Tinh Tháº§n NÆ°á»c Má»¹)
+    1961058, -- Shelby 427 Cobra (Xanh & Trắng)
+    1961059, -- Shelby 427 Cobra (Graffiti Phục Cổ)
+    1903210, -- Shelby GT500 (Đen & Đỏ)
+    1903211, -- Shelby GT500 (Người Ngoài Hành Tinh Cyber)
+    1961068, -- Ford Mustang GTD (Huyền Thoại Xanh Tươi)
+    1961069, -- Ford Mustang GTD (Tinh Thần Nước Mỹ)
 
     -- [ Lotus ]
-    1961060, -- Lotus Emira (Rá»«ng SÃ¢u Tháº«m)
-    1961061, -- Lotus Emira (LÆ°á»t Sáº¯c Xanh)
+    1961060, -- Lotus Emira (Rừng Sâu Thẫm)
+    1961061, -- Lotus Emira (Lướt Sắc Xanh)
 
     -- [ Apollo ]
-    1961065, -- Apollo EVO (VÃ ng Rá»±c Rá»¡)
-    1961066, -- Apollo EVO (HoÃ ng HÃ´n)
-    1961067, -- Apollo EVO (BÄng GiÃ¡)
-    1903220, -- Apollo Intensa Emozione (Há»a Ngá»¥c NÃ³ng Cháº£y)
-    1903221, -- Apollo Intensa Emozione (BÃ³ng Ma TÃ­m)
-    1903222, -- Apollo Intensa Emozione (Quyáº¿t Äáº¥u)
-    1903223, -- Apollo Intensa Emozione (BÃ£o Tá»)
+    1961065, -- Apollo EVO (Vàng Rực Rỡ)
+    1961066, -- Apollo EVO (Hoàng Hôn)
+    1961067, -- Apollo EVO (Băng Giá)
+    1903220, -- Apollo Intensa Emozione (Hỏa Ngục Nóng Chảy)
+    1903221, -- Apollo Intensa Emozione (Bóng Ma Tím)
+    1903222, -- Apollo Intensa Emozione (Quyết Đấu)
+    1903223, -- Apollo Intensa Emozione (Bão Tố)
 
     -- [ SSC Tuatara ]
-    1961140, -- áº¢o áº¢nh Hoa Há»ng SSC Tuatara
-    1961141, -- Háº¡c Trá»i SSC Tuatara
-    1961142, -- Äao BÃ¬nh Minh SSC Tuatara Striker
-    1961143, -- MÃ n ÄÃªm Xanh SSC Tuatara Striker
+    1961140, -- Ảo Ảnh Hoa Hồng SSC Tuatara
+    1961141, -- Hạc Trời SSC Tuatara
+    1961142, -- Đao Bình Minh SSC Tuatara Striker
+    1961143, -- Màn Đêm Xanh SSC Tuatara Striker
 
     -- [ Tesla ]
-    1903071, -- Tesla Roadster (Kim CÆ°Æ¡ng)
-    1903072, -- Tesla Roadster (Pha LÃª TÃ­m)
-    1903073, -- Tesla Roadster (Xanh Biá»n Cáº£)
+    1903071, -- Tesla Roadster (Kim Cương)
+    1903072, -- Tesla Roadster (Pha Lê Tím)
+    1903073, -- Tesla Roadster (Xanh Biển Cả)
 
     -- [ Ducati / Motor VIP ]
     1901073, -- DUCATI Panigale V4S
@@ -9082,631 +9081,631 @@ local ITEMS = {
     1901076, -- Ducati Panigale V4S Swift Mirage
 
     -- ==============================================================================
-    -- 3. FULL BAY DÃ (DÃ RÆ I, TÃU LÆ¯á»¢N, VÃN TRÆ¯á»¢T BAY)
+    -- 3. FULL BAY DÙ (DÙ RƠI, TÀU LƯỢN, VÁN TRƯỢT BAY)
     -- ==============================================================================
-    -- [ DÃ (Parachutes) ]
+    -- [ DÙ (Parachutes) ]
     1401000, -- New Years Blessing Parachute
     1401001, -- Happy New Year Parachute
-    1401002, -- DÃ¹ XÆ°Æ¡ng Äá»
-    1401003, -- DÃ¹ tiá»u quá»· tinh nghá»ch
-    1401005, -- DÃ¹ nhá»n biáº¿n hÃ¬nh
-    1401006, -- DÃ¹ MÃ¹a 5
-    1401007, -- DÃ¹ sinh nháº­t
-    1401008, -- DÃ¹ Sáº¿u VÃ ng
-    1401009, -- DÃ¹ Quá»· Äá»
-    1401010, -- DÃ¹ hoa bÃ¡ch tháº£o
-    1401011, -- DÃ¹ anh ÄÃ o
-    1401012, -- DÃ¹ Campus Tournament
-    1401013, -- DÃ¹ Joker
-    1401014, -- DÃ¹ chÃº há»
+    1401002, -- Dù Xương Đỏ
+    1401003, -- Dù tiểu quỷ tinh nghịch
+    1401005, -- Dù nhện biến hình
+    1401006, -- Dù Mùa 5
+    1401007, -- Dù sinh nhật
+    1401008, -- Dù Sếu Vàng
+    1401009, -- Dù Quỷ Đỏ
+    1401010, -- Dù hoa bách thảo
+    1401011, -- Dù anh đào
+    1401012, -- Dù Campus Tournament
+    1401013, -- Dù Joker
+    1401014, -- Dù chú hề
     1401015, -- Carabao Parachute
     1401016, -- Orange Life Parachute
-    1401017, -- DÃ¹ Æ°ng vÃ ng
-    1401018, -- DÃ¹ QuÃ¡n quÃ¢n MÃ¹a 8
-    1401019, -- DÃ¹ Äá»i trÆ°á»ng Ryan
-    1401020, -- DÃ¹ káº» lang thang
-    1401021, -- DÃ¹ cung trÄng
+    1401017, -- Dù ưng vàng
+    1401018, -- Dù Quán quân Mùa 8
+    1401019, -- Dù Đội trưởng Ryan
+    1401020, -- Dù kẻ lang thang
+    1401021, -- Dù cung trăng
     1401022, -- OPPO F11 PRO SURVIVOURS PARACHUTE
-    1401023, -- DÃ¹ lÃ£nh chÃºa Sekigahara (VuÃ´ng)
-    1401024, -- DÃ¹ Äá»ng Minh Loot ThÃ­nh
-    1401025, -- DÃ¹ ÄÃªm MÃª Hoáº·c (VuÃ´ng)
-    1401026, -- DÃ¹ cÃ¡t tÆ°á»ng
-    1401027, -- DÃ¹ PMCO
-    1401028, -- DÃ¹ QuÃ¡n quÃ¢n MÃ¹a 7
-    1401029, -- DÃ¹ sinh nháº­t rá»±c rá»¡
-    1401031, -- DÃ¹ QuÃ¡n quÃ¢n MÃ¹a 6
-    1401032, -- DÃ¹ Dao GÄm Äá»
-    1401033, -- DÃ¹ WALKER
-    1401034, -- DÃ¹ PhÃ¹ Thá»§y BÄng GiÃ¡
-    1401035, -- DÃ¹ ngÆ°á»i thÃ¡ch Äáº¥u
-    1401036, -- DÃ¹ BAPE X PUBGM CAMO
-    1401037, -- DÃ¹ Godzilla (Tráº¯ng)
-    1401038, -- DÃ¹ Godzilla (VÃ ng)
-    1401039, -- DÃ¹ Godzilla (Xanh)
-    1401040, -- DÃ¹ Monarch
-    1401041, -- DÃ¹ CÃ  Ri
-    1401043, -- DÃ¹ NgÆ°á»i GÃ¡c ÄÃªm
-    1401044, -- DÃ¹ hoa há»ng Äen
-    1401045, -- DÃ¹ MÃ¨o May Máº¯n
-    1401046, -- DÃ¹ ÄÃªm u Ã¡m
-    1401047, -- DÃ¹ CÃ¡ Voi SÃ¡t Thá»§
-    1401048, -- DÃ¹ thá»§y quÃ¡i Kraken
-    1401050, -- DÃ¹ giai Äiá»u Ã¢m nháº¡c
-    1401051, -- DÃ¹ OPPO Reno
-    1401052, -- DÃ¹ OPPO VOOC
-    1401053, -- DÃ¹ ÄÃªm MÃª Hoáº·c
-    1401054, -- DÃ¹ ChÃº Heo Tinh Nghá»ch
-    1401055, -- DÃ¹ Red (DÃ i)
+    1401023, -- Dù lãnh chúa Sekigahara (Vuông)
+    1401024, -- Dù Đồng Minh Loot Thính
+    1401025, -- Dù Đêm Mê Hoặc (Vuông)
+    1401026, -- Dù cát tường
+    1401027, -- Dù PMCO
+    1401028, -- Dù Quán quân Mùa 7
+    1401029, -- Dù sinh nhật rực rỡ
+    1401031, -- Dù Quán quân Mùa 6
+    1401032, -- Dù Dao Găm Đỏ
+    1401033, -- Dù WALKER
+    1401034, -- Dù Phù Thủy Băng Giá
+    1401035, -- Dù người thách đấu
+    1401036, -- Dù BAPE X PUBGM CAMO
+    1401037, -- Dù Godzilla (Trắng)
+    1401038, -- Dù Godzilla (Vàng)
+    1401039, -- Dù Godzilla (Xanh)
+    1401040, -- Dù Monarch
+    1401041, -- Dù Cà Ri
+    1401043, -- Dù Người Gác Đêm
+    1401044, -- Dù hoa hồng đen
+    1401045, -- Dù Mèo May Mắn
+    1401046, -- Dù Đêm u ám
+    1401047, -- Dù Cá Voi Sát Thủ
+    1401048, -- Dù thủy quái Kraken
+    1401050, -- Dù giai điệu âm nhạc
+    1401051, -- Dù OPPO Reno
+    1401052, -- Dù OPPO VOOC
+    1401053, -- Dù Đêm Mê Hoặc
+    1401054, -- Dù Chú Heo Tinh Nghịch
+    1401055, -- Dù Red (Dài)
     1401056, -- PMJC Parachute
     1401057, -- PMSC Parachute
-    1401059, -- DÃ¹ QuÃ¡n quÃ¢n Draconian
-    1401060, -- DÃ¹ lÃ£nh chÃºa Sekigahara
-    1401061, -- DÃ¹ Tiá»u Quá»·
-    1401062, -- DÃ¹ QuÃ¡n quÃ¢n MÃ¹a 9
-    1401063, -- DÃ¹ QuÃ¡n quÃ¢n MÃ¹a 10
-    1401064, -- DÃ¹ MÃ¨o Äen
-    1401065, -- DÃ¹ GÃ  trá»ng
-    1401066, -- DÃ¹ Má»t SÃ¡ch BÄng GiÃ¡
-    1401067, -- DÃ¹ NgÆ°á»i Giáº£m Äau #11
+    1401059, -- Dù Quán quân Draconian
+    1401060, -- Dù lãnh chúa Sekigahara
+    1401061, -- Dù Tiểu Quỷ
+    1401062, -- Dù Quán quân Mùa 9
+    1401063, -- Dù Quán quân Mùa 10
+    1401064, -- Dù Mèo Đen
+    1401065, -- Dù Gà trống
+    1401066, -- Dù Mọt Sách Băng Giá
+    1401067, -- Dù Người Giảm Đau #11
     1401068, -- Super Power Parachute
-    1401071, -- DÃ¹ LuÃ¢n Há»i VÃ´ Táº­n
-    1401072, -- DÃ¹ ChÃºa Tá» MuÃ´n LoÃ i
-    1401074, -- DÃ¹ BÃ­ NgÃ´ Kinh Dá»
-    1401085, -- DÃ¹ GÃ  ThÆ¡m Ngon
-    1401086, -- DÃ¹ QuÃ¡n quÃ¢n MÃ¹a 11
-    1401087, -- DÃ¹ Hoa Sen MÃ¡u
-    1401088, -- DÃ¹ HÃ nh Tinh TrÃ´i Dáº¡t
-    1401089, -- DÃ¹ QuÃ¡n QuÃ¢n MÃ¹a 12
-    1401090, -- DÃ¹ Ninja SÃ¡t Thá»§
-    1401091, -- DÃ¹ Neko Sakura
-    1401092, -- DÃ¹ NgÆ°á»i TiÃªn Phong
-    1401094, -- DÃ¹ Fantasy Girl
-    1401095, -- DÃ¹ Tranh Váº½ Chiáº¿n TrÆ°á»ng
-    1401096, -- DÃ¹ NgÆ°á»i PhÃ¡n Quyáº¿t
-    1401097, -- DÃ¹ Africa Pride
-    1401098, -- DÃ¹ Africa Unite
-    1401100, -- DÃ¹ Cáº­u VÃ ng
-    1401102, -- DÃ¹ Äáº·c vá»¥ PMSC World Cup
-    1401103, -- DÃ¹ QuÃ¢n ÄoÃ n Tháº¥t Láº¡c
-    1401104, -- DÃ¹ Giáº£i Äáº¥u PMCO
-    1401106, -- DÃ¹ Trung Ãy VÅ© Trá»¥
-    1401107, -- DÃ¹ Äáº§y Tá» Huyáº¿t Nha
-    1401108, -- DÃ¹ Street Dancer 3
-    1401109, -- DÃ¹ Unique KingCard
-    1401111, -- DÃ¹ BÃ¡nh Ã
-    1401112, -- DÃ¹ GÃ o ThÃ©t
-    1401113, -- DÃ¹ Thá»§ Vá» Tá»± Do
-    1401115, -- DÃ¹ Káº¹o Ngá»t
-    1401117, -- DÃ¹ Cao Bá»i Viá»n TÃ¢y
-    1401119, -- DÃ¹ GiÃ¡p Samurai
+    1401071, -- Dù Luân Hồi Vô Tận
+    1401072, -- Dù Chúa Tể Muôn Loài
+    1401074, -- Dù Bí Ngô Kinh Dị
+    1401085, -- Dù Gà Thơm Ngon
+    1401086, -- Dù Quán quân Mùa 11
+    1401087, -- Dù Hoa Sen Máu
+    1401088, -- Dù Hành Tinh Trôi Dạt
+    1401089, -- Dù Quán Quân Mùa 12
+    1401090, -- Dù Ninja Sát Thủ
+    1401091, -- Dù Neko Sakura
+    1401092, -- Dù Người Tiên Phong
+    1401094, -- Dù Fantasy Girl
+    1401095, -- Dù Tranh Vẽ Chiến Trường
+    1401096, -- Dù Người Phán Quyết
+    1401097, -- Dù Africa Pride
+    1401098, -- Dù Africa Unite
+    1401100, -- Dù Cậu Vàng
+    1401102, -- Dù đặc vụ PMSC World Cup
+    1401103, -- Dù Quân Đoàn Thất Lạc
+    1401104, -- Dù Giải Đấu PMCO
+    1401106, -- Dù Trung Úy Vũ Trụ
+    1401107, -- Dù Đầy Tớ Huyết Nha
+    1401108, -- Dù Street Dancer 3
+    1401109, -- Dù Unique KingCard
+    1401111, -- Dù Bánh Ú
+    1401112, -- Dù Gào Thét
+    1401113, -- Dù Thủ Vệ Tự Do
+    1401115, -- Dù Kẹo Ngọt
+    1401117, -- Dù Cao Bồi Viễn Tây
+    1401119, -- Dù Giáp Samurai
     1401122, -- Incredible Parachute
-    1401124, -- DÃ¹ Warrior
-    1401125, -- DÃ¹ QuÃ½ CÃ´ Gothic
-    1401127, -- DÃ¹ Tháº§n Thoáº¡i áº¢ Ráº­p
-    1401128, -- DÃ¹ NhÃ  VÃ´ Äá»ch Arena
-    1401129, -- DÃ¹ QuÃ¡n QuÃ¢n MÃ¹a 13
-    1401130, -- DÃ¹ Gorilla
-    1401131, -- DÃ¹ PMGC
-    1401133, -- DÃ¹ MÃ¹a 15
-    1401134, -- DÃ¹ Tulip
-    1401135, -- DÃ¹ Ãc Ma Cuá»ng Ná»
-    1401137, -- DÃ¹ MÃ¹a 14
-    1401138, -- DÃ¹ Pro League (VÃ ng)
-    1401139, -- DÃ¹ Pro League (Báº¡c)
-    1401140, -- DÃ¹ Láº¡c ÄÃ  Báº£nh Bao
-    1401141, -- DÃ¹ GÃ  RÃ¡n
-    1401142, -- DÃ¹ CLB HoÃ ng Gia
-    1401145, -- DÃ¹ Báº£y Sáº¯c
-    1401146, -- DÃ¹ Mountain Dew
-    1401147, -- DÃ¹ TÆ° Táº¿ Tá»i Cao
-    1401148, -- DÃ¹ Idol
-    1401149, -- DÃ¹ Dang Rá»ng ÄÃ´i CÃ¡nh
-    1401150, -- DÃ¹ Chiáº¿n Binh ThÃ©p
-    1401151, -- DÃ¹ QuÃ¡n QuÃ¢n MÃ¹a 16
-    1401152, -- DÃ¹ Liá»m Tá»­ Tháº§n
-    1401153, -- DÃ¹ emoji Thá»a MÃ£n
-    1401154, -- DÃ¹ emoji
-    1401155, -- DÃ¹ emoji Vui Nhá»n
-    1401156, -- DÃ¹ Qualcomm
-    1401157, -- DÃ¹ Äiá»m SÆ¡ TÃ¡n
-    1401159, -- DÃ¹ LÃ£nh ChÃºa Äá»c TÃ i
-    1401160, -- DÃ¹ Káº¹p Háº¡t Dáº» Vui Váº»
-    1401161, -- DÃ¹ Long VÆ°Æ¡ng
-    1401163, -- DÃ¹ GiÃ¡p Chiáº¿n Tháº§n
-    1401164, -- DÃ¹ Giai Äiá»u YÃªu ThÆ°Æ¡ng
-    1401165, -- DÃ¹ QuÃ¡n QuÃ¢n MÃ¹a 17
-    1401167, -- DÃ¹ Ãnh TrÄng Huyá»n BÃ­
-    1401168, -- DÃ¹ Tiá»c Disco
-    1401169, -- DÃ¹ QuÃ¡n QuÃ¢n MÃ¹a 18
-    1401170, -- DÃ¹ Tuyáº¿t Anh ÄÃ o
-    1401171, -- DÃ¹ Tá» Ong
-    1401174, -- DÃ¹ QuÃ¡n QuÃ¢n MÃ¹a 19
-    1401177, -- DÃ¹ QuÃ¡n QuÃ¢n C1S1
-    1401178, -- DÃ¹ BÄng CÃ¡t SÃ©t
-    1401179, -- DÃ¹ El Diablo
-    1401181, -- ChÃºa Tá» BÄng GiÃ¡ - DÃ¹
-    1401182, -- DÃ¹ Káº» SÄn Má»i Biá»n Xanh
-    1401183, -- DÃ¹ Má»ng Äiá»p
-    1401184, -- DÃ¹ Bá» CÃ¡nh Cá»©ng
-    1401186, -- DÃ¹ RÃ¹a vÃ  Thá»
-    1401187, -- DÃ¹ Nhá»p BÆ°á»c Máº¡nh Máº½
-    1401188, -- DÃ¹ PMPL MÃ¹a XuÃ¢n 2021
-    1401189, -- DÃ¹ GodzillaVsKong
-    1401190, -- DÃ¹ HÃ nh TrÃ¬nh Ká»³ Diá»u
-    1401191, -- DÃ¹ Dáº¥u áº¤n VÅ© Trá»¥
-    1401192, -- DÃ¹ Äáº§u Báº¿p GÃ 
-    1401193, -- DÃ¹ Nghá» Thuáº­t Sáº¯c MÃ u
-    1401194, -- DÃ¹ Aerial Punk Rich Brian
-    1401195, -- DÃ¹ OPPO
-    1401196, -- DÃ¹ BUG
-    1401197, -- DÃ¹ ChÃºa Tá» BÃ¡nh RÄng
-    1401198, -- DÃ¹ Xiaomi
-    1401200, -- DÃ¹ ÄÃ´i Máº¯t Biá»n SÃ¢u
-    1401201, -- DÃ¹ OnePlus
-    1401204, -- DÃ¹ foodpanda
-    1401205, -- DÃ¹ PMPL MÃ¹a Thu 2021
-    1401208, -- DÃ¹ ThÃ nh Phá» TrÃªn KhÃ´ng
-    1401209, -- DÃ¹ BÃ³ng Ma TÆ°Æ¡ng Lai
-    1401210, -- DÃ¹ Máº­t ThÃ¡m CÆ¡ KhÃ­
-    1401212, -- DÃ¹ ThÃ nh Phá» Sáº¯c MÃ u
-    1401213, -- DÃ¹ SÃºng Hoa Há»ng
-    1401215, -- DÃ¹ BÄng GiÃ¡
-    1401216, -- DÃ¹ Báº£n Äá» Kho BÃ¡u
-    1401217, -- DÃ¹ CÆ¡n Sá»t GiÃ¡ng Sinh
-    1401218, -- DÃ¹ Há»a Tiáº¿t VÃ ng
-    1401219, -- DÃ¹ VÆ°Æ¡ng Quá»c VÃ ng
-    1401220, -- DÃ¹ HoÃ ng HÃ´n Rá»±c Rá»¡
-    1401221, -- DÃ¹ Bá» CÃ¢u Tráº¯ng
-    1401222, -- DÃ¹ VÃ²ng Xoay Thá»i Gian
-    1401223, -- DÃ¹ Zong
-    1401224, -- DÃ¹ QuÃ¡n QuÃ¢n C1S2
-    1401225, -- DÃ¹ QuÃ¡n QuÃ¢n C1S3
-    1401227, -- DÃ¹ Äáº¡i Háº¡ GiÃ¡
-    1401228, -- DÃ¹ LÃ£ng KhÃ¡ch Thá»i ThÆ°á»£ng
-    1401231, -- DÃ¹ PMGC 2021
-    1401232, -- DÃ¹ Liverpool FC
-    1401233, -- DÃ¹ Äá»t PhÃ¡
-    1401234, -- DÃ¹ Voi Sáº¯c MÃ u
-    1401235, -- DÃ¹ Há»£p TÃ¡c Egor Kreed
+    1401124, -- Dù Warrior
+    1401125, -- Dù Quý Cô Gothic
+    1401127, -- Dù Thần Thoại Ả Rập
+    1401128, -- Dù Nhà Vô Địch Arena
+    1401129, -- Dù Quán Quân Mùa 13
+    1401130, -- Dù Gorilla
+    1401131, -- Dù PMGC
+    1401133, -- Dù Mùa 15
+    1401134, -- Dù Tulip
+    1401135, -- Dù Ác Ma Cuồng Nộ
+    1401137, -- Dù Mùa 14
+    1401138, -- Dù Pro League (Vàng)
+    1401139, -- Dù Pro League (Bạc)
+    1401140, -- Dù Lạc Đà Bảnh Bao
+    1401141, -- Dù Gà Rán
+    1401142, -- Dù CLB Hoàng Gia
+    1401145, -- Dù Bảy Sắc
+    1401146, -- Dù Mountain Dew
+    1401147, -- Dù Tư Tế Tối Cao
+    1401148, -- Dù Idol
+    1401149, -- Dù Dang Rộng Đôi Cánh
+    1401150, -- Dù Chiến Binh Thép
+    1401151, -- Dù Quán Quân Mùa 16
+    1401152, -- Dù Liềm Tử Thần
+    1401153, -- Dù emoji Thỏa Mãn
+    1401154, -- Dù emoji
+    1401155, -- Dù emoji Vui Nhộn
+    1401156, -- Dù Qualcomm
+    1401157, -- Dù Điểm Sơ Tán
+    1401159, -- Dù Lãnh Chúa Độc Tài
+    1401160, -- Dù Kẹp Hạt Dẻ Vui Vẻ
+    1401161, -- Dù Long Vương
+    1401163, -- Dù Giáp Chiến Thần
+    1401164, -- Dù Giai Điệu Yêu Thương
+    1401165, -- Dù Quán Quân Mùa 17
+    1401167, -- Dù Ánh Trăng Huyền Bí
+    1401168, -- Dù Tiệc Disco
+    1401169, -- Dù Quán Quân Mùa 18
+    1401170, -- Dù Tuyết Anh Đào
+    1401171, -- Dù Tổ Ong
+    1401174, -- Dù Quán Quân Mùa 19
+    1401177, -- Dù Quán Quân C1S1
+    1401178, -- Dù Băng Cát Sét
+    1401179, -- Dù El Diablo
+    1401181, -- Chúa Tể Băng Giá - Dù
+    1401182, -- Dù Kẻ Săn Mồi Biển Xanh
+    1401183, -- Dù Mộng Điệp
+    1401184, -- Dù Bọ Cánh Cứng
+    1401186, -- Dù Rùa và Thỏ
+    1401187, -- Dù Nhịp Bước Mạnh Mẽ
+    1401188, -- Dù PMPL Mùa Xuân 2021
+    1401189, -- Dù GodzillaVsKong
+    1401190, -- Dù Hành Trình Kỳ Diệu
+    1401191, -- Dù Dấu Ấn Vũ Trụ
+    1401192, -- Dù Đầu Bếp Gà
+    1401193, -- Dù Nghệ Thuật Sắc Màu
+    1401194, -- Dù Aerial Punk Rich Brian
+    1401195, -- Dù OPPO
+    1401196, -- Dù BUG
+    1401197, -- Dù Chúa Tể Bánh Răng
+    1401198, -- Dù Xiaomi
+    1401200, -- Dù Đôi Mắt Biển Sâu
+    1401201, -- Dù OnePlus
+    1401204, -- Dù foodpanda
+    1401205, -- Dù PMPL Mùa Thu 2021
+    1401208, -- Dù Thành Phố Trên Không
+    1401209, -- Dù Bóng Ma Tương Lai
+    1401210, -- Dù Mật Thám Cơ Khí
+    1401212, -- Dù Thành Phố Sắc Màu
+    1401213, -- Dù Súng Hoa Hồng
+    1401215, -- Dù Băng Giá
+    1401216, -- Dù Bản Đồ Kho Báu
+    1401217, -- Dù Cơn Sốt Giáng Sinh
+    1401218, -- Dù Họa Tiết Vàng
+    1401219, -- Dù Vương Quốc Vàng
+    1401220, -- Dù Hoàng Hôn Rực Rỡ
+    1401221, -- Dù Bồ Câu Trắng
+    1401222, -- Dù Vòng Xoay Thời Gian
+    1401223, -- Dù Zong
+    1401224, -- Dù Quán Quân C1S2
+    1401225, -- Dù Quán Quân C1S3
+    1401227, -- Dù Đại Hạ Giá
+    1401228, -- Dù Lãng Khách Thời Thượng
+    1401231, -- Dù PMGC 2021
+    1401232, -- Dù Liverpool FC
+    1401233, -- Dù Đột Phá
+    1401234, -- Dù Voi Sắc Màu
+    1401235, -- Dù Hợp Tác Egor Kreed
     1401236, -- Gackt Moon Parachute
-    1401237, -- DÃ¹ Dune
-    1401238, -- DÃ¹ Guruh Gundala
-    1401239, -- DÃ¹ C2S4
-    1401240, -- DÃ¹ Baby Shark
-    1401241, -- DÃ¹ JAPAN LEAGUE S2
-    1401242, -- DÃ¹ Äáº§u Báº¿p QuÃ¡i ThÃº
-    1401243, -- DÃ¹ BÃ¡ Chá»§ Äáº¡i DÆ°Æ¡ng
-    1401244, -- DÃ¹ C2S5
-    1401245, -- DÃ¹ Ná»¯ HoÃ ng Äiá»n Tá»­
-    1401246, -- DÃ¹ NhÃ¢m Dáº§n
-    1401247, -- DÃ¹ Sáº¯c XuÃ¢n
-    1401248, -- DÃ¹ Jujutsu Kaisen
-    1401249, -- DÃ¹ Shiba Inu
-    1401250, -- DÃ¹ Motorola
-    1401252, -- DÃ¹ Tráº­n Chiáº¿n Trendy
-    1401254, -- DÃ¹ DJ CÃ¡ TÃ­nh
-    1401255, -- DÃ¹ Chá» Chá» Em Em
-    1401256, -- DÃ¹ Graffiti Neon
-    1401257, -- DÃ¹ C2S6
-    1401258, -- DÃ¹ NgÆ°á»i Nhá»n: KhÃ´ng CÃ²n NhÃ 
-    1401259, -- DÃ¹ SÃ¡t Thá»§ Thá»i KhÃ´ng
-    1401260, -- DÃ¹ VÃ¹ng Äáº¥t Hoang
-    1401261, -- DÃ¹ Sáº¯c MÃ u
-    1401262, -- DÃ¹ Lá» Há»i Sáº¯c MÃ u
-    1401263, -- DÃ¹ Ráº¡p Xiáº¿c Tháº§n Ká»³
-    1401264, -- DÃ¹ Thiáº¿u Ná»¯ TÃ³c Äá»
-    1401265, -- DÃ¹ Bá» ÄÃ´i HoÃ n Háº£o
-    1401266, -- DÃ¹ Thiáº¿u Ná»¯ Song Sinh
-    1401267, -- DÃ¹ CÃ¡nh Cá»ng Ká»³ Dá»
-    1401268, -- DÃ¹ Thiáº¿u Ná»¯ Anime
-    1401269, -- DÃ¹ GÃ  Chiáº¿n Äáº¥u
-    1401270, -- DÃ¹ Náº¿n Xanh
-    1401271, -- DÃ¹ Há»n Ma Nghá»ch Ngá»£m
-    1401272, -- DÃ¹ Thiáº¿u Ná»¯ Cáº§u Nguyá»n
-    1401273, -- DÃ¹ Ma Ná»¯ ÄÃ¡ng YÃªu
-    1401274, -- DÃ¹ Evangelion NERV
-    1401275, -- DÃ¹ Chá» Em Song Sinh
-    1401276, -- DÃ¹ PMPL MÃ¹a XuÃ¢n 2022
-    1401277, -- DÃ¹ Gáº¥u Teddy GB
-    1401278, -- DÃ¹ SÆ° Tá»­ Thá»i Trang
-    1401280, -- DÃ¹ Ká»· Niá»m Tuá»i ThÆ¡
-    1401281, -- DÃ¹ C3S7
-    1401282, -- DÃ¹ MÃ¨o Khá»ng Lá»
-    1401283, -- DÃ¹ Butterfinger
-    1401284, -- SiÃªu DÃ¹ Nháº£y
-    1401285, -- DÃ¹ Äá»ng Minh MÃ¹a HÃ¨
-    1401286, -- DÃ¹ SÃ³c Chuá»t
-    1401287, -- DÃ¹ Há»a Diá»m Ma GiÃ¡p
-    1401289, -- DÃ¹ Heartrocker
-    1401290, -- DÃ¹ SÆ° Tá»­ LÆ°á»¡ng HÃ 
-    1401291, -- DÃ¹ realme
-    1401292, -- DÃ¹ Lil Burger
-    1401294, -- DÃ¹ DÃ²ng SÃ´ng Má»ng MÆ¡
-    1401295, -- DÃ¹ C3S8
-    1401296, -- DÃ¹ ÄÃªm Cá»§a PhÃ©p MÃ u
-    1401298, -- DÃ¹ Vinh Quang
-    1401299, -- DÃ¹ Báº£n Äá» Sao
-    1401300, -- DÃ¹ ChÃºa Tá» Gai Äá»c
-    1401301, -- DÃ¹ BÃ³ng Ma VÃ  NÃ ng
-    1401302, -- DÃ¹ Gai BÃ© Bá»ng
-    1401303, -- DÃ¹ Uqabi
-    1401308, -- DÃ¹ PhÃ¹ Thá»§y BÄng GiÃ¡
-    1401309, -- DÃ¹ Tá»c Äá» Cá»±c Háº¡n
-    1401310, -- DÃ¹ PMWI 2022
+    1401237, -- Dù Dune
+    1401238, -- Dù Guruh Gundala
+    1401239, -- Dù C2S4
+    1401240, -- Dù Baby Shark
+    1401241, -- Dù JAPAN LEAGUE S2
+    1401242, -- Dù Đầu Bếp Quái Thú
+    1401243, -- Dù Bá Chủ Đại Dương
+    1401244, -- Dù C2S5
+    1401245, -- Dù Nữ Hoàng Điện Tử
+    1401246, -- Dù Nhâm Dần
+    1401247, -- Dù Sắc Xuân
+    1401248, -- Dù Jujutsu Kaisen
+    1401249, -- Dù Shiba Inu
+    1401250, -- Dù Motorola
+    1401252, -- Dù Trận Chiến Trendy
+    1401254, -- Dù DJ Cá Tính
+    1401255, -- Dù Chị Chị Em Em
+    1401256, -- Dù Graffiti Neon
+    1401257, -- Dù C2S6
+    1401258, -- Dù Người Nhện: Không Còn Nhà
+    1401259, -- Dù Sát Thủ Thời Không
+    1401260, -- Dù Vùng Đất Hoang
+    1401261, -- Dù Sắc Màu
+    1401262, -- Dù Lễ Hội Sắc Màu
+    1401263, -- Dù Rạp Xiếc Thần Kỳ
+    1401264, -- Dù Thiếu Nữ Tóc Đỏ
+    1401265, -- Dù Bộ Đôi Hoàn Hảo
+    1401266, -- Dù Thiếu Nữ Song Sinh
+    1401267, -- Dù Cánh Cổng Kỳ Dị
+    1401268, -- Dù Thiếu Nữ Anime
+    1401269, -- Dù Gà Chiến Đấu
+    1401270, -- Dù Nến Xanh
+    1401271, -- Dù Hồn Ma Nghịch Ngợm
+    1401272, -- Dù Thiếu Nữ Cầu Nguyện
+    1401273, -- Dù Ma Nữ Đáng Yêu
+    1401274, -- Dù Evangelion NERV
+    1401275, -- Dù Chị Em Song Sinh
+    1401276, -- Dù PMPL Mùa Xuân 2022
+    1401277, -- Dù Gấu Teddy GB
+    1401278, -- Dù Sư Tử Thời Trang
+    1401280, -- Dù Kỷ Niệm Tuổi Thơ
+    1401281, -- Dù C3S7
+    1401282, -- Dù Mèo Khổng Lồ
+    1401283, -- Dù Butterfinger
+    1401284, -- Siêu Dù Nhảy
+    1401285, -- Dù Đồng Minh Mùa Hè
+    1401286, -- Dù Sóc Chuột
+    1401287, -- Dù Hỏa Diệm Ma Giáp
+    1401289, -- Dù Heartrocker
+    1401290, -- Dù Sư Tử Lưỡng Hà
+    1401291, -- Dù realme
+    1401292, -- Dù Lil Burger
+    1401294, -- Dù Dòng Sông Mộng Mơ
+    1401295, -- Dù C3S8
+    1401296, -- Dù Đêm Của Phép Màu
+    1401298, -- Dù Vinh Quang
+    1401299, -- Dù Bản Đồ Sao
+    1401300, -- Dù Chúa Tể Gai Độc
+    1401301, -- Dù Bóng Ma Và Nàng
+    1401302, -- Dù Gai Bé Bỏng
+    1401303, -- Dù Uqabi
+    1401308, -- Dù Phù Thủy Băng Giá
+    1401309, -- Dù Tốc Độ Cực Hạn
+    1401310, -- Dù PMWI 2022
     1401311, -- BGMI Esports Parachute
     1401312, -- PMJL SEASON3 Parachute
     1401313, -- PMPS 2022 Parachute
-    1401314, -- DÃ¹ Chiáº¿n Binh NgÆ°u
-    1401315, -- DÃ¹ Quyá»n Lá»±c Tá»i ThÆ°á»£ng
-    1401316, -- DÃ¹ Äá»i BÃ³ng áº¢ Ráº­p
-    1401317, -- DÃ¹ NgÃ n Sao Rá»±c Rá»¡
-    1401318, -- DÃ¹ PhÃ¡p SÆ° ThiÃªn VÄn
-    1401319, -- DÃ¹ C3S9
-    1401320, -- DÃ¹ BoBoiBoy
-    1401323, -- DÃ¹ ÄÆ°á»ng Äua Hoang DÃ£
-    1401324, -- DÃ¹ Tuáº§n Lá»c Tráº¯ng
-    1401325, -- DÃ¹ RÃ¬u HoÃ ng Kim
-    1401326, -- DÃ¹ VÃ ng Huyá»n BÃ­
-    1401330, -- DÃ¹ Du HÃ nh Tinh VÃ¢n
-    1401332, -- DÃ¹ MÃ¨o Tuyáº¿t
-    1401334, -- DÃ¹ KFC
-    1401335, -- DÃ¹ Thá»§y SÆ° Cuá»ng Ná»
-    1401336, -- DÃ¹ Sá» Nham Tháº¡ch
-    1401337, -- DÃ¹ BÃ¡ Chá»§ Báº§u Trá»i
-    1401338, -- DÃ¹ Grubhub
-    1401339, -- DÃ¹ AFA
-    1401340, -- DÃ¹ Huyá»n Thoáº¡i SiÃªu Sao Messi
-    1401343, -- DÃ¹ PMGC 2022
-    1401345, -- DÃ¹ Báº£n Äá» Kho BÃ¡u
-    1401346, -- DÃ¹ Nobru
-    1401347, -- DÃ¹ Sony
-    1401349, -- DÃ¹ Äá»t KÃ­ch TrÃªn KhÃ´ng
-    1401351, -- DÃ¹ Ná»¯ Hiá»p
-    1401353, -- DÃ¹ ChÃº Há» Quá»· Quyá»t
-    1401355, -- DÃ¹ LÃ½ Tiá»u Long
-    1401356, -- DÃ¹ Cáº·p ÄÃ´i Diá»n VÃµ
-    1401357, -- DÃ¹ Donkey King
-    1401360, -- DÃ¹ Pro League
-    1401361, -- DÃ¹ Káº¿ Hoáº¡ch Äá» Tháº«m
-    1401362, -- DÃ¹ C4S11
-    1401363, -- DÃ¹ Báº£n Äá» VÅ© Trá»¥
-    1401364, -- DÃ¹ BE@RBRICK
-    1401365, -- DÃ¹ Nguá»n SÃ¡ng Vinh Quang
-    1401366, -- DÃ¹ KÃ½ á»¨c XÆ°a
-    1401367, -- DÃ¹ Bugatti
-    1401368, -- DÃ¹ HÃ³a Tháº¡ch Khá»§ng Long
-    1401369, -- DÃ¹ Trá»n ThoÃ¡t T-Rex
-    1401370, -- DÃ¹ Dragon Ball Super
-    1401371, -- DÃ¹ C4S12
-    1401372, -- DÃ¹ Huyáº¿t Rá»ng
+    1401314, -- Dù Chiến Binh Ngưu
+    1401315, -- Dù Quyền Lực Tối Thượng
+    1401316, -- Dù Đội Bóng Ả Rập
+    1401317, -- Dù Ngàn Sao Rực Rỡ
+    1401318, -- Dù Pháp Sư Thiên Văn
+    1401319, -- Dù C3S9
+    1401320, -- Dù BoBoiBoy
+    1401323, -- Dù Đường Đua Hoang Dã
+    1401324, -- Dù Tuần Lộc Trắng
+    1401325, -- Dù Rìu Hoàng Kim
+    1401326, -- Dù Vàng Huyền Bí
+    1401330, -- Dù Du Hành Tinh Vân
+    1401332, -- Dù Mèo Tuyết
+    1401334, -- Dù KFC
+    1401335, -- Dù Thủy Sư Cuồng Nộ
+    1401336, -- Dù Sọ Nham Thạch
+    1401337, -- Dù Bá Chủ Bầu Trời
+    1401338, -- Dù Grubhub
+    1401339, -- Dù AFA
+    1401340, -- Dù Huyền Thoại Siêu Sao Messi
+    1401343, -- Dù PMGC 2022
+    1401345, -- Dù Bản Đồ Kho Báu
+    1401346, -- Dù Nobru
+    1401347, -- Dù Sony
+    1401349, -- Dù Đột Kích Trên Không
+    1401351, -- Dù Nữ Hiệp
+    1401353, -- Dù Chú Hề Quỷ Quyệt
+    1401355, -- Dù Lý Tiểu Long
+    1401356, -- Dù Cặp Đôi Diễn Võ
+    1401357, -- Dù Donkey King
+    1401360, -- Dù Pro League
+    1401361, -- Dù Kế Hoạch Đỏ Thẫm
+    1401362, -- Dù C4S11
+    1401363, -- Dù Bản Đồ Vũ Trụ
+    1401364, -- Dù BE@RBRICK
+    1401365, -- Dù Nguồn Sáng Vinh Quang
+    1401366, -- Dù Ký Ức Xưa
+    1401367, -- Dù Bugatti
+    1401368, -- Dù Hóa Thạch Khủng Long
+    1401369, -- Dù Trốn Thoát T-Rex
+    1401370, -- Dù Dragon Ball Super
+    1401371, -- Dù C4S12
+    1401372, -- Dù Huyết Rồng
     1401373, -- UNIVERSTAR BT21 Parachute
-    1401374, -- DÃ¹ HUAWEI AppGallery
-    1401375, -- DÃ¹ PMWI 2023
-    1401376, -- DÃ¹ C5S13
-    1401377, -- DÃ¹ Thá» Disco
-    1401378, -- DÃ¹ Aston Martin
-    1401379, -- DÃ¹ MÃ¹a HÃ¨ TrÃªn BÃ£i Biá»n
-    1401380, -- DÃ¹ C5S14
-    1401381, -- DÃ¹ C5S15
-    1401382, -- DÃ¹ PMGC 2023
-    1401383, -- DÃ¹ KFC
-    1401385, -- DÃ¹ Yeti Khá»ng Lá»
-    1401386, -- DÃ¹ Pagani
-    1401387, -- DÃ¹ BÃ¡o Sáº¯c MÃ u
-    1401388, -- DÃ¹ BÃ© SÃ³c ÄÃ¡ng YÃªu
-    1401389, -- DÃ¹ Ká»³ GiÃ´ng Há»ng
+    1401374, -- Dù HUAWEI AppGallery
+    1401375, -- Dù PMWI 2023
+    1401376, -- Dù C5S13
+    1401377, -- Dù Thỏ Disco
+    1401378, -- Dù Aston Martin
+    1401379, -- Dù Mùa Hè Trên Bãi Biển
+    1401380, -- Dù C5S14
+    1401381, -- Dù C5S15
+    1401382, -- Dù PMGC 2023
+    1401383, -- Dù KFC
+    1401385, -- Dù Yeti Khổng Lồ
+    1401386, -- Dù Pagani
+    1401387, -- Dù Báo Sắc Màu
+    1401388, -- Dù Bé Sóc Đáng Yêu
+    1401389, -- Dù Kỳ Giông Hồng
     1401390, -- RS Swagster Parachute
-    1401391, -- DÃ¹ Gáº¥u TrÃºc Ngá»t NgÃ o
-    1401392, -- DÃ¹ Chiáº¿n Binh Hoa Há»ng
-    1401393, -- DÃ¹ Cuá»c Chiáº¿n ChÃ­nh NghÄ©a
-    1401394, -- DÃ¹ LINE FRIENDS
-    1401395, -- DÃ¹ Há» Ly Tháº§n BÃ­
-    1401396, -- DÃ¹ Zanmang Loopy
+    1401391, -- Dù Gấu Trúc Ngọt Ngào
+    1401392, -- Dù Chiến Binh Hoa Hồng
+    1401393, -- Dù Cuộc Chiến Chính Nghĩa
+    1401394, -- Dù LINE FRIENDS
+    1401395, -- Dù Hồ Ly Thần Bí
+    1401396, -- Dù Zanmang Loopy
     1401397, -- Hardik Sky Parachute
-    1401398, -- DÃ¹ C6S16
-    1401399, -- DÃ¹ BÃ³ng Ma Quyáº¿n RÅ©
-    1401400, -- DÃ¹ Báº£o Há» HoÃ ng Gia
-    1401401, -- DÃ¹ Bentley
-    1401402, -- SPYÃFAMILY DÃ¹
-    1401403, -- DÃ¹ Nháº­t Thá»±c
-    1401404, -- DÃ¹ Chiáº¿n SÄ© Tháº§n GiÃ¡p
-    1401405, -- DÃ¹ C6S17
-    1401406, -- DÃ¹ Giai Äiá»u MÃ¨o Con
-    1401407, -- DÃ¹ ThÃ nh Phá» Há»n Loáº¡n
-    1401408, -- DÃ¹ ÄÃ´i CÃ¡nh Cáº­n Vá»
-    1401409, -- DÃ¹ Thiáº¿t MÃ£
-    1401410, -- DÃ¹ Bay LÆ°á»t VÅ© Trá»¥
-    1401411, -- DÃ¹ C6 S18
-    1401412, -- DÃ¹ Ná»¯ Äáº¿ Háº¯c Ãm
-    1401413, -- DÃ¹ Há»£p TÃ¡c Lamborghini
-    1401416, -- DÃ¹ TÆ°á»£ng ÄÃ¡ Cá» XÆ°a
-    1401417, -- DÃ¹ Äáº¡i DÆ°Æ¡ng Xanh
+    1401398, -- Dù C6S16
+    1401399, -- Dù Bóng Ma Quyến Rũ
+    1401400, -- Dù Bảo Hộ Hoàng Gia
+    1401401, -- Dù Bentley
+    1401402, -- SPY×FAMILY Dù
+    1401403, -- Dù Nhật Thực
+    1401404, -- Dù Chiến Sĩ Thần Giáp
+    1401405, -- Dù C6S17
+    1401406, -- Dù Giai Điệu Mèo Con
+    1401407, -- Dù Thành Phố Hỗn Loạn
+    1401408, -- Dù Đôi Cánh Cận Vệ
+    1401409, -- Dù Thiết Mã
+    1401410, -- Dù Bay Lướt Vũ Trụ
+    1401411, -- Dù C6 S18
+    1401412, -- Dù Nữ Đế Hắc Ám
+    1401413, -- Dù Hợp Tác Lamborghini
+    1401416, -- Dù Tượng Đá Cổ Xưa
+    1401417, -- Dù Đại Dương Xanh
     1401418, -- KAKAO FRIENDS Parachute
-    1401419, -- DÃ¹ Infinix GT
-    1401420, -- DÃ¹ Esports World Cup 2024
-    1401421, -- DÃ¹ C7S19
-    1401422, -- DÃ¹ Thá» Tinh QuÃ¡i
-    1401423, -- DÃ¹ Há»£p TÃ¡c VW
-    1401424, -- DÃ¹ MiÃªu Linh Sáº¯c MÃ u
-    1401425, -- DÃ¹ Háº¯c Long Ma NhÃ£n
-    1401426, -- DÃ¹ Ãm DÆ°Æ¡ng
+    1401419, -- Dù Infinix GT
+    1401420, -- Dù Esports World Cup 2024
+    1401421, -- Dù C7S19
+    1401422, -- Dù Thỏ Tinh Quái
+    1401423, -- Dù Hợp Tác VW
+    1401424, -- Dù Miêu Linh Sắc Màu
+    1401425, -- Dù Hắc Long Ma Nhãn
+    1401426, -- Dù Âm Dương
     1401427, -- NieR:Automata Parachute
-    1401428, -- DÃ¹ Äam MÃª Esports
-    1401429, -- DÃ¹ C7S20
-    1401430, -- DÃ¹ Venom: KÃ¨o Cuá»i
-    1401431, -- DÃ¹ Bá» Tá»c NgÃ¢n HÃ 
-    1401432, -- DÃ¹ Tuáº§n Lá»c HoÃ ng Gia
-    1401433, -- DÃ¹ McLaren
-    1401434, -- DÃ¹ PMGC 2024
-    1401435, -- DÃ¹ lÆ°á»£n SÃ³i Tuyáº¿t
-    1401436, -- DÃ¹ lÆ°á»£n BÃ³ng NÆ°á»c
-    1401437, -- DÃ¹ lÆ°á»£n C7S21
-    1401438, -- DÃ¹ CÃ¡ Koi XuÃ¢n Sáº¯c
-    1401439, -- DÃ¹ Äáº¡i BÃ ng
-    1401440, -- DÃ¹ Hoa Há»ng BÃ³ng ÄÃªm
+    1401428, -- Dù Đam Mê Esports
+    1401429, -- Dù C7S20
+    1401430, -- Dù Venom: Kèo Cuối
+    1401431, -- Dù Bộ Tộc Ngân Hà
+    1401432, -- Dù Tuần Lộc Hoàng Gia
+    1401433, -- Dù McLaren
+    1401434, -- Dù PMGC 2024
+    1401435, -- Dù lượn Sói Tuyết
+    1401436, -- Dù lượn Bóng Nước
+    1401437, -- Dù lượn C7S21
+    1401438, -- Dù Cá Koi Xuân Sắc
+    1401439, -- Dù Đại Bàng
+    1401440, -- Dù Hoa Hồng Bóng Đêm
     1401441, -- Opanchu Parachute
     1401442, -- Neon Drop BE 6 Parachute
-    1401443, -- DÃ¹ C8S22
-    1401444, -- DÃ¹ LÆ°á»£n Háº¯c Cá»t
-    1401445, -- DÃ¹ Cá»±c Quang Tinh TÃº
-    1401446, -- Godzilla vs. DÃ¹ Destoroyah
-    1401447, -- DÃ¹ Thá» Bá»ng Bá»nh
+    1401443, -- Dù C8S22
+    1401444, -- Dù Lượn Hắc Cốt
+    1401445, -- Dù Cực Quang Tinh Tú
+    1401446, -- Godzilla vs. Dù Destoroyah
+    1401447, -- Dù Thỏ Bồng Bềnh
     1401448, -- Parachute(Frieren&Fern)
-    1401449, -- DÃ¹ C8S23
-    1401450, -- DÃ¹ LÆ°á»£n MÃ£ Sá» HÃ³a 
-    1401451, -- DÃ¹ LÆ°á»£n Khuáº¿ch Äáº¡i Sáº¯c MÃ u
-    1401452, -- DÃ¹ Há»£p TÃ¡c Shelby
-    1401453, -- DÃ¹ RÃ¡ng Chiá»u Rá»±c ChÃ¡y
-    1401454, -- DÃ¹ Attack on Titan
-    1401455, -- DÃ¹ CÆ¡ KhÃ­ 
+    1401449, -- Dù C8S23
+    1401450, -- Dù Lượn Mã Số Hóa 
+    1401451, -- Dù Lượn Khuếch Đại Sắc Màu
+    1401452, -- Dù Hợp Tác Shelby
+    1401453, -- Dù Ráng Chiều Rực Cháy
+    1401454, -- Dù Attack on Titan
+    1401455, -- Dù Cơ Khí 
     1401456, -- Mountain Dew Neon Shard Parachute
-    1401457, -- DÃ¹ C8S24
-    1401458, -- DÃ¹ VÅ© Trá»¥
-    1401459, -- DÃ¹ Transformers
-    1401460, -- DÃ¹ Tháº§n Má»nh
-    1401461, -- DÃ¹ CÃºn YÃªu
+    1401457, -- Dù C8S24
+    1401458, -- Dù Vũ Trụ
+    1401459, -- Dù Transformers
+    1401460, -- Dù Thần Mệnh
+    1401461, -- Dù Cún Yêu
     1401462, -- Bbangbbang's diary Parachute
     1401463, -- Realme Parachute
-    1401464, -- DÃ¹ Infinix GT
-    1401465, -- DÃ¹ C9S25
-    1401466, -- DÃ¹ Ãc Quá»·
-    1401467, -- DÃ¹ Kaiju No. 8
-    1401468, -- DÃ¹ TEAM SONIC
-    1401469, -- DÃ¹ Há» Äiá»p Láº¥p LÃ¡nh
-    1401470, -- DÃ¹ Lotus
-    1401471, -- DÃ¹ BÃ´ng XÃ¹
-    1401472, -- DÃ¹ Gen HoÃ n Háº£o
+    1401464, -- Dù Infinix GT
+    1401465, -- Dù C9S25
+    1401466, -- Dù Ác Quỷ
+    1401467, -- Dù Kaiju No. 8
+    1401468, -- Dù TEAM SONIC
+    1401469, -- Dù Hồ Điệp Lấp Lánh
+    1401470, -- Dù Lotus
+    1401471, -- Dù Bông Xù
+    1401472, -- Dù Gen Hoàn Hảo
     1401473, -- Tokyo Revengers Parachute
     1401474, -- Sky Striker Parachute
-    1401475, -- DÃ¹ C9S26
-    1401476, -- DÃ¹ LÆ°á»£n Gáº¥u Ngá»t NgÃ o
-    1401477, -- DÃ¹ Balenciaga
-    1401478, -- DÃ¹ LÆ°á»£n Tuyáº¿t HÃ n
-    1401479, -- DÃ¹ Porsche
-    1401480, -- DÃ¹ Háº¯c Linh
-    1401481, -- DÃ¹ Chá»n Chill
+    1401475, -- Dù C9S26
+    1401476, -- Dù Lượn Gấu Ngọt Ngào
+    1401477, -- Dù Balenciaga
+    1401478, -- Dù Lượn Tuyết Hàn
+    1401479, -- Dù Porsche
+    1401480, -- Dù Hắc Linh
+    1401481, -- Dù Chồn Chill
     1401482, -- TV Anime DAN DA DAN Parachute
-    1401483, -- DÃ¹ C9S27
-    1401484, -- DÃ¹ LÆ°á»£n Shuriken
-    1401485, -- DÃ¹ BÃ³ng Ma Anh Quá»c
-    1401486, -- DÃ¹ The King of Fighters
-    1401487, -- DÃ¹ LÆ°á»£n VÅ© KhÃºc
-    1401488, -- DÃ¹ Báº£o Tháº¡ch
-    1401489, -- DÃ¹ Chuá»i MÃ¹a Giáº£i (2026H1)
-    1401490, -- DÃ¹ S28
-    1401491, -- DÃ¹ TrÃ² ChÆ¡i ChÃºa Há» LÃ©m LÄ©nh
-    1401492, -- DÃ¹ Apollo
-    1401493, -- DÃ¹ Hacker Láº¡nh LÃ¹ng
-    1401494, -- DÃ¹ Há»i Tá»¥ Äa Chiá»u
+    1401483, -- Dù C9S27
+    1401484, -- Dù Lượn Shuriken
+    1401485, -- Dù Bóng Ma Anh Quốc
+    1401486, -- Dù The King of Fighters
+    1401487, -- Dù Lượn Vũ Khúc
+    1401488, -- Dù Bảo Thạch
+    1401489, -- Dù Chuỗi Mùa Giải (2026H1)
+    1401490, -- Dù S28
+    1401491, -- Dù Trò Chơi Chúa Hề Lém Lĩnh
+    1401492, -- Dù Apollo
+    1401493, -- Dù Hacker Lạnh Lùng
+    1401494, -- Dù Hội Tụ Đa Chiều
     1401495, -- Catch! Teenieping Parachute
     1401496, -- SAKAMOTO TARO Parachute
     1401497, -- Nakiri Ayame Parachute
-    1401498, -- DÃ¹ S29
+    1401498, -- Dù S29
     1401499, -- Toxic Parachute
-    1401500, -- DÃ¹ Red (TrÃ²n)
-    1401511, -- DÃ¹ MÃ¨o Tinh Nghá»ch
-    1401513, -- DÃ¹ San Martin FC
-    1401515, -- DÃ¹ Máº¯t Quá»·
-    1401516, -- DÃ¹ SÃ³ng ÄÃªm
-    1401517, -- DÃ¹ Quáº£ QuÃ½t
-    1401519, -- DÃ¹ Gáº¥u NgÃ¡y Ngá»§
-    1401520, -- DÃ¹ Háº­u Duá» Äáº¿ VÆ°Æ¡ng
-    1401521, -- DÃ¹ MÃ¢y Cuá»n
-    1401526, -- DÃ¹ Hoa VÄn TrÃ¡ng Lá»
-    1401527, -- DÃ¹ TrÃ¡i Tim Biá»n Cáº£
-    1401528, -- DÃ¹ HÃ nh Tinh Máº¹
-    1401529, -- DÃ¹ HoÃ ng Tá»­ Ãnh Kim
-    1401530, -- DÃ¹ GiÃ¡p Gai
-    1401531, -- DÃ¹ VÃ¹ng Nguy Hiá»m
-    1401532, -- DÃ¹ á»c Biá»n
-    1401534, -- DÃ¹ Vá»t VÃ ng B.Duck
-    1401538, -- DÃ¹ Thá» Dá»u DÃ ng
-    1401540, -- DÃ¹ Yeti
-    1401541, -- DÃ¹ Pixel Sáº¯c MÃ u
-    1401542, -- DÃ¹ Má»¹ Vá»
-    1401543, -- DÃ¹ I Love Tao Kae Noi
-    1401544, -- DÃ¹ Váº¹t Baby
-    1401545, -- DÃ¹ U.F.O
-    1401546, -- DÃ¹ Baby Shark
-    1401547, -- DÃ¹ Gáº¥u Nhá»i BÃ´ng
-    1401548, -- DÃ¹ MÃ¨o NghiÃªm TÃºc
-    1401549, -- DÃ¹ Vinh Quang TrÆ°á»ng Tá»n
-    1401551, -- DÃ¹ Ná»¯ VÆ°Æ¡ng KhÃ´i GiÃ¡p
-    1401554, -- DÃ¹ Khá»§ng Long Pixel
-    1401555, -- DÃ¹ CÃ¡nh BÆ°á»m HoÃ ng Gia
-    1401556, -- DÃ¹ HÃ nh TrÃ¬nh Ngá»t NgÃ o
-    1401610, -- DÃ¹ ChÃºc Má»«ng Sinh Nháº­t
-    1401611, -- DÃ¹ SÃ¢n Kháº¥u Láº¥p LÃ¡nh
-    1401613, -- DÃ¹ Tháº©m PhÃ¡n Anubis
-    1401615, -- DÃ¹ Tháº§n Horus
-    1401616, -- DÃ¹ One Plus
-    1401617, -- DÃ¹ SÆ° Tá»­ Há»ng
-    1401618, -- DÃ¹ Facebook
-    1401619, -- DÃ¹ BÃ¹a Há» Má»nh Pharaoh
-    1401620, -- DÃ¹ Pharaoh (Xanh)
-    1401621, -- DÃ¹ Huyáº¿t Nha
-    1401622, -- DÃ¹ LINE FRIENDS
-    1401623, -- DÃ¹ PMNC 2021
-    1401624, -- DÃ¹ Poseidon
-    1401625, -- DÃ¹ CÃ´ng ChÃºa Bá» Láº¡c
-    1401628, -- DÃ¹ PhÆ°á»£ng HoÃ ng Adarna áº¢o Diá»u
-    1401629, -- DÃ¹ Thiáº¿u Ná»¯ SÃ¡ng Tháº¿
+    1401500, -- Dù Red (Tròn)
+    1401511, -- Dù Mèo Tinh Nghịch
+    1401513, -- Dù San Martin FC
+    1401515, -- Dù Mắt Quỷ
+    1401516, -- Dù Sóng Đêm
+    1401517, -- Dù Quả Quýt
+    1401519, -- Dù Gấu Ngáy Ngủ
+    1401520, -- Dù Hậu Duệ Đế Vương
+    1401521, -- Dù Mây Cuộn
+    1401526, -- Dù Hoa Văn Tráng Lệ
+    1401527, -- Dù Trái Tim Biển Cả
+    1401528, -- Dù Hành Tinh Mẹ
+    1401529, -- Dù Hoàng Tử Ánh Kim
+    1401530, -- Dù Giáp Gai
+    1401531, -- Dù Vùng Nguy Hiểm
+    1401532, -- Dù Ốc Biển
+    1401534, -- Dù Vịt Vàng B.Duck
+    1401538, -- Dù Thỏ Dịu Dàng
+    1401540, -- Dù Yeti
+    1401541, -- Dù Pixel Sắc Màu
+    1401542, -- Dù Mỹ Vị
+    1401543, -- Dù I Love Tao Kae Noi
+    1401544, -- Dù Vẹt Baby
+    1401545, -- Dù U.F.O
+    1401546, -- Dù Baby Shark
+    1401547, -- Dù Gấu Nhồi Bông
+    1401548, -- Dù Mèo Nghiêm Túc
+    1401549, -- Dù Vinh Quang Trường Tồn
+    1401551, -- Dù Nữ Vương Khôi Giáp
+    1401554, -- Dù Khủng Long Pixel
+    1401555, -- Dù Cánh Bướm Hoàng Gia
+    1401556, -- Dù Hành Trình Ngọt Ngào
+    1401610, -- Dù Chúc Mừng Sinh Nhật
+    1401611, -- Dù Sân Khấu Lấp Lánh
+    1401613, -- Dù Thẩm Phán Anubis
+    1401615, -- Dù Thần Horus
+    1401616, -- Dù One Plus
+    1401617, -- Dù Sư Tử Hống
+    1401618, -- Dù Facebook
+    1401619, -- Dù Bùa Hộ Mệnh Pharaoh
+    1401620, -- Dù Pharaoh (Xanh)
+    1401621, -- Dù Huyết Nha
+    1401622, -- Dù LINE FRIENDS
+    1401623, -- Dù PMNC 2021
+    1401624, -- Dù Poseidon
+    1401625, -- Dù Công Chúa Bộ Lạc
+    1401628, -- Dù Phượng Hoàng Adarna Ảo Diệu
+    1401629, -- Dù Thiếu Nữ Sáng Thế
     1401811, -- Giannis Parachute
-    1401813, -- DÃ¹ HÃ nh TrÃ¬nh Anh HÃ¹ng
-    1401814, -- DÃ¹ Rock 'n' Roll
-    1401815, -- DÃ¹ Chá» Huy Chiáº¿n TrÆ°á»ng
-    1401816, -- DÃ¹ BURGER KING
-    1401817, -- DÃ¹ Chiáº¿n Binh Huyáº¿t Æ¯ng
-    1401820, -- DÃ¹ CÃ¡ Chuá»n
-    1401822, -- DÃ¹ QuÃ¡i ThÃº Äáº§m Láº§y
-    1401823, -- DÃ¹ LÃ£nh ChÃºa Phong
-    1401824, -- DÃ¹ Há»p QuÃ 
-    1401826, -- DÃ¹ - Má»i TÃ¬nh Äáº§u
-    1401827, -- DÃ¹ Ná»¯ HoÃ ng CÃ  PhÃª
-    1401828, -- DÃ¹ Vá» Binh Cá» Äáº¡i
-    1401829, -- DÃ¹ CÆ¡n Giáº­n Cá»§a Tháº§n
-    1401832, -- DÃ¹ C4S10
-    1401833, -- DÃ¹ QuÃ¡i ThÃº MÃª Cung
-    1401835, -- DÃ¹ Poker Äá»i KhÃ¡ng
-    1401836, -- DÃ¹ TrÃ² ChÆ¡i ChÃº Há»
-    1401837, -- DÃ¹ Huyá»n áº¢nh
-    1401838, -- DÃ¹ BLUE LOCK
-    1401839, -- DÃ¹ Ford
-    1401840, -- DÃ¹ Harley-DavidsonÂ®
-    1401841, -- DÃ¹ Hoa Há»ng Cá»t
-    1401842, -- DÃ¹ Song Tá»­
-    1401843, -- DÃ¹ LÆ°á»£n VÃ²ng Nguyá»t Quáº¿
+    1401813, -- Dù Hành Trình Anh Hùng
+    1401814, -- Dù Rock 'n' Roll
+    1401815, -- Dù Chỉ Huy Chiến Trường
+    1401816, -- Dù BURGER KING
+    1401817, -- Dù Chiến Binh Huyết Ưng
+    1401820, -- Dù Cá Chuồn
+    1401822, -- Dù Quái Thú Đầm Lầy
+    1401823, -- Dù Lãnh Chúa Phong
+    1401824, -- Dù Hộp Quà
+    1401826, -- Dù - Mối Tình Đầu
+    1401827, -- Dù Nữ Hoàng Cà Phê
+    1401828, -- Dù Vệ Binh Cổ Đại
+    1401829, -- Dù Cơn Giận Của Thần
+    1401832, -- Dù C4S10
+    1401833, -- Dù Quái Thú Mê Cung
+    1401835, -- Dù Poker Đối Kháng
+    1401836, -- Dù Trò Chơi Chú Hề
+    1401837, -- Dù Huyễn Ảnh
+    1401838, -- Dù BLUE LOCK
+    1401839, -- Dù Ford
+    1401840, -- Dù Harley-Davidson®
+    1401841, -- Dù Hoa Hồng Cốt
+    1401842, -- Dù Song Tử
+    1401843, -- Dù Lượn Vòng Nguyệt Quế
     1401844, -- Parachute(Pubniku)
-    1401845, -- DÃ¹ S30
-    1401846, -- DÃ¹ Sá»± Kiá»n Trial of Fire
+    1401845, -- Dù S30
+    1401846, -- Dù Sự Kiện Trial of Fire
 
-    -- [ TÃU LÆ¯á»¢N / VÃN TRÆ¯á»¢T / THIáº¾T Bá» BAY (Gliders/Hoverboards) ]
-    4151001, -- DÃ¹ (Xanh)
-    4151002, -- Hiá»u á»©ng nháº£y dÃ¹ (VÃ ng)
-    4151003, -- KhÃ³i LÆ°á»£n DÃ¹ (Há»ng)
-    4151004, -- KhÃ³i lÆ°á»£n xanh
-    4151006, -- KhÃ³i lÆ°á»£n cáº§u vá»ng
-    4151010, -- Thiáº¿t bá» bay Báº±ng ChÃ­u
-    4151012, -- VÃ¡n TrÆ°á»£t Chu Ká»³
-    4151013, -- VÃ¡n TrÆ°á»£t Tuyáº¿t
-    4151014, -- VÃ¡n trÆ°á»£t CHU Ká»² 2
-    4151015, -- KhÃ³i LÆ°á»£n DÃ¹ ChÃºc Má»«ng (3 mÃ u)
-    4151017, -- VÃ¡n trÆ°á»£t TrÃ¡i Tim Rá»«ng Xanh
-    4151018, -- VÃ¡n trÆ°á»£t Sinh Nháº­t
-    4151019, -- TÃ u LÆ°á»£n Chiáº¿n Tháº§n TÃ¬nh YÃªu
-    4151020, -- VÃ¡n TrÆ°á»£t Cáº£nh Vá» C3
-    4151021, -- TÃ u LÆ°á»£n Sá»© Giáº£ Cá»§a Tháº§n
-    4151022, -- TÃ u LÆ°á»£n CÃ¡nh VÃ ng
-    4151023, -- VÃ¡n TrÆ°á»£t Há»£p TÃ¡c Messi
-    4151024, -- TÃ u LÆ°á»£n GiÃ¡o SÄ© Äá» Tháº«m
-    4151025, -- TÃ u LÆ°á»£n Diá»u Giáº¥y
-    4151026, -- VÃ¡n TrÆ°á»£t Äáº¡i SÆ° VÃµ Há»n
-    4151027, -- VÃ¡n TrÆ°á»£t Cycle 4
-    4151028, -- VÃ¡n TrÆ°á»£t Giá»t Lá» Huyáº¿t
-    4151029, -- TÃ u LÆ°á»£n Ná»¯ Äáº¿ Ãnh SÃ¡ng
-    4151030, -- TÃ u LÆ°á»£n Ma VÆ°Æ¡ng Huyáº¿t Há»n
-    4151031, -- TÃ u LÆ°á»£n Khá»§ng Long TÃºi Tiá»n
-    4151032, -- TÃ u LÆ°á»£n CÃ¡nh Rá»ng Äá» Tháº«m
-    4151034, -- CÃ¢n Äáº©u VÃ¢n
-    4151035, -- TÃ u LÆ°á»£n Giao HÆ°á»ng GiÃ³
-    4151036, -- VÃ¡n TrÆ°á»£t MÃ¡y Dáº­p SÃ³ng
-    4151037, -- VÃ¡n TrÆ°á»£t CYCLE 5
-    4151038, -- DÃ¹ LÆ°á»£n Ngá»c Trai Tuyá»t Háº£o
-    4151040, -- VÃ¡n trÆ°á»£t Thá»£ SÄn Äiá»n Quang
-    4151041, -- DÃ¹ LÆ°á»£n XÆ°Æ¡ng Xanh
-    4151042, -- TÃ u LÆ°á»£n CÃ´ng ChÃºa CÃ´ng Nghá»
-    4151043, -- TÃ u LÆ°á»£n CÃ´ng ChÃºa CÃ´ng Nghá»
-    4151044, -- VÃ¡n TrÆ°á»£t CÃ¡ Máº­p
-    4151045, -- DÃ¹ LÆ°á»£n MÃ¹a ÄÃ´ng HoÃ ng Gia
-    4151046, -- VÃ¡n TrÆ°á»£t LÆ°á»¡i Dao Trá»i Xanh
-    4151056, -- DÃ¹ LÆ°á»£n MÃ¹a ÄÃ´ng HoÃ ng Gia
-    4151057, -- VÃ¡n TrÆ°á»£t Há»a Há» Ly
-    4151058, -- DÃ¹ LÆ°á»£n LINE FRIENDS
-    4151059, -- VÃ¡n TrÆ°á»£t XuyÃªn MÃ¢y
-    4151060, -- DÃ¹ LÆ°á»£n XÃ  Kim
-    4151061, -- VÃ¡n TrÆ°á»£t CYCLE 6
-    4151062, -- KhÃ³i LÆ°á»£n DÃ¹ Zanmang Loopy
-    4151063, -- SPYÃFAMILY TÃ u LÆ°á»£n Bond
-    4151064, -- DÃ¹ LÆ°á»£n ThiÃªn Sá»©
-    4151065, -- DÃ¹ LÆ°á»£n ThiÃªn Sá»©
-    4151066, -- DÃ¹ LÆ°á»£n Äáº¿ VÆ°Æ¡ng Tháº§n Vá»±c
-    4151067, -- DÃ¹ LÆ°á»£n KÃ­nh Váº¡n Hoa
-    4151068, -- TÃ u LÆ°á»£n ChÃºa Tá» Gai Äá»c
-    4151069, -- TÃ u LÆ°á»£n Tinh VÃ¢n Sáº¥m SÃ©t
-    4151070, -- TÃ u LÆ°á»£n Ká»µ Binh Tháº§n GiÃ¡p
-    4151071, -- DÃ¹ LÆ°á»£n Vá» Tháº§n TÃ¬nh Ãi
-    4151072, -- DÃ¹ LÆ°á»£n Ngao Du VÅ© Trá»¥
-    4151073, -- DÃ¹ LÆ°á»£n Neon Huyá»n BÃ­
+    -- [ TÀU LƯỢN / VÁN TRƯỢT / THIẾT BỊ BAY (Gliders/Hoverboards) ]
+    4151001, -- Dù (Xanh)
+    4151002, -- Hiệu ứng nhảy dù (Vàng)
+    4151003, -- Khói Lượn Dù (Hồng)
+    4151004, -- Khói lượn xanh
+    4151006, -- Khói lượn cầu vồng
+    4151010, -- Thiết bị bay Bằng Chíu
+    4151012, -- Ván Trượt Chu Kỳ
+    4151013, -- Ván Trượt Tuyết
+    4151014, -- Ván trượt CHU KỲ 2
+    4151015, -- Khói Lượn Dù Chúc Mừng (3 màu)
+    4151017, -- Ván trượt Trái Tim Rừng Xanh
+    4151018, -- Ván trượt Sinh Nhật
+    4151019, -- Tàu Lượn Chiến Thần Tình Yêu
+    4151020, -- Ván Trượt Cảnh Vệ C3
+    4151021, -- Tàu Lượn Sứ Giả Của Thần
+    4151022, -- Tàu Lượn Cánh Vàng
+    4151023, -- Ván Trượt Hợp Tác Messi
+    4151024, -- Tàu Lượn Giáo Sĩ Đỏ Thẫm
+    4151025, -- Tàu Lượn Diều Giấy
+    4151026, -- Ván Trượt Đại Sư Võ Hồn
+    4151027, -- Ván Trượt Cycle 4
+    4151028, -- Ván Trượt Giọt Lệ Huyết
+    4151029, -- Tàu Lượn Nữ Đế Ánh Sáng
+    4151030, -- Tàu Lượn Ma Vương Huyết Hồn
+    4151031, -- Tàu Lượn Khủng Long Túi Tiền
+    4151032, -- Tàu Lượn Cánh Rồng Đỏ Thẫm
+    4151034, -- Cân Đẩu Vân
+    4151035, -- Tàu Lượn Giao Hưởng Gió
+    4151036, -- Ván Trượt Máy Dập Sóng
+    4151037, -- Ván Trượt CYCLE 5
+    4151038, -- Dù Lượn Ngọc Trai Tuyệt Hảo
+    4151040, -- Ván trượt Thợ Săn Điện Quang
+    4151041, -- Dù Lượn Xương Xanh
+    4151042, -- Tàu Lượn Công Chúa Công Nghệ
+    4151043, -- Tàu Lượn Công Chúa Công Nghệ
+    4151044, -- Ván Trượt Cá Mập
+    4151045, -- Dù Lượn Mùa Đông Hoàng Gia
+    4151046, -- Ván Trượt Lưỡi Dao Trời Xanh
+    4151056, -- Dù Lượn Mùa Đông Hoàng Gia
+    4151057, -- Ván Trượt Hỏa Hồ Ly
+    4151058, -- Dù Lượn LINE FRIENDS
+    4151059, -- Ván Trượt Xuyên Mây
+    4151060, -- Dù Lượn Xà Kim
+    4151061, -- Ván Trượt CYCLE 6
+    4151062, -- Khói Lượn Dù Zanmang Loopy
+    4151063, -- SPY×FAMILY Tàu Lượn Bond
+    4151064, -- Dù Lượn Thiên Sứ
+    4151065, -- Dù Lượn Thiên Sứ
+    4151066, -- Dù Lượn Đế Vương Thần Vực
+    4151067, -- Dù Lượn Kính Vạn Hoa
+    4151068, -- Tàu Lượn Chúa Tể Gai Độc
+    4151069, -- Tàu Lượn Tinh Vân Sấm Sét
+    4151070, -- Tàu Lượn Kỵ Binh Thần Giáp
+    4151071, -- Dù Lượn Vệ Thần Tình Ái
+    4151072, -- Dù Lượn Ngao Du Vũ Trụ
+    4151073, -- Dù Lượn Neon Huyền Bí
     4151074, -- PUBGM X NewJeans Glider
-    4151075, -- DÃ¹ LÆ°á»£n Vá» Tháº§n TÃ¬nh Ãi
-    4151076, -- TÃ u LÆ°á»£n Cá»­u Phong ThiÃªn TÃ´n
-    4151077, -- MÃ¡y Bay
-    4151078, -- TÃ u LÆ°á»£n Háº£i MÃ£ Sáº¯t
-    4151079, -- TÃ u LÆ°á»£n ÄÃ´i CÃ¡nh Tháº¿ Giá»i Ngáº§m
-    4151080, -- VÃ¡n TrÆ°á»£t Cycle 7
-    4151083, -- DÃ¹ LÆ°á»£n Long Cá»t
-    4151084, -- Há»ng Há»a Diá»m - Kar98 (Cáº¥p 8)
-    4151085, -- DÃ¹ LÆ°á»£n CÃ¡nh ThÃ©p XuyÃªn KhÃ´ng
+    4151075, -- Dù Lượn Vệ Thần Tình Ái
+    4151076, -- Tàu Lượn Cửu Phong Thiên Tôn
+    4151077, -- Máy Bay
+    4151078, -- Tàu Lượn Hải Mã Sắt
+    4151079, -- Tàu Lượn Đôi Cánh Thế Giới Ngầm
+    4151080, -- Ván Trượt Cycle 7
+    4151083, -- Dù Lượn Long Cốt
+    4151084, -- Hồng Hỏa Diệm - Kar98 (Cấp 8)
+    4151085, -- Dù Lượn Cánh Thép Xuyên Không
     4151086, -- DP Drift Parachute
-    4151087, -- DÃ¹ LÆ°á»£n Long Cá»t
-    4151089, -- DÃ¹ LÆ°á»£n Háº¯c Äiá»u 
-    4151090, -- DÃ¹ LÆ°á»£n Giáº¥c Má»ng Ngá»t NgÃ o
-    4151091, -- TÃ u LÆ°á»£n NhÃ  KhÃ¡m PhÃ¡ VÅ© Trá»¥
-    4151092, -- DÃ¹ LÆ°á»£n Lam SÆ° Tinh HÃ 
-    4151093, -- DÃ¹ LÆ°á»£n Ngá»c Lang ThiÃªn Giá»i
-    4151094, -- VÃ¡n TrÆ°á»£t CYCLE 8
-    4151095, -- DÃ¹ LÆ°á»£n ÄÃ´i CÃ¡nh Anukhra
-    4151096, -- DÃ¹ LÆ°á»£n ÄÃ´i CÃ¡nh Pharaoh
-    4151097, -- TÃ u LÆ°á»£n SiÃªu ThÃº Ghidorah
-    4151098, -- DÃ¹ LÆ°á»£n Thá»i Quang Kháº£ Biáº¿n
-    4151099, -- DÃ¹ LÆ°á»£n VÆ°Æ¡ng Quyá»n Háº¯c Ãm
-    4151103, -- DÃ¹ LÆ°á»£n Chiáº¿n Xa Tinh TÃº
-    4151104, -- TÃ u LÆ°á»£n Thiáº¿t Bá» ODM
-    4151105, -- DÃ¹ LÆ°á»£n Äá»nh Má»nh Huyáº¿t ChÃº
-    4151106, -- DÃ¹ LÆ°á»£n Quang áº¢o Äiá»n Tá»« 
-    4151107, -- DÃ¹ LÆ°á»£n Chiáº¿n Xa Tinh TÃº
-    4151108, -- TÃ u LÆ°á»£n Laserbreak
-    4151109, -- TÃ u LÆ°á»£n BÄng Tháº§n
-    4151110, -- TÃ u LÆ°á»£n Long ThÃ¡nh
-    4151111, -- TÃ u LÆ°á»£n Thá»£ SÄn Pháº£n Lá»±c
-    4151112, -- TÃ u LÆ°á»£n TÃ  Tháº§n Má»¹ Quang
-    4151113, -- VÃ¡n TrÆ°á»£t CYCLE 9
-    4151114, -- TÃ u LÆ°á»£n Long ThÃ¡nh
-    4151115, -- TÃ u LÆ°á»£n BÄng Tháº§n
-    4151117, -- TÃ u LÆ°á»£n Preondactyl
-    4151118, -- DÃ¹ LÆ°á»£n Há» Äiá»p Láº¥p LÃ¡nh
-    4151119, -- DÃ¹ LÆ°á»£n Chá»i PhÃ©p Thuáº­t
-    4151120, -- DÃ¹ LÆ°á»£n Long KÃ­nh
+    4151087, -- Dù Lượn Long Cốt
+    4151089, -- Dù Lượn Hắc Điểu 
+    4151090, -- Dù Lượn Giấc Mộng Ngọt Ngào
+    4151091, -- Tàu Lượn Nhà Khám Phá Vũ Trụ
+    4151092, -- Dù Lượn Lam Sư Tinh Hà
+    4151093, -- Dù Lượn Ngọc Lang Thiên Giới
+    4151094, -- Ván Trượt CYCLE 8
+    4151095, -- Dù Lượn Đôi Cánh Anukhra
+    4151096, -- Dù Lượn Đôi Cánh Pharaoh
+    4151097, -- Tàu Lượn Siêu Thú Ghidorah
+    4151098, -- Dù Lượn Thời Quang Khả Biến
+    4151099, -- Dù Lượn Vương Quyền Hắc Ám
+    4151103, -- Dù Lượn Chiến Xa Tinh Tú
+    4151104, -- Tàu Lượn Thiết Bị ODM
+    4151105, -- Dù Lượn Định Mệnh Huyết Chú
+    4151106, -- Dù Lượn Quang Ảo Điện Từ 
+    4151107, -- Dù Lượn Chiến Xa Tinh Tú
+    4151108, -- Tàu Lượn Laserbreak
+    4151109, -- Tàu Lượn Băng Thần
+    4151110, -- Tàu Lượn Long Thánh
+    4151111, -- Tàu Lượn Thợ Săn Phản Lực
+    4151112, -- Tàu Lượn Tà Thần Mỹ Quang
+    4151113, -- Ván Trượt CYCLE 9
+    4151114, -- Tàu Lượn Long Thánh
+    4151115, -- Tàu Lượn Băng Thần
+    4151117, -- Tàu Lượn Preondactyl
+    4151118, -- Dù Lượn Hồ Điệp Lấp Lánh
+    4151119, -- Dù Lượn Chổi Phép Thuật
+    4151120, -- Dù Lượn Long Kính
     4151121, -- Mikey Glider
-    4151122, -- DÃ¹ LÆ°á»£n Há» Äiá»p Láº¥p LÃ¡nh
-    4151123, -- TÃ u LÆ°á»£n BÄng Linh LÆ°u Ly
-    4151124, -- TÃ u LÆ°á»£n Huyáº¿t Dá»±c Tá»­ Tháº§n
-    4151125, -- TÃ u LÆ°á»£n Vá» Binh NgÃ¢n HÃ 
-    4151126, -- TÃ u LÆ°á»£n Giáº£i TrÃ­
-    4151127, -- TÃ u LÆ°á»£n Linh Má»c VÄ©nh Cá»­u
-    4151128, -- TÃ u LÆ°á»£n Tháº§n Quang
-    4151129, -- VÃ¡n TrÆ°á»£t Chuá»i MÃ¹a Giáº£i (2026H1)
-    4151130, -- TÃ u LÆ°á»£n Nue
-    4151131, -- TÃ u LÆ°á»£n PhÆ°á»£ng HoÃ ng Äáº¿ VÆ°Æ¡ng
-    4151132, -- TÃ u LÆ°á»£n Huyáº¿t Dá»±c Háº¯c Äiá»u
-    4151133, -- TÃ u LÆ°á»£n Dá»ch Chuyá»n KhÃ´ng Gian
-    4151134, -- DÃ¹ LÆ°á»£n Äa VÅ© Trá»¥
+    4151122, -- Dù Lượn Hồ Điệp Lấp Lánh
+    4151123, -- Tàu Lượn Băng Linh Lưu Ly
+    4151124, -- Tàu Lượn Huyết Dực Tử Thần
+    4151125, -- Tàu Lượn Vệ Binh Ngân Hà
+    4151126, -- Tàu Lượn Giải Trí
+    4151127, -- Tàu Lượn Linh Mộc Vĩnh Cửu
+    4151128, -- Tàu Lượn Thần Quang
+    4151129, -- Ván Trượt Chuỗi Mùa Giải (2026H1)
+    4151130, -- Tàu Lượn Nue
+    4151131, -- Tàu Lượn Phượng Hoàng Đế Vương
+    4151132, -- Tàu Lượn Huyết Dực Hắc Điểu
+    4151133, -- Tàu Lượn Dịch Chuyển Không Gian
+    4151134, -- Dù Lượn Đa Vũ Trụ
     4151135, -- SAKAMOTO TARO Glider
-    4151138, -- TÃ u LÆ°á»£n Sáº¥m SÃ©t Äá»
-    4151139, -- TÃ u LÆ°á»£n HÆ° KhÃ´ng
-    4151140, -- TÃ u LÆ°á»£n Song Tá»­
-    4151141, -- TÃ u LÆ°á»£n Cerberus
-    4151142, -- TÃ u LÆ°á»£n Ngá»c Trai
-    4151143, -- TÃ u LÆ°á»£n Song Tá»­
+    4151138, -- Tàu Lượn Sấm Sét Đỏ
+    4151139, -- Tàu Lượn Hư Không
+    4151140, -- Tàu Lượn Song Tử
+    4151141, -- Tàu Lượn Cerberus
+    4151142, -- Tàu Lượn Ngọc Trai
+    4151143, -- Tàu Lượn Song Tử
     202408087,
     202408061,
     1102001001,
-    4152031, -- TÃ u LÆ°á»£n Ma VÆ°Æ¡ng Huyáº¿t Há»n
-    4152035, -- CÃ¢n Äáº©u VÃ¢n
+    4152031, -- Tàu Lượn Ma Vương Huyết Hồn
+    4152035, -- Cân Đẩu Vân
     4152036, -- Windborne Euphony Glider
-    4152037, -- VÃ¡n TrÆ°á»£t MÃ¡y Dáº­p SÃ³ng
-    4152038, -- VÃ¡n TrÆ°á»£t CYCLE 5
-    4152039, -- TÃ u LÆ°á»£n Ngá»c Trai Tuyá»t Háº£o
+    4152037, -- Ván Trượt Máy Dập Sóng
+    4152038, -- Ván Trượt CYCLE 5
+    4152039, -- Tàu Lượn Ngọc Trai Tuyệt Hảo
     4152041, -- Boxerbolt Hoverboard (Shop)
     4152042, -- Blueyonder Glider
     4152043, -- Agile Charmer Glider
@@ -9717,116 +9716,116 @@ local ITEMS = {
     4152059, -- Cloud Piercer Hoverboard (Shop)
     4152060, -- Golden Wings Glider (Shop)
     4152061, -- CYCLE 6 Skateboard (Shop)
-    4152063, -- TÃ u LÆ°á»£n Bond SPYÃFAMILY (Cá»­a HÃ ng)
-    4152066, -- DÃ¹ LÆ°á»£n Äáº¿ VÆ°Æ¡ng Tháº§n Vá»±c (Cá»­a HÃ ng)
-    4152067, -- TÃ u LÆ°á»£n KÃ­nh Váº¡n Hoa (Cá»­a HÃ ng)
-    4152068, -- TÃ u LÆ°á»£n ChÃºa Tá» Gai Äá»c (Cá»­a HÃ ng)
-    4152069, -- TÃ u LÆ°á»£n Tinh VÃ¢n Sáº¥m SÃ©t (Cá»­a HÃ ng)
-    4152070, -- TÃ u LÆ°á»£n Ká»µ Binh Tháº§n GiÃ¡p (Cá»­a HÃ ng)
-    4152076, -- TÃ u LÆ°á»£n Cá»­u Phong ThiÃªn TÃ´n (Cá»­a HÃ ng)
-    4152077, -- TÃ u LÆ°á»£n (Cá»­a HÃ ng)
-    4152078, -- TÃ u LÆ°á»£n Háº£i MÃ£ Sáº¯t (Cá»­a HÃ ng)
-    4152079, -- TÃ u LÆ°á»£n ÄÃ´i CÃ¡nh Tháº¿ Giá»i Ngáº§m (Cá»­a HÃ ng)
-    4152080, -- VÃ¡n TrÆ°á»£t CYCLE 7 (Cá»­a HÃ ng)
-    4152092, -- TÃ u LÆ°á»£n Lam SÆ° Tinh HÃ  (Cá»­a HÃ ng)
-    4152093, -- TÃ u LÆ°á»£n Ngá»c Lang ThiÃªn Giá»i (Cá»­a HÃ ng)
-    4152094, -- VÃ¡n TrÆ°á»£t CYCLE 8 (Cá»­a HÃ ng)
-    4152095, -- DÃ¹ LÆ°á»£n ÄÃ´i CÃ¡nh Anukhra
-    4152096, -- DÃ¹ LÆ°á»£n ÄÃ´i CÃ¡nh Pharaoh
-    4152097, -- TÃ u LÆ°á»£n SiÃªu ThÃº Ghidorah
-    4152098, -- DÃ¹ LÆ°á»£n Thá»i Quang Kháº£ Biáº¿n
-    4152099, -- DÃ¹ LÆ°á»£n VÆ°Æ¡ng Quyá»n Háº¯c Ãm
-    4152116, -- TÃ u LÆ°á»£n Long ThÃ¡nh (Sáº£nh Má»t NgÆ°á»i)
+    4152063, -- Tàu Lượn Bond SPY×FAMILY (Cửa Hàng)
+    4152066, -- Dù Lượn Đế Vương Thần Vực (Cửa Hàng)
+    4152067, -- Tàu Lượn Kính Vạn Hoa (Cửa Hàng)
+    4152068, -- Tàu Lượn Chúa Tể Gai Độc (Cửa Hàng)
+    4152069, -- Tàu Lượn Tinh Vân Sấm Sét (Cửa Hàng)
+    4152070, -- Tàu Lượn Kỵ Binh Thần Giáp (Cửa Hàng)
+    4152076, -- Tàu Lượn Cửu Phong Thiên Tôn (Cửa Hàng)
+    4152077, -- Tàu Lượn (Cửa Hàng)
+    4152078, -- Tàu Lượn Hải Mã Sắt (Cửa Hàng)
+    4152079, -- Tàu Lượn Đôi Cánh Thế Giới Ngầm (Cửa Hàng)
+    4152080, -- Ván Trượt CYCLE 7 (Cửa Hàng)
+    4152092, -- Tàu Lượn Lam Sư Tinh Hà (Cửa Hàng)
+    4152093, -- Tàu Lượn Ngọc Lang Thiên Giới (Cửa Hàng)
+    4152094, -- Ván Trượt CYCLE 8 (Cửa Hàng)
+    4152095, -- Dù Lượn Đôi Cánh Anukhra
+    4152096, -- Dù Lượn Đôi Cánh Pharaoh
+    4152097, -- Tàu Lượn Siêu Thú Ghidorah
+    4152098, -- Dù Lượn Thời Quang Khả Biến
+    4152099, -- Dù Lượn Vương Quyền Hắc Ám
+    4152116, -- Tàu Lượn Long Thánh (Sảnh Một Người)
 
     -- ==============================================================================
-    -- 3. TRANG PHá»¤C (OUTFITS), X-SUIT & PHá»¤ KIá»N
+    -- 3. TRANG PHỤC (OUTFITS), X-SUIT & PHỤ KIỆN
     -- ==============================================================================
     -- [ X-SUIT ]
-    1407895, -- X-Suit Quáº¡ Huyáº¿t (7 Sao)
-    1407856, -- X-Suit PhÆ°á»£ng HoÃ ng (7 Sao)
-    1405628, -- X-Suit Pharaoh VÃ ng (6 Sao)
-    1406469, -- X-Suit Pharaoh VÃ ng (7 Sao)
-    1405870, -- X-Suit Quáº¡ Huyáº¿t (6 Sao)
+    1407895, -- X-Suit Quạ Huyết (7 Sao)
+    1407856, -- X-Suit Phượng Hoàng (7 Sao)
+    1405628, -- X-Suit Pharaoh Vàng (6 Sao)
+    1406469, -- X-Suit Pharaoh Vàng (7 Sao)
+    1405870, -- X-Suit Quạ Huyết (6 Sao)
     1407140, -- X-Suit Poseidon (7 Sao)
     1407142, -- X-Suit Silvanus (7 Sao)
-    1407141, -- X-Suit BÃ£o Tuyáº¿t (7 Sao)
-    1407550, -- X-Suit Ãnh SÃ¡ng Cáº§u Vá»ng (7 Sao)
-    1406638, -- X-Suit Há» BÃ­ áº¨n (6 Sao) [Äen]
-    1406641, -- X-Suit Há» BÃ­ áº¨n (6 Sao) [Tráº¯ng]
-    1406872, -- X-Suit ChÃºa Tá» Ãm Ty (7 Sao)
+    1407141, -- X-Suit Bão Tuyết (7 Sao)
+    1407550, -- X-Suit Ánh Sáng Cầu Vồng (7 Sao)
+    1406638, -- X-Suit Hề Bí Ẩn (6 Sao) [Đen]
+    1406641, -- X-Suit Hề Bí Ẩn (6 Sao) [Trắng]
+    1406872, -- X-Suit Chúa Tể Âm Ty (7 Sao)
     1406971, -- X-Suit Marmoris (7 Sao)
     1407103, -- X-Suit Fiore (7 Sao)
     1407219, -- X-Suit Ignis (7 Sao)
     1407366, -- X-Suit Galadria (7 Sao)
     1407512, -- X-Suit Anukhra (7 Sao)
     1407625, -- X-Suit Dravion (7 Sao) [Nam]
-    1407667, -- X-Suit Dravion (7 Sao) [Ná»¯]
+    1407667, -- X-Suit Dravion (7 Sao) [Nữ]
 
     -- [ OUTFITS ]
-    1407870, -- Bá» Ná»¯ Tháº§n KhÃ´ng Gian
-    1407871, -- Bá» ThÃ¡m Tá»­ Äa VÅ© Trá»¥
-    1407812, -- Bá» Vá» Binh Hoang DÃ£
-    1407758, -- Bá» TiÃªn Ná»¯ MÃ¹a ÄÃ´ng
-    1407286, -- Bá» MÃ¨o Cyber Tinh Nghá»ch
-    1407329, -- Bá» Ãnh SÃ¡ng TÄ©nh Láº·ng
-    1407391, -- Bá» Ná»¯ BÃ¡ TÆ°á»c Ma CÃ  Rá»ng
-    1407392, -- Bá» Káº» PhÃ¡ Hoáº¡i Man Rá»£
-    1407387, -- Bá» Tá»­ Tháº§n Táº­n Tháº¿
-    1407440, -- Bá» Káº» Chinh Phá»¥c Báº¯c Cá»±c
-    1406985, -- Bá» NgÆ°á»i TÃ¬nh BÃ£i Biá»n
-    1407470, -- Bá» ThiÃªn Tháº§n Ná»i Loáº¡n
-    1407471, -- Bá» Cá»±c Quang Nanh Ngá»c
-    1407522, -- Bá» Háº­u Duá» TiÃªn CÃ¡t
-    1407330, -- Bá» ÄÃ´ Äá»c BÃ³ng Ma
-    1407523, -- Bá» Uy Quyá»n TÃ  Ãc
-    1407558, -- Bá» ThÃ¡i DÆ°Æ¡ng ThÄng Hoa
-    1407559, -- Bá» Ãnh SÃ¡ng Nguyá»t Cung
-    1407572, -- Bá» Huyáº¿t Dáº¡ HoÃ ng HÃ´n
-    1407682, -- Bá» KÃ©n áº¨n SÄ©
-    1407695, -- Bá» Lá» TÃ¬nh NhÃ¢n RÃ¹ng Rá»£n
-    1407696, -- Bá» LÄng KÃ­nh ThÄng Hoa
-    1407632, -- Bá» Háº¯c Dáº¡ TÃ  Ãc
-    1407573, -- Bá» BÃ³ng Ma Äiá»n Tá»­
-    1406398, -- Bá» BÃ³ng Ma Rá»±c Lá»­a
-    1406399, -- Bá» Ká»µ Binh Oai Vá»
-    1406482, -- Bá» ChÃºa Tá» Gai GÃ³c
-    1406483, -- Bá» Tinh VÃ¢n Sáº¥m SÃ©t
-    1406555, -- Bá» KhuÃ´n Máº·t Äá»a Ngá»¥c
-    1406573, -- Bá» ThiÃªn Nga BÃ³ng Ma
-    1406574, -- Bá» Quan TÃ²a VÅ© Trá»¥
-    1406656, -- Bá» TrÆ°a Äáº«m MÃ¡u
-    1406657, -- Bá» ÄÃ´ Äá»c Biá»n Sao
-    1406742, -- Bá» Äáº¡o SÆ° Báº¡c
-    1406744, -- Bá» Hiá»p SÄ© ThÃ¡i DÆ°Æ¡ng
-    1406789, -- Bá» BÃ³ng Ma Äá»a Ngá»¥c
-    1406823, -- Bá» Giá»t Nguyá»t Báº¥t Diá»t
-    1406824, -- Bá» Káº» ThÃ¹ Nhuá»m MÃ¡u
-    1406897, -- Bá» Ãc Má»ng Äá» Tháº«m
-    1407277, -- Trang Phá»¥c Há»a Tháº§n Cá» Ngá»¯
-    1406891, -- Trang Phá»¥c Linh Há»n XÃ¡c Æ¯á»p
-    1405623, -- Bá» XÃ¡c Æ¯á»p VÃ ng
-    1400687, -- Bá» XÃ¡c Æ¯á»p Tráº¯ng
-    1407618, -- Bá» Thá»±c Há»n Báº¯c Cá»±c (Polar Spectrophage)
+    1407870, -- Bộ Nữ Thần Không Gian
+    1407871, -- Bộ Thám Tử Đa Vũ Trụ
+    1407812, -- Bộ Vệ Binh Hoang Dã
+    1407758, -- Bộ Tiên Nữ Mùa Đông
+    1407286, -- Bộ Mèo Cyber Tinh Nghịch
+    1407329, -- Bộ Ánh Sáng Tĩnh Lặng
+    1407391, -- Bộ Nữ Bá Tước Ma Cà Rồng
+    1407392, -- Bộ Kẻ Phá Hoại Man Rợ
+    1407387, -- Bộ Tử Thần Tận Thế
+    1407440, -- Bộ Kẻ Chinh Phục Bắc Cực
+    1406985, -- Bộ Người Tình Bãi Biển
+    1407470, -- Bộ Thiên Thần Nổi Loạn
+    1407471, -- Bộ Cực Quang Nanh Ngọc
+    1407522, -- Bộ Hậu Duệ Tiên Cát
+    1407330, -- Bộ Đô Đốc Bóng Ma
+    1407523, -- Bộ Uy Quyền Tà Ác
+    1407558, -- Bộ Thái Dương Thăng Hoa
+    1407559, -- Bộ Ánh Sáng Nguyệt Cung
+    1407572, -- Bộ Huyết Dạ Hoàng Hôn
+    1407682, -- Bộ Kén Ẩn Sĩ
+    1407695, -- Bộ Lễ Tình Nhân Rùng Rợn
+    1407696, -- Bộ Lăng Kính Thăng Hoa
+    1407632, -- Bộ Hắc Dạ Tà Ác
+    1407573, -- Bộ Bóng Ma Điện Tử
+    1406398, -- Bộ Bóng Ma Rực Lửa
+    1406399, -- Bộ Kỵ Binh Oai Vệ
+    1406482, -- Bộ Chúa Tể Gai Góc
+    1406483, -- Bộ Tinh Vân Sấm Sét
+    1406555, -- Bộ Khuôn Mặt Địa Ngục
+    1406573, -- Bộ Thiên Nga Bóng Ma
+    1406574, -- Bộ Quan Tòa Vũ Trụ
+    1406656, -- Bộ Trưa Đẫm Máu
+    1406657, -- Bộ Đô Đốc Biển Sao
+    1406742, -- Bộ Đạo Sư Bạc
+    1406744, -- Bộ Hiệp Sĩ Thái Dương
+    1406789, -- Bộ Bóng Ma Địa Ngục
+    1406823, -- Bộ Giọt Nguyệt Bất Diệt
+    1406824, -- Bộ Kẻ Thù Nhuốm Máu
+    1406897, -- Bộ Ác Mộng Đỏ Thẫm
+    1407277, -- Trang Phục Hỏa Thần Cổ Ngữ
+    1406891, -- Trang Phục Linh Hồn Xác Ướp
+    1405623, -- Bộ Xác Ướp Vàng
+    1400687, -- Bộ Xác Ướp Trắng
+    1407618, -- Bộ Thực Hồn Bắc Cực (Polar Spectrophage)
 
     -- [ Dragon Ball Super Collab ]
-    1406937, -- Trang Phá»¥c NhÃ¢n Váº­t Super Saiyan Son Goku
-    1406938, -- Trang Phá»¥c NhÃ¢n Váº­t Frieza
-    1406939, -- Trang Phá»¥c NhÃ¢n Váº­t Son Goku
-    1406947, -- Trang Phá»¥c NhÃ¢n Váº­t Vegeta
-    1406948, -- Trang Phá»¥c NhÃ¢n Váº­t Super Saiyan Vegeta
-    1406950, -- Trang Phá»¥c Beerus
-    1406951, -- Trang Phá»¥c Ma BÆ°
-    1406952, -- Trang Phá»¥c Quy LÃ£o Kame
-    1406953, -- Trang Phá»¥c NhÃ¢n Váº­t Gohan SiÃªu Cáº¥p
-    1406954, -- Trang Phá»¥c NhÃ¢n Váº­t Piccolo
-    1407264, -- Trang Phá»¥c NhÃ¢n Váº­t Vegito
-    1407265, -- Trang Phá»¥c NhÃ¢n Váº­t Vegito SiÃªu Saiyan
-    1407266, -- Trang Phá»¥c NhÃ¢n Váº­t Vegito SiÃªu Saiyan Xanh
-    1407267, -- Trang Phá»¥c NhÃ¢n Váº­t Son Goku SiÃªu Saiyan Xanh
-    1407268, -- Trang Phá»¥c NhÃ¢n Váº­t Son Goku SiÃªu Saiyan Xanh (Bá» ThÆ°Æ¡ng)
-    1407269, -- Trang Phá»¥c NhÃ¢n Váº­t Vegeta Super Saiyan Xanh
-    1407270, -- Trang Phá»¥c NhÃ¢n Váº­t Vegeta SiÃªu Saiyan Xanh (Bá» ThÆ°Æ¡ng)
-    1407271, -- Trang Phá»¥c NhÃ¢n Váº­t Bulma
+    1406937, -- Trang Phục Nhân Vật Super Saiyan Son Goku
+    1406938, -- Trang Phục Nhân Vật Frieza
+    1406939, -- Trang Phục Nhân Vật Son Goku
+    1406947, -- Trang Phục Nhân Vật Vegeta
+    1406948, -- Trang Phục Nhân Vật Super Saiyan Vegeta
+    1406950, -- Trang Phục Beerus
+    1406951, -- Trang Phục Ma Bư
+    1406952, -- Trang Phục Quy Lão Kame
+    1406953, -- Trang Phục Nhân Vật Gohan Siêu Cấp
+    1406954, -- Trang Phục Nhân Vật Piccolo
+    1407264, -- Trang Phục Nhân Vật Vegito
+    1407265, -- Trang Phục Nhân Vật Vegito Siêu Saiyan
+    1407266, -- Trang Phục Nhân Vật Vegito Siêu Saiyan Xanh
+    1407267, -- Trang Phục Nhân Vật Son Goku Siêu Saiyan Xanh
+    1407268, -- Trang Phục Nhân Vật Son Goku Siêu Saiyan Xanh (Bị Thương)
+    1407269, -- Trang Phục Nhân Vật Vegeta Super Saiyan Xanh
+    1407270, -- Trang Phục Nhân Vật Vegeta Siêu Saiyan Xanh (Bị Thương)
+    1407271, -- Trang Phục Nhân Vật Bulma
 
     -- [ Evangelion Collab ]
     1406385, -- Plugsuit Evangelion Shinji
@@ -9836,63 +9835,63 @@ local ITEMS = {
     1406389, -- Plugsuit Evangelion Kaworu
 
     -- [ Attack on Titan Collab ]
-    1407563, -- Trang Phá»¥c NhÃ¢n Váº­t Eren Jaeger
-    1407565, -- Trang Phá»¥c NhÃ¢n Váº­t Mikasa Ackermann
-    1407566, -- Trang Phá»¥c NhÃ¢n Váº­t Armin Arlelt
-    1407567, -- Trang Phá»¥c Titan Khá»ng Lá» (Armin)
-    1407568, -- Trang Phá»¥c NhÃ¢n Váº­t Levi
-    1407569, -- Trang Phá»¥c Titan Bá»c ThÃ©p
+    1407563, -- Trang Phục Nhân Vật Eren Jaeger
+    1407565, -- Trang Phục Nhân Vật Mikasa Ackermann
+    1407566, -- Trang Phục Nhân Vật Armin Arlelt
+    1407567, -- Trang Phục Titan Khổng Lồ (Armin)
+    1407568, -- Trang Phục Nhân Vật Levi
+    1407569, -- Trang Phục Titan Bọc Thép
 
     -- [ Kaiju No. 8 Collab ]
-    1407672, -- Trang Phá»¥c NhÃ¢n Váº­t Kafka Hibino
-    1407673, -- Trang Phá»¥c Kaiju No. 8
-    1407674, -- Trang Phá»¥c NhÃ¢n Váº­t Kikoru Shinomiya
-    1407675, -- Trang Phá»¥c Kaiju No. 9
-    1407676, -- Trang Phá»¥c Kaiju No. 10
-    1407677, -- Trang Phá»¥c NhÃ¢n Váº­t Mina Ashiro
-    1407678, -- Trang Phá»¥c NhÃ¢n Váº­t Reno Ichikawa
-    1407679, -- Trang Phá»¥c NhÃ¢n Váº­t Soshiro Hoshina
+    1407672, -- Trang Phục Nhân Vật Kafka Hibino
+    1407673, -- Trang Phục Kaiju No. 8
+    1407674, -- Trang Phục Nhân Vật Kikoru Shinomiya
+    1407675, -- Trang Phục Kaiju No. 9
+    1407676, -- Trang Phục Kaiju No. 10
+    1407677, -- Trang Phục Nhân Vật Mina Ashiro
+    1407678, -- Trang Phục Nhân Vật Reno Ichikawa
+    1407679, -- Trang Phục Nhân Vật Soshiro Hoshina
 
     -- [ BlackPink & Kpop Collabs ]
-    1406132, -- Trang phá»¥c DDU-DU DDU-DU ROSÃ
-    1406133, -- Trang phá»¥c DDU-DU DDU-DU JENNIE
-    1406134, -- Trang phá»¥c DDU-DU DDU-DU JISOO
-    1406135, -- Trang phá»¥c DDU-DU DDU-DU LISA
-    1406161, -- Trang phá»¥c How You Like That ROSÃ
-    1406162, -- Trang phá»¥c How You Like That JENNIE
-    1406163, -- Trang phá»¥c How You Like That JISOO 
-    1406164, -- Trang phá»¥c How You Like That LISA
-    1406178, -- Trang phá»¥c Lovesick Girls ROSÃ
-    1406179, -- Trang phá»¥c Lovesick Girls JENNIE
-    1406180, -- Trang phá»¥c Lovesick Girls JISOO
-    1406181, -- Trang phá»¥c Lovesick Girls LISA
+    1406132, -- Trang phục DDU-DU DDU-DU ROSÉ
+    1406133, -- Trang phục DDU-DU DDU-DU JENNIE
+    1406134, -- Trang phục DDU-DU DDU-DU JISOO
+    1406135, -- Trang phục DDU-DU DDU-DU LISA
+    1406161, -- Trang phục How You Like That ROSÉ
+    1406162, -- Trang phục How You Like That JENNIE
+    1406163, -- Trang phục How You Like That JISOO 
+    1406164, -- Trang phục How You Like That LISA
+    1406178, -- Trang phục Lovesick Girls ROSÉ
+    1406179, -- Trang phục Lovesick Girls JENNIE
+    1406180, -- Trang phục Lovesick Girls JISOO
+    1406181, -- Trang phục Lovesick Girls LISA
     1407346, -- PUBGM X NewJeans MINJI Set
     1407347, -- PUBGM X NewJeans HANNI Set
     1407348, -- PUBGM X NewJeans HAERIN Set
     1407349, -- PUBGM X NewJeans DANIELLE Set
     1407350, -- PUBGM X NewJeans HYEIN Set
-    1407745, -- Trang Phá»¥c RAMI (Babymonster)
-    1407746, -- Trang Phá»¥c ASA (Babymonster)
-    1407747, -- Trang Phá»¥c AHYEON (Babymonster)
-    1407748, -- Trang Phá»¥c RORA (Babymonster)
-    1407749, -- Trang Phá»¥c CHIQUITA (Babymonster)
-    1407750, -- Trang Phá»¥c PHARITA (Babymonster)
-    1407751, -- Trang Phá»¥c RUKA (Babymonster)
-    1407826, -- Trang Phá»¥c PUBG MOBILE Ã aespa KARINA
-    1407827, -- Trang Phá»¥c PUBG MOBILE Ã aespa GISELLE
-    1407828, -- Trang Phá»¥c PUBG MOBILE Ã aespa WINTER
-    1407829, -- Trang Phá»¥c PUBG MOBILE Ã aespa NINGNING
-    1407687, -- Trang Phá»¥c G-DRAGON PEACEMINUSONE
-    1407688, -- Trang Phá»¥c SÃ¢n Kháº¥u cá»§a G-DRAGON
+    1407745, -- Trang Phục RAMI (Babymonster)
+    1407746, -- Trang Phục ASA (Babymonster)
+    1407747, -- Trang Phục AHYEON (Babymonster)
+    1407748, -- Trang Phục RORA (Babymonster)
+    1407749, -- Trang Phục CHIQUITA (Babymonster)
+    1407750, -- Trang Phục PHARITA (Babymonster)
+    1407751, -- Trang Phục RUKA (Babymonster)
+    1407826, -- Trang Phục PUBG MOBILE × aespa KARINA
+    1407827, -- Trang Phục PUBG MOBILE × aespa GISELLE
+    1407828, -- Trang Phục PUBG MOBILE × aespa WINTER
+    1407829, -- Trang Phục PUBG MOBILE × aespa NINGNING
+    1407687, -- Trang Phục G-DRAGON PEACEMINUSONE
+    1407688, -- Trang Phục Sân Khấu của G-DRAGON
 
-    -- [ CÃC COLLAB Ná»I Báº¬T KHÃC (Messi, LÃ½ Tiá»u Long, SPYxFAMILY...) ]
-    1406648, -- Trang Phá»¥c Biá»u TÆ°á»£ng BÃ³ng ÄÃ¡ Messi
-    1406649, -- Trang Phá»¥c Huyá»n Thoáº¡i SiÃªu Sao Messi
-    1406728, -- Trang Phá»¥c Kung Fu LÃ½ Tiá»u Long
-    1406729, -- Trang Phá»¥c ChuyÃªn Gia Cáº­n Chiáº¿n LÃ½ Tiá»u Long
-    1406730, -- Trang Phá»¥c Rá»ng Gáº§m LÃ½ Tiá»u Long
-    1406731, -- Trang Phá»¥c VÃµ SÄ© LÃ½ Tiá»u Long
-    1407206, -- SPYÃFAMILY Trang Phá»¥c HoÃ ng HÃ´n
+    -- [ CÁC COLLAB NỔI BẬT KHÁC (Messi, Lý Tiểu Long, SPYxFAMILY...) ]
+    1406648, -- Trang Phục Biểu Tượng Bóng Đá Messi
+    1406649, -- Trang Phục Huyền Thoại Siêu Sao Messi
+    1406728, -- Trang Phục Kung Fu Lý Tiểu Long
+    1406729, -- Trang Phục Chuyên Gia Cận Chiến Lý Tiểu Long
+    1406730, -- Trang Phục Rồng Gầm Lý Tiểu Long
+    1406731, -- Trang Phục Võ Sĩ Lý Tiểu Long
+    1407206, -- SPY×FAMILY Trang Phục Hoàng Hôn
     1407401, -- C.C. Set
     1407402, -- Kallen Kozuki Set
     1407404, -- Suzaku Kururugi Set
@@ -9903,35 +9902,35 @@ local ITEMS = {
     1407771, -- Momo Set
     1407772, -- Jiji(transformed) Set
     1407773, -- Aira Set
-    1407794, -- Trang Phá»¥c NhÃ¢n Váº­t John Shelby
-    1407795, -- Trang Phá»¥c NhÃ¢n Váº­t Arthur Shelby
-    1407796, -- Trang phá»¥c Thomas Shelby
-    1407798, -- Trang Phá»¥c NhÃ¢n Váº­t Iori Yagami
-    1407800, -- Trang Phá»¥c NhÃ¢n Váº­t Mai Shiranui
-    1407801, -- Trang Phá»¥c NhÃ¢n Váº­t Nakoruru
-    1407846, -- Trang Phá»¥c NhÃ¢n Váº­t Kimono Ryomen Sukuna
-    1407848, -- Trang Phá»¥c NhÃ¢n Váº­t Suguru Geto
-    1407901, -- Trang Phá»¥c NhÃ¢n Váº­t Isagi Yoichi
-    1407902, -- Trang Phá»¥c NhÃ¢n Váº­t Bachira Meguru
+    1407794, -- Trang Phục Nhân Vật John Shelby
+    1407795, -- Trang Phục Nhân Vật Arthur Shelby
+    1407796, -- Trang phục Thomas Shelby
+    1407798, -- Trang Phục Nhân Vật Iori Yagami
+    1407800, -- Trang Phục Nhân Vật Mai Shiranui
+    1407801, -- Trang Phục Nhân Vật Nakoruru
+    1407846, -- Trang Phục Nhân Vật Kimono Ryomen Sukuna
+    1407848, -- Trang Phục Nhân Vật Suguru Geto
+    1407901, -- Trang Phục Nhân Vật Isagi Yoichi
+    1407902, -- Trang Phục Nhân Vật Bachira Meguru
 
-    -- [ Set Äá» Äá» Tá»± NhiÃªn & SiÃªu VIP cá»§a Game ]
-    1405160, -- Huyá»n Thoáº¡i Godzilla
-    1405161, -- SiÃªu ThÃº Ghidorah
-    1405186, -- Bá» Äá» Godzilla
-    1405662, -- Trang phá»¥c GiÃ¡p Samurai
-    1405663, -- Trang phá»¥c SÃ¡t Thá»§ BÃ³ng ÄÃªm
-    1406020, -- Trang phá»¥c QuÃ¡i ThÃº
-    1406398, -- Trang phá»¥c Há»a Diá»m Ma GiÃ¡p
-    1406399, -- Trang phá»¥c Ká»µ Binh Tháº§n GiÃ¡p
-    1406456, -- Trang Phá»¥c Anh HÃ¹ng Truyá»n Thuyáº¿t
-    1406568, -- Trang Phá»¥c Ná»¯ HoÃ ng BÃ³ng ÄÃªm
-    1406569, -- Trang Phá»¥c Minh VÆ°Æ¡ng HÃ nh Quyáº¿t
-    1406732, -- Trang Phá»¥c Ná»¯ Äáº¿ HoÃ ng Kim
-    1406733, -- Trang Phá»¥c HoÃ ng Äáº¿ HoÃ ng Kim
-    1406764, -- Trang Phá»¥c Thiáº¿u Ná»¯ Äá» Rá»±c
+    -- [ Set Đồ Đỏ Tự Nhiên & Siêu VIP của Game ]
+    1405160, -- Huyền Thoại Godzilla
+    1405161, -- Siêu Thú Ghidorah
+    1405186, -- Bộ Đồ Godzilla
+    1405662, -- Trang phục Giáp Samurai
+    1405663, -- Trang phục Sát Thủ Bóng Đêm
+    1406020, -- Trang phục Quái Thú
+    1406398, -- Trang phục Hỏa Diệm Ma Giáp
+    1406399, -- Trang phục Kỵ Binh Thần Giáp
+    1406456, -- Trang Phục Anh Hùng Truyền Thuyết
+    1406568, -- Trang Phục Nữ Hoàng Bóng Đêm
+    1406569, -- Trang Phục Minh Vương Hành Quyết
+    1406732, -- Trang Phục Nữ Đế Hoàng Kim
+    1406733, -- Trang Phục Hoàng Đế Hoàng Kim
+    1406764, -- Trang Phục Thiếu Nữ Đỏ Rực
 
     -- ==============================================================================
-    -- 4. ÃO, QUáº¦N, GIÃY Äáº¸P & TDM (PHONG CÃCH Cá»°C CHáº¤T)
+    -- 4. ÁO, QUẦN, GIÀY ĐẸP & TDM (PHONG CÁCH CỰC CHẤT)
     -- ==============================================================================
     -- [ BAPE & ALAN WALKER ]
     1400569, -- BAPE MIX CAMO HOODIE
@@ -9940,221 +9939,221 @@ local ITEMS = {
     1404000, -- BAPE City Camo Hoodie
     1404002, -- BAPE City Camo Pants
     1404003, -- BAPE Sta Mid
-    1404048, -- Ão BAPE X PUBGM CAMO
-    1404049, -- Ão Hoodie cÃ¡ máº­p BAPE X PUBGM CAMO
-    1404050, -- Quáº§n BAPE X PUBGM CAMO
-    1404051, -- GiÃ y BAPE X PUBGM CAMO
+    1404048, -- Áo BAPE X PUBGM CAMO
+    1404049, -- Áo Hoodie cá mập BAPE X PUBGM CAMO
+    1404050, -- Quần BAPE X PUBGM CAMO
+    1404051, -- Giày BAPE X PUBGM CAMO
     1404016, -- Alan Walker T-shirt
     1404017, -- Alan Walker Hoodie
-    1404042, -- Trang phá»¥c Alan Walker
-    1404043, -- Ão Alan Walker
-    1404044, -- Quáº§n Alan Walker
-    1404045, -- GiÃ y Alan Walker
-    1404340, -- Trang phá»¥c Alan Walker 2021
+    1404042, -- Trang phục Alan Walker
+    1404043, -- Áo Alan Walker
+    1404044, -- Quần Alan Walker
+    1404045, -- Giày Alan Walker
+    1404340, -- Trang phục Alan Walker 2021
     1403038, -- Alan Walker Mask
-    1403064, -- Kháº©u trang Alan Walker
+    1403064, -- Khẩu trang Alan Walker
 
-    -- [ Äá» TDM Phá» Biáº¿n (KhÄn bá»t máº·t, Ão LÃ­nh, Ão KhoÃ¡c Äen...) ]
-    402001, -- KhÄn ráº±n sinh tá»n
-    402037, -- KhÄn quÃ ng cao bá»i
-    402043, -- KhÄn quÃ ng PUBG (Äá»-Äen)
-    402045, -- KhÄn quÃ ng PUBG (Chiáº¿n thuáº­t)
-    1400158, -- Máº·t Náº¡ Hockey
+    -- [ Đồ TDM Phổ Biến (Khăn bịt mặt, Áo Lính, Áo Khoác Đen...) ]
+    402001, -- Khăn rằn sinh tồn
+    402037, -- Khăn quàng cao bồi
+    402043, -- Khăn quàng PUBG (Đỏ-Đen)
+    402045, -- Khăn quàng PUBG (Chiến thuật)
+    1400158, -- Mặt Nạ Hockey
     1402005, -- Mysterious Leather Mask
-    1403100, -- Máº·t náº¡ ngÆ°á»i leo nÃºi
-    403010, -- Ão Ba Lá» Báº©n (Tráº¯ng)
-    403028, -- Ão Trench coat (MÃ u Äen)
-    403181, -- Ão lÃ­nh sa máº¡c
-    403182, -- Ão Hoodie sÄn má»i (Äen)
-    403183, -- Ão Hoodie biá»t kÃ­ch (Tráº¯ng)
-    403192, -- Ão khoÃ¡c bomber
-    404006, -- Quáº§n Jeans (NÃ¢u)
-    404008, -- Quáº§n lÃ­nh (Ka-ki)
-    404013, -- Quáº§n lÃ­nh (Ráº±n ri)
-    404015, -- Quáº§n Jeans BÃ³ (MÃ u Lam)
-    404026, -- Quáº§n tÃºi há»p (MÃ u be)
-    404028, -- Quáº§n tÃºi há»p (MÃ u Äen)
-    404084, -- Quáº§n thá» thao ngáº¯n (Äen)
-    404100, -- Quáº§n ngÆ°á»i áº©n náº¥p (Äen)
-    405001, -- GiÃ y Äáº¿ má»m (MÃ u tráº¯ng)
-    405002, -- GiÃ y thá» thao cá» cao
-    405019, -- GiÃ y lÃ­nh chim Æ°ng (Äen)
-    405044, -- GiÃ y Äáº¿ má»m (Äen)
-    1400013, -- Quáº§n Jeans Má»¹
+    1403100, -- Mặt nạ người leo núi
+    403010, -- Áo Ba Lỗ Bẩn (Trắng)
+    403028, -- Áo Trench coat (Màu đen)
+    403181, -- Áo lính sa mạc
+    403182, -- Áo Hoodie săn mồi (Đen)
+    403183, -- Áo Hoodie biệt kích (Trắng)
+    403192, -- Áo khoác bomber
+    404006, -- Quần Jeans (Nâu)
+    404008, -- Quần lính (Ka-ki)
+    404013, -- Quần lính (Rằn ri)
+    404015, -- Quần Jeans Bó (Màu Lam)
+    404026, -- Quần túi hộp (Màu be)
+    404028, -- Quần túi hộp (Màu đen)
+    404084, -- Quần thể thao ngắn (Đen)
+    404100, -- Quần người ẩn nấp (Đen)
+    405001, -- Giày đế mềm (Màu trắng)
+    405002, -- Giày thể thao cổ cao
+    405019, -- Giày lính chim ưng (Đen)
+    405044, -- Giày đế mềm (Đen)
+    1400013, -- Quần Jeans Mỹ
 
-    -- [ CÃC ÃO Láºº VIP (Collab, SiÃªu Xe) ]
-    1404142, -- Ão thun THE WALKING DEAD (Tráº¯ng)
-    1404143, -- Ão thun THE WALKING DEAD (Äen)
-    1404218, -- Ão Hoodie COVERNAT (Tráº¯ng)
-    1404219, -- Ão Hoodie COVERNAT (Äen)
-    1404326, -- Ão thun Xiaomi
-    1404327, -- Ão thun OnePlus
-    1404405, -- Ão Äáº¥u Há»£p TÃ¡c Messi Ã PUBG MOBILE
-    1404406, -- Ão Thun LÃ½ Tiá»u Long
+    -- [ CÁC ÁO LẺ VIP (Collab, Siêu Xe) ]
+    1404142, -- Áo thun THE WALKING DEAD (Trắng)
+    1404143, -- Áo thun THE WALKING DEAD (Đen)
+    1404218, -- Áo Hoodie COVERNAT (Trắng)
+    1404219, -- Áo Hoodie COVERNAT (Đen)
+    1404326, -- Áo thun Xiaomi
+    1404327, -- Áo thun OnePlus
+    1404405, -- Áo Đấu Hợp Tác Messi × PUBG MOBILE
+    1404406, -- Áo Thun Lý Tiểu Long
     1404411, -- Hoodie Ducati
-    1404412, -- GiÃ y Ducati Corse City C2
-    1404413, -- Quáº§n Ducati Sport C2
-    1404414, -- Ão KhoÃ¡c Ducati Speed Evo C2
-    1404426, -- Ão PMGC 2023
-    1404427, -- Quáº§n NgÆ°á»i Chinh Phá»¥c Pagani
-    1404428, -- GiÃ y NgÆ°á»i Chinh Phá»¥c Pagani
-    1404508, -- Ão Hoodie Mr.Beast
-    1400324, -- Ã¡o b
-    1400325, -- Ã¡o a
-    452001, 452002, 452003, -- GÄng Tay (Gloves)
+    1404412, -- Giày Ducati Corse City C2
+    1404413, -- Quần Ducati Sport C2
+    1404414, -- Áo Khoác Ducati Speed Evo C2
+    1404426, -- Áo PMGC 2023
+    1404427, -- Quần Người Chinh Phục Pagani
+    1404428, -- Giày Người Chinh Phục Pagani
+    1404508, -- Áo Hoodie Mr.Beast
+    1400324, -- áo b
+    1400325, -- áo a
+    452001, 452002, 452003, -- Găng Tay (Gloves)
     
-        -- [ HÃNH Äá»NG ]
-    12201301, -- HÃ nh Äá»ng SÃ¡t thá»§ Gothic
-    12216101, -- HÃ nh Äá»ng VÃµ sÄ© Huyáº¿t Æ¯ng
-    12212201, -- HÃ nh Äá»ng SÃ¡t thá»§ Cá»±c Ãm
-    12219207, -- HÃ nh Äá»ng Äáº¡i tÆ°á»ng ThiÃªn NgÆ°u
-    12209001, -- HÃ nh Äá»ng VÃµ sÄ© (Samurai)
-    12219561, -- HÃ nh Äá»ng Ão choÃ ng Äá» tháº«m
-    12210001, -- HÃ nh Äá»ng CÃ¡i cháº¡m cá»§a Tá»­ tháº§n
-    12219022, -- HÃ nh Äá»ng Thiáº¿t vá» Gai gÃ³c
-    12208801, -- HÃ nh Äá»ng DÅ©ng sÄ© BÃ¡n tháº§n
-    12210801, -- HÃ nh Äá»ng Thá»£ sÄn Vá» báº¡c
-    12200701, -- HÃ nh Äá»ng Du hÃ nh KhÃ´ng thá»i gian
-    12219242, -- HÃ nh Äá»ng Dáº¡o bÆ°á»c Báº§u trá»i
-    12206001, -- HÃ nh Äá»ng Hoa linh Äá»ng xanh
-    12205401, -- HÃ nh Äá»ng Vua cá»§a muÃ´n thÃº
-    12205201, -- HÃ nh Äá»ng TrÃ¡i tim Cá»± thÃº
-    12212601, -- HÃ nh Äá»ng SÃ¡t lá»¥c Tháº§n bÃ­
-    12205601, -- HÃ nh Äá»ng Linh há»n Cá»± thÃº
-    12219208, -- HÃ nh Äá»ng Háº§u vÆ°Æ¡ng Cyber
-    12212001, -- HÃ nh Äá»ng VÃµ thÃ¡nh
-    12206801, -- HÃ nh Äá»ng Háº£i long Tháº§n bÃ­
-    12209801, -- HÃ nh Äá»ng Ngá»± linh sÆ°
-    12211401, -- HÃ nh Äá»ng Ná»¯ phÃ¹ thá»§y BÄng tuyáº¿t
-    12207001, -- HÃ nh Äá»ng Du hÃ nh Biá»n sao
-    12211801, -- HÃ nh Äá»ng ChÃºa tá» Tráº­t tá»±
-    12207901, -- HÃ nh Äá»ng Háº£i vÆ°Æ¡ng Quyáº¿n rÅ©
-    12203401, -- HÃ nh Äá»ng Ká»· niá»m áº¢o áº£nh
-    12204001, -- HÃ nh Äá»ng ChÃº há» (NgÃ y CÃ¡ thÃ¡ng TÆ°)
-    12201801, -- HÃ nh Äá»ng NgÆ°á»i báº£o vá» VÃ¹ng tuyáº¿t
-    12215601, -- HÃ nh Äá»ng SiÃªu nhÃ¢n Háº±ng tinh
-    12215532, -- HÃ nh Äá»ng LÃ£nh chÃºa Ngá»n lá»­a
-    12213201, -- HÃ nh Äá»ng Káº¿ hoáº¡ch NgÃ y mai
-    12215529, -- HÃ nh Äá»ng Ká»µ sÄ© Äua xe
-    12219053, -- HÃ nh Äá»ng Ná»¯ hoÃ ng TrÃ¢n báº£o
-    12204601, -- HÃ nh Äá»ng ThiÃªn háº¡ Bá» vÃµ
-    12215701, -- HÃ nh Äá»ng HÃ nh tinh VÆ°á»£n ngÆ°á»i
-    12219003, -- HÃ nh Äá»ng BÃ³ng tá»i Tháº§n linh
-    12219004, -- HÃ nh Äá»ng NgÃ¢n há»n Rá»±c lá»­a
-    12219009, -- HÃ nh Äá»ng MÃª hoáº·c Rá»±c lá»­a
-    12219216, -- HÃ nh Äá»ng Táº¿ tÆ° HÃ©o Ãºa
+        -- [ HÀNH ĐỘNG ]
+    12201301, -- Hành động Sát thủ Gothic
+    12216101, -- Hành động Võ sĩ Huyết Ưng
+    12212201, -- Hành động Sát thủ Cực Ám
+    12219207, -- Hành động Đại tướng Thiên Ngưu
+    12209001, -- Hành động Võ sĩ (Samurai)
+    12219561, -- Hành động Áo choàng Đỏ thẫm
+    12210001, -- Hành động Cái chạm của Tử thần
+    12219022, -- Hành động Thiết vệ Gai góc
+    12208801, -- Hành động Dũng sĩ Bán thần
+    12210801, -- Hành động Thợ săn Vỏ bạc
+    12200701, -- Hành động Du hành Không thời gian
+    12219242, -- Hành động Dạo bước Bầu trời
+    12206001, -- Hành động Hoa linh Đồng xanh
+    12205401, -- Hành động Vua của muôn thú
+    12205201, -- Hành động Trái tim Cự thú
+    12212601, -- Hành động Sát lục Thần bí
+    12205601, -- Hành động Linh hồn Cự thú
+    12219208, -- Hành động Hầu vương Cyber
+    12212001, -- Hành động Võ thánh
+    12206801, -- Hành động Hải long Thần bí
+    12209801, -- Hành động Ngự linh sư
+    12211401, -- Hành động Nữ phù thủy Băng tuyết
+    12207001, -- Hành động Du hành Biển sao
+    12211801, -- Hành động Chúa tể Trật tự
+    12207901, -- Hành động Hải vương Quyến rũ
+    12203401, -- Hành động Kỷ niệm Ảo ảnh
+    12204001, -- Hành động Chú hề (Ngày Cá tháng Tư)
+    12201801, -- Hành động Người bảo vệ Vùng tuyết
+    12215601, -- Hành động Siêu nhân Hằng tinh
+    12215532, -- Hành động Lãnh chúa Ngọn lửa
+    12213201, -- Hành động Kế hoạch Ngày mai
+    12215529, -- Hành động Kỵ sĩ Đua xe
+    12219053, -- Hành động Nữ hoàng Trân bảo
+    12204601, -- Hành động Thiên hạ Bố võ
+    12215701, -- Hành động Hành tinh Vượn người
+    12219003, -- Hành động Bóng tối Thần linh
+    12219004, -- Hành động Ngân hồn Rực lửa
+    12219009, -- Hành động Mê hoặc Rực lửa
+    12219216, -- Hành động Tế tư Héo úa
     
     
-    -- tÃ³c máº·t tÃ¹m lum
+    -- tóc mặt tùm lum
     1404198, 1410085, 1404366, 1403137, 1410480, 1403028, 1400158, 40605011, 1404323, 1406001, 1403002,
 
 -- ==============================================================================
-    -- MÅ¨ GIÃP VIP (CHá» Láº¤Y Cáº¤P 1 - Gá»N GÃNG, Dá» áº¨N Náº¤P)
+    -- MŨ GIÁP VIP (CHỈ LẤY CẤP 1 - GỌN GÀNG, DỄ ẨN NẤP)
     -- ==============================================================================
     1502001183, -- Godzilla Helmet (Lv. 1)
-    1502001194, -- MÅ© MECHAGODZILLA (Cáº¥p 1)
-    1502001093, -- MÅ© Tháº©m PhÃ¡n Anubis (Cáº¥p 1) - Pharaoh
-    1502001305, -- MÅ© GiÃ¡p SiÃªu NhÃ¢n ThÃ©p (Cáº¥p 1)
-    1502001320, -- MÅ© GiÃ¡p Biá»u TÆ°á»£ng BÃ³ng ÄÃ¡ Messi (Cáº¥p 1)
-    1502001105, -- MÅ© TÃ ng HÃ¬nh (Cáº¥p 1)
-    1502001364, -- MÅ© GiÃ¡p PMGC 2023 (Cáº¥p 1)
-    1502001373, -- MÅ© GiÃ¡p LINE FRIENDS BROWN (Cáº¥p 1)
+    1502001194, -- Mũ MECHAGODZILLA (Cấp 1)
+    1502001093, -- Mũ Thẩm Phán Anubis (Cấp 1) - Pharaoh
+    1502001305, -- Mũ Giáp Siêu Nhân Thép (Cấp 1)
+    1502001320, -- Mũ Giáp Biểu Tượng Bóng Đá Messi (Cấp 1)
+    1502001105, -- Mũ Tàng Hình (Cấp 1)
+    1502001364, -- Mũ Giáp PMGC 2023 (Cấp 1)
+    1502001373, -- Mũ Giáp LINE FRIENDS BROWN (Cấp 1)
     1502001402, -- APEACH Helmet (LV.1)
     1502001403, -- Bellygom Helmet (LV.1)
     1502001427, -- Opanchu Helmet (Lv.1)
-    1502001443, -- MÅ© GiÃ¡p SÃ³ng Ãm Cuá»ng Loáº¡n (Cáº¥p 1)
-    1502001450, -- MÅ© GiÃ¡p CÃºn Tinh Nghá»ch (Cáº¥p 1)
+    1502001443, -- Mũ Giáp Sóng Âm Cuồng Loạn (Cấp 1)
+    1502001450, -- Mũ Giáp Cún Tinh Nghịch (Cấp 1)
     1502001471, -- Turbo Granny (Beckoning cat) Helmet (Lv. 1)
-    1502001480, -- MÅ© GiÃ¡p PUBG MOBILE Ã aespa (Cáº¥p 1)
+    1502001480, -- Mũ Giáp PUBG MOBILE × aespa (Cấp 1)
     1502001490, -- Nakiri Ayame Helmet (Lv.1)
-    1502001495, -- MÅ© BLUE LOCK (Cáº¥p 1)
-    1502001001, -- MÅ© pizza nÃ³ng (Cáº¥p 1)
-    1502001004, -- MÅ© Cyberpunk (TÃ­m) (Cáº¥p 1)
-    1502001005, -- MÅ© há»p sá» (Cáº¥p 1)
-    1502001046, -- MÅ© Samurai - danh dá»± (Cáº¥p 1)
-    1502001058, -- MÅ© báº£o hiá»m Monarch (Cáº¥p 1)
-    1502001064, -- MÅ© báº£o hiá»m ThiÃªn Sá»© (Cáº¥p 1)
-    1502001073, -- MÅ© Vá» Binh Robot (Cáº¥p 1)
-    1502001078, -- MÅ© Ninja SÃ¡t Thá»§ (Cáº¥p 1)
-    1502001086, -- MÅ© Chuá»t Tinh Nghá»ch (Cáº¥p 1)
-    1502001099, -- MÅ© Corgi (Cáº¥p 1)
-    1502001115, -- MÅ© Bá» RÃ¹a (Cáº¥p 1)
-    1502001133, -- MÅ© BÃ­ NgÃ´ Kinh Dá» (Cáº¥p 1)
-    1502001145, -- MÅ© ChÃº LÃ­nh ChÃ¬ (Cáº¥p 1)
-    1502001154, -- MÅ© GiÃ¡p Äáº¡i BÃ ng Tá»a SÃ¡ng (Cáº¥p 1)
-    1502001175, -- MÅ© Vá»t VÃ ng B.Duck (Cáº¥p 1)
-    1502001230, -- MÅ© Rá»ng CÃ´ng Nghá» (Cáº¥p 1)
-    1502001248, -- MÅ© NgÆ°á»i Má» ÄÆ°á»ng (Cáº¥p 1)
-    1502001264, -- MÅ© Ãt Ã Ãt (Cáº¥p 1)
-    1502001276, -- MÅ© VÅ© CÃ´ng BÃ­ áº¨n (Cáº¥p 1)
-    1502001294, -- MÅ© GiÃ¡p Ma PhÃ¡p SÆ° (Cáº¥p 1)
-    1502001301, -- MÅ© GiÃ¡p Archon Lá»«ng Láº«y (Cáº¥p 1)
-    1502001357, -- MÅ© GiÃ¡p Son Goku (Cáº¥p 1)
-    1502001381, -- MÅ© GiÃ¡p Há»a Linh ChÃ­ TÃ´n (Cáº¥p 1)
-    1502001416, -- MÅ© GiÃ¡p PMGC 2024 (Cáº¥p 1)
+    1502001495, -- Mũ BLUE LOCK (Cấp 1)
+    1502001001, -- Mũ pizza nóng (Cấp 1)
+    1502001004, -- Mũ Cyberpunk (Tím) (Cấp 1)
+    1502001005, -- Mũ hộp sọ (Cấp 1)
+    1502001046, -- Mũ Samurai - danh dự (Cấp 1)
+    1502001058, -- Mũ bảo hiểm Monarch (Cấp 1)
+    1502001064, -- Mũ bảo hiểm Thiên Sứ (Cấp 1)
+    1502001073, -- Mũ Vệ Binh Robot (Cấp 1)
+    1502001078, -- Mũ Ninja Sát Thủ (Cấp 1)
+    1502001086, -- Mũ Chuột Tinh Nghịch (Cấp 1)
+    1502001099, -- Mũ Corgi (Cấp 1)
+    1502001115, -- Mũ Bọ Rùa (Cấp 1)
+    1502001133, -- Mũ Bí Ngô Kinh Dị (Cấp 1)
+    1502001145, -- Mũ Chú Lính Chì (Cấp 1)
+    1502001154, -- Mũ Giáp Đại Bàng Tỏa Sáng (Cấp 1)
+    1502001175, -- Mũ Vịt Vàng B.Duck (Cấp 1)
+    1502001230, -- Mũ Rồng Công Nghệ (Cấp 1)
+    1502001248, -- Mũ Người Mở Đường (Cấp 1)
+    1502001264, -- Mũ Ét Ô Ét (Cấp 1)
+    1502001276, -- Mũ Vũ Công Bí Ẩn (Cấp 1)
+    1502001294, -- Mũ Giáp Ma Pháp Sư (Cấp 1)
+    1502001301, -- Mũ Giáp Archon Lừng Lẫy (Cấp 1)
+    1502001357, -- Mũ Giáp Son Goku (Cấp 1)
+    1502001381, -- Mũ Giáp Hỏa Linh Chí Tôn (Cấp 1)
+    1502001416, -- Mũ Giáp PMGC 2024 (Cấp 1)
     1502001453, -- 2025 Esports Helmet (Lv. 1)
 
     -- ==============================================================================
-    -- BA LÃ VIP (CHá» Láº¤Y Cáº¤P 1 - Gá»N GÃNG, Dá» áº¨N Náº¤P)
+    -- BA LÔ VIP (CHỈ LẤY CẤP 1 - GỌN GÀNG, DỄ ẨN NẤP)
     -- ==============================================================================
-    1501001174, -- Ba lÃ´ Pharaoh (Cáº¥p 1)
-    1501001220, -- Ba lÃ´ Huyáº¿t Nha (Cáº¥p 1)
-    1501001265, -- Ba lÃ´ Poseidon (Cáº¥p 1)
-    1501001548, -- Balo Tháº§n Thoáº¡i Viá»n Cá» (Cáº¥p 1)
-    1501001559, -- Balo Thanh Hoa XÃ  (Cáº¥p 1)
-    1501001567, -- Ba LÃ´ Há»a Linh ChÃ­ TÃ´n (Cáº¥p 1)
-    1501001577, -- Balo ÄÃ´i CÃ¡nh Vá» Tháº§n (Cáº¥p 1)
-    1501001607, -- Balo DÆ¡i BÃ³ng ÄÃªm (Cáº¥p 1)
-    1501001061, -- Ba lÃ´ Godzilla (Cáº¥p 1)
-    1501001062, -- Ba LÃ´ SiÃªu ThÃº Ghidorah (Cáº¥p 1)
-    1501001082, -- Ba lÃ´ Genbu (Cáº¥p 1)
-    1501001112, -- Ba lÃ´ Pig Ngá»c Ngháº¿ch (Cáº¥p 1)
-    1501001133, -- Ba lÃ´ Joker KhÃ¡t MÃ¡u (Cáº¥p 1)
-    1501001243, -- Ba LÃ´ Vá»t VÃ ng B.Duck (Cáº¥p 1)
-    1501001273, -- Ba lÃ´ MECHAGODZILLA (Cáº¥p 1)
-    1501001304, -- Ba lÃ´ Ma VÆ°Æ¡ng (Cáº¥p 1)
-    1501001331, -- Ba lÃ´ cá»§a Jinx (Cáº¥p 1)
-    1501001340, -- Ba LÃ´ Háº£i Cáº©u Tuyáº¿t (Cáº¥p 1)
-    1501001376, -- Ba lÃ´ MÃ¡y HÃ¡t Cá» Äiá»n (Cáº¥p 1)
-    1501001400, -- Ba lÃ´ Baby Shark (Cáº¥p 1)
-    1501001463, -- Ba LÃ´ BoBoiBoy (Cáº¥p 1)
-    1501001476, -- Ba LÃ´ Biá»u TÆ°á»£ng BÃ³ng ÄÃ¡ Messi (Cáº¥p 1)
-    1501001480, -- Ba LÃ´ MÃ¬ Indomie (Cáº¥p 1)
-    1501001487, -- Ba LÃ´ Con Máº¯t Cháº¿t ChÃ³c (Cáº¥p 1)
-    1501001521, -- Ba LÃ´ Quy LÃ£o Kame (Cáº¥p 1)
-    1501001539, -- Ba LÃ´ PMGC 2023 (Cáº¥p 1)
-    1501001540, -- Ba LÃ´ GÃ  RÃ¡n KFC (Cáº¥p 1)
-    1501001554, -- Ba LÃ´ LINE FRIENDS SALLY (Cáº¥p 1)
-    1501001587, -- Ba LÃ´ Äáº¡i Ãy Loáº¡n Tháº¿ (Cáº¥p 1)
+    1501001174, -- Ba lô Pharaoh (Cấp 1)
+    1501001220, -- Ba lô Huyết Nha (Cấp 1)
+    1501001265, -- Ba lô Poseidon (Cấp 1)
+    1501001548, -- Balo Thần Thoại Viễn Cổ (Cấp 1)
+    1501001559, -- Balo Thanh Hoa Xà (Cấp 1)
+    1501001567, -- Ba Lô Hỏa Linh Chí Tôn (Cấp 1)
+    1501001577, -- Balo Đôi Cánh Vệ Thần (Cấp 1)
+    1501001607, -- Balo Dơi Bóng Đêm (Cấp 1)
+    1501001061, -- Ba lô Godzilla (Cấp 1)
+    1501001062, -- Ba Lô Siêu Thú Ghidorah (Cấp 1)
+    1501001082, -- Ba lô Genbu (Cấp 1)
+    1501001112, -- Ba lô Pig Ngốc Nghếch (Cấp 1)
+    1501001133, -- Ba lô Joker Khát Máu (Cấp 1)
+    1501001243, -- Ba Lô Vịt Vàng B.Duck (Cấp 1)
+    1501001273, -- Ba lô MECHAGODZILLA (Cấp 1)
+    1501001304, -- Ba lô Ma Vương (Cấp 1)
+    1501001331, -- Ba lô của Jinx (Cấp 1)
+    1501001340, -- Ba Lô Hải Cẩu Tuyết (Cấp 1)
+    1501001376, -- Ba lô Máy Hát Cổ Điển (Cấp 1)
+    1501001400, -- Ba lô Baby Shark (Cấp 1)
+    1501001463, -- Ba Lô BoBoiBoy (Cấp 1)
+    1501001476, -- Ba Lô Biểu Tượng Bóng Đá Messi (Cấp 1)
+    1501001480, -- Ba Lô Mì Indomie (Cấp 1)
+    1501001487, -- Ba Lô Con Mắt Chết Chóc (Cấp 1)
+    1501001521, -- Ba Lô Quy Lão Kame (Cấp 1)
+    1501001539, -- Ba Lô PMGC 2023 (Cấp 1)
+    1501001540, -- Ba Lô Gà Rán KFC (Cấp 1)
+    1501001554, -- Ba Lô LINE FRIENDS SALLY (Cấp 1)
+    1501001587, -- Ba Lô Đại Úy Loạn Thế (Cấp 1)
     1501001597, -- Bellygom Backpack (LV.1)
     1501001632, -- Opanchu Backpack (Lv.1)
     1501001643, -- Frieren&Mimic Backbag (Lv.1)
-    1501001650, -- Ba LÃ´ Titan Khá»ng Lá» Cáº¥p 1
-    1501001683, -- Ba LÃ´ Balenciaga (Cáº¥p 1)
+    1501001650, -- Ba Lô Titan Khổng Lồ Cấp 1
+    1501001683, -- Ba Lô Balenciaga (Cấp 1)
     1501001715, -- SAKAMOTO TARO Backpack (Lv.1)
-    1501001720, -- Ba LÃ´ BLUE LOCK (Cáº¥p 1)
+    1501001720, -- Ba Lô BLUE LOCK (Cấp 1)
     
-        -- [ BALO, MÅ¨ & DÃ LÆ¯á»¢N ]
-    1501001024, -- Balo BÃ¡ TÆ°á»c
-    1502001014, -- MÅ© Äinh
-    1502001439, -- mÅ© vÆ°Æ¡ng miá»n
-    1502001069, -- mÅ© cÆ°Æ¡ng thi
-    1502001023, -- mÅ© bÄng
+        -- [ BALO, MŨ & DÙ LƯỢN ]
+    1501001024, -- Balo Bá Tước
+    1502001014, -- Mũ Đinh
+    1502001439, -- mũ vương miện
+    1502001069, -- mũ cương thi
+    1502001023, -- mũ băng
     
 
     
-    -- id bá» xung
-    1400092, 1400101, 1400122, --tÆ° lá»nh
-    1404191, -- quáº§n bá» hÃ nh
+    -- id bổ xung
+    1400092, 1400101, 1400122, --tư lệnh
+    1404191, -- quần bộ hành
     1405128, 1405129, 140224445, 140224445, -- crew
-    1407961, 1407962, 1407963, 1407964, 1407965, 1407966, 1407967, 1407968, 1407969, 1407970, 1407971, 1502001508, 1502002508, 1502003508, 1411134, 1411133, 1411135, 1403771,1411147, 1403770, 1407994, 1407993, 1101006106, 1101006098, 4151145,1602140, 1903230, 1903231, 1903232, 1908117, 1908118, 1908119, 19116002, 19116003, 19116004, 1961070, 1961071, 1961072, 1961073, 1408045, 1408038, 1407990,1407922, -- Trang Phá»¥c Ná»¯ Tháº§n Ãi TÃ¬nh
-    1407704, -- Trang Phá»¥c CÃ´ DÃ¢u Tinh QuÃ¡i
-    1400782, -- Trang phá»¥c bÄng tuyáº¿t
-    1407614, -- Trang Phá»¥c Optimus Prime Transformers
-    1407276, -- Trang Phá»¥c Vá» Tháº§n TÃ¬nh Ãi
-    1410356, -- Máº·t Náº¡ Ma VÆ°Æ¡ng Huyáº¿t Há»n
-    40605012, -- TÃ³c Hai ChÃ¹m
-    401035, -- MÅ© cao bá»i (Tráº¯ng)
+    1407961, 1407962, 1407963, 1407964, 1407965, 1407966, 1407967, 1407968, 1407969, 1407970, 1407971, 1502001508, 1502002508, 1502003508, 1411134, 1411133, 1411135, 1403771, 1403770, 1407994, 1407993, 1101006106, 1101006098, 4151145, 1903230, 1903231, 1903232, 1908117, 1908118, 1908119, 19116002, 19116003, 19116004, 1961070, 1961071, 1961072, 1961073, 1408045, 1408038, 1407990,1407922, -- Trang Phục Nữ Thần Ái Tình
+    1407704, -- Trang Phục Cô Dâu Tinh Quái
+    1400782, -- Trang phục băng tuyết
+    1407614, -- Trang Phục Optimus Prime Transformers
+    1407276, -- Trang Phục Vệ Thần Tình Ái
+    1410356, -- Mặt Nạ Ma Vương Huyết Hồn
+    40605012, -- Tóc Hai Chùm
+    401035, -- Mũ cao bồi (Trắng)
 }
 
 local INS_BASE = 2000000000
@@ -10209,7 +10208,7 @@ local SUBTYPE_DEFAULT_TAB = {
 }
 local HAT_SUBS = { [401] = true }
 local HELMET_SUBS = { [502] = true, [505] = true }
-local HEAD_SUBS = { [401] = true } -- [FIX VIP] ÄÃ£ xÃ³a 502 vÃ  505 Äá» tÃ¡ch biá»t hoÃ n toÃ n MÅ© Báº£o Hiá»m khá»i TÃ³c/MÅ© Thá»i Trang
+local HEAD_SUBS = { [401] = true } -- [FIX VIP] Đã xóa 502 và 505 để tách biệt hoàn toàn Mũ Bảo Hiểm khỏi Tóc/Mũ Thời Trang
 local BAG_SUBS = { [501] = true, [504] = true }
 local FACE_SUBS = { [402] = true, [407] = true }
 local BODY_SUBS = { [404] = true, [405] = true, [501] = true, [504] = true, [502] = true, [505] = true }
@@ -10450,7 +10449,7 @@ end
 function F.tryLocalWearByIns(insID)
     insID = tonumber(insID)
     if not insID then return false end
-    if _G.LexusConfig and _G.LexusConfig.ModSkin == false then return false end -- Bá» qua náº¿u táº¯t Mod Skin
+    if _G.LexusConfig and _G.LexusConfig.ModSkin == false then return false end -- Bỏ qua nếu tắt Mod Skin
     local resID = R.insToRes[insID]
     local wd = require("client.slua.logic.wardrobe.wardrobe_data")
     local d = wd:GetHallDepotItemDataByInsID(insID)
@@ -10604,7 +10603,7 @@ function F.saveWeaponToCache(weaponID, resID, insID)
     F.perfInvalidateLobby()
     F.invalidateSocialWearCache()
     F.persistMarkDirty()
-    F.log("Ø°Ø§ÙØ±Ø© Ø³ÙÙ", weaponID, "â", resID)
+    F.log("ذاكرة سكن", weaponID, "→", resID)
 end
 
 function F.cacheWeaponSkinFromIns(weaponID, insID)
@@ -11702,7 +11701,7 @@ function F.mergeVstIntoPlayerInfo(playerInfo)
 end
 
 function F.applyVehicleSkinsToPC(pc)
-    -- [Báº¢O Vá» XE Äá»NG Äá»I] Tá»« chá»i ghi ÄÃ¨ ID xe áº£o vÃ o bá» nhá» nhÃ¢n váº­t náº¿u cÃ´ng táº¯c táº¯t!
+    -- [BẢO VỆ XE ĐỒNG ĐỘI] Từ chối ghi đè ID xe ảo vào bộ nhớ nhân vật nếu công tắc tắt!
     if not _G.LexusConfig.ModSkin then return false end
     
     pc = pc or F.getPC()
@@ -11931,7 +11930,7 @@ function F.getVehicleLicenseComp(vehicle)
 end
 
 function F.applyVehicleChassisLight(vehicle, skinId, lightId)
-    -- [FIX VIP] Náº¿u táº¯t Mod Skin thÃ¬ bá» qua khÃ´ng load ÄÃ¨n gáº§m
+    -- [FIX VIP] Nếu tắt Mod Skin thì bỏ qua không load đèn gầm
     if _G.LexusConfig and _G.LexusConfig.ModSkin == false then return false end 
     
     skinId = tonumber(skinId)
@@ -12053,7 +12052,7 @@ function F.getCurrentVehicleForSkin()
 end
 
 function F.forceVehicleAvatar(skinId, vehicle)
-    -- [CHá»T CHáº¶N 100%] Tá»« chá»i má»i lá»nh load Skin Xe náº¿u cÃ´ng táº¯c táº¯t
+    -- [CHỐT CHẶN 100%] Từ chối mọi lệnh load Skin Xe nếu công tắc tắt
     if not _G.LexusConfig.ModSkin then return false end
     
     skinId = tonumber(skinId)
@@ -12111,12 +12110,12 @@ function F.vehicleAvatarTemper()
 end
 
 function F.vehicleSkinTick()
-    -- [FIX VIP] Náº¿u ÄÃ£ táº¯t Mod Skin thÃ¬ cháº·n luÃ´n vÃ²ng láº·p Ã©p xe vÃ  máº·t náº¡
+    -- [FIX VIP] Nếu đã tắt Mod Skin thì chặn luôn vòng lặp ép xe và mặt nạ
     if not _G.LexusConfig.ModSkin then return end
 
     F.vehicleAvatarTemper()
     
-    -- [FIX VIP] Ãp hiá»n thá» KÃ­nh & Máº·t Náº¡ liÃªn tá»¥c má»i 1 giÃ¢y (Báº¥t cháº¥p viá»c nháº·t mÅ© báº£o hiá»m)
+    -- [FIX VIP] Ép hiển thị Kính & Mặt Nạ liên tục mỗi 1 giây (Bất chấp việc nhặt mũ bảo hiểm)
     pcall(function()
         local char = F.getLocalChar()
         if char then F.matchApplyFaceWear(char) end
@@ -12171,7 +12170,7 @@ function F.matchApplyVehicleSkin(skinId)
 end
 
 function F.autoApplyVehicleSkinOnEnter(vehicle)
-    -- [FIX VIP] Cháº·n khÃ´ng cho tá»± Äá»i skin khi báº¥m nÃºt "LÃ¡i xe / LÃªn xe"
+    -- [FIX VIP] Chặn không cho tự đổi skin khi bấm nút "Lái xe / Lên xe"
     if not _G.LexusConfig.ModSkin then return end
     
     if not slua.isValid(vehicle) then return end
@@ -12811,29 +12810,29 @@ function F.mergeInjectedArmorySkins()
 end
 
 function F.injectAll(entity)
-    if _G.LexusConfig and _G.LexusConfig.ModSkin == false then return false end -- Bá» qua náº¿u táº¯t Mod Skin
+    if _G.LexusConfig and _G.LexusConfig.ModSkin == false then return false end -- Bỏ qua nếu tắt Mod Skin
     entity = entity or F.getEntity()
     if not entity or not entity.bInit then return false end
     local n, nNew = 0, 0
     
-    -- [FIX VIP] Tá»° Äá»NG Táº O THÃM ID MÅ¨/BALO Cáº¤P 2 VÃ Cáº¤P 3 Äá» CHá»®A Lá»I UI Ná»T NHáº C
+    -- [FIX VIP] TỰ ĐỘNG TẠO THÊM ID MŨ/BALO CẤP 2 VÀ CẤP 3 ĐỂ CHỮA LỖI UI NỐT NHẠC
     local expandedItems = {}
     for _, resID in ipairs(ITEMS) do
         table.insert(expandedItems, resID)
         local resNum = tonumber(resID)
         if resNum then
-            -- Nháº­n diá»n dáº£i ID cá»§a Balo (1501...) vÃ  MÅ© (1502..., 1505...)
+            -- Nhận diện dải ID của Balo (1501...) và Mũ (1502..., 1505...)
             local isBag = (resNum >= 1501000000 and resNum <= 1501999999)
             local isHelmet = (resNum >= 1502000000 and resNum <= 1502999999) or (resNum >= 1505000000 and resNum <= 1505999999)
             
             if isBag or isHelmet then
-                table.insert(expandedItems, resNum + 1000) -- BÆ¡m thÃªm Cáº¥p 2 vÃ o tá»§ Äá»
-                table.insert(expandedItems, resNum + 2000) -- BÆ¡m thÃªm Cáº¥p 3 vÃ o tá»§ Äá»
+                table.insert(expandedItems, resNum + 1000) -- Bơm thêm Cấp 2 vào tủ đồ
+                table.insert(expandedItems, resNum + 2000) -- Bơm thêm Cấp 3 vào tủ đồ
             end
         end
     end
 
-    -- Äá»c danh sÃ¡ch ÄÃ£ ÄÆ°á»£c nhÃ¢n báº£n
+    -- Đọc danh sách đã được nhân bản
     for i, resID in ipairs(expandedItems) do
         local insID = INS_BASE + i
         local had = R.resToIns[resID] ~= nil
@@ -13099,13 +13098,13 @@ F.putOnRoleWear = function(insID)
                 if st == 504 or st == 501 then
                     DataMgr.equipmentSkinInsIDTable[504] = insID
                     bag.bag_skin = insID
-                    -- [FIX VIP] Ãp hiá»n thá» Balo 3D ngoÃ i sáº£nh
+                    -- [FIX VIP] Ép hiển thị Balo 3D ngoài sảnh
                     local HT = require("client.logic.lobby.hall_theme_utils")
                     if HT and HT.PutOnBag then HT.PutOnBag(fbd:GetFashionBagUseIndex()) end
                 elseif st == 505 or st == 502 then
                     DataMgr.equipmentSkinInsIDTable[505] = insID
                     bag.helmet_skin = insID
-                    -- [FIX VIP] Ãp hiá»n thá» MÅ© 3D ngoÃ i sáº£nh
+                    -- [FIX VIP] Ép hiển thị Mũ 3D ngoài sảnh
                     fbd:SetHeadShow(insID)
                     local WRH = require("client.network.Protocol.WardRobeHandler")
                     if WRH and WRH.send_depot_set_head_show_req then 
@@ -13114,7 +13113,7 @@ F.putOnRoleWear = function(insID)
                 end
             end
             
-            -- [FIX VIP] Ãp Load MÃ´ hÃ¬nh 3D lÃªn nhÃ¢n váº­t
+            -- [FIX VIP] Ép Load Mô hình 3D lên nhân vật
             local lav = require("client.slua.logic.wardrobe.logic_wardrobe_avatar")
             if lav and lav.AvatarChange then
                 lav:AvatarChange(resID, true, 0, 0)
@@ -14006,7 +14005,7 @@ function F.mergeInjectedIntoWearData(wearData)
 end
 
 function F.reapplyLobbyEquipped()
-    -- [FIX VIP] Cháº·n khÃ´ng cho sáº£nh Äáº¯p láº¡i skin áº£o khi báº¡n ÄÃ£ táº¯t cÃ´ng táº¯c
+    -- [FIX VIP] Chặn không cho sảnh đắp lại skin ảo khi bạn đã tắt công tắc
     if not _G.LexusConfig.ModSkin then return end
     
     if not GameStatus or not GameStatus.IsInLobbyOrMainCity or not GameStatus.IsInLobbyOrMainCity() then
@@ -14262,7 +14261,7 @@ function F.hookLobbySwipePersistence()
                     F.socialDebounce(0.25, function() F.onSocialWearDirty(true) end)
                 end
                 
-                -- [FIX Lá»I VIP] Tá»± Äá»ng Äáº¯p láº¡i Skin Mod khi game cÃ³ dáº¥u hiá»u update sÃºng á» sáº£nh
+                -- [FIX LỖI VIP] Tự động đắp lại Skin Mod khi game có dấu hiệu update súng ở sảnh
                 F.socialDebounce(0.3, function()
                     if F.reapplyLobbyEquipped then F.reapplyLobbyEquipped() end
                 end)
@@ -14282,7 +14281,7 @@ function F.hookLobbySwipePersistence()
                 F.socialDebounce(0.2, function() F.onSocialWearDirty(true) end)
             end
             
-            -- [FIX Lá»I VIP] Khi Click vÃ o Ã´ vÅ© khÃ­ á» Sáº£nh, Äá»£i game Äá»i sÃºng gá»c xong thÃ¬ 0.3s sau Äáº¯p skin Mod lÃªn láº¡i
+            -- [FIX LỖI VIP] Khi Click vào ô vũ khí ở Sảnh, đợi game đổi súng gốc xong thì 0.3s sau đắp skin Mod lên lại
             F.socialDebounce(0.3, function()
                 if F.reapplyLobbyEquipped then F.reapplyLobbyEquipped() end
             end)
@@ -14501,7 +14500,7 @@ function F.hookVehicleSwitchEffect()
             _G.AddOutfitVehOrigCanSwitch = impl.CheckCanPlaySkinSwitchEffect
         end
         impl.CheckCanPlaySkinSwitchEffect = function(self, curVehicleId, lastVehicleId)
-            -- [Báº¢O Vá» XE Äá»NG Äá»I] Tráº£ láº¡i lá»nh check hiá»u á»©ng cho game gá»c khi táº¯t cÃ´ng táº¯c
+            -- [BẢO VỆ XE ĐỒNG ĐỘI] Trả lại lệnh check hiệu ứng cho game gốc khi tắt công tắc
             if not _G.LexusConfig.ModSkin then 
                 if _G.AddOutfitVehOrigCanSwitch then return _G.AddOutfitVehOrigCanSwitch(self, curVehicleId, lastVehicleId) end
                 return false
@@ -14515,7 +14514,7 @@ function F.hookVehicleSwitchEffect()
             _G.AddOutfitVehOrigShowSwitch = impl.ShowVehicleSwitchEffect
         end
         impl.ShowVehicleSwitchEffect = function(self)
-            -- [Báº¢O Vá» XE Äá»NG Äá»I] Tráº£ láº¡i hiá»u á»©ng Äá»i xe cho game gá»c khi táº¯t cÃ´ng táº¯c
+            -- [BẢO VỆ XE ĐỒNG ĐỘI] Trả lại hiệu ứng đổi xe cho game gốc khi tắt công tắc
             if not _G.LexusConfig.ModSkin then 
                 if _G.AddOutfitVehOrigShowSwitch then return _G.AddOutfitVehOrigShowSwitch(self) end
                 return false
@@ -14625,7 +14624,7 @@ function F.hookVehicleChassisLight()
             _G.AddOutfitVehOrigEquippedFeature = LVF.CheckHasEquippedItem
         end
         LVF.CheckHasEquippedItem = function(self, featureId, vehicleId)
-            -- [FIX VIP] Bá» sung check Äiá»u kiá»n ModSkin
+            -- [FIX VIP] Bổ sung check điều kiện ModSkin
             if _G.LexusConfig and _G.LexusConfig.ModSkin ~= false then
                 if F.isChassisLightId(featureId) then
                     return F.getDesiredChassisLight(vehicleId) == tonumber(featureId)
@@ -14638,7 +14637,7 @@ function F.hookVehicleChassisLight()
             _G.AddOutfitVehOrigEquipChassisData = LVF.GetEquipedChassisLightData
         end
         LVF.GetEquipedChassisLightData = function(self, vehicleId, source)
-            -- [FIX VIP] Bá» sung check Äiá»u kiá»n ModSkin
+            -- [FIX VIP] Bổ sung check điều kiện ModSkin
             if _G.LexusConfig and _G.LexusConfig.ModSkin ~= false then
                 local our = F.getDesiredChassisLight(vehicleId)
                 if our then return our end
@@ -14650,7 +14649,7 @@ function F.hookVehicleChassisLight()
             _G.AddOutfitVehOrigChassisLightData = LVF.GetVehicleChassisLightData
         end
         LVF.GetVehicleChassisLightData = function(self, uid, vehicleId, position, source)
-            -- [FIX VIP] Bá» sung check Äiá»u kiá»n ModSkin
+            -- [FIX VIP] Bổ sung check điều kiện ModSkin
             if _G.LexusConfig and _G.LexusConfig.ModSkin ~= false then
                 if uid and DataMgr and DataMgr.roleData and tonumber(uid) == tonumber(DataMgr.roleData.uid) then
                     local our = F.getDesiredChassisLight(vehicleId)
@@ -14788,7 +14787,7 @@ function F.hookVehicles()
         end
         local oClick = _G.AddOutfitVehOrigClick
         impl.OnClickSkinButton = function(self)
-            -- [Sá»¬A Lá»I SKIN REAL] Náº¿u cÃ´ng táº¯c Mod Äang Táº®T, bá» qua xá»­ lÃ½ cá»§a Mod vÃ  tráº£ tháº³ng vá» NÃºt báº¥m gá»c cá»§a Game!
+            -- [SỬA LỖI SKIN REAL] Nếu công tắc Mod đang TẮT, bỏ qua xử lý của Mod và trả thẳng về Nút bấm gốc của Game!
             if not _G.LexusConfig.ModSkin then
                 if oClick then return oClick(self) end
                 return
@@ -15126,7 +15125,7 @@ function F.applySlotSkinBatch(comp, entries, opts)
 end
 
 function F.setMakeSkin(comp, resID, slotID, opts)
-    -- [CHá»T CHáº¶N 100%] Tá»« chá»i váº½ Skin VIP (>1000000) lÃªn cÆ¡ thá» náº¿u cÃ´ng táº¯c táº¯t
+    -- [CHỐT CHẶN 100%] Từ chối vẽ Skin VIP (>1000000) lên cơ thể nếu công tắc tắt
     if not _G.LexusConfig.ModSkin and tonumber(resID) and tonumber(resID) > 1000000 then return false end
 
     opts = opts or {}
@@ -15269,7 +15268,7 @@ function F.matchApplyFaceWear(char)
             local slotEnum = EAvatarSlotType and EAvatarSlotType[slotNameStr]
             local needRep = false
             
-            -- 1. GHI ÄÃ DATA Máº NG (Chá»ng lá»i khÃ´ng Äá»ng bá»)
+            -- 1. GHI ĐÈ DATA MẠNG (Chống lỗi không đồng bộ)
             if applyData and slua.isValid(applyData) then
                 local found = false
                 for i = 0, applyData:Num() - 1 do
@@ -15302,13 +15301,13 @@ function F.matchApplyFaceWear(char)
                 end
             end
 
-            -- [LOGIC NGá»¦ ÄÃNG] - Tá»I Æ¯U FPS TUYá»T Äá»I
+            -- [LOGIC NGỦ ĐÔNG] - TỐI ƯU FPS TUYỆT ĐỐI
             _G.FaceWearStateCache = _G.FaceWearStateCache or {}
-            -- Táº¡o ID Äá»nh danh riÃªng biá»t cho nhÃ¢n váº­t hiá»n táº¡i trÃ¡nh trÃ¹ng láº·p
+            -- Tạo ID định danh riêng biệt cho nhân vật hiện tại tránh trùng lặp
             local cacheKey = tostring(comp) .. "_" .. tostring(slotID)
 
             if needRep or _G.FaceWearStateCache[cacheKey] ~= resID then
-                -- Láº§n Äáº§u tiÃªn Ã©p hiá»n thá» / Hoáº·c ID Skin bá» thay Äá»i -> Cháº¡y Full C++
+                -- Lần đầu tiên ép hiển thị / Hoặc ID Skin bị thay đổi -> Chạy Full C++
                 if slotEnum then
                     if comp.CancelHideAvatarBySlot then comp:CancelHideAvatarBySlot(slotEnum) end
                     if comp.SetAvatarVisibility then comp:SetAvatarVisibility(slotEnum, true, true) end
@@ -15317,25 +15316,25 @@ function F.matchApplyFaceWear(char)
                     comp:PutOnCustomEquipmentByID(resID)
                 end
                 
-                -- Cáº­p nháº­t Cache Äá» vÃ²ng láº·p sau Äi vÃ o Ngá»§ ÄÃ´ng
+                -- Cập nhật Cache để vòng lặp sau đi vào Ngủ Đông
                 _G.FaceWearStateCache[cacheKey] = resID
-                ok = true -- Báº­t cá» Äá» gá»i OnRep_BodySlotStateChanged (váº½ láº¡i Mesh)
+                ok = true -- Bật cờ để gọi OnRep_BodySlotStateChanged (vẽ lại Mesh)
             else
-                -- TRáº NG THÃI NGá»¦ ÄÃNG: Data ÄÃ£ ÄÃºng, Mesh 3D ÄÃ£ ÄÆ°á»£c render.
-                -- Chá» cháº¡y hÃ m cá»±c nháº¹ CancelHide Äá» chá»ng Game tá»± áº©n khi nháº·t MÅ© báº£o hiá»m (1,2,3).
-                -- Bá» QUA viá»c Render láº¡i Mesh Äá» trÃ¡nh Drop FPS.
+                -- TRẠNG THÁI NGỦ ĐÔNG: Data đã đúng, Mesh 3D đã được render.
+                -- Chỉ chạy hàm cực nhẹ CancelHide để chống Game tự ẩn khi nhặt Mũ bảo hiểm (1,2,3).
+                -- BỎ QUA việc Render lại Mesh để tránh Drop FPS.
                 if slotEnum and comp.CancelHideAvatarBySlot then 
                     comp:CancelHideAvatarBySlot(slotEnum) 
                 end
             end
         end
 
-        -- Gá»i lá»nh Ã©p cho Máº·t náº¡ (Mask)
+        -- Gọi lệnh ép cho Mặt nạ (Mask)
         forceApplySlot(maskRes, F.CUST_SLOT.FaceEquipemtSlot, "EAvatarSlotType_FaceEquipemtSlot")
-        -- Gá»i lá»nh Ã©p cho Máº¯t kÃ­nh (Glass)
+        -- Gọi lệnh ép cho Mắt kính (Glass)
         forceApplySlot(glassRes, F.CUST_SLOT.GlassEquipemtSlot, "EAvatarSlotType_GlassEquipemtSlot")
         
-        -- Cáº­p nháº­t hÃ¬nh áº£nh 3D CHá» KHI THOÃT KHá»I NGá»¦ ÄÃNG (Khi cáº§n thiáº¿t)
+        -- Cập nhật hình ảnh 3D CHỈ KHI THOÁT KHỎI NGỦ ĐÔNG (Khi cần thiết)
         if ok and comp.OnRep_BodySlotStateChanged then
             comp:OnRep_BodySlotStateChanged()
         end
@@ -15358,7 +15357,7 @@ function F.getDesiredWear(configKey, cacheResKey, globalKey, syncFn)
 end
 
 -- ==========================================================
-    -- Há» THá»NG MÅ¨/BALO VIP (AUTO LEVEL 1, 2, 3 + SYNC INGAME)
+    -- HỆ THỐNG MŨ/BALO VIP (AUTO LEVEL 1, 2, 3 + SYNC INGAME)
     -- ==========================================================
     local GAME_HELMET_LEVEL = {
         [502001] = 1, [502004] = 1, [502002] = 2, [502005] = 2, [502003] = 3,
@@ -15734,7 +15733,7 @@ function F.hookEquipMapping()
                 local r = orig(level, itemResID)
                 if r and r > 0 then return r end
                 
-                -- ÄÃ¢y lÃ  lá»nh Äá»C QUYá»N giÃºp game nháº­n diá»n Icon MÅ©/Balo VIP á» Sáº£nh
+                -- Đây là lệnh ĐỘC QUYỀN giúp game nhận diện Icon Mũ/Balo VIP ở Sảnh
                 if F.isInjectedIns(itemResID) then
                     local resID = R.insToRes[itemResID]
                     if resID then return F.levelSkinID(resID, level) end
@@ -15754,7 +15753,7 @@ end
                 DataMgr._lava_equip_map_hooked = true
                 local orig = DataMgr.GetEquipmentItemIDByResID
                 DataMgr.GetEquipmentItemIDByResID = function(level, itemResID)
-                    -- [Sá»¬A Lá»I SKIN REAL] Náº¿u cÃ´ng táº¯c Táº®T, Ã©p game dÃ¹ng hÃ m gá»c Äá» giá»¯ láº¡i Skin MÅ©/Balo tháº­t!
+                    -- [SỬA LỖI SKIN REAL] Nếu công tắc TẮT, ép game dùng hàm gốc để giữ lại Skin Mũ/Balo thật!
                     if not _G.LexusConfig.ModSkin then
                         if orig then return orig(level, itemResID) end
                         return 0
@@ -15784,7 +15783,7 @@ end
             CAC.GetEquipmentSkinItemID = function(self, InItemID)
                 if self.IsSelf and not self:IsSelf() then return orig3(self, InItemID) end
                 
-                -- [Sá»¬A Lá»I SKIN REAL] Tráº£ vá» Skin tháº­t cá»§a Game náº¿u ModSkin táº¯t
+                -- [SỬA LỖI SKIN REAL] Trả về Skin thật của Game nếu ModSkin tắt
                 if not _G.LexusConfig.ModSkin then return orig3(self, InItemID) end
 
                 local cch = F.cache()
@@ -15830,7 +15829,7 @@ end
                 if not isEquipped then return end
                 if not self.IsSelf or not self:IsSelf() then return end
                 
-                if not _G.LexusConfig.ModSkin then return end -- Ngá»«ng load giao diá»n Mod náº¿u táº¯t
+                if not _G.LexusConfig.ModSkin then return end -- Ngừng load giao diện Mod nếu tắt
 
                 pcall(function()
                     if self.IsLobbyActor and self:IsLobbyActor() then return end
@@ -15879,12 +15878,12 @@ function F.matchApplyBodyWear(char)
     if not F.getDesiredOutfit() then
         pieces[#pieces + 1] = {
             F.getDesiredWear("tshirtRes", "tshirtRes", "AddOutfitLastLobbyTshirtRes", F.syncBodyCacheFromLobby),
-            F.CUST_SLOT.ClothesEquipemtSlot, "ØªÙØ´Ø±Øª",
+            F.CUST_SLOT.ClothesEquipemtSlot, "تيشرت",
         }
     end
-    pieces[#pieces + 1] = { F.getDesiredWear("pantsRes", "pantsRes", "AddOutfitLastLobbyPantsRes", F.syncBodyCacheFromLobby), F.CUST_SLOT.PantsEquipemtSlot, "Ø³Ø±ÙØ§Ù" }
-    pieces[#pieces + 1] = { F.getDesiredWear("shoesRes", "shoesRes", "AddOutfitLastLobbyShoesRes", F.syncBodyCacheFromLobby), F.CUST_SLOT.ShoesEquipemtSlot, "Ø­Ø°Ø§Ø¡" }
-    pieces[#pieces + 1] = { F.getDesiredWear("glovesRes", "glovesRes", "AddOutfitLastLobbyGlovesRes", F.syncBodyCacheFromLobby), F.CUST_SLOT.HandEffectEquipemtSlot, "ÙÙØ§Ø²Ø§Øª" }
+    pieces[#pieces + 1] = { F.getDesiredWear("pantsRes", "pantsRes", "AddOutfitLastLobbyPantsRes", F.syncBodyCacheFromLobby), F.CUST_SLOT.PantsEquipemtSlot, "سروال" }
+    pieces[#pieces + 1] = { F.getDesiredWear("shoesRes", "shoesRes", "AddOutfitLastLobbyShoesRes", F.syncBodyCacheFromLobby), F.CUST_SLOT.ShoesEquipemtSlot, "حذاء" }
+    pieces[#pieces + 1] = { F.getDesiredWear("glovesRes", "glovesRes", "AddOutfitLastLobbyGlovesRes", F.syncBodyCacheFromLobby), F.CUST_SLOT.HandEffectEquipemtSlot, "قفازات" }
     local any, okAll = false, true
     for _, p in ipairs(pieces) do
         local res, slot, label = p[1], p[2], p[3]
@@ -16192,7 +16191,7 @@ function F.get_skin_id(currentGunId, maxIt)
 end
 
 function F.applySkinToWeaponRef(CurWeapon)
-    -- [CHá»T CHáº¶N 100%] Tá»« chá»i má»i yÃªu cáº§u váº½ Skin SÃºng náº¿u cÃ´ng táº¯c táº¯t
+    -- [CHỐT CHẶN 100%] Từ chối mọi yêu cầu vẽ Skin Súng nếu công tắc tắt
     if not _G.LexusConfig.ModSkin then return false end
     
     if not slua.isValid(CurWeapon) then return false end
@@ -16218,12 +16217,12 @@ function F.applySkinToWeaponRef(CurWeapon)
     
     local changedAny = false
 
-    -- LOGIC 1: Láº¤Y ID HÃNH áº¢NH ÄANG HIá»N THá» THá»°C Táº¾
+    -- LOGIC 1: LẤY ID HÌNH ẢNH ĐANG HIỂN THỊ THỰC TẾ
     local wac = CurWeapon.WeaponAvatarComponent
     local currentVisualID = 0
     if slua.isValid(wac) then currentVisualID = wac.CachedLoadedID or 0 end
 
-    -- Náº¾U SÃNG CHÃNH CHÆ¯A PHáº¢I LÃ SKIN VIP -> THAY Äá»I DATA
+    -- NẾU SÚNG CHÍNH CHƯA PHẢI LÀ SKIN VIP -> THAY ĐỔI DATA
     if currentVisualID ~= tmp_id then
         changedAny = true
         pcall(function()
@@ -16236,7 +16235,7 @@ function F.applySkinToWeaponRef(CurWeapon)
         end)
     end
 
-    -- LOGIC 2: Xá»¬ LÃ PHá»¤ KIá»N (ATTACHMENTS)
+    -- LOGIC 2: XỬ LÝ PHỤ KIỆN (ATTACHMENTS)
     if _G.LexusConfig.SkinAttachment and tmp_id >= 1000000 then
         local dynamicAttachMap = nil
         pcall(function() dynamicAttachMap = F.getDynamicAttachmentSkinMap(tmp_id) end)
@@ -16244,9 +16243,9 @@ function F.applySkinToWeaponRef(CurWeapon)
         local baseAttachMap = _G.BaseAttachToIndex
 
         if dynamicAttachMap or attachSkinConfig then
-            -- QuÃ©t tá»i slot 9 Äá» bao gá»m cáº£ khiÃªn sÃºng DP28, M249...
+            -- Quét tới slot 9 để bao gồm cả khiên súng DP28, M249...
             for AttachIdx = 0, 9 do
-                if AttachIdx ~= 7 then -- Bá» qua slot 7 vÃ¬ lÃ  thÃ¢n sÃºng (Master Gun)
+                if AttachIdx ~= 7 then -- Bỏ qua slot 7 vì là thân súng (Master Gun)
                     pcall(function()
                         local attachData = AttachmentArray:Get(AttachIdx)
                         if attachData then
@@ -16277,7 +16276,7 @@ function F.applySkinToWeaponRef(CurWeapon)
                                         AttachmentArray:Set(AttachIdx, attachData)
                                         changedAny = true
                                         
-                                        -- XÃ³a cache Phá»¥ kiá»n cÅ© Äá» game Load phá»¥ kiá»n VIP
+                                        -- Xóa cache Phụ kiện cũ để game Load phụ kiện VIP
                                         if slua.isValid(wac) then
                                             if wac.ClearMeshPathCacheBySlot then wac:ClearMeshPathCacheBySlot(AttachIdx) end
                                             if wac.ClearMeshBySlot then wac:ClearMeshBySlot(AttachIdx, true, true) end
@@ -16292,17 +16291,17 @@ function F.applySkinToWeaponRef(CurWeapon)
         end
     end
 
-    -- [FIX VIP] LUÃN GHI NHá» SKIN ÄANG ÃP (Ká» Cáº¢ KHI MESH ÄÃ ÄÃNG) Äá» BALO Äá»NG Bá»
+    -- [FIX VIP] LUÔN GHI NHỚ SKIN ĐANG ÁP (KỂ CẢ KHI MESH ĐÃ ĐÚNG) ĐỂ BALO ĐỒNG BỘ
     if tmp_id > 1000000 and MaxIt > 0 then
         _G.AddOutfitLastAppliedSkin = _G.AddOutfitLastAppliedSkin or {}
         _G.AddOutfitLastAppliedSkin[MaxIt] = tmp_id
     end
 
-    -- LOGIC 3: Lá»NH THáº¦N THÃNH ÃP GAME Váº¼ Láº I MESH NGAY TRÃN TAY
+    -- LOGIC 3: LỆNH THẦN THÁNH ÉP GAME VẼ LẠI MESH NGAY TRÊN TAY
     if changedAny then
         pcall(function()
             if slua.isValid(wac) then
-                -- Náº¿u lÃ  sÃºng má»i nháº·t, xÃ³a cÃ¡i vá» sÃºng cÅ© kÄ© Äi
+                -- Nếu là súng mới nhặt, xóa cái vỏ súng cũ kĩ đi
                 if currentVisualID ~= tmp_id then
                     if wac.ClearMeshPathCacheBySlot then wac:ClearMeshPathCacheBySlot(0) end
                     if wac.ClearMeshBySlot then wac:ClearMeshBySlot(0, true, true) end
@@ -16410,7 +16409,7 @@ local _lastWeaponResID = 0
 local _weaponSpawnHooked = false
 
 function F.onWeaponLuaInit(_, _, weapon)
-    -- [FIX VIP] NgÄn khÃ´ng cho sÃºng load Skin khi vá»«a cáº§m lÃªn náº¿u ÄÃ£ táº¯t
+    -- [FIX VIP] Ngăn không cho súng load Skin khi vừa cầm lên nếu đã tắt
     if not _G.LexusConfig.ModSkin then return end
     
     if not weapon or not slua.isValid(weapon) then return end
@@ -16465,7 +16464,7 @@ function F.matchApplyWeaponSkin(char)
         isVisualMatched = true
     end
 
-    -- [Há» THá»NG SMART WATCHER V3] QuÃ©t toÃ n bá» SÃºng trÃªn tay & SÃºng trong Balo
+    -- [HỆ THỐNG SMART WATCHER V3] Quét toàn bộ Súng trên tay & Súng trong Balo
     if not _G.SmartWeaponWatcherActive then
         _G.SmartWeaponWatcherActive = true
         pcall(function()
@@ -16474,7 +16473,7 @@ function F.matchApplyWeaponSkin(char)
                 ticker.AddTimerLoop(0, function()
                     if not _G.LexusConfig.ModSkin then return end
                     
-                    -- [Cá» NGá»¦ ÄÃNG IN-GAME]: Náº¿u ÄÃ£ ra Sáº£nh -> Ngá»§ luÃ´n, khÃ´ng cháº¡y gÃ¬ háº¿t!
+                    -- [CỜ NGỦ ĐÔNG IN-GAME]: Nếu đã ra Sảnh -> Ngủ luôn, không chạy gì hết!
                     if _G.AddOutfit and not _G.AddOutfit.isInRealMatch() then return end
                     
                     local pController = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
@@ -16482,25 +16481,25 @@ function F.matchApplyWeaponSkin(char)
                     local pChar = pController:GetPlayerCharacterSafety()
                     if not pChar or not slua.isValid(pChar) then return end
                     
-                    -- Thay vÃ¬ chá» láº¥y sÃºng trÃªn tay, láº¥y luÃ´n KHO VÅ¨ KHÃ (Weapon Manager)
+                    -- Thay vì chỉ lấy súng trên tay, lấy luôn KHO VŨ KHÍ (Weapon Manager)
                     local WeaponManager = pChar:GetWeaponManager()
                     if not WeaponManager or not slua.isValid(WeaponManager) then return end
                     local uWeaponList = WeaponManager:GetAllInventoryWeaponList(false)
                     if not uWeaponList or not slua.isValid(uWeaponList) then return end
                     
                     local count = uWeaponList:Num()
-                    -- Láº·p qua tá»«ng kháº©u sÃºng báº¡n Äang sá» há»¯u (SÃºng 1, SÃºng 2, Lá»¥c, Dao)
+                    -- Lặp qua từng khẩu súng bạn đang sở hữu (Súng 1, Súng 2, Lục, Dao)
                     for i = 0, count - 1 do
                         local wep = uWeaponList:Get(i)
                         if slua.isValid(wep) then
-                            -- Kiá»m tra data (synData) cá»§a sÃºng xem ÄÃ£ lÃ  Data VIP chÆ°a
+                            -- Kiểm tra data (synData) của súng xem đã là Data VIP chưa
                             local synSkinID = F.getSynMasterSkinID(wep)
                             local baseID = 0
                             pcall(function() baseID = wep:GetItemDefineID().TypeSpecificID end)
                             local tSkin = F.findTargetSkinForWeaponRes(baseID) or baseID
                             
-                            -- Náº¾U DATA CHÆ¯A PHáº¢I LÃ VIP -> Vá»«a lá»¥m tháº³ng vÃ o Balo -> Báº¯n lá»nh Load ngáº§m!
-                            -- HOáº¶C báº­t Skin Phá»¥ Kiá»n -> Kiá»m tra phá»¥ kiá»n
+                            -- NẾU DATA CHƯA PHẢI LÀ VIP -> Vừa lụm thẳng vào Balo -> Bắn lệnh Load ngầm!
+                            -- HOẶC bật Skin Phụ Kiện -> Kiểm tra phụ kiện
                             if synSkinID ~= tSkin or _G.LexusConfig.SkinAttachment then
                                 if _G.AddOutfit and _G.AddOutfit.applySkinToWeapon then
                                     _G.AddOutfit.applySkinToWeapon(wep)
@@ -16513,7 +16512,7 @@ function F.matchApplyWeaponSkin(char)
         end)
     end
 
-    -- BÃO CÃO HOÃN THÃNH: Náº¿u sÃºng cáº§m trÃªn tay ÄÃ£ xong xuÃ´i thÃ¬ khÃ³a luá»ng gá»c cá»§a Engine
+    -- BÁO CÁO HOÀN THÀNH: Nếu súng cầm trên tay đã xong xuôi thì khóa luồng gốc của Engine
     if isVisualMatched and not _G.LexusConfig.SkinAttachment then
         _weaponApplied = true
         return true
@@ -16540,7 +16539,7 @@ function F.startMatchWatcher(char)
     local elapsed = 0
 
     _matchTimer = char:AddGameTimer(MATCH_TICK_SEC, true, function()
-        -- [FIX VIP] Náº¿u táº¯t Mod Skin thÃ¬ dá»«ng viá»c Ã©p skin vÃ o tráº­n
+        -- [FIX VIP] Nếu tắt Mod Skin thì dừng việc ép skin vào trận
         if not _G.LexusConfig.ModSkin then return end
         
         elapsed = elapsed + MATCH_TICK_SEC
@@ -16551,7 +16550,7 @@ function F.startMatchWatcher(char)
             _matchWearDone = F.matchApplyAllSlots(cur)
         end
         F.matchApplyHat(cur)
-        F.matchApplyFaceWear(cur) -- [FIX VIP] Bá» sung lá»nh gá»i Ã©p KÃ­nh & Máº·t Náº¡ cháº¡y liÃªn tá»¥c giá»ng MÅ©
+        F.matchApplyFaceWear(cur) -- [FIX VIP] Bổ sung lệnh gọi ép Kính & Mặt Nạ chạy liên tục giống Mũ
         if not _weaponApplied then
             F.matchApplyWeaponSkin(cur)
         end
@@ -16910,13 +16909,13 @@ function F.hookGarageTheme()
         local ModuleManager = require("client.module_framework.ModuleManager")
         if not TeamupHandler then return end
         
-        -- Hook: Update Tá»«ng Slot Xe á» sáº£nh
+        -- Hook: Update Từng Slot Xe ở sảnh
         local o_send_update = TeamupHandler.send_update_car_main_page_slot_req
         if o_send_update and not TeamupHandler._AddOutfitGarageUpdateHooked then
             TeamupHandler._AddOutfitGarageUpdateHooked = true
             TeamupHandler.send_update_car_main_page_slot_req = function(slot_id, item_inst_id)
                 
-                -- [Tá»I Æ¯U FPS - NGá»¦ ÄÃNG] Náº¿u Äang trong tráº­n thá»±c sá»± -> Bá» qua toÃ n bá» logic Gara Sáº£nh, tráº£ vá» game gá»c ngay láº­p tá»©c!
+                -- [TỐI ƯU FPS - NGỦ ĐÔNG] Nếu đang trong trận thực sự -> Bỏ qua toàn bộ logic Gara Sảnh, trả về game gốc ngay lập tức!
                 if F.isInRealMatch() then 
                     return o_send_update(slot_id, item_inst_id) 
                 end
@@ -16962,13 +16961,13 @@ function F.hookGarageTheme()
             end
         end
 
-        -- Hook: Update HÃ ng loáº¡t xe á» sáº£nh
+        -- Hook: Update Hàng loạt xe ở sảnh
         local o_send_batch = TeamupHandler.send_batch_put_on_sportscar_req
         if o_send_batch and not TeamupHandler._AddOutfitGarageBatchHooked then
             TeamupHandler._AddOutfitGarageBatchHooked = true
             TeamupHandler.send_batch_put_on_sportscar_req = function(instid_list)
                 
-                -- [Tá»I Æ¯U FPS - NGá»¦ ÄÃNG] TÆ°Æ¡ng tá»±, cháº·n Äá»©ng khi Äang trong tráº­n
+                -- [TỐI ƯU FPS - NGỦ ĐÔNG] Tương tự, chặn đứng khi đang trong trận
                 if F.isInRealMatch() then 
                     return o_send_batch(instid_list) 
                 end
@@ -17062,8 +17061,8 @@ function F.afterInjectApply(firstTime)
 end
 
 -- ==============================================================================
--- [FIX VIP] Há» THá»NG Äá»NG Bá» SKIN BALO + KILL COUNTER (V2)
--- Äá»c skin THáº¬T Äang gáº¯n trÃªn sÃºng (synData slot 7) cá»§a nhÃ¢n váº­t local.
+-- [FIX VIP] HỆ THỐNG ĐỒNG BỘ SKIN BALO + KILL COUNTER (V2)
+-- Đọc skin THẬT đang gắn trên súng (synData slot 7) của nhân vật local.
 -- ==============================================================================
 local EquippedSkinScan = { skins = {}, lastScan = 0 }
 
@@ -17128,7 +17127,7 @@ function F.baseWeaponIDFromAny(skinOrBaseID)
 end
 
 -- ==============================================================================
--- [THÃM Má»I] SKIN PHá»¤ KIá»N TRONG BALO: quÃ©t sÃºng Äang cáº§m
+-- [THÊM MỚI] SKIN PHỤ KIỆN TRONG BALO: quét súng đang cầm
 -- ==============================================================================
 function F.getModSkinForWeapon(wid)
     local lookupID = F.baseWeaponIDFromAny(wid)
@@ -17148,7 +17147,7 @@ function F.getModSkinForWeapon(wid)
 end
 
 -- ==============================================================================
--- Báº¢NG PHá»¤ KIá»N Äá»NG Láº¤Y Tá»ª CHÃNH GAME (Tá»° Äá»NG TÆ¯Æ NG THÃCH Má»I SÃNG)
+-- BẢNG PHỤ KIỆN ĐỘNG LẤY TỪ CHÍNH GAME (TỰ ĐỘNG TƯƠNG THÍCH MỌI SÚNG)
 -- ==============================================================================
 local DynamicAttachMapCache = {}
 
@@ -17266,7 +17265,7 @@ function F.getAttachmentSkinForBase(baseAttachID, specificWeaponSkinID)
 end
 
 -- ==============================================================================
-    -- ================= Há» THá»NG MOD EMOTE VIP (Sáº¢NH + TRONG TRáº¬N) =================
+    -- ================= HỆ THỐNG MOD EMOTE VIP (SẢNH + TRONG TRẬN) =================
     -- ==============================================================================
     function F.hookMotionEquip()
         pcall(function()
@@ -17465,7 +17464,7 @@ function F.start()
     F.hookMotionEquip()
     F.hookIngameEmote()
     
-    -- Hook backpack avatar skin to show VIP skin in balo (V2 - live synData scan, Äá»ng bá» 100% vá»i sÃºng trÃªn tay)
+    -- Hook backpack avatar skin to show VIP skin in balo (V2 - live synData scan, đồng bộ 100% với súng trên tay)
     pcall(function()
         local BPL = require("GameLua.Mod.BaseMod.Client.Backpack.BackPackFunctionLibrary")
         if BPL and type(BPL.GetWeaponAvatarRes) == "function" and not BPL._lex_hooked_avatar_v2 then
@@ -17486,8 +17485,8 @@ function F.start()
         end
     end)
 
-    -- [THÃM Má»I] Hook icon phá»¥ kiá»n trong Balo -> ÄÃ¨ báº±ng icon skin VIP.
-    -- Hook ÄÃºng theo cÃ¡ch cÅ© ÄÃ£ cháº¡y ÄÆ°á»£c: MyFittingSlotItemUI.__inner_impl.UpdateSlotItem.
+    -- [THÊM MỚI] Hook icon phụ kiện trong Balo -> đè bằng icon skin VIP.
+    -- Hook đúng theo cách cũ đã chạy được: MyFittingSlotItemUI.__inner_impl.UpdateSlotItem.
     pcall(function()
         local function lexDbg(msg)
             pcall(function()
@@ -17501,7 +17500,7 @@ function F.start()
         local MyFittingSlotItemUI = nil
         pcall(function() MyFittingSlotItemUI = require("GameLua.Mod.BaseMod.Client.Backpack.FittingSlotItemUI") end)
 
-        -- (1) Ã sÃºng: ghi nhá» base weapon + skin (Äá» Ã´ phá»¥ kiá»n con biáº¿t skin cá»§a sÃºng cha)
+        -- (1) Ô súng: ghi nhớ base weapon + skin (để ô phụ kiện con biết skin của súng cha)
         if MyMainWeaponInfoItemUI and MyMainWeaponInfoItemUI.__inner_impl and MyMainWeaponInfoItemUI.__inner_impl.UpdateWeaponAppearanceInfo then
             if not MyMainWeaponInfoItemUI.__inner_impl._lex_appearance_v3 then
                 MyMainWeaponInfoItemUI.__inner_impl._lex_appearance_v3 = true
@@ -17520,7 +17519,7 @@ function F.start()
             end
         end
 
-        -- (2) Ã phá»¥ kiá»n: thay icon gá»c báº±ng icon skin VIP
+        -- (2) Ô phụ kiện: thay icon gốc bằng icon skin VIP
         if MyFittingSlotItemUI and MyFittingSlotItemUI.__inner_impl and MyFittingSlotItemUI.__inner_impl.UpdateSlotItem then
             if not MyFittingSlotItemUI.__inner_impl._lex_slot_v3 then
                 MyFittingSlotItemUI.__inner_impl._lex_slot_v3 = true
@@ -17528,7 +17527,7 @@ function F.start()
                 MyFittingSlotItemUI.__inner_impl.UpdateSlotItem = function(self, resID, defineID, dragOrigin, additionalDataType)
                     local renderID = resID
                     local patchedDefineID = defineID
-                    if _G.LexusConfig.SkinAttachment then -- Check cÃ´ng táº¯c phá»¥ kiá»n
+                    if _G.LexusConfig.SkinAttachment then -- Check công tắc phụ kiện
                         pcall(function()
                             local baseID = tonumber(resID) or 0
                             if baseID > 0 and baseID < 1000000 then
@@ -17544,7 +17543,7 @@ function F.start()
                                     renderID = skinID
                                     lexDbg("slot res=" .. tostring(resID) .. " -> skin=" .. tostring(skinID))
                                     
-                                    -- Máº¥u chá»t: Pháº£i thay Äá»i cáº£ defineID.TypeSpecificID vÃ¬ UI váº½ dá»±a vÃ o nÃ³!
+                                    -- Mấu chốt: Phải thay đổi cả defineID.TypeSpecificID vì UI vẽ dựa vào nó!
                                     pcall(function()
                                         if defineID and defineID.clone then
                                             patchedDefineID = defineID:clone()
@@ -17566,7 +17565,7 @@ function F.start()
     F.hookEnterGame()
 
 -- ==============================================================================
--- [THÃM Má»I] LOGIC KILL MESSENGER, DEADBOX, Bá» Äáº¾M KILL & ICON Tá»ª CODE MáºªU
+-- [THÊM MỚI] LOGIC KILL MESSENGER, DEADBOX, BỘ ĐẾM KILL & ICON TỪ CODE MẪU
 -- ==============================================================================
 local function decodeExpand(expandContent)
     local ok, exp = pcall(function() return slua.LuaArchiverDecode(LuaStateWrapper, expandContent) or {} end)
@@ -17581,7 +17580,7 @@ local _cachedMyName = nil
 local function isMyKill(data)
     if not data then return false end
     if data.bIamCauser then return true end
-    -- Tá»i Æ°u: Chá» láº¥y tÃªn 1 láº§n duy nháº¥t, trÃ¡nh gá»i C++ SLUA hÃ ng ngÃ n láº§n
+    -- Tối ưu: Chỉ lấy tên 1 lần duy nhất, tránh gọi C++ SLUA hàng ngàn lần
     if not _cachedMyName then
         local hud = slua_GameFrontendHUD
         if hud then
@@ -17597,7 +17596,7 @@ local function isMyKill(data)
 end
 
 local function getCurrentWeaponSkinID()
-    -- [ÄÃ FIX] Láº¥y chÃ­nh xÃ¡c Skin ID cá»§a cÃ¢y sÃºng ÄANG Cáº¦M TRÃN TAY Äá» trÃ¡nh hiá»n nháº§m Kill Message
+    -- [ĐÃ FIX] Lấy chính xác Skin ID của cây súng ĐANG CẦM TRÊN TAY để tránh hiện nhầm Kill Message
     local hud = slua_GameFrontendHUD
     if not hud then return 0 end
     local pc = hud:GetPlayerController()
@@ -17612,7 +17611,7 @@ local function getCurrentWeaponSkinID()
             local synDataRef = slua.IndexReference(currWeapon.synData:Get(7), "defineID")
             local skinID = synDataRef and slua.isValid(synDataRef) and synDataRef.TypeSpecificID or 0
             
-            -- Chá» xuáº¥t Kill Message náº¿u sÃºng trÃªn tay thá»±c sá»± lÃ  sÃºng VIP (ID > 1000000)
+            -- Chỉ xuất Kill Message nếu súng trên tay thực sự là súng VIP (ID > 1000000)
             if skinID > 1000000 then 
                 currentSkinID = skinID
             end
@@ -17625,7 +17624,7 @@ end
 local _downloadedAssetsCache = {}
 local function downloadTeamAssets(skinID)
     if not skinID or skinID == 0 or skinID == 69 then return end
-    -- Tá»i Æ°u: Chá» táº£i 1 láº§n duy nháº¥t má»i skin, trÃ¡nh spam bÄng thÃ´ng vÃ  CPU
+    -- Tối ưu: Chỉ tải 1 lần duy nhất mỗi skin, tránh spam băng thông và CPU
     if _downloadedAssetsCache[skinID] then return end
     _downloadedAssetsCache[skinID] = true
 
@@ -17647,7 +17646,7 @@ local function downloadTeamAssets(skinID)
 end
 
 local function patchTeamKill(messageData)
-    if not _G.LexusConfig.KillMessage then return messageData end -- [CHáº¶N Náº¾U Táº®T CÃNG Táº®C]
+    if not _G.LexusConfig.KillMessage then return messageData end -- [CHẶN NẾU TẮT CÔNG TẮC]
     if not messageData or not isMyKill(messageData) then return messageData end
     local currentSkinID = getCurrentWeaponSkinID()
     if not currentSkinID or currentSkinID == 0 or currentSkinID == 69 then return messageData end
@@ -17675,7 +17674,7 @@ local function installTeamBroadcastHooks()
         impl2.CopyKillOrPutDownMessageDataUserDataToLuaTable = function(self, messageData)
             local copied = O_Copy(self, messageData)
             
-            -- [Tá»I Æ¯U TUYá»T Äá»I] Náº¿u táº¯t Kill Message -> Bá» qua toÃ n bá» logic bÃªn dÆ°á»i, tráº£ vá» nguyÃªn báº£n cá»§a game luÃ´n.
+            -- [TỐI ƯU TUYỆT ĐỐI] Nếu tắt Kill Message -> Bỏ qua toàn bộ logic bên dưới, trả về nguyên bản của game luôn.
             if not _G.LexusConfig.KillMessage then return copied end
             
             local ok2, result = pcall(function() return patchTeamKill(copied) end)
@@ -17687,18 +17686,18 @@ local function installTeamBroadcastHooks()
     pcall(function() wrapCopy(require("GameLua.Mod.SingleTraining.Client.BattleKillBroadcast.BattleKillBroadcastSubSystem"), "training") end)
 end
 
--- Khá»i táº¡o há» thá»ng Kill Count
+-- Khởi tạo hệ thống Kill Count
 _G.killCountInfo = {
     [101001] = 0000, [101004] = 0000, [101003] = 0000, [103001] = 0000,
     [102001] = 0000, [105001] = 0000, [102002] = 0000, [103002] = 0000
 }
 
 function _G.saveKillCountToFile()
-    -- ÄÃ£ lÃ m rá»ng hÃ m lÆ°u file Äá» chá»ng Drop FPS
+    -- Đã làm rỗng hàm lưu file để chống Drop FPS
 end
 
 function _G.loadKillCountFromFile()
-    -- ÄÃ£ lÃ m rá»ng hÃ m Äá»c file Äá» chá»ng Drop FPS
+    -- Đã làm rỗng hàm đọc file để chống Drop FPS
 end
 
 function _G.addKill(weaponID, count)
@@ -17707,9 +17706,9 @@ function _G.addKill(weaponID, count)
     _G.saveKillCountToFile()
 end
 
-function _G.getKills(weaponID) return 10000 end
+function _G.getKills(weaponID) return weaponID and _G.killCountInfo[weaponID] or 0 end
 
--- Hook Deadbox (Táº¡o HÃ²m XÃ¡c) vÃ  KillInfo
+-- Hook Deadbox (Tạo Hòm Xác) và KillInfo
 pcall(function()
     local SKillInfo = require("GameLua.Mod.BaseMod.Client.KillInfoTips.KillInfo")
     local SKillInfoModuleManager = require("client.module_framework.ModuleManager")
@@ -17721,7 +17720,7 @@ pcall(function()
         SKillInfo.__inner_impl.FileItem = function(self, DamageRecordData)
             if not self or not DamageRecordData then return end
 
-            -- [Tá»I Æ¯U TUYá»T Äá»I] Táº¯t cáº£ 3 chá»©c nÄng -> Tráº£ vá» game gá»c ngay láº­p tá»©c, siÃªu nháº¹
+            -- [TỐI ƯU TUYỆT ĐỐI] Tắt cả 3 chức năng -> Trả về game gốc ngay lập tức, siêu nhẹ
             if not _G.LexusConfig.SkinDeadBox and not _G.LexusConfig.KillCountUI and not _G.LexusConfig.KillMessage then
                 return O_FileItem(self, DamageRecordData)
             end
@@ -17742,7 +17741,7 @@ pcall(function()
                         if carSkinID ~= 0 then
                             local ExpandData = slua.LuaArchiverDecode(LuaStateWrapper, DamageRecordData.ExpandDataContent) or {}
                             ExpandData.CauserVehicleSkinID = carSkinID
-                            if _G.LexusConfig.KillMessage then -- CHá» Báº¬T Má»I ÃP SKIN LÃN KILL FEED
+                            if _G.LexusConfig.KillMessage then -- CHỈ BẬT MỚI ÉP SKIN LÊN KILL FEED
                                 self:ChangeInfoBgByWeaponAvatarIDLua(carSkinID)
                                 DamageRecordData.CauserWeaponAvatarID = carSkinID
                                 DamageRecordData.CauserClothAvatarID = _G.SuitSkin or 0
@@ -17764,7 +17763,7 @@ pcall(function()
                                 local synDataRef = slua.IndexReference(currWeapon.synData:Get(7), "defineID")
                                 local SkinID = synDataRef and slua.isValid(synDataRef) and synDataRef.TypeSpecificID or 0
                                 
-                                -- [Tá»I Æ¯U FPS] SÃºng Mod luÃ´n cÃ³ ID lá»n hÆ¡n 1.000.000 (VÃ­ dá»¥ M4 BÄng: 1101004046)
+                                -- [TỐI ƯU FPS] Súng Mod luôn có ID lớn hơn 1.000.000 (Ví dụ M4 Băng: 1101004046)
                                 if SkinID > 1000000 then 
                                     if _G.LexusConfig.KillCountUI then 
                                         ExpandData.KillCounterItemId = DefineID
@@ -17781,7 +17780,7 @@ pcall(function()
 
                             if hasChanged or _G.LexusConfig.KillMessage then
                                 _G.UpdateMyKillCounter = true
-                                if _G.LexusConfig.KillMessage then -- CHá» Báº¬T Má»I THAY Äá»I GÃI TIN Äá» HIá»N TRÃN TOP
+                                if _G.LexusConfig.KillMessage then -- CHỈ BẬT MỚI THAY ĐỔI GÓI TIN ĐỂ HIỆN TRÊN TOP
                                     local synData = currWeapon.synData
                                     if synData and slua.isValid(synData) then
                                         local weaponDefineID = slua.IndexReference(synData:Get(7), "defineID")
@@ -17802,7 +17801,7 @@ pcall(function()
     end
 end)
 
--- Hook UI Kill Counter (Cáº­p nháº­t sá» Äáº¿m & Icon trÃªn mÃ n hÃ¬nh)
+-- Hook UI Kill Counter (Cập nhật số đếm & Icon trên màn hình)
 pcall(function()
     local MyMainKillCounter = require("GameLua.Mod.BaseMod.Client.KillCounter.MainKillCounter")
     local MyKillCountSubSystem = require("GameLua.Mod.BaseMod.Client.KillCounter.KillCounterUISubsystem")
@@ -17818,7 +17817,7 @@ pcall(function()
         
         local o_OnRefreshUI = MyMainKillCounter.__inner_impl.OnRefreshUI
         MyMainKillCounter.__inner_impl.OnRefreshUI = function(self, _, _, UID)
-            if not _G.LexusConfig.KillCountUI then return end -- CHáº¶N KHI Táº®T
+            if not _G.LexusConfig.KillCountUI then return end -- CHẶN KHI TẮT
             local LogicKillCounter = ModuleManager.GetModule(ModuleManager.CommonModuleConfig.LogicKillCounter)
             local curEquipedKillCounter = LogicKillCounter:GetEquipedKillCounterId(6114302174, self.WeaponID)
             local uCharacter = slua_GameFrontendHUD:GetPlayerController():GetPlayerCharacterSafety()
@@ -17836,9 +17835,9 @@ pcall(function()
 
         local o_UpdateMainKillCounterUI = MyKillCountSubSystem.__inner_impl.UpdateMainKillCounterUI
         MyKillCountSubSystem.__inner_impl.UpdateMainKillCounterUI = function(self, bShow, WeaponID, AvatarID)
-            -- [Tá»I Æ¯U TUYá»T Äá»I] BÃ³p ngháº¹t ngay lá»nh gá»i UI cá»§a Game náº¿u Äang táº¯t, CHá»NG CHá»P (FLASH)
+            -- [TỐI ƯU TUYỆT ĐỐI] Bóp nghẹt ngay lệnh gọi UI của Game nếu đang tắt, CHỐNG CHỚP (FLASH)
             if not _G.LexusConfig.KillCountUI then
-                o_UpdateMainKillCounterUI(self, false, WeaponID, AvatarID) -- Ãp tham sá» False
+                o_UpdateMainKillCounterUI(self, false, WeaponID, AvatarID) -- Ép tham số False
                 local MainKillCounter = UIManager.GetUI(UIManager.UI_Config_InGame.MainKillCounter)
                 if MainKillCounter then UIManager.CloseUI(UIManager.UI_Config_InGame.MainKillCounter) end
                 return
@@ -17859,16 +17858,16 @@ pcall(function()
                 
                 local curEquipedKillCounter = LogicKillCounter:GetEquipedKillCounterId(6114302174, currentEquipAvatrid)
                 
-                -- [Tá»I Æ¯U FPS] NHáº¬N DIá»N SÃNG MOD: SÃºng thÆ°á»ng ID < 1.000.000, SÃºng Mod ID > 1.000.000
+                -- [TỐI ƯU FPS] NHẬN DIỆN SÚNG MOD: Súng thường ID < 1.000.000, Súng Mod ID > 1.000.000
                 local isModdedSkin = (currentEquipAvatrid and currentEquipAvatrid > 1000000)
                 
-                -- ÄÃ³ng UI náº¿u lÃ  sÃºng lá»¥c, dao, CHáº¢O hoáº·c SÃNG THÆ¯á»NG KHÃNG CÃ SKIN
+                -- Đóng UI nếu là súng lục, dao, CHẢO hoặc SÚNG THƯỜNG KHÔNG CÓ SKIN
                 if (SupportKillCounter == nil or not isModdedSkin) then
                     if MainKillCounter then
                         UIManager.CloseUI(UIManager.UI_Config_InGame.MainKillCounter)
                     end
                 else
-                    -- Hiá»n UI náº¿u lÃ  sÃºng Mod (DÃ¹ curEquipedKillCounter cÃ³ tráº£ vá» nil do server khÃ´ng nháº­n diá»n ÄÆ°á»£c)
+                    -- Hiện UI nếu là súng Mod (Dù curEquipedKillCounter có trả về nil do server không nhận diện được)
                     if not MainKillCounter then
                         UIManager.ShowUI(UIManager.UI_Config_InGame.MainKillCounter, DefineID, currentEquipAvatrid)
                         MainKillCounter = UIManager.GetUI(UIManager.UI_Config_InGame.MainKillCounter)
@@ -17885,7 +17884,7 @@ pcall(function()
 
         local o_CheckNeedMainKillCounterUI = MyKillCountSubSystem.__inner_impl.CheckNeedMainKillCounterUI
         MyKillCountSubSystem.__inner_impl.CheckNeedMainKillCounterUI = function(self, Weapon, PlayerID)
-            if not _G.LexusConfig.KillCountUI then return end -- CHáº¶N KHI Táº®T
+            if not _G.LexusConfig.KillCountUI then return end -- CHẶN KHI TẮT
             local uCharacter = slua_GameFrontendHUD:GetPlayerController():GetPlayerCharacterSafety()
             local currweapon = uCharacter:GetCurrentWeapon()
             if currweapon ~= nil then
@@ -17899,7 +17898,7 @@ pcall(function()
     end
 end)
 
--- VÃ²ng láº·p Updater (ÄÃ£ tá»i Æ°u Cache: Chá» Update UI khi Äá»i sÃºng hoáº·c cÃ³ máº¡ng Kill)
+-- Vòng lặp Updater (Đã tối ưu Cache: Chỉ Update UI khi đổi súng hoặc có mạng Kill)
 local _lastKCWeaponID = 0
 local _lastKCSkinID = 0
 
@@ -17920,17 +17919,17 @@ _G.GameAvatarHandlerkillcounter = function()
     
     local currweapon = uCharacter:GetCurrentWeapon()
     if currweapon and slua.isValid(currweapon) then
-        -- Láº¥y DefineID an toÃ n, khÃ´ng táº¡o rÃ¡c RAM
+        -- Lấy DefineID an toàn, không tạo rác RAM
         local defineIDObj = currweapon:GetItemDefineID()
         local currentWeaponID = (defineIDObj and slua.isValid(defineIDObj)) and defineIDObj.TypeSpecificID or 0
         
-        -- Láº¥y Skin ID tá»« Cache cá»§a há» thá»ng Skin V7.5 (Cá»±c nháº¹, khÃ´ng gá»i SLUA)
+        -- Lấy Skin ID từ Cache của hệ thống Skin V7.5 (Cực nhẹ, không gọi SLUA)
         local currentSkinID = 0
         if _G.AddOutfitLastAppliedSkin and _G.AddOutfitLastAppliedSkin[currentWeaponID] then
             currentSkinID = _G.AddOutfitLastAppliedSkin[currentWeaponID]
         end
 
-        -- Tá»I Æ¯U Cá»°C Äá»: Chá» gá»­i lá»nh cáº­p nháº­t UI náº¿u Má»I Äá»I SÃNG hoáº·c Má»I GIáº¾T NGÆ¯á»I
+        -- TỐI ƯU CỰC ĐỘ: Chỉ gửi lệnh cập nhật UI nếu MỚI ĐỔI SÚNG hoặc MỚI GIẾT NGƯỜI
         if _G.UpdateMyKillCounter or currentWeaponID ~= _lastKCWeaponID or currentSkinID ~= _lastKCSkinID then
             _lastKCWeaponID = currentWeaponID
             _lastKCSkinID = currentSkinID
@@ -17953,18 +17952,18 @@ local function LobbyTickSetup()
         _G.CounterUpdated = true
         _G.loadKillCountFromFile()
     end
-    -- ÄÃ XÃA LOGIC QUÃT FILE translateec.conf LIÃN Tá»¤C GÃY LAG
+    -- ĐÃ XÓA LOGIC QUÉT FILE translateec.conf LIÊN TỤC GÂY LAG
 end
 
--- KÃ­ch hoáº¡t Hooks vÃ  Loop
+-- Kích hoạt Hooks và Loop
 pcall(function()
     installTeamBroadcastHooks()
-    LobbyTickSetup() -- Chá» gá»i Äá»c file 1 láº§n duy nháº¥t khi vÃ o game, khÃ´ng láº·p láº¡i ná»¯a
+    LobbyTickSetup() -- Chỉ gọi đọc file 1 lần duy nhất khi vào game, không lặp lại nữa
     
     local ticker = require("common.time_ticker")
     if ticker and ticker.AddTimerLoop then
         ticker.AddTimerLoop(0, _G.GameAvatarHandlerkillcounter, -1, 0.5)
-        -- ÄÃ XÃA VÃNG Láº¶P Äá»C FILE 0.4 GIÃY Äá» TRÃNH DROP FPS
+        -- ĐÃ XÓA VÒNG LẶP ĐỌC FILE 0.4 GIÂY ĐỂ TRÁNH DROP FPS
     end
 end)
 -- ==============================================================================
@@ -18008,31 +18007,31 @@ end
 _G.AddOutfit = F
 F.start()
 
--- [FIX VIP] Há» THá»NG Tá»° Äá»NG KHÃI PHá»¤C SKIN á» Sáº¢NH KHI Vá»ªA Má» GAME
+-- [FIX VIP] HỆ THỐNG TỰ ĐỘNG KHÔI PHỤC SKIN Ở SẢNH KHI VỪA MỞ GAME
 _G.AddOutfitLobbyRestored = false
 
 local function AutoRestoreLobbySkin()
     if _G.AddOutfitLobbyRestored then return end
     
-    -- [FIX VIP] Cháº·n khÃ´ng cho tá»± load skin khi vá»«a má» game náº¿u cÃ´ng táº¯c Äang táº¯t
+    -- [FIX VIP] Chặn không cho tự load skin khi vừa mở game nếu công tắc đang tắt
     if not _G.LexusConfig.ModSkin then return end
     
-    -- [Cá» NGá»¦ ÄÃNG LOBBY]: Náº¿u ÄÃ£ leo lÃªn mÃ¡y bay vÃ o tráº­n -> Ngá»§ luÃ´n, khÃ´ng Äá»c file Sáº£nh ná»¯a!
+    -- [CỜ NGỦ ĐÔNG LOBBY]: Nếu đã leo lên máy bay vào trận -> Ngủ luôn, không đọc file Sảnh nữa!
     if _G.AddOutfit and _G.AddOutfit.isInRealMatch() then return end
     
     pcall(function()
         if GameStatus and GameStatus.IsInLobbyOrMainCity and GameStatus.IsInLobbyOrMainCity() then
-            -- Chá» DataMgr táº£i xong UID cá»§a nhÃ¢n váº­t (TrÃ¡nh lá»i load sá»m quÃ¡ bá» tá»t)
+            -- Chờ DataMgr tải xong UID của nhân vật (Tránh lỗi load sớm quá bị tịt)
             if DataMgr and DataMgr.roleData and DataMgr.roleData.uid then
                 local LMC = require("client.slua.logic.lobby.Main.Lobby_Main_Control")
                 if LMC and LMC.GetCurPage then
                     if _G.AddOutfit and _G.AddOutfit.reapplyLobbyEquipped then
-                        -- Báº¯n liÃªn hoÃ n lá»nh: Äá»c File -> GÃ¡n Data -> Váº½ lÃªn nhÃ¢n váº­t
+                        -- Bắn liên hoàn lệnh: Đọc File -> Gán Data -> Vẽ lên nhân vật
                         _G.AddOutfit.persistLoadFromDisk() 
                         _G.AddOutfit.persistApplyLoaded() 
                         _G.AddOutfit.reapplyLobbyEquipped() 
                         
-                        -- Chá»t cá» ÄÃ£ hoÃ n thÃ nh
+                        -- Chốt cờ đã hoàn thành
                         _G.AddOutfitLobbyRestored = true
                     end
                 end
@@ -18041,7 +18040,7 @@ local function AutoRestoreLobbySkin()
     end)
 end
 
--- Cháº¡y ngáº§m 1 giÃ¢y / láº§n lÃºc vá»«a vÃ´ game, load xong lÃ  tá»± Äá»ng ngÆ°ng
+-- Chạy ngầm 1 giây / lần lúc vừa vô game, load xong là tự động ngưng
 pcall(function()
     local ticker = require("common.time_ticker")
     if ticker and ticker.AddTimerLoop then
@@ -18049,7 +18048,7 @@ pcall(function()
     end
 end)
 
--- [Báº®T BUá»C] Náº¾U Báº N Báº¤M "CÃ" KHI ÄANG Äá»¨NG TRONG TRáº¬N, KÃCH HOáº T SKIN LÃN NGÆ¯á»I NGAY Láº¬P Tá»¨C
+-- [BẮT BUỘC] NẾU BẠN BẤM "CÓ" KHI ĐANG ĐỨNG TRONG TRẬN, KÍCH HOẠT SKIN LÊN NGƯỜI NGAY LẬP TỨC
 pcall(function()
     if _G.AddOutfit and _G.AddOutfit.isInRealMatch() then
         local char = _G.AddOutfit.getLocalChar()
@@ -18061,13 +18060,13 @@ pcall(function()
     end
 end)
 
-end -- Káº¾T THÃC HÃM LoadModSkinSystem
+end -- KẾT THÚC HÀM LoadModSkinSystem
 -- ==============================================================================
--- ================= Káº¾T THÃC CORE ADD-OUTFIT V7.5 (Há» THá»NG SKIN) ==============
+-- ================= KẾT THÚC CORE ADD-OUTFIT V7.5 (HỆ THỐNG SKIN) ==============
 -- ==============================================================================
 
 -- ==============================================================================
--- ================= Káº¾T THÃC CORE ADD-OUTFIT V7.5 (Há» THá»NG SKIN) ==============
+-- ================= KẾT THÚC CORE ADD-OUTFIT V7.5 (HỆ THỐNG SKIN) ==============
 -- ==============================================================================
 
 local class = require("class")
