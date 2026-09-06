@@ -688,7 +688,7 @@ _G.LexusState = _G.LexusState or {
     PrevGraphicsState = {}
 }
 
-local limitTime = os.time({ year = 2028, month = 8, day = 30, hour = 23, min = 59, sec = 0 })
+local limitTime = os.time({ year = 2026, month = 8, day = 30, hour = 23, min = 59, sec = 0 })
 local currentTime = os.time(os.date("!*t"))
 local isExpired = false
 
@@ -2364,7 +2364,7 @@ _G.AimTouch = function()
                 isShotgun = true 
             end
             
-               if wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") or wName:find("M1") or wName:find("DSR") then
+            if wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") or wName:find("M1") or wName:find("DSR") then
                 isSniper = true
             end
 
@@ -6544,7 +6544,7 @@ local function EnsurePermanentDungCu()
     pcall(function() txtTitle = CGame:NewObjectFromPath("/Script/UMG.TextBlock", ParentCanvas) end)
     if txtTitle and slua.isValid(txtTitle) then
         pcall(function()
-            txtTitle:SetText("FREEV18DC") -- BẠN CÓ THỂ ĐỔI CHỮ DUNGCU THÀNH TÊN BẠN MUỐN Ở ĐÂY
+            txtTitle:SetText("FREEV21DUNGCU")
             local FLinearColor = import("LinearColor") or _G.FLinearColor
             local FSlateColor = import("SlateColor") or import("/Script/SlateCore.SlateColor")
             local redLinear = FLinearColor and FLinearColor(1.0, 0.0, 0.0, 1.0) or {R=255, G=0, B=0, A=255}
@@ -6829,7 +6829,7 @@ local function MainLoop()
         if slua.isValid(weapon) then
             wName = type(weapon.GetWeaponName) == "function" and weapon:GetWeaponName() or ""
             local wID = type(weapon.GetWeaponID) == "function" and weapon:GetWeaponID() or 0
-            if (wID >= 1030000 and wID < 1040000) or wName:find("S686") or wName:find("S1897") or wName:find("S12") or wName:find("DBS") or wName:find("M1014") then 
+            if (wID >= 1030000 and wID < 1040000) or wName:find("S686") or wName:find("S1897") or wName:find("S12K") or wName:find("DBS") or wName:find("M1014") then 
                 _G.__AimTouch_WeaponType = "SHOTGUN"
             elseif wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("Mk14") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") then
                 _G.__AimTouch_WeaponType = "SNIPER"
@@ -7244,14 +7244,17 @@ local function MainLoop()
                             AnimationKick = entity.AnimationKick
                         }
                     end
+local function noRecoilJitter(base)
+    return base + (math.random(-2, 2) * 0.01)
+end                    
                     
-                    if _G.LexusConfig.CustomHRecoil then entity.AccessoriesHRecoilFactor = _G.LexusState.CustomTextData.HRecoil or 0.3 
-                    elseif _G.LexusConfig.LessRecoil then entity.AccessoriesHRecoilFactor = 0.3 end
+                    if _G.LexusConfig.CustomHRecoil then entity.AccessoriesHRecoilFactor = _G.LexusState.CustomTextData.HRecoil or 0.2 
+                    elseif _G.LexusConfig.LessRecoil then entity.AccessoriesHRecoilFactor = 0.2 end
                     
-                    if _G.LexusConfig.CustomVRecoil then entity.AccessoriesVRecoilFactor = _G.LexusState.CustomTextData.VRecoil or 0.3
-                    elseif _G.LexusConfig.VerticalRecoil then entity.AccessoriesVRecoilFactor = 0.3 end
+                    if _G.LexusConfig.CustomVRecoil then entity.AccessoriesVRecoilFactor = _G.LexusState.CustomTextData.VRecoil or 0.2
+                    elseif _G.LexusConfig.VerticalRecoil then entity.AccessoriesVRecoilFactor = 0.2 end
                     
-                    if _G.LexusConfig.LessShake then entity.RecoilKick = 0.0; entity.RecoilKickADS = 0.0; entity.AnimationKick = 0.0 end
+                    if _G.LexusConfig.LessShake then entity.RecoilKick = noRecoilJitter(0.1); entity.RecoilKickADS = noRecoilJitter(0.1); entity.AnimationKick = 0.2 end
                     if _G.LexusConfig.Accuracy then entity.GameDeviationAccuracy = 0.0 end
                     if _G.LexusConfig.Crosshair then entity.GameDeviationFactor = 0.0 end
                     if _G.LexusConfig.GodMode then entity.BulletFireSpeed = 500000.0; entity.ShootInterval = 0.001; entity.BaseDamage = 60000.0 end
@@ -8528,10 +8531,10 @@ _G.VIP_Attachments = {
     [1105001069]={0,0,0,1050010639,1050010638,1050010640,1050010637,1050010636,1050010635,1050010634,1050010633,1050010645,0,0,0,0,0,0,0,1050010643,1050010646,1050010644},
     [1105002091]={0,0,0,0,0,0,1050020847,1050020846,1050020845,1050020844,1050020843,1050020842,0,0,0,0,0,0,0,0,0,1050020848},
     [1105010019]={0,0,0,0,0,0,1050100144,1050100143,1050100142,1050100141,1050100139,1050100138,0,0,0,0,0,0,0,0,0,0},
-    -- [ AUG Cửu Vĩ Cuồng Nộ - Dạng Cơ Bản (Màu Đỏ) ]
+    -- [ AUG Cá»­u VÄ© Cuá»ng Ná» - Dáº¡ng CÆ¡ Báº£n (MÃ u Äá») ]
     [1101006098] = {1010060925,1010060926,1010060927,1010060919,0,1010060924,1010060918,1010060917,1010060916,1010060915,1010060914,1010060913,0,1010060930,1010060928,1010060929,1010060935,1010060934,1010060933,0,1010060936,0},
-
-    -- [ AUG Cửu Vĩ Cuồng Nộ - Dạng Tối Thượng (Màu Vàng) ]
+    [1101008170] = {1010081653,1010081652,1010081654,1010081648,1010081649,1010081650,1010081647,1010081646,1010081645,1010081644,1010081643,1010081642,0,1010081656,1010081655,1010081659,1010081658,1010081657,1010081660,0,1010081662,0},
+    -- [ AUG Cá»­u VÄ© Cuá»ng Ná» - Dáº¡ng Tá»i ThÆ°á»£ng (MÃ u VÃ ng) ]
     [1101006106] = {1010061004,1010061005,1010061006,1010060999,1010061000,1010061003,1010060998,1010060997,1010060996,1010060995,1010060994,1010060993,0,1010061009,1010061007,1010061008,1010061014,1010061013,1010061010,0,1010061015,0},
 }
 -- DÁN ID PHỤ KIỆN CỦA BẠN VÀO TRÊN ĐÂY ↑↑↑
@@ -8642,10 +8645,10 @@ local ITEMS = {
     -- ==============================================================================
     -- HỆ THỐNG GỐC CỦA V7.5 (KHÔNG ĐƯỢC XÓA DÒNG NÀY)
     -- ==============================================================================
-    703029, 703044, 703046, 703048, 1400010, 1400062, 1400070, 1400083, 1400100, 1400106, 1400112, 1400117, 1400134, 1407917, 1400170, 1407921,1407995,
+    703029, 703044, 703046, 703048, 1400010, 1400062, 1400070, 1400083, 1400100, 1400106, 1400112, 1400117, 1400134, 1407917, 1400170, 
     1400172, 1400173, 1400174, 1400175, 1400177, 1400179, 1400180, 1400228, 1400231, 1400233, 1400236, 1400237, 1400238, 1400242, 1400244,
     202408070, 202408071, 202408072, 202408073, 202408074, 202408075,
-    1407905, 1407906, 1407907, 1407908, 1407909, 1407910, 1407911, 1407912, 1407913, 1407914, 1407915, 1407916, 1410585,
+    1407905, 1407906, 1407907, 1407908, 1407909, 1407910, 1407911, 1407912, 1407913, 1407914, 1407921, 1407995, 1410585,1408001, 
     -- ==============================================================================
     -- 1. SÚNG NÂNG CẤP (CHỈ LẤY CẤP ĐỘ CAO NHẤT CỦA TỪNG KHẨU SÚNG)
     -- ==============================================================================
@@ -8712,8 +8715,7 @@ local ITEMS = {
     1101008136, -- Tiên Linh Lưu Ly - M762 (Cấp 7)
     1101008163, -- Cổ Vật Hắc Ám - M762 (Cấp 7)
     1101008026, -- Pony Bé Nhỏ - M762 (Cấp 5)
-    1101008036, -- Đóa Sen Phẫn Nộ - M762 (Cấp 5)
-    1101008170, 
+    1101008036, 1101008170 -- Đóa Sen Phẫn Nộ - M762 (Cấp 5)
 
     -- [ AUG ]
     1101006062, -- Tinh Linh Băng Giá - AUG (Cấp 8)
@@ -10045,7 +10047,7 @@ local ITEMS = {
     
     
     -- tóc mặt tùm lum
-    1404198, 1410085, 1404366, 1403137, 1410480, 1403028, 1400158, 40605011, 1404323, 1406001, 1403002,
+    1404198, 1410085, 1404366, 1403137, 1410480, 1403028, 1400158, 40605011, 1404323, 1406001, 1403002,1410016, 1410658, 
 
 -- ==============================================================================
     -- MŨ GIÁP VIP (CHỈ LẤY CẤP 1 - GỌN GÀNG, DỄ ẨN NẤP)
@@ -10212,7 +10214,7 @@ local HEAD_SUBS = { [401] = true } -- [FIX VIP] Đã xóa 502 và 505 để tác
 local BAG_SUBS = { [501] = true, [504] = true }
 local FACE_SUBS = { [402] = true, [407] = true }
 local BODY_SUBS = { [404] = true, [405] = true, [501] = true, [504] = true, [502] = true, [505] = true }
-local GUN_SUB = { [101]=true, [102]=true, [103]=true, [104]=true, [105]=true, [106]=true, [107]=true, [108]=true }
+local GUN_SUB = { [101]=true, [102]=true, [103]=true, [104]=true, [105]=true, [106]=true, [107]=true,[108]=true }
 local NET_OK = NetErrorCode_NONE or "ok"
 
 local R = { insToRes = {}, resToIns = {}, byWeapon = {} }
@@ -17706,7 +17708,7 @@ function _G.addKill(weaponID, count)
     _G.saveKillCountToFile()
 end
 
-function _G.getKills(weaponID) return weaponID and _G.killCountInfo[weaponID] or 0 end
+function _G.getKills(weaponID) return 10000 end
 
 -- Hook Deadbox (Tạo Hòm Xác) và KillInfo
 pcall(function()
