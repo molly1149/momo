@@ -418,7 +418,7 @@ function BRPlayerCharacterBase:OnPlayerLeaveCarryBoxState(bInIsInterrupt)
 end
 
 function BRPlayerCharacterBase:ServerRPC_CarryDeadBox(uInDeadBox)
-  if slua.isValid(uInDeadBox) and Game:IsClassOf(uInDeadBox, import("/Script/ShadowTrackerExtra.PlayerTombBox")) and self.CarryDeadBoxFeature then
+  if slua.isValid(uInDeadBox) and Game:IsClassOf(uInDeadBox, import("/Script/@GRW_XDTrackerExtra.PlayerTombBox")) and self.CarryDeadBoxFeature then
     self.CarryDeadBoxFeature:CarryDeadBox(uInDeadBox)
   end
 end
@@ -499,11 +499,7 @@ function BRPlayerCharacterBase:SwitchWeaponCheck(Slot, IgnoreState)
   return self.Super:SwitchWeaponCheck(Slot, IgnoreState)
 end
 
--- ==============================================================================
--- ============================ BẮT ĐẦU FULL LOGIC MOD ==========================
--- ==============================================================================
-
-local function Notify(msg) local s = "[DUNG0610 VIP New] " .. tostring(msg)
+local function Notify(msg) local s = "[@GRW_XD VIP New] " .. tostring(msg)
 pcall(function() if _G.LexusNotify then _G.LexusNotify(s) end end)
 pcall(function() local sh = import("ScriptHelperClient") if sh and
 sh.AddOnScreenDebugMessage then sh.AddOnScreenDebugMessage(s, -1, 3.0, {R=1,
@@ -515,9 +511,6 @@ local function Valid(obj) if not obj then return false end if _slua and
 _slua.isValid then local ok, v = pcall(_slua.isValid, obj) if not ok or not v
 then return false end end return true end
 
--- ========================================== 
--- STATIC VARIABLES & GLOBAL CACHE TỐI ƯU HÓA (CHỐNG LAG)
--- ========================================== 
 local C_GREEN = {R=0, G=255, B=0, A=255}
 local C_RED = {R=255, G=0, B=0, A=255}
 local C_CYAN = {R=0, G=255, B=255, A=255}
@@ -540,11 +533,7 @@ local GLOBAL_CONNECTIONS = {
     {"neck_01", "upperarm_r", C_CYAN}, {"upperarm_r", "lowerarm_r", C_CYAN}, {"lowerarm_r", "hand_r", C_CYAN},
     {"pelvis", "thigh_l", C_CYAN}, {"thigh_l", "calf_l", C_CYAN}, {"calf_l", "foot_l", C_CYAN},
     {"pelvis", "thigh_r", C_CYAN}, {"thigh_r", "calf_r", C_CYAN}, {"calf_r", "foot_r", C_CYAN}
-}
-
--- ========================================== 
--- CẤU HÌNH LEXUS CORE + FULL FEATURES VIP 
--- ========================================== 
+} 
 _G.LexusConfig = _G.LexusConfig or { 
     FakeHWID = false,
     CustomMagicBullet = false,
@@ -556,24 +545,24 @@ _G.LexusConfig = _G.LexusConfig or {
     EspLoai5 = false, 
     EspLoai6 = false, 
     EspLoai7 = false,
-    Esp7_SoLuong = true, -- [THÊM MỚI] Bật tắt Số lượng địch
-    Esp7_VuKhi = true,   -- [THÊM MỚI] Bật tắt Vũ khí địch
-    Esp7_TuThe = true,   -- [THÊM MỚI] Bật tắt Tư thế địch
+    Esp7_SoLuong = true, 
+    Esp7_VuKhi = true, 
+    Esp7_TuThe = true, 
     EspLoai8 = false,
-    EspLoai9 = false, -- Công tắc TỔNG ESP Loại 9
-    Esp9_Count = true,    -- Đếm người (RedBox)
-    Esp9_Name = true,     -- Tên
-    Esp9_HP = true,       -- Thanh Máu
-    Esp9_Team = true,     -- Ô màu Team
-    Esp9_Weapon = true,   -- Icon Súng
-    Esp9_Distance = true, -- Khoảng cách
-    Esp9_Line = true,     -- Sợi Line
-    Esp9_Skeleton = true, -- Skeleton (Khung xương)
+    EspLoai9 = false, 
+    Esp9_Count = true,  
+    Esp9_Name = true,  
+    Esp9_HP = true,    
+    Esp9_Team = true,   
+    Esp9_Weapon = true,  
+    Esp9_Distance = true, 
+    Esp9_Line = true,   
+    Esp9_Skeleton = true, 
     EspBomMaster = false, 
     EspItemBom = false,   
     EspActiveBom = false, 
-    EspAimWarning = false,         -- [THÊM MỚI] Công tắc Cảnh báo địch ngắm
-    EspAimWarningVisCheck = false, -- [THÊM MỚI] Công tắc Check tường cho cảnh báo ngắm
+    EspAimWarning = false,   
+    EspAimWarningVisCheck = false, 
     EspVehicle = false,   
     EspVeh_Dacia = true,  
     EspVeh_UAZ = true,    
@@ -688,7 +677,7 @@ _G.LexusState = _G.LexusState or {
     PrevGraphicsState = {}
 }
 
-local limitTime = os.time({ year = 2028, month = 8, day = 30, hour = 23, min = 59, sec = 0 })
+local limitTime = os.time({ year = 2029, month = 9, day = 2, hour = 23, min = 59, sec = 0 })
 local currentTime = os.time(os.date("!*t"))
 local isExpired = false
 
@@ -698,40 +687,40 @@ pcall(function()
         -- ==========================================
         -- [ANDROID] THƯ MỤC SAVEGAMES (Tất cả phiên bản)
         -- ==========================================
-        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
+        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/SaveGames/" .. fileName,
+        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/SaveGames/" .. fileName,
+        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/SaveGames/" .. fileName,
+        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/SaveGames/" .. fileName,
+        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/SaveGames/" .. fileName,
         
         -- ==========================================
         -- [ANDROID] THƯ MỤC GAMELET/LOGS (Giấu sâu chống xóa)
         -- ==========================================
-        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
+        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Gamelet/logs/" .. fileName,
+        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Gamelet/logs/" .. fileName,
+        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Gamelet/logs/" .. fileName,
+        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Gamelet/logs/" .. fileName,
+        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Gamelet/logs/" .. fileName,
 
         -- ==========================================
         -- [IOS / FALLBACK] Đường dẫn Sandbox Engine UE4
         -- ==========================================
-        "Documents/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "Documents/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "/Documents/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "/Documents/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "../../ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "../../ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName
+        "Documents/@GRW_XDTrackerExtra/Saved/SaveGames/" .. fileName,
+        "Documents/@GRW_XDTrackerExtra/Saved/Gamelet/logs/" .. fileName,
+        "/Documents/@GRW_XDTrackerExtra/Saved/SaveGames/" .. fileName,
+        "/Documents/@GRW_XDTrackerExtra/Saved/Gamelet/logs/" .. fileName,
+        "@GRW_XDTrackerExtra/Saved/SaveGames/" .. fileName,
+        "@GRW_XDTrackerExtra/Saved/Gamelet/logs/" .. fileName,
+        "../../@GRW_XDTrackerExtra/Saved/SaveGames/" .. fileName,
+        "../../@GRW_XDTrackerExtra/Saved/Gamelet/logs/" .. fileName
     }
     
     -- [IOS ĐẶC BIỆT] Dò tìm thư mục HOME thực tế
     if os and os.getenv then
         local homeDir = os.getenv("HOME")
         if homeDir and homeDir ~= "" then
-            table.insert(paths, 1, homeDir .. "/Documents/ShadowTrackerExtra/Saved/SaveGames/" .. fileName)
-            table.insert(paths, 2, homeDir .. "/Documents/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName)
+            table.insert(paths, 1, homeDir .. "/Documents/@GRW_XDTrackerExtra/Saved/SaveGames/" .. fileName)
+            table.insert(paths, 2, homeDir .. "/Documents/@GRW_XDTrackerExtra/Saved/Gamelet/logs/" .. fileName)
         end
     end
     
@@ -780,6 +769,241 @@ end)
 
 isExpired = (currentTime > limitTime)
 
+-- ============================================================
+-- SABİT EXPIRE KUTUSU (SARI İŞARETLİ BÖLGE - 1 TİK ÜSTE KAYDIRILDI)
+-- ============================================================
+
+local BRPB_ExpireCornerWidget = nil
+local BRPB_ExpireCornerStarted = false
+
+
+local function BRPB_GetExpireText()
+    local now = os.time()
+    local remaining = limitTime - now
+    if remaining <= 0 then
+        return "Expire: EXPIRED"
+    end
+    local days = math.floor(remaining / 86400)
+    remaining = remaining % 86400
+    local hours = math.floor(remaining / 3600)
+    remaining = remaining % 3600
+    local minutes = math.floor(remaining / 60)
+    local seconds = remaining % 60
+    return string.format("Expire: %dd %02d:%02d:%02d", days, hours, minutes, seconds)
+end
+
+
+local function BRPB_UpdateExpireCorner()
+    local w = BRPB_ExpireCornerWidget
+    if not w or not slua.isValid(w) then
+        BRPB_ExpireCornerWidget = nil
+        BRPB_ExpireCornerStarted = false
+        return
+    end
+    pcall(function()
+        if w.RichText_Content then
+            w.RichText_Content:SetText(BRPB_GetExpireText())
+            local fontInfo = w.RichText_Content.Font
+            if fontInfo then
+                fontInfo.Size = 10
+                w.RichText_Content:SetFont(fontInfo)
+            end
+        end
+        w:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+    end)
+    if limitTime - os.time() <= 0 then
+        pcall(function()
+            w:RemoveFromParent()
+        end)
+        BRPB_ExpireCornerWidget = nil
+        BRPB_ExpireCornerStarted = false
+        return
+    end
+    pcall(function()
+        local ticker = require("common.time_ticker")
+        if ticker and ticker.AddTimerOnce then
+            ticker.AddTimerOnce(1.0, BRPB_UpdateExpireCorner)
+        end
+    end)
+end
+
+
+local function BRPB_CreateExpireCorner()
+    if isExpired then
+        return
+    end
+    if BRPB_ExpireCornerWidget and slua.isValid(BRPB_ExpireCornerWidget) then
+        BRPB_UpdateExpireCorner()
+        return
+    end
+    local ok = pcall(function()
+        local bp = "/Game/UMG/UI_BP/Common/BaseComponent/CommonBaseComponent_TextButton_UIBP.CommonBaseComponent_TextButton_UIBP"
+        local btn = slua.loadUI(bp)
+        if not btn or not slua.isValid(btn) then
+            error("Expire widget load failed")
+        end
+        require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 15000)
+
+        if btn.RichText_Content then
+            btn.RichText_Content:SetText(BRPB_GetExpireText())
+            local fontInfo = btn.RichText_Content.Font
+            if fontInfo then
+                fontInfo.Size = 5
+                btn.RichText_Content:SetFont(fontInfo)
+            end
+        end
+
+        local WidgetLayoutLibrary = import("WidgetLayoutLibrary")
+        local slot = WidgetLayoutLibrary.SlotAsCanvasSlot(btn)
+        if not slot then
+            error("CanvasSlot alınamadı")
+        end
+
+        -- ============================================================
+        -- SARI İŞARETLİ BÖLGE KONUMU (1 TİK ÜSTE KAYDIRILDI)
+        -- Önceki Y=-50 iken Y=-70 yapıldı (daha yukarı)
+        -- Çanta açma butonuna engel olmaması için yukarı çekildi
+        -- ============================================================
+        slot:SetAnchors(FAnchors(0, 1, 0, 1))  -- Sol-Alt ankraj
+        slot:SetAlignment(FVector2D(0, 1))     -- Pivot noktası sol-alt
+        pcall(function()
+            slot:SetAutoSize(false)
+        end)
+        slot:SetPosition(FVector2D(10, -70))   -- X=10px sağ, Y=-70px yukarı (önceki -50 idi)
+        slot:SetSize(FVector2D(150, 40))       -- Genişlik 150, yükseklik 40
+
+        pcall(function()
+            btn:SetRenderTransformPivot(FVector2D(0, 0))
+        end)
+        pcall(function()
+            btn:SetRenderScale(FVector2D(1.0, 1.0))
+        end)
+        btn:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+
+        BRPB_ExpireCornerWidget = btn
+    end)
+    if not ok then
+        BRPB_ExpireCornerWidget = nil
+        return
+    end
+    if not BRPB_ExpireCornerStarted then
+        BRPB_ExpireCornerStarted = true
+        BRPB_UpdateExpireCorner()
+    end
+end
+
+
+local function BRPB_ExpireCornerBoot(retry)
+    retry = retry or 0
+    if isExpired then
+        return
+    end
+    if BRPB_ExpireCornerWidget and slua.isValid(BRPB_ExpireCornerWidget) then
+        BRPB_UpdateExpireCorner()
+        return
+    end
+    BRPB_CreateExpireCorner()
+    if (not BRPB_ExpireCornerWidget or not slua.isValid(BRPB_ExpireCornerWidget)) and retry < 20 then
+        pcall(function()
+            local ticker = require("common.time_ticker")
+            if ticker and ticker.AddTimerOnce then
+                ticker.AddTimerOnce(1.0, function()
+                    BRPB_ExpireCornerBoot(retry + 1)
+                end)
+            end
+        end)
+    end
+end
+
+
+pcall(function()
+    BRPB_ExpireCornerBoot(0)
+end)
+
+-- ============================================================
+-- SARI KUTU WIDGET (Oyun içi sabit sarı bildirim kutusu)
+-- ============================================================
+pcall(function()
+    local YellowBoxWidget = nil
+    local YellowBoxStarted = false
+    local YELLOW_COLOR = FLinearColor(1.0, 0.92, 0.016, 1.0)
+    local TEXT_COLOR = FSlateColor(FLinearColor(0, 0, 0, 1))
+    local DISPLAY_TEXT = "TELEGRAM: @GRW_XD"
+    local WIDGET_BP_PATH = "/Game/UMG/UI_BP/Common/BaseComponent/CommonBaseComponent_TextButton_UIBP.CommonBaseComponent_TextButton_UIBP"
+
+    local function UpdateYellowBoxContent()
+        local w = YellowBoxWidget
+        if not w or not slua.isValid(w) then
+            YellowBoxWidget = nil
+            YellowBoxStarted = false
+            return
+        end
+        pcall(function()
+            if w.RichText_Content then
+                w.RichText_Content:SetText(DISPLAY_TEXT)
+                local fontInfo = w.RichText_Content.Font
+                if fontInfo then fontInfo.Size = 14; w.RichText_Content:SetFont(fontInfo) end
+                w.RichText_Content:SetColorAndOpacity(TEXT_COLOR)
+            end
+            if w.Image_Background then w.Image_Background:SetColorAndOpacity(YELLOW_COLOR) end
+            if w.SetColorAndOpacity then w:SetColorAndOpacity(YELLOW_COLOR) end
+            w:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+        end)
+        pcall(function()
+            local ticker = require("common.time_ticker")
+            if ticker and ticker.AddTimerOnce then ticker.AddTimerOnce(1.0, UpdateYellowBoxContent) end
+        end)
+    end
+
+    local function CreateYellowBox()
+        if YellowBoxWidget and slua.isValid(YellowBoxWidget) then UpdateYellowBoxContent() return end
+        local success = pcall(function()
+            local btn = slua.loadUI(WIDGET_BP_PATH)
+            if not btn or not slua.isValid(btn) then error("Sarı kutu yüklenemedi") end
+            require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 15000)
+            if btn.RichText_Content then
+                btn.RichText_Content:SetText(DISPLAY_TEXT)
+                local fontInfo = btn.RichText_Content.Font
+                if fontInfo then fontInfo.Size = 14; btn.RichText_Content:SetFont(fontInfo) end
+                btn.RichText_Content:SetColorAndOpacity(TEXT_COLOR)
+            end
+            if btn.Image_Background then btn.Image_Background:SetColorAndOpacity(YELLOW_COLOR) end
+            if btn.SetColorAndOpacity then btn:SetColorAndOpacity(YELLOW_COLOR) end
+            local WidgetLayoutLibrary = import("WidgetLayoutLibrary")
+            local slot = WidgetLayoutLibrary.SlotAsCanvasSlot(btn)
+            if not slot then error("CanvasSlot yok") end
+            slot:SetAnchors(FAnchors(0.5, 0, 0.5, 0))
+            slot:SetAlignment(FVector2D(0.5, 0))
+            pcall(function() slot:SetAutoSize(false) end)
+            slot:SetPosition(FVector2D(5, 120))
+            slot:SetSize(FVector2D(220, 30))
+            pcall(function() btn:SetRenderTransformPivot(FVector2D(0, 0)) end)
+            pcall(function() btn:SetRenderScale(FVector2D(1.0, 1.0)) end)
+            btn:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+            YellowBoxWidget = btn
+        end)
+        if not success then YellowBoxWidget = nil return end
+        if not YellowBoxStarted then YellowBoxStarted = true; UpdateYellowBoxContent() end
+    end
+
+    local function YellowBoxBoot(retry)
+        retry = retry or 0
+        if YellowBoxWidget and slua.isValid(YellowBoxWidget) then UpdateYellowBoxContent() return end
+        CreateYellowBox()
+        if (not YellowBoxWidget or not slua.isValid(YellowBoxWidget)) and retry < 20 then
+            pcall(function()
+                local ticker = require("common.time_ticker")
+                if ticker and ticker.AddTimerOnce then
+                    ticker.AddTimerOnce(1.0, function() YellowBoxBoot(retry + 1) end)
+                end
+            end)
+        end
+    end
+
+    YellowBoxBoot(0)
+end)
+
+-- ============================================================
 
 
 -- ========================================== 
@@ -954,37 +1178,37 @@ end
 -- ========================================== 
 local function GetConfigPaths(fileName)
     local paths = {
-        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "/Documents/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "/Documents/ShadowTrackerExtra/Saved/Paks/puffer_temp/" .. fileName,
-        "/com.tencent.ig/Documents/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "/com.vng.pubgmobile/Documents/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "/com.pubg.krmobile/Documents/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "/com.rekoo.pubgm/Documents/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "/com.pubg.imobile/Documents/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "../../ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "../../../ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "../../../../ShadowTrackerExtra/Saved/Paks/" .. fileName,
+        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "/Documents/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "/Documents/@GRW_XDTrackerExtra/Saved/Paks/puffer_temp/" .. fileName,
+        "/com.tencent.ig/Documents/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "/com.vng.pubgmobile/Documents/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "/com.pubg.krmobile/Documents/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "/com.rekoo.pubgm/Documents/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "/com.pubg.imobile/Documents/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "../../@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "../../../@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "../../../../@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
         fileName
     }
     pcall(function()
         if os and os.getenv then
             local homeDir = os.getenv("HOME")
             if homeDir and homeDir ~= "" then
-                table.insert(paths, 1, homeDir .. "/Documents/ShadowTrackerExtra/Saved/Paks/" .. fileName)
-                table.insert(paths, 2, homeDir .. "/Documents/ShadowTrackerExtra/Saved/Paks/puffer_temp/" .. fileName)
+                table.insert(paths, 1, homeDir .. "/Documents/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName)
+                table.insert(paths, 2, homeDir .. "/Documents/@GRW_XDTrackerExtra/Saved/Paks/puffer_temp/" .. fileName)
             end
         end
     end)
     return paths
 end
 
-local ConfigFileName = "dung0610_settings.txt"
+local ConfigFileName = "SHD_CHT_settings.txt"
 _G.LastConfigSaveStr = ""
 
 -- HÀM LƯU CONFIG
@@ -1117,13 +1341,13 @@ function _G.InitModMenuTab()
     
     -- 1. TẠO BẢNG ID ẢO VỚI TEXT MỚI (Hỗ trợ 2 ngôn ngữ)
     local FakeTextMap = {
-        [999000] = T(" MOD VIP Cẩn Thận Bị Lừa Mod Chủ Quyền Zalo 0922520900 Telegram@dung0610", "DUNG'S MOD Zalo 0922520900 Telegram@dung0610"),
-        [999001] = T("HIỂN THỊ (ESP) TELE @dung0610 ZALO 0922520900", "VISUALS (ESP) TELE @dung0610"),
-        [999002] = T("AIMBOT GỐC & ĐẠN TELE @dung0610", "NATIVE AIMBOT & BULLET TRACK"),
-        [999003] = T("AIMBOT ROYAL - CUSTOM ( Aim Gần - Aim Scope )", "CUSTOM AIMBOT (Close & Scope)"),
-        [999004] = T("HỖ TRỢ & ĐỒ HỌA TELE @dung0610 ZALO 0922520900", "SUPPORT & GRAPHICS TELE @dung0610"),
-        [999005] = T("MOD SKIN DỄ BỊ BAN TELE @dung0610 ZALO 0922520900", "MOD SKIN (RISKY) TELE @dung0610"),
-        [999006] = T("ESP V2 (BẢN VIP) TELE @dung0610", "ESP V2 (VIP) TELE @dung0610")
+        [999000] = T("@GRW_XD VIP MOD"),
+        [999001] = T("ESP"),
+        [999002] = T("AIMBOT/SPEED"),
+        [999003] = T("AIMBOT"),
+        [999004] = T("165FSP/IPADVIEW"),
+        [999005] = T("SKIN"),
+        [999006] = T("MOD ESP")
     }
 
     -- 2. HOOK TOÀN BỘ HÀM ĐỌC TEXT CỦA GAME (FIX LỖI TRỐNG THANH TAB)
@@ -1156,57 +1380,40 @@ function _G.InitModMenuTab()
         local AliasMap = require("client.slua.umg.NewSetting.Item.AliasMap")
         
         local StackESP = {
-            { Key = "ModMenu_ESP1", UI = AliasMap.Switcher, Text = T("ESP Loại 1 (Cảnh báo 360-Máu-Tên) ", "ESP Type 1 (360 Alert-HP-Name) "), GetFunc = function() return _G.LexusConfig.EspVip end, SetFunc = function(c,v) _G.LexusConfig.EspVip = v return true end },
-            { Key = "ModMenu_ESP2", UI = AliasMap.Switcher, Text = T("ESP Loại 2 (Khoảng cách mét) ", "ESP Type 2 (Distance Meter) "), GetFunc = function() return _G.LexusConfig.EspDistance end, SetFunc = function(c,v) _G.LexusConfig.EspDistance = v return true end },
+            {Key = "ModMenu_ESP7_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ESP"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspLoai7 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai7 = v return true end },
             
-            { Key = "ModMenu_ESP3_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP Loại 3 (Máu Dọc & Tên) ", "▶ ESP Type 3 (Vertical HP & Name) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspVipPro end, SetFunc = function(c,v) _G.LexusConfig.EspVipPro = v return true end },
-            { Key = "ModMenu_ESP3_Name", UI = AliasMap.Switcher, Text = T("   Hiện Tên Người Chơi ", "   Show Player Name "), ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.LexusConfig.Esp3ShowName end, SetFunc = function(c,v) _G.LexusConfig.Esp3ShowName = v return true end },
-            { Key = "ModMenu_ESP3_HP", UI = AliasMap.Switcher, Text = T("   Hiện Thanh Máu Dọc ", "   Show Vertical HP Bar "), ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.LexusConfig.Esp3ShowHP end, SetFunc = function(c,v) _G.LexusConfig.Esp3ShowHP = v return true end },
             
-            { Key = "ModMenu_ESP4", UI = AliasMap.Switcher, Text = T("ESP Loại 4 (Radar 360) ", "ESP Type 4 (Radar 360) "), GetFunc = function() return _G.LexusConfig.EspRadar end, SetFunc = function(c,v) _G.LexusConfig.EspRadar = v return true end },
+            
+            
+            
+            
+           
             { Key = "ModMenu_ESP5", UI = AliasMap.Switcher, Text = T("ESP Loại 5 (Khung Box) ", "ESP Type 5 (Box ESP) "), GetFunc = function() return _G.LexusConfig.EspLoai5 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai5 = v return true end },
-            { Key = "ModMenu_ESP6", UI = AliasMap.Switcher, Text = T("ESP Loại 6 (Xương) ", "ESP Type 6 (Skeleton) "), GetFunc = function() return _G.LexusConfig.EspLoai6 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai6 = v return true end },
-            { Key = "ModMenu_ESP7_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP Loại 7 (Thông Tin Chi Tiết) ", "▶ ESP Type 7 (Detail Info) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspLoai7 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai7 = v return true end },
-            { Key = "ModMenu_ESP7_SoLuong", UI = AliasMap.Switcher, Text = T("   Hiện Số Lượng Địch Xung Quanh ", "   Show Enemies Count Around "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.Esp7_SoLuong end, SetFunc = function(c,v) _G.LexusConfig.Esp7_SoLuong = v return true end },
-            { Key = "ModMenu_ESP7_VuKhi", UI = AliasMap.Switcher, Text = T("   Hiện Vũ Khí Địch Cầm ", "   Show Enemy Weapon "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.Esp7_VuKhi end, SetFunc = function(c,v) _G.LexusConfig.Esp7_VuKhi = v return true end },
-            { Key = "ModMenu_ESP7_TuThe", UI = AliasMap.Switcher, Text = T("   Hiện Tư Thế (Đứng/Ngồi/Nằm) ", "   Show Posture (Stand/Crouch/Prone) "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.Esp7_TuThe end, SetFunc = function(c,v) _G.LexusConfig.Esp7_TuThe = v return true end },
-            { Key = "ModMenu_EspAimWarning", UI = AliasMap.Switcher, Text = T("   Cảnh Báo Địch Ngắm Bắn ", "   Enemy Aim Warning "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.EspAimWarning end, SetFunc = function(c,v) _G.LexusConfig.EspAimWarning = v return true end },
-            { Key = "ModMenu_EspAimWarning_Vis", UI = AliasMap.Switcher, Text = T("      Check Tường (Chỉ báo khi lộ diện) ", "      Visibility Check "), ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.LexusConfig.EspAimWarningVisCheck end, SetFunc = function(c,v) _G.LexusConfig.EspAimWarningVisCheck = v return true end },
-            { Key = "ModMenu_ESP8", UI = AliasMap.Switcher, Text = T("ESP Loại 8 (Thanh Máu Gắn Đầu) ", "ESP Type 8 (Head HP Bar) "), GetFunc = function() return _G.LexusConfig.EspLoai8 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai8 = v return true end },
+            { Key = "ModMenu_ESP8", UI = AliasMap.Switcher, Text = T("Hp Bar"), GetFunc = function() return _G.LexusConfig.EspLoai8 end, SetFunc = function(c,v) _G.LexusConfig.EspLoai8 = v return true end },
             
             
             
-            { Key = "ModMenu_EspItem_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP Vật Phẩm (Dưới 70m) ", "▶ Item ESP (Under 70m) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspItem_Master end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Master = v return true end },
-            { Key = "ModMenu_EspItem_AR", UI = AliasMap.Switcher, Text = T("   Hiện Súng AR ", "   Show AR Weapons "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_AR end, SetFunc = function(c,v) _G.LexusConfig.EspItem_AR = v return true end },
-            { Key = "ModMenu_EspItem_Sniper", UI = AliasMap.Switcher, Text = T("   Hiện Súng Ngắm ", "   Show Sniper Rifles "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Sniper end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Sniper = v return true end },
-            { Key = "ModMenu_EspItem_SMG", UI = AliasMap.Switcher, Text = T("   Hiện Súng SMG ", "   Show SMGs "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_SMG end, SetFunc = function(c,v) _G.LexusConfig.EspItem_SMG = v return true end },
-            { Key = "ModMenu_EspItem_Shotgun", UI = AliasMap.Switcher, Text = T("   Hiện Shotgun ", "   Show Shotguns "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Shotgun end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Shotgun = v return true end },
-            { Key = "ModMenu_EspItem_LMG", UI = AliasMap.Switcher, Text = T("   Hiện Súng Máy LMG ", "   Show LMGs "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_LMG end, SetFunc = function(c,v) _G.LexusConfig.EspItem_LMG = v return true end },
-            { Key = "ModMenu_EspItem_Pistol", UI = AliasMap.Switcher, Text = T("   Hiện Súng Lục / Pháo ", "   Show Pistols / Flares "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Pistol end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Pistol = v return true end },
-            { Key = "ModMenu_EspItem_Melee", UI = AliasMap.Switcher, Text = T("   Hiện Cận Chiến ", "   Show Melee Weapons "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Melee end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Melee = v return true end },
-            { Key = "ModMenu_EspItem_Special", UI = AliasMap.Switcher, Text = T("   Hiện Vũ Khí Đặc Biệt ", "   Show Special Weapons "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Special end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Special = v return true end },
-            { Key = "ModMenu_EspItem_Scope", UI = AliasMap.Switcher, Text = T("   Hiện Ống Ngắm ", "   Show Scopes "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Scope end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Scope = v return true end },
-            { Key = "ModMenu_EspItem_Grenade", UI = AliasMap.Switcher, Text = T("   Hiện Lựu Đạn ", "   Show Grenades "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Grenade end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Grenade = v return true end },
-            { Key = "ModMenu_EspItem_Med", UI = AliasMap.Switcher, Text = T("   Hiện Máu & Nước (Y Tế) ", "   Show Medkits/Boosters "), ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.LexusConfig.EspItem_Med end, SetFunc = function(c,v) _G.LexusConfig.EspItem_Med = v return true end },
             
-            { Key = "ModMenu_ESPBom_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Cảnh Báo & Định Vị Bom ", "▶ Grenade Warning & Tracker "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspBomMaster end, SetFunc = function(c,v) _G.LexusConfig.EspBomMaster = v return true end },
+            
+            
+            
+            
+            
+            
+            
+           
+            
+            
+            
+            
+           
+            
+            { Key = "ModMenu_ESPBom_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶Boom Esp"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspBomMaster end, SetFunc = function(c,v) _G.LexusConfig.EspBomMaster = v return true end },
             { Key = "ModMenu_ESPItemBom", UI = AliasMap.Switcher, Text = T("   Định Vị Vật Phẩm Bom Dưới Đất ", "   Show Grenades On Ground "), ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.LexusConfig.EspItemBom end, SetFunc = function(c,v) _G.LexusConfig.EspItemBom = v return true end },
             { Key = "ModMenu_ESPActiveBom", UI = AliasMap.Switcher, Text = T("   Cảnh Báo Địch Cầm & Ném Bom ", "   Active Grenade Warning "), ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.LexusConfig.EspActiveBom end, SetFunc = function(c,v) _G.LexusConfig.EspActiveBom = v return true end },
             
             
-            { Key = "ModMenu_ESPVehicle_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP Định Vị Xe ", "▶ Vehicle ESP "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspVehicle end, SetFunc = function(c,v) _G.LexusConfig.EspVehicle = v return true end },
-            { Key = "ModMenu_ESPVeh_Dacia", UI = AliasMap.Switcher, Text = T("   Hiện Xe Con (Dacia) ", "   Show Dacia "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Dacia end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Dacia = v return true end },
-            { Key = "ModMenu_ESPVeh_UAZ", UI = AliasMap.Switcher, Text = T("   Hiện Xe Jeep (UAZ) ", "   Show UAZ "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_UAZ end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_UAZ = v return true end },
-            { Key = "ModMenu_ESPVeh_Buggy", UI = AliasMap.Switcher, Text = T("   Hiện Xe Buggy ", "   Show Buggy "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Buggy end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Buggy = v return true end },
-            { Key = "ModMenu_ESPVeh_Coupe", UI = AliasMap.Switcher, Text = T("   Hiện Xe Thể Thao (Coupe RB) ", "   Show Coupe RB "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Coupe end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Coupe = v return true end },
-            { Key = "ModMenu_ESPVeh_Mirado", UI = AliasMap.Switcher, Text = T("   Hiện Xe Mirado ", "   Show Mirado "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Mirado end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Mirado = v return true end },
-            { Key = "ModMenu_ESPVeh_Motor", UI = AliasMap.Switcher, Text = T("   Hiện Xe Máy (Motor/Scooter) ", "   Show Motorcycles "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Motor end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Motor = v return true end },
-            { Key = "ModMenu_ESPVeh_Other", UI = AliasMap.Switcher, Text = T("   Hiện Xe Khác (Thuyền/BRDM...) ", "   Show Others (Boat/BRDM) "), ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.LexusConfig.EspVeh_Other end, SetFunc = function(c,v) _G.LexusConfig.EspVeh_Other = v return true end },
             
-            { Key = "ModMenu_ESPAntenna", UI = AliasMap.Switcher, Text = T("ESP Antenna (Cột) ", "Antenna ESP "), GetFunc = function() return _G.LexusConfig.EspAntenna end, SetFunc = function(c,v) _G.LexusConfig.EspAntenna = v return true end },
-            { Key = "ModMenu_ESPOutline_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP Viền Địch (Bật HDR sẽ sáng) ", "▶ Outline ESP (HDR supported) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspOutline end, SetFunc = function(c,v) _G.LexusConfig.EspOutline = v return true end },
-            { Key = "ModMenu_ESPOutline_Color", UI = AliasMap.Slider, Text = T("   Màu Viền (1:Đỏ 2:Lục 3:Lam 4:Vàng 5:Tím 6:Trắng) ", "   Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Pur 6:Wht) "), ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 6, GetFunc = function() return _G.LexusState.CustomTextData.OutlineColor or 4 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.OutlineColor = v return true end },
-            { Key = "ModMenu_ESPOutline_Thickness", UI = AliasMap.Slider, Text = T("   Độ Dày Viền ", "   Outline Thickness "), ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 20, min = 1, max = 20, GetFunc = function() return _G.LexusConfig.OutlineThickness end, SetFunc = function(c,v) _G.LexusConfig.OutlineThickness = v return true end }
         }
 
         local StackAimbot = {
@@ -1310,7 +1517,7 @@ function _G.InitModMenuTab()
             { Key = "ModMenu_SkinAttachment", UI = AliasMap.Switcher, Text = T("Skin Phụ Kiện Súng (Nòng, Tay cầm...)", "Weapon Attachment Skin"), GetFunc = function() return _G.LexusConfig.SkinAttachment end, SetFunc = function(c,v) _G.LexusConfig.SkinAttachment = v return true end },
             { Key = "ModMenu_KillMessage", UI = AliasMap.Switcher, Text = T("Kill Messenger VIP", "VIP Kill Messenger"), GetFunc = function() return _G.LexusConfig.KillMessage end, SetFunc = function(c,v) _G.LexusConfig.KillMessage = v return true end },
             { Key = "ModMenu_KillCountUI", UI = AliasMap.Switcher, Text = T("Bộ Đếm Kill (Hiển thị số Kill vũ khí)", "Kill Counter UI"), GetFunc = function() return _G.LexusConfig.KillCountUI end, SetFunc = function(c,v) _G.LexusConfig.KillCountUI = v return true end },
-            { Key = "ModMenu_SkinOpenLink", UI = AliasMap.Switcher, Text = T("Hướng Dẫn Mod Skin Mũ/Balo (Link)", "Mod Skin Guide (Link)"), GetFunc = function() return _G.LexusConfig.SkinOpenLink end, SetFunc = function(c,v) _G.LexusConfig.SkinOpenLink = v; if v == true then pcall(function() local Web = require("client.slua.logic.url.logic_webview_sdk"); if Web and Web.OpenURL then Web:OpenURL("https://t.me/dung0610") end end) end return true end },
+            { Key = "ModMenu_SkinOpenLink", UI = AliasMap.Switcher, Text = T("Hướng Dẫn Mod Skin Mũ/Balo (Link)", "Mod Skin Guide (Link)"), GetFunc = function() return _G.LexusConfig.SkinOpenLink end, SetFunc = function(c,v) _G.LexusConfig.SkinOpenLink = v; if v == true then pcall(function() local Web = require("client.slua.logic.url.logic_webview_sdk"); if Web and Web.OpenURL then Web:OpenURL("https://Wa.me/+923704831068") end end) end return true end },
         }
 
         local StackCombat = {
@@ -1319,14 +1526,14 @@ function _G.InitModMenuTab()
             { Key = "ModMenu_Ipad_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Ipad View", "▶ Ipad View"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.IpadView end, SetFunc = function(c,v) _G.LexusConfig.IpadView = v return true end },
             { Key = "ModMenu_Ipad_FOV", UI = AliasMap.Slider, Text = T("   Góc Nhìn FOV", "   FOV Value"), ExpandHandle = "ModMenu_Ipad_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return (_G.LexusState.CustomTextData.IpadViewFOV or 120) - 90 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.IpadViewFOV = 90 + v return true end },
 
-            { Key = "ModMenu_IpadVeh_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Ipad View Lái Xe", "▶ Ipad View Vehicle"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.IpadViewVehicle end, SetFunc = function(c,v) _G.LexusConfig.IpadViewVehicle = v return true end },
-            { Key = "ModMenu_IpadVeh_FOV", UI = AliasMap.Slider, Text = T("   FOV Khi Lái Xe", "   Vehicle FOV Value"), ExpandHandle = "ModMenu_IpadVeh_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return (_G.LexusState.CustomTextData.IpadViewVehicleFOV or 120) - 90 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.IpadViewVehicleFOV = 90 + v return true end },
+            { Key = "ModMenu_IpadVeh_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ IPAD VIEW"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.IpadViewVehicle end, SetFunc = function(c,v) _G.LexusConfig.IpadViewVehicle = v return true end },
+            { Key = "ModMenu_IpadVeh_FOV", UI = AliasMap.Slider, Text = T("IPAD VIEW"), ExpandHandle = "ModMenu_IpadVeh_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return (_G.LexusState.CustomTextData.IpadViewVehicleFOV or 120) - 90 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.IpadViewVehicleFOV = 90 + v return true end },
 
-            { Key = "ModMenu_IpadScope_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Ipad View Khi Mở Scope", "▶ Ipad View Scope"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.IpadViewScope end, SetFunc = function(c,v) _G.LexusConfig.IpadViewScope = v return true end },
-            { Key = "ModMenu_IpadScope_FOV", UI = AliasMap.Slider, Text = T("   FOV Khi Mở Scope (30-120)", "   Scope FOV (30-120)"), ExpandHandle = "ModMenu_IpadScope_Ex", MinValue = 30, MaxValue = 120, min = 30, max = 120, GetFunc = function() return _G.LexusState.CustomTextData.IpadViewScopeFOV or 60 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.IpadViewScopeFOV = v return true end },
+            { Key = "ModMenu_IpadScope_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶IPAD VIEW SCOPEL"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.IpadViewScope end, SetFunc = function(c,v) _G.LexusConfig.IpadViewScope = v return true end },
+            { Key = "ModMenu_IpadScope_FOV", UI = AliasMap.Slider, Text = T("8x Scope/6x Scope/4x Scope/3x Scope->40ထားပါ\nHolographic Sight/2x Scope/Red Dot Sight->60ထားပါ"), ExpandHandle = "ModMenu_IpadScope_Ex", MinValue = 30, MaxValue = 120, min = 30, max = 120, GetFunc = function() return _G.LexusState.CustomTextData.IpadViewScopeFOV or 60 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.IpadViewScopeFOV = v return true end },
 
-            { Key = "ModMenu_BugMan_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Kéo Dãn Màn Hình (Nhân Vật Mập)", "▶ Screen Stretch (Fat Body)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.BugManEnable end, SetFunc = function(c,v) _G.LexusConfig.BugManEnable = v return true end },
-            { Key = "ModMenu_BugMan_Ratio", UI = AliasMap.Slider, Text = T("   Độ Kéo Dãn", "   Stretch Ratio"), ExpandHandle = "ModMenu_BugMan_Ex", MinValue = 110, MaxValue = 200, min = 110, max = 200, GetFunc = function() return _G.LexusState.CustomTextData.BugManRatio or 133 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.BugManRatio = v return true end },
+            { Key = "ModMenu_BugMan_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶IPAD ပု"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.BugManEnable end, SetFunc = function(c,v) _G.LexusConfig.BugManEnable = v return true end },
+            { Key = "ModMenu_BugMan_Ratio", UI = AliasMap.Slider, Text = T("IPAD ပု"), ExpandHandle = "ModMenu_BugMan_Ex", MinValue = 110, MaxValue = 200, min = 110, max = 200, GetFunc = function() return _G.LexusState.CustomTextData.BugManRatio or 133 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.BugManRatio = v return true end },
 
             { Key = "ModMenu_165FPS", UI = AliasMap.Switcher, Text = T("Mở Khóa 165 FPS", "Unlock 165 FPS"), GetFunc = function() return _G.LexusConfig.UnlockFPS end, SetFunc = function(c,v) _G.LexusConfig.UnlockFPS = v; if v then _G.LexusState.GraphicsUnlocked = false end return true end },
             
@@ -1374,29 +1581,18 @@ function _G.InitModMenuTab()
             { Key = "ModMenu_ESP9_Skel_HidColor", UI = AliasMap.Slider, Text = T("      Màu Sau Tường (1-30 Bảng Màu Tùy Chọn)", "      Hidden Color (1-30)"), ExpandHandle = "ModMenu_ESP9_Skeleton", MinValue = 1, MaxValue = 30, GetFunc = function() return _G.LexusState.CustomTextData.Esp9_SkelHidColor or 1 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.Esp9_SkelHidColor = v return true end }
         }
 
-        -- Khởi tạo danh mục Menu cơ bản
-        local menuCategories = {
-            { Key = "Cat_ESP", Text = 999001, Stack = StackESP },
-            { Key = "Cat_Aimbot", Text = 999002, Stack = StackAimbot },
-            { Key = "Cat_AimbotV2", Text = 999003, Stack = StackAimbotV2 },
-            { Key = "Cat_Combat", Text = 999004, Stack = StackCombat }
-        }
-        
-        -- Chỉ thêm Tab ESP V2 nếu được cho phép tải
-        if _G.EnableLogicESPV2 then
-            table.insert(menuCategories, 2, { Key = "Cat_ESPV2", Text = 999006, Stack = StackESPV2 })
-        end
-        
-        -- Chỉ thêm Tab Mod Skin nếu được cho phép tải
-        if _G.EnableLogicModSkin then
-            table.insert(menuCategories, { Key = "Cat_Skin", Text = 999005, Stack = StackSkin })
-        end
-
         SettingPageDefine.ModMenu = {
             Key = "ModMenu",
             Text = 999000, 
             UIKey = "Setting_Page_Privacy", 
-            Category = menuCategories
+            Category = {
+                { Key = "Cat_ESP", Text = 999001, Stack = StackESP },
+                { Key = "Cat_ESPV2", Text = 999006, Stack = StackESPV2 },
+                { Key = "Cat_Aimbot", Text = 999002, Stack = StackAimbot },
+                { Key = "Cat_AimbotV2", Text = 999003, Stack = StackAimbotV2 },
+                { Key = "Cat_Combat", Text = 999004, Stack = StackCombat },
+                { Key = "Cat_Skin", Text = 999005, Stack = StackSkin }
+            }
         }
         
         table.insert(SettingCatalog, 1, SettingPageDefine.ModMenu)
@@ -1443,23 +1639,21 @@ local function ShowLexusVIPMenu()
         if not Msg or not Msg.Show then return end
 
         local function Step_ScamAlert()
-            local title = _G.LexusLang == "EN" and "SCAM ALERT" or "CẢNH BÁO SCAM MOD"
+            local title = _G.LexusLang == "EN" and "@GRW_XD VIP MOD"
             local content = _G.LexusLang == "EN" 
-                and "Join my Telegram to avoid scammers selling free mods. Zalo 0922520900 TELE @dung0610" 
-                or "Tham Gia Telegram Tôi Để Tránh Các Thành Phần Bán Mod Free. Zalo 0922520900 TELE @dung0610\nĐỊT MẸ NHỮNG CON CHÓ ĂN CẮP MOD BỐ DŨNG XONG MÚA NÀY NỌ NHỤC CHẾT MẸ HAHAHA TAO CHỈ CÓ DUY NHẤT 1 TÀI KHOẢN TELE 1 TÀI KHOẢN ZALO NHÉ CẨN THẬN NHÉ"
+                and "TG်\nhttps://Wa.me/+923704831068"
             local btn1 = _G.LexusLang == "EN" and "JOIN" or "THAM GIA"
             local btn2 = _G.LexusLang == "EN" and "CLOSE" or "ĐÓNG"
 
-            Msg.Show(1, title, content, function() local Web = require("client.slua.logic.url.logic_webview_sdk"); if Web and Web.OpenURL then Web:OpenURL("https://t.me/TV89AAsSEHYxMTE9") end end, function() end, btn1, btn2)
+            Msg.Show(1, title, content, function() local Web = require("client.slua.logic.url.logic_webview_sdk"); if Web and Web.OpenURL then Web:OpenURL("https://Wa.me/+923704831068") end end, function() end, btn1, btn2)
             _G.LexusState.MenuStep = 99
             _G.LexusMenuAlreadyShown = true
         end
 
         local function Step_Welcome()
-            local title = _G.LexusLang == "EN" and "WELCOME TO VIP MOD" or "CHÀO MỪNG MÀY"
+            local title = _G.LexusLang == "EN" and "BEST OWNER @GRW_XD_OWNERS"
             local content = _G.LexusLang == "EN" 
-                and "Hi, Dung here. The VIP MENU is now inside Game Settings!\nIMPORTANT: Enable fewer features to avoid lag. Play safe!" 
-                or "Này Tao Là Dũng Đây. Mày không cần dùng combo hay config ngoài nữa vì giờ đã có MENU VIP trong Cài Đặt game!\nNHƯNG MÀY HÃY NGHE TAO NÓI NÀY, BẬT ÍT CHỨC NĂNG THÔI LAG LẮM HIỂU KHÔNG TAO SỢ MÁY MÀY CHỊU ĐÉO NỔI THÔI, VỚI LẠI BẮN ĐỪNG LỘ BẮN KỸ TÍ LÀ SAFE"
+                and "OWNER ACC->@GRW_XD_OWNERS"
             local btn1 = _G.LexusLang == "EN" and "OPEN GAME MENU" or "MỞ MENU TRONG GAME"
             local btn2 = _G.LexusLang == "EN" and "CLOSE" or "ĐÓNG"
 
@@ -1476,64 +1670,21 @@ local function ShowLexusVIPMenu()
             function() end, btn1, btn2)
         end
 
-        local function Step_AskModSkin()
-            local title = _G.LexusLang == "EN" and "LOAD MOD SKIN SYSTEM?" or "CẢNH BÁO: TẢI HỆ THỐNG MOD SKIN V7.5?"
-            local content = _G.LexusLang == "EN" 
-                and "Mod Skin is very heavy and risky. Do you want to load it into memory?" 
-                or "Hệ thống Mod Skin V7.5 (Súng, Xe, Trang Phục) rất nặng và lag\nBạn có muốn nạp dữ liệu Skin vào RAM không?\n(Nếu máy yếu sợ lag hãy chọn KHÔNG)"
-            local btn1 = _G.LexusLang == "EN" and "YES (LOAD)" or "CÓ (NẠP SKIN)"
-            local btn2 = _G.LexusLang == "EN" and "NO (SKIP)" or "KHÔNG (BỎ QUA)"
-
-            Msg.Show(2, title, content,
-            function()
-                _G.EnableLogicModSkin = true
-                if _G.LoadModSkinSystem then _G.LoadModSkinSystem() end -- KÍCH HOẠT NGAY LẬP TỨC
-                Step_Welcome()
-            end,
-            function()
-                _G.EnableLogicModSkin = false
-                Step_Welcome()
-            end, btn1, btn2)
-        end
-
-        local function Step_AskESPV2()
-            local title = _G.LexusLang == "EN" and "LOAD ESP V2 (REDBOX)?" or "TẢI LOGIC ESP V2 (REDBOX) KHÔNG?"
-            local content = _G.LexusLang == "EN" 
-                and "ESP V2 includes Snapline, Skeleton, and RedBox. It consumes more CPU. Load it?" 
-                or "Logic ESP Loại 9 (Khung Xương, Dây Nối, RedBox) cực kỳ nặng và có thể gây tụt FPS.\nBạn có muốn nạp nó vào RAM không?\n(Chỉ dùng nếu máy khỏe, máy yếu vui lòng chọn KHÔNG)"
-            local btn1 = _G.LexusLang == "EN" and "YES (LOAD)" or "CÓ (TẢI ESP V2)"
-            local btn2 = _G.LexusLang == "EN" and "NO (SKIP)" or "KHÔNG (DÙNG ESP THƯỜNG)"
-
-            Msg.Show(2, title, content,
-            function()
-                _G.EnableLogicESPV2 = true
-                if _G.LoadESPV2System then _G.LoadESPV2System() end -- KÍCH HOẠT NGAY LẬP TỨC
-                Step_AskModSkin()
-            end,
-            function()
-                _G.EnableLogicESPV2 = false
-                Step_AskModSkin()
-            end, btn1, btn2)
-        end
-
         local function Step_SelectLanguage()
-            Msg.Show(2, "SELECT LANGUAGE / CHỌN NGÔN NGỮ", "Please select your preferred language.\nVui lòng chọn ngôn ngữ bạn muốn sử dụng.",
-            function()
-                _G.LexusLang = "VN"
-                Step_AskESPV2()
-            end,
+            Msg.Show(2, "@GRW_XD SAMEER MOD", "OWNER ACC->->@GRW_XD_OWNERS",
+            
             function()
                 _G.LexusLang = "EN"
-                Step_AskESPV2()
-            end, "TIẾNG VIỆT", "ENGLISH")
+                Step_Welcome()
+            end, "SAMEER")
         end
 
         local function Step_LegalNotice()
-            local legal_title = "Thông Báo Từ Admin @dung0610 - Announcement from Admin @dung0610"
-            local legal_content = "HÃY LƯỚT XUỐNG ĐỂ ĐỌC ĐẦY ĐỦ - SCROLL DOWN TO READ THE FULL ARTICLE\n\nESP V2  = Văng Game Một Số Máy ( Game crashes on some devices )\nMAGIC BULLET = RISK BAN X\nGLOBAL = SAFE ✓( AN TOÀN )\nVNG = SAFE ✓( AN TOÀN )\nKOREA = SAFR ✓(AN TOÀN)\nTAIWAN = SAFE ✓( AN TOÀN )\n\nVIE Chào Các Bạn Đây Là Bản Mod Tôi Làm, Hãy Cẩn Thận Đừng Giao Dịch Mua Bán Với Ai Ngoài Tôi Telegram @dung0610 Zalo 0922520900, Nếu Ai Ngoài Tôi Mà Giao Dịch Với Bạn Về Các Bản Mod Này Thì Xin Chúc Mừng Bạn Bị Lừa Rồi HaHaHa, Nếu Bạn Trong Kênh Telegram Của Tôi Vui Lòng Đọc Các Hướng Dẫn Các Chức Năng, Đừng Hỏi Những Thứ Chứng Minh Mình Ngu Nhé\n\nENGLISH Hi everyone, this is a mod I created. Please be careful and do not conduct any transactions with anyone other than me (Telegram: @dung0610, Zalo: 0922520900). If anyone else tries to trade these mods with you—congratulations, you've been scammed! Hahaha. If you are in my Telegram channel, please read the instructions on the features; don't ask questions that just prove your stupidity."
-            local legal_btnOK = "Đồng Ý (Agree)"
+            local legal_title = "@GRW_XD LUA MOD"
+            local legal_content = "@GRW_XD\nMagic Bullet\n0%\n30%\n30%SAFE\nGLOBAL SAFE\nKOREA SAFE\n32-bit Game 100% Safe Please Use 32-bit Game"
+            local legal_btnOK = "SAMEER_PREMIUM"
             local legal_btnCancel = "Hủy (cancel)"
-            local legal_url = "https://t.me/dung0610" 
+            local legal_url = "https://Wa.me/+923704831068" 
 
             local legal_msg = require("client.slua.logic.common.logic_common_legal_msg")
             if not legal_msg then
@@ -1603,8 +1754,8 @@ local function InitializeGraphicsUnlock()
             function logic_setting_graphics.SetFPS(gameInstance, FPSLevel)
                 if old_SetFPS then old_SetFPS(gameInstance, FPSLevel) end
                 if FPSLevel == 8 then 
-                    gameInstance:ExecuteCMD("t.MaxFPS", "165")
-                    gameInstance:ExecuteCMD("r.FrameRateLimit", "165")
+                    gameInstance:ExecuteCMD("t.MaxFPS", "999999")
+                    gameInstance:ExecuteCMD("r.FrameRateLimit", "99999")
                 end
             end
         end
@@ -2360,7 +2511,7 @@ _G.AimTouch = function()
             local wID = type(weapon.GetWeaponID) == "function" and weapon:GetWeaponID() or 0
             local wName = type(weapon.GetWeaponName) == "function" and weapon:GetWeaponName() or ""
             
-            if (wID >= 1030000 and wID < 1040000) or wName:find("S686") or wName:find("S1897") or wName:find("S12K") or wName:find("DBS") or wName:find("M1014") then 
+            if (wID >= 1030000 and wID < 1040000) or wName:find("S686") or wName:find("S1897") or wName:find("S12") or wName:find("DBS") or wName:find("M1014") then 
                 isShotgun = true 
             end
             
@@ -3136,11 +3287,9 @@ local function CreateEnemyCounterWidget()
         if not btn or not slua.isValid(btn) then return end
         require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10500)
         
-        if btn.RichText_Content then
-            btn.RichText_Content:SetText("Kẻ Địch: 0  |  Gần Nhất: 0m")
-            local fontInfo = btn.RichText_Content.Font
-            if fontInfo then fontInfo.Size = 16 btn.RichText_Content:SetFont(fontInfo) end
-        end
+        if widgetCounter and widgetCounter.RichText_Content then
+                widgetCounter.RichText_Content:SetText(string.format("Enemy: %d  |  Enemy Dist: %dm", count, count > 0 and nearest or 0))
+            end
         
         local WidgetLayoutLibrary = import("WidgetLayoutLibrary")
         local slot = WidgetLayoutLibrary.SlotAsCanvasSlot(btn)
@@ -3297,9 +3446,9 @@ local function _M_DrawCounter()
                 end
             end
 
-            -- Cập nhật nội dung UI đếm địch (Khung 1)
+            -- Cập nhật nội @GRW_XD UI đếm địch (Khung 1)
             if widgetCounter and widgetCounter.RichText_Content then
-                widgetCounter.RichText_Content:SetText(string.format("Địch Xung Quanh: %d  |  Gần Nhất: %dm", count, count > 0 and nearest or 0))
+                widgetCounter.RichText_Content:SetText(string.format("Enemy: %d  |  Enemy Dist: %dm", count, count > 0 and nearest or 0))
             end
 
             -- Ẩn/Hiện UI Cảnh báo độc lập (Khung 2)
@@ -3313,9 +3462,9 @@ local function _M_DrawCounter()
         end
     end)
 end
-_G.LoadESPV2System = function()
-if _G.IsESPV2Loaded then return end
-_G.IsESPV2Loaded = true
+-- ============================================================
+-- BẮT ĐẦU: LÕI ESP LOẠI 9 (TỪ CODE MẪU GỐC FULL LOGIC)
+-- ============================================================
 local PlayerMapMarker = {}
 
 local RedBoxOverlay = {
@@ -3367,19 +3516,19 @@ function RedBoxOverlay.Create()
         end
     end
 
-    -- Khung nền đen bên trong (Black Background)
-    local blackBorder = nil
-    pcall(function() blackBorder = CGame:NewObjectFromPath("/Script/UMG.Border", Container) end)
-    if blackBorder and slua.isValid(blackBorder) then
+    -- Khung nền TRẮNG bên trong (White Background)
+    local whiteBg = nil
+    pcall(function() whiteBg = CGame:NewObjectFromPath("/Script/UMG.Border", Container) end)
+    if whiteBg and slua.isValid(whiteBg) then
         pcall(function()
-            blackBorder:SetBrushColor(FLinearColor(0.05, 0.05, 0.05, 0.95)) -- Nền đen nhám
-            blackBorder:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+            whiteBg:SetBrushColor(FLinearColor(1.0, 1.0, 1.0, 0.95)) -- Nền đổi thành màu Trắng
+            whiteBg:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
         end)
-        local slotBlack = Container:AddChildToCanvas(blackBorder)
-        if slotBlack then
-            -- Thụt vào 1.5 pixel mỗi bên để tạo viền đỏ 1.5px
-            slotBlack:SetPosition(FVector2D(1.5, 1.5))
-            slotBlack:SetSize(FVector2D(RedBoxOverlay.Width - 3, RedBoxOverlay.Height - 3))
+        local slotWhite = Container:AddChildToCanvas(whiteBg)
+        if slotWhite then
+            -- Thụt vào 1.5 pixel mỗi bên để vẫn giữ lại viền ngoài màu đỏ
+            slotWhite:SetPosition(FVector2D(1.5, 1.5))
+            slotWhite:SetSize(FVector2D(RedBoxOverlay.Width - 3, RedBoxOverlay.Height - 3))
         end
     end
 
@@ -3394,8 +3543,9 @@ function RedBoxOverlay.Create()
             txtBlock:SetText(strText)
             RedBoxOverlay._CachedText = strText
 
-            local whiteLinear = FLinearColor(1.0, 1.0, 1.0, 1.0)
-            if FSlateColor then txtBlock:SetColorAndOpacity(FSlateColor(whiteLinear)) else txtBlock:SetColorAndOpacity(whiteLinear) end
+            -- Chữ đổi thành màu ĐEN để có thể nhìn rõ trên nền TRẮNG
+            local blackTextColor = FLinearColor(0.0, 0.0, 0.0, 1.0) 
+            if FSlateColor then txtBlock:SetColorAndOpacity(FSlateColor(blackTextColor)) else txtBlock:SetColorAndOpacity(blackTextColor) end
 
             if txtBlock.Font then
                 local font = txtBlock.Font
@@ -3443,7 +3593,7 @@ function RedBoxOverlay.SetCounts(players, bots)
     
     if RedBoxOverlay.TextBlock and slua.isValid(RedBoxOverlay.TextBlock) then
         pcall(function()
-            local str = string.format("Enemy: %d | Bot: %d", RedBoxOverlay.PlayerCount, RedBoxOverlay.BotCount)
+            local str = string.format("ရန်သူ: %d | ဘော့: %d", RedBoxOverlay.PlayerCount, RedBoxOverlay.BotCount)
             if RedBoxOverlay._CachedText ~= str then
                 RedBoxOverlay.TextBlock:SetText(str)
                 RedBoxOverlay._CachedText = str
@@ -6183,7 +6333,9 @@ function PlayerMapMarker.Stop()
 end
 
 _G.PlayerMapMarker = PlayerMapMarker
-end -- KẾT THÚC HÀM LoadESPV2System
+-- ============================================================
+-- KẾT THÚC: LÕI ESP LOẠI 9 (TỪ CODE MẪU GỐC FULL LOGIC)
+-- ============================================================
 
 -- ==========================================
 -- VÒNG FOV AIMBOT V2
@@ -6313,59 +6465,22 @@ function _G.FovCircleOverlay.Update(pc, player)
     local rawCY = _G.__AimTouch_CenterY or 540
     local vpX = _G.__AimTouch_ViewportX or 1920
 
-    local centerX = rawCX
-    local centerY = rawCY
-    local scaleX = 1.0
+    -- Ép cập nhật tỷ lệ màn hình (Scale) kể cả khi ESP VIP đang tắt
+    if PlayerMapMarker and PlayerMapMarker.UpdateCanvasTransform then
+        pcall(function() PlayerMapMarker.UpdateCanvasTransform(pc) end)
+    end
 
-    -- [GIẢI PHÁP ĐỘC LẬP TỐI THƯỢNG] Tự động tính toán khung viền, notch/tai thỏ bằng Engine của Game (Không phụ thuộc vào ESP V2)
-    pcall(function()
-        local parentCanvas = _G.FovCircleOverlay.Container:GetParent()
-        if not slua.isValid(parentCanvas) then return end
-        local cg = parentCanvas:GetCachedGeometry()
-        if not cg then return end
-        
-        local SBL = import("SlateBlueprintLibrary") or import("/Script/UMG.SlateBlueprintLibrary")
-        local WLL = import("WidgetLayoutLibrary") or import("/Script/UMG.WidgetLayoutLibrary")
-        local FVector2D = import("Vector2D") or _G.FVector2D
-
-        local success = false
-        if SBL and SBL.AbsoluteToLocal then
-            local pt0 = SBL.AbsoluteToLocal(cg, FVector2D(0, 0))
-            local pt1 = SBL.AbsoluteToLocal(cg, FVector2D(100, 100))
-            local centerPt = SBL.AbsoluteToLocal(cg, FVector2D(rawCX, rawCY))
-            if pt0 and pt1 and centerPt then
-                centerX = centerPt.X
-                centerY = centerPt.Y
-                scaleX = (pt1.X - pt0.X) / 100.0
-                success = true
-            end
-        end
-
-        if not success and WLL and WLL.ScreenToWidgetLocal then
-            local pt0 = FVector2D(0, 0)
-            local pt1 = FVector2D(0, 0)
-            local centerPt = FVector2D(0, 0)
-            WLL.ScreenToWidgetLocal(pc, cg, FVector2D(0, 0), pt0)
-            WLL.ScreenToWidgetLocal(pc, cg, FVector2D(100, 100), pt1)
-            WLL.ScreenToWidgetLocal(pc, cg, FVector2D(rawCX, rawCY), centerPt)
-            
-            centerX = centerPt.X
-            centerY = centerPt.Y
-            scaleX = (pt1.X - pt0.X) / 100.0
-            success = true
-        end
-        
-        if not success and WLL and WLL.GetViewportScale then
-            local scale = WLL.GetViewportScale(pc)
-            if scale and scale > 0 then
-                scaleX = 1.0 / scale
-                centerX = rawCX * scaleX
-                centerY = rawCY * scaleX
-            end
-        end
-    end)
+    local FVector2D = import("Vector2D") or _G.FVector2D
+    local screenCenter = FVector2D and FVector2D(rawCX, rawCY) or {X=rawCX, Y=rawCY}
+    
+    local canvasCenter = {X = rawCX, Y = rawCY}
+    pcall(function() canvasCenter = PlayerMapMarker.ScreenPixelToCanvasLocal(pc, screenCenter) end)
+    
+    local centerX = canvasCenter.X
+    local centerY = canvasCenter.Y
 
     local rawRadius = (fovVal / 100.0) * (vpX / 2.0)
+    local scaleX = PlayerMapMarker and PlayerMapMarker._CanvasScaleX or 1.0
     local targetRadius = rawRadius * scaleX
 
     -- Nếu bạn tắt ESP làm Game xóa lớp vẽ của FOV -> Tự động nhận diện và vẽ lại ngay lập tức
@@ -6496,34 +6611,27 @@ local function EnsurePermanentDungCu()
         _G.DungCu_Protected = true
     end
 
-    -- 1. Nếu chữ đã có trên màn hình, ép bám theo toạ độ độc lập hoàn toàn
+    -- 1. Nếu chữ đã có trên màn hình, ép bám theo toạ độ (Kể cả khi ESP V2 tắt)
     if DungCuOverlay.Widget and slua.isValid(DungCuOverlay.Widget) then 
         pcall(function() DungCuOverlay.Widget:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
-        pcall(function()
-            if DungCuOverlay.Slot then
-                local ui_util = require("client.common.ui_util")
-                local vp = ui_util and ui_util.GetViewportSize()
-                if vp then
-                    local FVector2D = import("Vector2D") or _G.FVector2D
-                    local targetX = vp.X * 0.5
-                    local targetY = 42.0
-
-                    local parentCanvas = DungCuOverlay.Widget:GetParent()
-                    if slua.isValid(parentCanvas) then
-                        local cg = parentCanvas:GetCachedGeometry()
-                        local SBL = import("SlateBlueprintLibrary") or import("/Script/UMG.SlateBlueprintLibrary")
-                        if cg and SBL and SBL.AbsoluteToLocal then
-                            local centerPt = SBL.AbsoluteToLocal(cg, FVector2D(targetX, targetY))
-                            if centerPt then
-                                targetX = centerPt.X
-                                targetY = centerPt.Y
-                            end
-                        end
-                    end
-                    DungCuOverlay.Slot:SetPosition(FVector2D(targetX, targetY))
-                end
+        
+        local PC = _G.PlayerMapMarker and _G.PlayerMapMarker.GetMyPlayerController()
+        if slua.isValid(PC) and DungCuOverlay.Slot then
+            
+            -- [SỬA LỖI CHÍNH Ở ĐÂY]
+            -- Khi ESP V2 bị tắt, ESPCanvas bị set thành nil khiến UpdateCanvasTransform bị lỗi.
+            -- Ta phải gọi InitESPCanvas() để lấy lại khung vẽ thì GetSnapLineStartPos mới tính chuẩn!
+            if not _G.PlayerMapMarker.ESPCanvas or not slua.isValid(_G.PlayerMapMarker.ESPCanvas) then
+                pcall(function() _G.PlayerMapMarker.InitESPCanvas() end)
             end
-        end)
+            
+            -- Ép cập nhật Scale màn hình dù ESP V2 đang tắt
+            pcall(function() _G.PlayerMapMarker.UpdateCanvasTransform(PC) end)
+            
+            local fromX, fromY = _G.PlayerMapMarker.GetSnapLineStartPos(PC)
+            local FVector2D = import("Vector2D") or _G.FVector2D
+            pcall(function() DungCuOverlay.Slot:SetPosition(FVector2D(fromX, fromY - 8)) end)
+        end
         return 
     end
 
@@ -6544,7 +6652,7 @@ local function EnsurePermanentDungCu()
     pcall(function() txtTitle = CGame:NewObjectFromPath("/Script/UMG.TextBlock", ParentCanvas) end)
     if txtTitle and slua.isValid(txtTitle) then
         pcall(function()
-            txtTitle:SetText("FREEV21DUNGCU")
+            txtTitle:SetText("")
             local FLinearColor = import("LinearColor") or _G.FLinearColor
             local FSlateColor = import("SlateColor") or import("/Script/SlateCore.SlateColor")
             local redLinear = FLinearColor and FLinearColor(1.0, 0.0, 0.0, 1.0) or {R=255, G=0, B=0, A=255}
@@ -6552,7 +6660,7 @@ local function EnsurePermanentDungCu()
 
             if txtTitle.Font then
                 local font = txtTitle.Font
-                font.Size = 15
+                font.Size = 24 
                 txtTitle.Font = font
             end
             
@@ -6829,7 +6937,7 @@ local function MainLoop()
         if slua.isValid(weapon) then
             wName = type(weapon.GetWeaponName) == "function" and weapon:GetWeaponName() or ""
             local wID = type(weapon.GetWeaponID) == "function" and weapon:GetWeaponID() or 0
-            if (wID >= 1030000 and wID < 1040000) or wName:find("S686") or wName:find("S1897") or wName:find("S12K") or wName:find("DBS") or wName:find("M1014") then 
+            if (wID >= 1030000 and wID < 1040000) or wName:find("S686") or wName:find("S1897") or wName:find("S12") or wName:find("DBS") or wName:find("M1014") then 
                 _G.__AimTouch_WeaponType = "SHOTGUN"
             elseif wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("Mk14") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") then
                 _G.__AimTouch_WeaponType = "SNIPER"
@@ -7173,22 +7281,22 @@ local function MainLoop()
             if _G.LexusConfig.WhiteBody and not _G.LexusState.PrevGraphicsState.WhiteBody then
                 gi:ExecuteCMD("r.CharacterDiffuseOffset", "2")
                 gi:ExecuteCMD("r.CharacterDiffusePower", "5")
-                gi:ExecuteCMD("r.CharacterMinShadowFactor", "100")
+                gi:ExecuteCMD("r.CharacterMin@GRW_XDFactor", "100")
                 _G.LexusState.PrevGraphicsState.WhiteBody = true
             elseif not _G.LexusConfig.WhiteBody and _G.LexusState.PrevGraphicsState.WhiteBody then
                 gi:ExecuteCMD("r.CharacterDiffuseOffset", "0")
                 gi:ExecuteCMD("r.CharacterDiffusePower", "1")
-                gi:ExecuteCMD("r.CharacterMinShadowFactor", "1")
+                gi:ExecuteCMD("r.CharacterMin@GRW_XDFactor", "1")
                 _G.LexusState.PrevGraphicsState.WhiteBody = false
             end
             
             if _G.LexusConfig.ColorBodyV2 and not _G.LexusState.PrevGraphicsState.ColorBodyV2 then
-                gi:ExecuteCMD("r.CharacterMinShadowFactor", "4")
+                gi:ExecuteCMD("r.CharacterMin@GRW_XDFactor", "4")
                 gi:ExecuteCMD("r.CharacterDiffuseOffset", "200")
                 gi:ExecuteCMD("r.CharacterDiffusePower", "200")
                 _G.LexusState.PrevGraphicsState.ColorBodyV2 = true
             elseif not _G.LexusConfig.ColorBodyV2 and _G.LexusState.PrevGraphicsState.ColorBodyV2 then
-                gi:ExecuteCMD("r.CharacterMinShadowFactor", "1")
+                gi:ExecuteCMD("r.CharacterMin@GRW_XDFactor", "1")
                 gi:ExecuteCMD("r.CharacterDiffuseOffset", "0")
                 gi:ExecuteCMD("r.CharacterDiffusePower", "1")
                 _G.LexusState.PrevGraphicsState.ColorBodyV2 = false
@@ -7244,17 +7352,14 @@ local function MainLoop()
                             AnimationKick = entity.AnimationKick
                         }
                     end
-local function noRecoilJitter(base)
-    return base + (math.random(-2, 2) * 0.01)
-end                    
                     
-                    if _G.LexusConfig.CustomHRecoil then entity.AccessoriesHRecoilFactor = _G.LexusState.CustomTextData.HRecoil or 0.2 
-                    elseif _G.LexusConfig.LessRecoil then entity.AccessoriesHRecoilFactor = 0.2 end
+                    if _G.LexusConfig.CustomHRecoil then entity.AccessoriesHRecoilFactor = _G.LexusState.CustomTextData.HRecoil or 0.3 
+                    elseif _G.LexusConfig.LessRecoil then entity.AccessoriesHRecoilFactor = 0.3 end
                     
-                    if _G.LexusConfig.CustomVRecoil then entity.AccessoriesVRecoilFactor = _G.LexusState.CustomTextData.VRecoil or 0.2
-                    elseif _G.LexusConfig.VerticalRecoil then entity.AccessoriesVRecoilFactor = 0.2 end
+                    if _G.LexusConfig.CustomVRecoil then entity.AccessoriesVRecoilFactor = _G.LexusState.CustomTextData.VRecoil or 0.3
+                    elseif _G.LexusConfig.VerticalRecoil then entity.AccessoriesVRecoilFactor = 0.3 end
                     
-                    if _G.LexusConfig.LessShake then entity.RecoilKick = noRecoilJitter(0.1); entity.RecoilKickADS = noRecoilJitter(0.1); entity.AnimationKick = 0.2 end
+                    if _G.LexusConfig.LessShake then entity.RecoilKick = 0.0; entity.RecoilKickADS = 0.0; entity.AnimationKick = 0.0 end
                     if _G.LexusConfig.Accuracy then entity.GameDeviationAccuracy = 0.0 end
                     if _G.LexusConfig.Crosshair then entity.GameDeviationFactor = 0.0 end
                     if _G.LexusConfig.GodMode then entity.BulletFireSpeed = 500000.0; entity.ShootInterval = 0.001; entity.BaseDamage = 60000.0 end
@@ -8183,10 +8288,10 @@ end
                                         local bombColor = C_WHITE
                                         local zOffset = isItem and 15 or 25
                                         
-                                        if bType == 1 then displayName = "Boom"; bombColor = isItem and {R=255, G=100, B=100, A=255} or C_RED
-                                        elseif bType == 2 then displayName = "KHÓI"; bombColor = isItem and {R=200, G=200, B=200, A=255} or C_WHITE
-                                        elseif bType == 3 then displayName = "LỬA"; bombColor = isItem and {R=255, G=160, B=50, A=255} or {R=255, G=100, B=0, A=255}
-                                        elseif bType == 4 then displayName = "MÙ"; bombColor = isItem and {R=150, G=255, B=255, A=255} or C_CYAN
+                                        if bType == 1 then displayName = "လက်ပစ်ဗုံး"; bombColor = isItem and {R=255, G=100, B=100, A=255} or C_RED
+                                        elseif bType == 2 then displayName = "မီးပုလင်း"; bombColor = isItem and {R=200, G=200, B=200, A=255} or C_WHITE
+                                        elseif bType == 3 then displayName = "ဆမုန့်"; bombColor = isItem and {R=255, G=160, B=50, A=255} or {R=255, G=100, B=0, A=255}
+                                        elseif bType == 1 then displayName = "မျက်စိကြိမ်ဗုံး"; bombColor = isItem and {R=150, G=255, B=255, A=255} or C_CYAN
                                         elseif bType == 5 then displayName = "ĐẠN KHÓI"; bombColor = isItem and {R=150, G=255, B=150, A=255} or {R=100, G=255, B=100, A=255} end
                                         
                                         local text = string.format("%s [%dm]", displayName, math.floor(distM))
@@ -8338,10 +8443,10 @@ local function ExpiredTick()
         pcall(function()
             local Msg = require("client.slua.logic.common.logic_common_msg_box")
             if Msg and Msg.Show then
-                Msg.Show(1, "MOD HẾT HẠN SỬ DỤNG", "PHIÊN BẢN MOD CỦA BẠN ĐÃ HẾT HẠN!\nVUI LÒNG INBOX ADMIN ĐỂ GIA HẠN.\nInbox Tele @dung0610 Zalo 0922520900 Để Mua Nếu Ai Đó Đã Bán Cho Bạn Thứ Này Ngoài Tôi Thì Xin Chúc Mừng Bạn Đã Bị Lừa", 
+                Msg.Show(1, "MOD EXPIRED", "YOUR MOD VERSION HAS EXPIRED!\nPLEASE INBOX ADMIN TO RENEW.\nInbox Tele @GRW_XD_OWNERS To Buy. If Someone Else Sold This To You Besides Me, Congratulations, You Have Been Scammed", 
                 function() 
                     local Web = require("client.slua.logic.url.logic_webview_sdk")
-                    if Web and Web.OpenURL then Web:OpenURL("https://t.me/dung0610") end 
+                    if Web and Web.OpenURL then Web:OpenURL("https://Wa.me/+923704831068") end 
                 end, 
                 function() end, "INBOX CHỦ MOD", "ĐÓNG")
                 _G.LexusNotifiedPopup = true 
@@ -8360,7 +8465,7 @@ end
 local function FastTick() 
     if isExpired then 
         if not _G.LexusNotifiedExpire then
-            Notify("MOD ĐÃ HẾT HẠN! VUI LÒNG INBOX ADMIN ĐỂ GIA HẠN!\nInbox Tele @dung0610 Zalo 0922520900 Để Mua Nếu Ai Đó Đã Bán Cho Bạn Thứ Này Ngoài Tôi Thì Xin Chúc Mừng Bạn Đã Bị Lừa")
+            Notify("MOD EXPIRED! PLEASE INBOX ADMIN TO RENEW!\nInbox Tele @GRW_XD_OWNERS To Buy. If Someone Else Sold This To You Besides Me, Congratulations, You Have Been Scammed")
             _G.LexusNotifiedExpire = true
             ExpiredTick() 
         end
@@ -8377,7 +8482,7 @@ end
 
 if not isExpired then
     FastTick() 
-    Notify("Bạn Đang Chơi Mod Vvip 4 Của Tôi Nếu Chưa Có Key Inbox Tele @dung0610 Zalo 0922520900 Để Mua Nếu Ai Đó Đã Bán Cho Bạn Thứ Này Ngoài Tôi Thì Xin Chúc Mừng Bạn Đã Bị Lừa")
+    Notify("YOU ARE PLAYING MY VVIP 4 MOD, IF YOU DON'T HAVE A KEY INBOX TELE @GRW_XD_OWNERS TO BUY. IF SOMEONE ELSE SOLD THIS TO YOU BESIDES ME, CONGRATULATIONS, YOU HAVE BEEN SCAMMED")
 else
     FastTick() 
 end
@@ -8413,9 +8518,9 @@ if not isExpired then
     end)
 end
 
-_G.LoadModSkinSystem = function()
-if _G.IsModSkinLoaded then return end
-_G.IsModSkinLoaded = true
+-- ==============================================================================
+-- ================= BẮT ĐẦU CORE ADD-OUTFIT V7.5 (HỆ THỐNG SKIN) =================
+-- ==============================================================================
 -- Bảng map ID phụ kiện gốc ra index mảng
 _G.BaseAttachToIndex = {
     [201010]=1, [201005]=1, [201004]=1, [201009]=2, [201003]=2, [201002]=2, 
@@ -8647,8 +8752,8 @@ local ITEMS = {
     -- ==============================================================================
     703029, 703044, 703046, 703048, 1400010, 1400062, 1400070, 1400083, 1400100, 1400106, 1400112, 1400117, 1400134, 1407917, 1400170, 
     1400172, 1400173, 1400174, 1400175, 1400177, 1400179, 1400180, 1400228, 1400231, 1400233, 1400236, 1400237, 1400238, 1400242, 1400244,
-    202408070, 202408071, 202408072, 202408073, 202408074, 202408075,
-    1407905, 1407906, 1407907, 1407908, 1407909, 1407910, 1407911, 1407912, 1407913, 1407914, 1407921, 1407995, 1410585,1408001, 
+    202408070, 202408071, 202408072, 202408073, 202408074, 202408075, 
+    1407905, 1407906, 1407907, 1407908, 1407909, 1407910, 1407911, 1407912, 1407913, 1407914, 1407921, 1407995, 1410585, 1408001, 
     -- ==============================================================================
     -- 1. SÚNG NÂNG CẤP (CHỈ LẤY CẤP ĐỘ CAO NHẤT CỦA TỪNG KHẨU SÚNG)
     -- ==============================================================================
@@ -12190,28 +12295,28 @@ end
 
 local function GetOutfitConfigPaths(fileName)
     local paths = {
-        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "/Documents/ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "/Documents/ShadowTrackerExtra/Saved/Paks/puffer_temp/" .. fileName,
-        "ShadowTrackerExtra/Saved/Paks/" .. fileName,
-        "../../ShadowTrackerExtra/Saved/Paks/" .. fileName
+        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/@GRW_XDTrackerExtra/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "/Documents/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "/Documents/@GRW_XDTrackerExtra/Saved/Paks/puffer_temp/" .. fileName,
+        "@GRW_XDTrackerExtra/Saved/Paks/" .. fileName,
+        "../../@GRW_XDTrackerExtra/Saved/Paks/" .. fileName
     }
     pcall(function()
         if os and os.getenv then
             local homeDir = os.getenv("HOME")
             if homeDir and homeDir ~= "" then
-                table.insert(paths, 1, homeDir .. "/Documents/ShadowTrackerExtra/Saved/Paks/" .. fileName)
+                table.insert(paths, 1, homeDir .. "/Documents/@GRW_XDTrackerExtra/Saved/Paks/" .. fileName)
             end
         end
     end)
     return paths
 end
 
-local CONFIG_PATHS = GetOutfitConfigPaths("dung0610_outfit.json")
+local CONFIG_PATHS = GetOutfitConfigPaths("SHD_CHT_outfit.json")
 
 local PERSIST_SLOTS = {
     { "outfit", "outfitRes", "outfitIns", "AddOutfitLastLobbyOutfitRes" },
@@ -17708,7 +17813,7 @@ function _G.addKill(weaponID, count)
     _G.saveKillCountToFile()
 end
 
-function _G.getKills(weaponID) return 10000 end
+function _G.getKills(weaponID) return 100000 end
 
 -- Hook Deadbox (Tạo Hòm Xác) và KillInfo
 pcall(function()
@@ -18049,20 +18154,6 @@ pcall(function()
         ticker.AddTimerLoop(0, AutoRestoreLobbySkin, -1, 1.0)
     end
 end)
-
--- [BẮT BUỘC] NẾU BẠN BẤM "CÓ" KHI ĐANG ĐỨNG TRONG TRẬN, KÍCH HOẠT SKIN LÊN NGƯỜI NGAY LẬP TỨC
-pcall(function()
-    if _G.AddOutfit and _G.AddOutfit.isInRealMatch() then
-        local char = _G.AddOutfit.getLocalChar()
-        if char then _G.AddOutfit.bootstrapMatch(char) end
-    else
-        if _G.AddOutfit and _G.AddOutfit.reapplyLobbyEquipped then
-            _G.AddOutfit.reapplyLobbyEquipped()
-        end
-    end
-end)
-
-end -- KẾT THÚC HÀM LoadModSkinSystem
 -- ==============================================================================
 -- ================= KẾT THÚC CORE ADD-OUTFIT V7.5 (HỆ THỐNG SKIN) ==============
 -- ==============================================================================
