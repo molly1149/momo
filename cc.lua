@@ -1,4 +1,8 @@
 local logic_lobby_user_research = {}
+
+-- ============================================================
+-- 强制简体中文（来自原 6.lua）
+-- ============================================================
 local _hasRun = false
 
 local function ForceSimplifiedChinese()
@@ -105,12 +109,17 @@ local function ForceSimplifiedChinese()
     end)
 end
 
+-- ============================================================
+-- logic_lobby_user_research 模块
+-- ============================================================
 function logic_lobby_user_research:DefineAndResetData()
   self.isLogin = true
   self.reportCache = nil
 end
 
 function logic_lobby_user_research:OnInitialize()
+  -- 保证模块初始化时语言已经切换到简体中文
+  ForceSimplifiedChinese()
 end
 
 function logic_lobby_user_research:RegistEvents()
@@ -132,10 +141,6 @@ end
 
 function logic_lobby_user_research:OnPostSwitchGameStatus(preState, nextState)
   log(bWriteLog and "logic_lobby_user_research:OnPostSwitchGameStatus preState:" .. tostring(preState) .. " nextState = " .. tostring(nextState) .. " self.isLogin:" .. tostring(self.isLogin))
-  if nextState == GameStatus.Lobby then
-    ForceSimplifiedChinese()
-  end
-
   if self.checkTopUITimer then
     self:RemoveTimer(self.checkTopUITimer)
     self.checkTopUITimer = nil
@@ -312,6 +317,9 @@ function logic_lobby_user_research:OnInitTuxUI()
   local errCode = gamelet_interface:OpenApp(tuxData.uiAppId, json.encode(data))
   log("logic_lobby_user_research:OnInitTuxUI errCode = ", errCode)
 end
+
+ForceSimplifiedChinese()
+
 local class = require("class")
 local CModuleBase = require("client.module_framework.ModuleBase")
 local Clogic_lobby_user_research = class(CModuleBase, nil, logic_lobby_user_research)
