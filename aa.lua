@@ -3,10 +3,10 @@ local CONFIG = {
     NO_RECOIL = 0,        
     NO_RECOIL_ADS = 1,      
     ANTI_SHAKE = 0,        
-    ALL_GUN_FOCUS = 1,      
+    ALL_GUN_FOCUS = 0,      
     QUICK_SCOPE = 0,        
     QUICK_SWITCH = 0,       
-    EXTRA_HIT_SCALE = 4,    
+    EXTRA_HIT_SCALE = 0,    
     RAINBOW_HIT = 0        
 }
 
