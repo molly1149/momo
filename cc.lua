@@ -807,7 +807,7 @@
 
         local _K = {
             INS_BASE = 2000000000, PKG_SLOT = 3, MELEE_ID = 108,
-            GUN_SUB = { [101]=true, [102]=true, [103]=true, [104]=true, [105]=true, [106]=true, [107]=true },
+            GUN_SUB = { [101]=true, [102]=true, [103]=true, [104]=true, [105]=true, [106]=true, [107]=true，[108]=true },
             NET_OK = NetErrorCode_NONE or "ok",
             GUN_MASTER_SYN_SLOT = 7,
             THROW_SUB = { [612] = "shoulei", [613] = "smoke", [614] = "stun", [615] = "burn" },
