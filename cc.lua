@@ -807,7 +807,7 @@
 
         local _K = {
             INS_BASE = 2000000000, PKG_SLOT = 3, MELEE_ID = 108,
-            GUN_SUB = { [101]=true, [102]=true, [103]=true, [104]=true, [105]=true, [106]=true, [107]=true，[108]=true},
+            GUN_SUB = { [101]=true, [102]=true, [103]=true, [104]=true, [105]=true, [106]=true, [107]=true},
             NET_OK = NetErrorCode_NONE or "ok",
             GUN_MASTER_SYN_SLOT = 7,
             THROW_SUB = { [612] = "shoulei", [613] = "smoke", [614] = "stun", [615] = "burn" },
@@ -924,14 +924,23 @@
         end
 
         local function weaponIdFromSkin(resID)
-            resID = tonumber(resID)
-            if not resID then return nil end
-            if _C.weaponId[resID] ~= nil then return _C.weaponId[resID] end
-            local m = CDataTable and CDataTable.GetTableData and CDataTable.GetTableData("WeaponSkinMapping", resID)
-            local wid = m and (m.WeaponID or m.WeaponId) or nil
-            _C.weaponId[resID] = wid
-            return wid
-        end
+    resID = tonumber(resID)
+    if not resID then return nil end
+    if _C.weaponId[resID] ~= nil then return _C.weaponId[resID] end
+    local m = CDataTable and CDataTable.GetTableData and CDataTable.GetTableData("WeaponSkinMapping", resID)
+    local wid = m and (m.WeaponID or m.WeaponId) or nil
+    wid = tonumber(wid)
+    -- [FIX MELEE] 近战皮肤 ID 段 110800xxxx，强制映射到 MELEE_ID = 108
+    if (not wid or wid <= 0) and resID >= 1108000000 and resID < 1109000000 then
+        wid = _K.MELEE_ID  -- 108
+    end
+    -- [FIX MELEE] 若表里把 melee 皮肤误映射成 108xxx 也归一到 108
+    if wid and wid >= 108001 and wid <= 108999 then
+        wid = _K.MELEE_ID
+    end
+    _C.weaponId[resID] = wid
+    return wid
+end
 
         local function isHallThemeRes(resID)
             resID = tonumber(resID)
@@ -5341,41 +5350,72 @@
             end
         end
 
-        local _skinIdCache = {}
-        local _skinIdCacheTick = 0
-        local function get_skin_id(currentGunId, maxIt)
-            currentGunId, maxIt = tonumber(currentGunId) or 0, tonumber(maxIt) or 0
-            if currentGunId <= 0 and maxIt <= 0 then return 0 end
-            -- Fast path: prefer using weapon cache directly
-            local cch = cache()
-            local wid = maxIt > 0 and maxIt or currentGunId
-            local w = cch.weapons[wid]
-            if w and w.resID and w.resID > 0 then return w.resID end
-            -- Try type ID lookup
-            local typeId = resolveWeaponTypeID(wid)
-            if typeId ~= wid then
-                local w2 = cch.weapons[typeId]
-                if w2 and w2.resID and w2.resID > 0 then return w2.resID end
-            end
-            -- Cache with short TTL
-            local nowTick = _S.globalFrame or 0
-            if (nowTick - _skinIdCacheTick) < 60 then
-                local cached = _skinIdCache[wid]
-                if cached then return cached end
-            end
-            buildSkinMappings()
-            local m = _G.AddOutfitSkinIdMappings
-            local result = nil
-            if m[wid] and m[wid][1] then result = tonumber(m[wid][1])
-            elseif typeId ~= wid and m[typeId] and m[typeId][1] then result = tonumber(m[typeId][1])
-            end
-            if result then
-                _skinIdCache[wid] = result
-                _skinIdCacheTick = nowTick
-                return result
-            end
-            return wid
+local _skinIdCache = {}
+local _skinIdCacheTick = 0
+
+-- [FIX MELEE] 具体近战武器 ID（108001~108999）统一归一到 MELEE_ID = 108
+local function normalizeMeleeID(wid)
+    wid = tonumber(wid) or 0
+    if wid >= 108001 and wid <= 108999 then
+        return _K.MELEE_ID
+    end
+    return wid
+end
+
+local function get_skin_id(currentGunId, maxIt)
+    currentGunId, maxIt = tonumber(currentGunId) or 0, tonumber(maxIt) or 0
+    if currentGunId <= 0 and maxIt <= 0 then return 0 end
+
+    local cch = cache()
+    local wid = maxIt > 0 and maxIt or currentGunId
+
+    -- [FIX MELEE] 先尝试用归一化后的 ID 查缓存
+    local lookupWid = normalizeMeleeID(wid)
+    local w = cch.weapons[lookupWid]
+    if w and w.resID and w.resID > 0 then return w.resID end
+    -- 若 lookupWid 与 wid 不同（melee 场景），再试原始 ID
+    if lookupWid ~= wid then
+        local w0 = cch.weapons[wid]
+        if w0 and w0.resID and w0.resID > 0 then return w0.resID end
+    end
+
+    -- 类型 ID 查找（同样做 melee 归一化）
+    local typeId = resolveWeaponTypeID(lookupWid)
+    typeId = normalizeMeleeID(typeId)
+    if typeId ~= lookupWid then
+        local w2 = cch.weapons[typeId]
+        if w2 and w2.resID and w2.resID > 0 then return w2.resID end
+    end
+
+    -- 短 TTL 缓存
+    local nowTick = _S.globalFrame or 0
+    if (nowTick - _skinIdCacheTick) < 60 then
+        local cached = _skinIdCache[lookupWid]
+        if cached then return cached end
+    end
+
+    buildSkinMappings()
+    local m = _G.AddOutfitSkinIdMappings
+    local result = nil
+    if m[lookupWid] and m[lookupWid][1] then
+        result = tonumber(m[lookupWid][1])
+    elseif typeId ~= lookupWid and m[typeId] and m[typeId][1] then
+        result = tonumber(m[typeId][1])
+    end
+    -- [FIX MELEE] 兜底：查 MELEE_ID 的映射
+    if not result and lookupWid ~= _K.MELEE_ID then
+        if m[_K.MELEE_ID] and m[_K.MELEE_ID][1] then
+            result = tonumber(m[_K.MELEE_ID][1])
         end
+    end
+
+    if result then
+        _skinIdCache[lookupWid] = result
+        _skinIdCacheTick = nowTick
+        return result
+    end
+    return lookupWid
+end
         _G.get_skin_id = get_skin_id
         _G.skinIdMappings = _G.AddOutfitSkinIdMappings
 
@@ -5806,22 +5846,28 @@
         -- SetWeaponAvatarID. Always runs applyAttachmentSkins so attachment skins
         -- survive drop/equip events (game resets attachment slots on each change).
         local function applyWeaponSkinDirect(wpn)
-            if not slua.isValid(wpn) then return false end
-            local weaponID = 0
-            pcall(function()
-                if wpn.GetWeaponID then weaponID = wpn:GetWeaponID()
-                else weaponID = wpn:GetItemDefineID().TypeSpecificID end
-            end)
-            weaponID = tonumber(weaponID) or 0
-            if weaponID <= 0 then
-                flog("GUN", "applyWeaponSkinDirect: weaponID=0, skip")
-                return false
-            end
+    if not slua.isValid(wpn) then return false end
+    local weaponID = 0
+    pcall(function()
+        if wpn.GetWeaponID then weaponID = wpn:GetWeaponID()
+        else weaponID = wpn:GetItemDefineID().TypeSpecificID end
+    end)
+    weaponID = tonumber(weaponID) or 0
+    if weaponID <= 0 then
+        flog("GUN", "applyWeaponSkinDirect: weaponID=0, skip")
+        return false
+    end
 
-            local targetID = get_skin_id(weaponID, weaponID)
+    -- [FIX MELEE] 具体近战武器 ID (108001~108999) → 用 MELEE_ID 查缓存
+    local lookupID = weaponID
+    if weaponID >= 108001 and weaponID <= 108999 then
+        lookupID = _K.MELEE_ID  -- 108
+    end
+
+    local targetID = get_skin_id(lookupID, lookupID)
             targetID = tonumber(targetID) or 0
             flog("GUN", "applyWeaponSkinDirect weaponID=" .. weaponID .. " targetID=" .. targetID)
-            if targetID <= 0 or targetID == weaponID then
+            if targetID <= 0 or targetID == lookupID then
                 flog("GUN", "  -> no skin mapped for weaponID=" .. weaponID)
                 return false
             end
@@ -5868,37 +5914,75 @@
 
         -- Apply weapon skin to all inventory weapons (mirrors 1.lua ApplyWeaponSkins)
         function _G.equip_weapon_avatar(uCharacter)
-            if not uCharacter or not slua.isValid(uCharacter) then return false end
-            -- Patch WeaponManager ID resolvers once per match
-            InjectWeaponLogicHooks(uCharacter)
-            local wm = uCharacter:GetWeaponManager()
-            if not slua.isValid(wm) then
-                flog("GUN", "equip_weapon_avatar: no WeaponManager")
-                return false
+    if not uCharacter or not slua.isValid(uCharacter) then return false end
+    InjectWeaponLogicHooks(uCharacter)
+    local wm = uCharacter:GetWeaponManager()
+    if not slua.isValid(wm) then
+        flog("GUN", "equip_weapon_avatar: no WeaponManager")
+        return false
+    end
+    local appliedAny = false
+    local seen = {}
+
+    local function processWpn(wpn, tag)
+        if not slua.isValid(wpn) then return end
+        local key = tostring(wpn)
+        if seen[key] then return end
+        seen[key] = true
+
+        if applyWeaponSkinDirect(wpn) then appliedAny = true end
+        pcall(function()
+            local wid = 0
+            if wpn.GetWeaponID then wid = wpn:GetWeaponID() end
+            -- [FIX MELEE] 也要给 melee 归一化
+            local lookupWid = wid
+            if wid and wid >= 108001 and wid <= 108999 then
+                lookupWid = _K.MELEE_ID
             end
-            local appliedAny = false
-            flog("GUN", "equip_weapon_avatar: scanning slots 1-3")
-            for i = 1, 3 do
-                local wpn = wm:GetInventoryWeaponByPropSlot(i)
+            local target = get_skin_id(lookupWid, lookupWid)
+            if target and target > 0 then
+                apply_attachment(wpn, target)
+            end
+        end)
+    end
+
+    -- 槽位 1~3（主武器 + 手枪）
+    flog("GUN", "equip_weapon_avatar: scanning slots 1-3")
+    for i = 1, 3 do
+        local wpn = wm:GetInventoryWeaponByPropSlot(i)
+        if slua.isValid(wpn) then
+            flog("GUN", "  slot " .. i .. " has weapon")
+            processWpn(wpn, "slot" .. i)
+        end
+    end
+
+    -- [FIX MELEE] 额外扫描槽位 4~8 + 武器全列表，确保近战武器被覆盖
+    pcall(function()
+        for i = 4, 8 do
+            local wpn = wm:GetInventoryWeaponByPropSlot(i)
+            if slua.isValid(wpn) then
+                processWpn(wpn, "slot" .. i)
+            end
+        end
+    end)
+    pcall(function()
+        local list = wm:GetAllInventoryWeaponList(false)
+        if slua.isValid(list) then
+            local n = 0
+            pcall(function() n = list:Num() end)
+            for i = 0, n - 1 do
+                local wpn = list:Get(i)
                 if slua.isValid(wpn) then
-                    flog("GUN", "  slot " .. i .. " has weapon")
-                    if applyWeaponSkinDirect(wpn) then appliedAny = true end
-                    -- Also call apply_attachment directly (mirrors 1.lua line 856)
-                    pcall(function()
-                        local wid = wpn:GetWeaponID()
-                        local target = get_skin_id(wid, wid)
-                        if target and target > 0 then
-                            apply_attachment(wpn, target)
-                        end
-                    end)
-                else
-                    flog("GUN", "  slot " .. i .. " empty")
+                    processWpn(wpn, "list" .. i)
                 end
             end
-            flog("GUN", "equip_weapon_avatar appliedAny=" .. tostring(appliedAny))
-            flog_flush()
-            return appliedAny
         end
+    end)
+
+    flog("GUN", "equip_weapon_avatar appliedAny=" .. tostring(appliedAny))
+    flog_flush()
+    return appliedAny
+end
 
         -- Legacy alias kept so hooks that reference applySkinToWeaponRef still work
         local function applySkinToWeaponRef(wpn)
