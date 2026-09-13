@@ -2124,19 +2124,19 @@ JINSHI.RefreshButton = RefreshBtn
 local CONFIG = { 
     ENABLED = 1, 
     FIRE_ONLY = 1, 
-    SCOPE_ALLOWED = 0, 
-    AIM_AT_KNOCKED = 1, 
+    SCOPE_ALLOWED = 1, 
+    AIM_AT_KNOCKED = 0, 
     AIM_AT_BOTS = 1, 
     MAX_DIST = 250, 
-    FOV = 360, 
+    FOV = 80, 
     SMOOTH = 85, 
     PREDICT = 1, 
     SMART_SMOOTH = 1, 
     HEAD_CORRECTION = {x=0, y=0, z=0}, 
     HIP_OFFSET = {x=0, y=0, z=0}, 
     ADS_OFFSET = {x=0, y=0, z=0}, 
-    RECOIL_HIP = 0, 
-    RECOIL_ADS = 0, 
+    RECOIL_HIP = 1, 
+    RECOIL_ADS = 1, 
 } 
 
 local function UltimateEngine() 
