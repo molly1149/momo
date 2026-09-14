@@ -500,7 +500,7 @@ function _G.InitModMenuTab()
 
     local FakeTextMap = {
         [999000] = T(" MOD VIP", "MOD"),
-        [999001] = T((ESP)", "VISUALS (ESP) "),
+        [999001] = T("(ESP)", "VISUALS (ESP) "),
         [999002] = T("AIMBOT", "NATIVE AIMBOT"),
         [999003] = T("AIMBOT ROYAL - CUSTOM ", "CUSTOM AIMBOT"),
         [999004] = T("support", "SUPPORT & GRAPHICS "),
@@ -884,7 +884,7 @@ _G.LexusState.MenuStep = 1
                     Step_SelectLanguage()
                 end)
         end
-    end
+
 
 
 
@@ -2497,7 +2497,6 @@ local function CreateWarningTargetWidget()
 end
 
 local function _M_DrawCounter()
-
         _G.CleanUpEnemyCounterWidget()
         return
     end
@@ -5815,7 +5814,7 @@ local function EnsurePermanentDungCu()
         return 
     end
 
-    -- 2. Náº¿u chÆ°a cÃ³, tiáº¿n hÃ nh váº½ má»i
+   
     local ParentCanvas = nil
     pcall(function()
         local InGameUITools = require("GameLua.Mod.BaseMod.Common.UI.InGameUITools")
@@ -5832,7 +5831,7 @@ local function EnsurePermanentDungCu()
     pcall(function() txtTitle = CGame:NewObjectFromPath("/Script/UMG.TextBlock", ParentCanvas) end)
     if txtTitle and slua.isValid(txtTitle) then
         pcall(function()
-            txtTitle:SetText("FREEV19DUNGCU")
+            txtTitle:SetText("V.V")
             local FLinearColor = import("LinearColor") or _G.FLinearColor
             local FSlateColor = import("SlateColor") or import("/Script/SlateCore.SlateColor")
             local redLinear = FLinearColor and FLinearColor(1.0, 0.0, 0.0, 1.0) or {R=255, G=0, B=0, A=255}
