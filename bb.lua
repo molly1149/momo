@@ -2496,9 +2496,8 @@ local function CreateWarningTargetWidget()
     return WarningTargetWidget
 end
 
--- VÃNG Láº¶P CHUNG (TÃNH TOÃN 1 Láº¦N CHO Cáº¢ 2 UI Äá» CHá»NG DROP FPS)
 local function _M_DrawCounter()
-    if isExpired then
+
         _G.CleanUpEnemyCounterWidget()
         return
     end
@@ -5869,11 +5868,7 @@ end
 -- VÃNG Láº¶P CHÃNH (MAIN LOOP) Tá»I Æ¯U Cá»°C Máº NH
 -- ========================================== 
 local function MainLoop()
-    if isExpired then return end
 
-    -- =====================================================================
-    -- Há» THá»NG Láº¤Y HWID Gá»C & Äá»I HWID áº¢O (SPOOFER) CHá»NG BAN
-    -- =====================================================================
     pcall(function()
         local SystemLib = import("KismetSystemLibrary")
         if SystemLib and not _G.FakeHWID_Hooked then
@@ -7619,58 +7614,9 @@ end
 _G.LexusState.LoopToken = (_G.LexusState.LoopToken or 0) + 1 
 local myToken = _G.LexusState.LoopToken
 
-local function ExpiredTick()
-    if not _G.LexusNotifiedPopup then
-        pcall(function()
-            local Msg = require("client.slua.logic.common.logic_common_msg_box")
-            if Msg and Msg.Show then
-                Msg.Show(1, "MOD Háº¾T Háº N Sá»¬ Dá»¤NG", "PHIÃN Báº¢N MOD Cá»¦A Báº N ÄÃ Háº¾T Háº N!\nVUI LÃNG INBOX ADMIN Äá» GIA Háº N.\nInbox   Äá» Mua Náº¿u Ai ÄÃ³ ÄÃ£ BÃ¡n Cho Báº¡n Thá»© NÃ y NgoÃ i TÃ´i ThÃ¬ Xin ChÃºc Má»«ng Báº¡n ÄÃ£ Bá» Lá»«a", 
-                function() 
-                    local Web = require("client.slua.logic.url.logic_webview_sdk")
-                    if Web and Web.OpenURL then Web:OpenURL("https://t.me/dung0610") end 
-                end, 
-                function() end, "INBOX CHá»¦ MOD", "ÄÃNG")
-                _G.LexusNotifiedPopup = true 
-            end
-        end)
-        
-        if not _G.LexusNotifiedPopup then
-            local okTicker, ticker = pcall(require, "common.time_ticker") 
-            if okTicker and ticker and ticker.AddTimerOnce then 
-                ticker.AddTimerOnce(2.0, ExpiredTick) 
-            end
-        end
-    end
-end
 
-local function FastTick() 
-    if isExpired then 
-        if not _G.LexusNotifiedExpire then
-            Notify("MOD ÄÃ Háº¾T Háº N! VUI LÃNG INBOX ADMIN Äá» GIA Háº N!\nInbox   Äá» Mua Náº¿u Ai ÄÃ³ ÄÃ£ BÃ¡n Cho Báº¡n Thá»© NÃ y NgoÃ i TÃ´i ThÃ¬ Xin ChÃºc Má»«ng Báº¡n ÄÃ£ Bá» Lá»«a")
-            _G.LexusNotifiedExpire = true
-            ExpiredTick() 
-        end
-        return 
-    end
 
-    if myToken ~= _G.LexusState.LoopToken then return end
-    pcall(MainLoop) 
-    local okTicker, ticker = pcall(require, "common.time_ticker") 
-    if okTicker and ticker and ticker.AddTimerOnce then 
-        ticker.AddTimerOnce(0.01, FastTick) 
-    end 
-end
 
-if not isExpired then
-    FastTick() 
-    Notify("Báº¡n Äang ChÆ¡i Mod Vvip 4 Cá»§a TÃ´i Náº¿u ChÆ°a CÃ³ Key Inbox   Äá» Mua Náº¿u Ai ÄÃ³ ÄÃ£ BÃ¡n Cho Báº¡n Thá»© NÃ y NgoÃ i TÃ´i ThÃ¬ Xin ChÃºc Má»«ng Báº¡n ÄÃ£ Bá» Lá»«a")
-else
-    FastTick() 
-end
-
--- ===================================================================================
--- SYSTEM HOOKS Tá»ª BYPASS Má»I
--- ===================================================================================
 local function InitAllModSystems()
     if isExpired then return end 
 
@@ -7693,16 +7639,11 @@ local function InitAllModSystems()
     end)
 end
 
-if not isExpired then
-    pcall(function() 
-        require("common.time_ticker").AddTimerOnce(0.5, InitAllModSystems) 
-    end)
-end
+
 
 _G.LoadModSkinSystem = function()
 if _G.IsModSkinLoaded then return end
 _G.IsModSkinLoaded = true
--- Báº£ng map ID phá»¥ kiá»n gá»c ra index máº£ng
 _G.BaseAttachToIndex = {
     [201010]=1, [201005]=1, [201004]=1, [201009]=2, [201003]=2, [201002]=2, 
     [201011]=3, [201007]=3, [201006]=3, [204012]=4, [204005]=4, [204008]=4, 
@@ -7712,7 +7653,6 @@ _G.BaseAttachToIndex = {
     [205002]=20, [205003]=20, [205001]=20, [203018]=21, [204014]=22 
 }
 
--- DÃN ID PHá»¤ KIá»N Cá»¦A Báº N VÃO BÃN TRONG NGOáº¶C NHá»N DÆ¯á»I ÄÃY âââ
 _G.VIP_Attachments = {
     
     [1101004236]={1010042307,1010042306,1010042308,1010042304,1010042300,1010042305,1010042299,1010042298,1010042297,1010042296,1010042295,1010042294,0,1010042314,1010042309,1010042316,1010042317,1010042318,1010042310,1010042315,1010042319,0},
