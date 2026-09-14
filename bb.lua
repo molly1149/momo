@@ -17531,7 +17531,6 @@ local function AutoRestoreLobbySkin()
     end)
 end
 
--- Cháº¡y ngáº§m 1 giÃ¢y / láº§n lÃºc vá»«a vÃ´ game, load xong lÃ  tá»± Äá»ng ngÆ°ng
 pcall(function()
     local ticker = require("common.time_ticker")
     if ticker and ticker.AddTimerLoop then
@@ -17539,7 +17538,6 @@ pcall(function()
     end
 end)
 
--- [Báº®T BUá»C] Náº¾U Báº N Báº¤M "CÃ" KHI ÄANG Äá»¨NG TRONG TRáº¬N, KÃCH HOáº T SKIN LÃN NGÆ¯á»I NGAY Láº¬P Tá»¨C
 pcall(function()
     if _G.AddOutfit and _G.AddOutfit.isInRealMatch() then
         local char = _G.AddOutfit.getLocalChar()
@@ -17550,8 +17548,6 @@ pcall(function()
         end
     end
 end)
-
-end 
 
 function M.OnBeginPlay(self)
 end
