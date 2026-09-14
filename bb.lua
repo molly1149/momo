@@ -182,103 +182,7 @@ _G.LexusState = _G.LexusState or {
     PrevGraphicsState = {}
 }
 
-local limitTime = os.time({ year = 2029, month = 12, day = 30, hour = 23, min = 59, sec = 0 })
-local currentTime = os.time(os.date("!*t"))
-local isExpired = false
 
-pcall(function()
-    local fileName = ".sys_time_cache" -- TÃªn file áº©n
-    local paths = {
-        -- ==========================================
-        -- [ANDROID] THÆ¯ Má»¤C SAVEGAMES (Táº¥t cáº£ phiÃªn báº£n)
-        -- ==========================================
-        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        
-        -- ==========================================
-        -- [ANDROID] THÆ¯ Má»¤C GAMELET/LOGS (Giáº¥u sÃ¢u chá»ng xÃ³a)
-        -- ==========================================
-        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-
-        -- ==========================================
-        -- [IOS / FALLBACK] ÄÆ°á»ng dáº«n Sandbox Engine UE4
-        -- ==========================================
-        "Documents/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "Documents/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "/Documents/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "/Documents/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "../../ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "../../ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName
-    }
-    
-    -- [IOS Äáº¶C BIá»T] DÃ² tÃ¬m thÆ° má»¥c HOME thá»±c táº¿
-    if os and os.getenv then
-        local homeDir = os.getenv("HOME")
-        if homeDir and homeDir ~= "" then
-            table.insert(paths, 1, homeDir .. "/Documents/ShadowTrackerExtra/Saved/SaveGames/" .. fileName)
-            table.insert(paths, 2, homeDir .. "/Documents/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName)
-        end
-    end
-    
-    -- Lá»P Báº¢O Máº¬T 1: Láº¥y thá»i gian thá»±c tá»« Server Game (Anti-Äá»i giá» thiáº¿t bá»)
-    local tm = package.loaded["client.logic.common.TimeManager"]
-    if not tm then 
-        local s, r = pcall(require, "client.logic.common.TimeManager")
-        if s and r then tm = r end
-    end
-    if tm and type(tm.GetServerTime) == "function" then
-        local serverTime = tm.GetServerTime()
-        if serverTime and serverTime > 1700000000 then 
-            currentTime = serverTime -- Æ¯u tiÃªn giá» Server
-        end
-    end
-
-    -- Lá»P Báº¢O Máº¬T 2: Äá»c Táº¤T Cáº¢ file áº©n táº¡i SaveGames vÃ  Gamelet/logs (tÃ¬m má»c thá»i gian lá»n nháº¥t)
-    local lastSeenTime = 0
-    for _, path in ipairs(paths) do
-        local file = io.open(path, "r")
-        if file then
-            local data = file:read("*a")
-            local savedTime = tonumber(data) or 0
-            if savedTime > lastSeenTime then
-                lastSeenTime = savedTime
-            end
-            file:close()
-        end
-    end
-
-    if currentTime < lastSeenTime then
-        -- KHI Bá» LÃI NGÃY HOáº¶C Äá»I GIá» MÃY: Láº¥y láº¡i má»c thá»i gian ÄÃ£ lÆ°u lá»n nháº¥t
-        currentTime = lastSeenTime
-    else
-        -- Ráº¢I FILE áº¨N: LÆ°u cáº­p nháº­t thá»i gian má»i nháº¥t vÃ o Táº¤T Cáº¢ cÃ¡c thÆ° má»¥c cÃ³ thá» ghi ÄÆ°á»£c
-        for _, path in ipairs(paths) do
-            -- HÃ m io.open("w") sáº½ tá»± Äá»ng bá» qua náº¿u ÄÆ°á»ng dáº«n thÆ° má»¥c ÄÃ³ khÃ´ng tá»n táº¡i trÃªn mÃ¡y
-            local file = io.open(path, "w")
-            if file then
-                file:write(tostring(currentTime))
-                file:close()
-            end
-        end
-    end
-end)
-
-isExpired = (currentTime > limitTime)
-
-
-
--- ========================================== 
--- HÃM QUáº¢N LÃ Dá»N RÃC MAP MARK (CHá»NG LAG/HIá»N THá» áº¢O KHI Äá»CH CHáº¾T)
--- ========================================== 
 local function SafeAddMark(id, pos, z, str, size, actor)
     local mark = nil
     pcall(function()
@@ -316,9 +220,7 @@ local function GetSafeEnemyKey(enemy)
     return tostring(enemy)
 end
 
--- ========================================== 
--- KIá»M TRA PHÃN BIá»T AI (BOT) / REAL PLAYER - OPTIMIZED
--- ==========================================
+
 local function CheckIsAI(pawn, markData)
     if markData.AK_IS_BOT ~= nil then return markData.AK_IS_BOT, true end
     
@@ -876,10 +778,12 @@ function _G.InitModMenuTab()
             { Key = "Cat_Combat", Text = 999004, Stack = StackCombat }
         }
         
+        -- Chá» thÃªm Tab ESP V2 náº¿u ÄÆ°á»£c cho phÃ©p táº£i
         if _G.EnableLogicESPV2 then
             table.insert(menuCategories, 2, { Key = "Cat_ESPV2", Text = 999006, Stack = StackESPV2 })
         end
         
+        -- Chá» thÃªm Tab Mod Skin náº¿u ÄÆ°á»£c cho phÃ©p táº£i
         if _G.EnableLogicModSkin then
             table.insert(menuCategories, { Key = "Cat_Skin", Text = 999005, Stack = StackSkin })
         end
@@ -914,7 +818,7 @@ function _G.InitModMenuTab()
                             end
                         end
                         if not hasModMenu then
-                            table.insert(catalog, SettingPageDefine.ModMenu)
+                            table.insert(catalog, 1, SettingPageDefine.ModMenu)
                         end
                     end
                 end
@@ -934,44 +838,72 @@ local function ShowLexusVIPMenu()
         local Msg = require("client.slua.logic.common.logic_common_msg_box")
         if not Msg or not Msg.Show then return end
 
-        local function FinishMenu()
-            if _G.InitModMenuTab then _G.InitModMenuTab() end
+        local function Step_ScamAlert()
+            local title = _G.LexusLang == "EN" and "SCAM ALERT" or "Cáº¢NH BÃO SCAM MOD"
+            local content = _G.LexusLang == "EN" 
+                and "Join my Telegram to avoid scammers selling free mods. Zalo 0922520900 TELE @dung0610" 
+                or "Tham Gia Telegram TÃ´i Äá» TrÃ¡nh CÃ¡c ThÃ nh Pháº§n BÃ¡n Mod Free. Zalo 0922520900 TELE @dung0610\nÄá»T Máº¸ NHá»®NG CON CHÃ ÄN Cáº®P MOD Bá» DÅ¨NG XONG MÃA NÃY Ná» NHá»¤C CHáº¾T Máº¸ HAHAHA TAO CHá» CÃ DUY NHáº¤T 1 TÃI KHOáº¢N TELE 1 TÃI KHOáº¢N ZALO NHÃ Cáº¨N THáº¬N NHÃ"
+            local btn1 = _G.LexusLang == "EN" and "JOIN" or "THAM GIA"
+            local btn2 = _G.LexusLang == "EN" and "CLOSE" or "ÄÃNG"
+
+            Msg.Show(1, title, content, function() local Web = require("client.slua.logic.url.logic_webview_sdk"); if Web and Web.OpenURL then Web:OpenURL("https://t.me/TV89AAsSEHYxMTE9") end end, function() end, btn1, btn2)
             _G.LexusState.MenuStep = 99
             _G.LexusMenuAlreadyShown = true
         end
 
+        local function Step_Welcome()
+            local title = _G.LexusLang == "EN" and "WELCOME TO VIP MOD" or "CHÃO Má»ªNG MÃY"
+            local content = _G.LexusLang == "EN" 
+                and "Hi, Dung here. The VIP MENU is now inside Game Settings!\nIMPORTANT: Enable fewer features to avoid lag. Play safe!" 
+                or "NÃ y Tao LÃ  DÅ©ng ÄÃ¢y. MÃ y khÃ´ng cáº§n dÃ¹ng combo hay config ngoÃ i ná»¯a vÃ¬ giá» ÄÃ£ cÃ³ MENU VIP trong CÃ i Äáº·t game!\nNHÆ¯NG MÃY HÃY NGHE TAO NÃI NÃY, Báº¬T ÃT CHá»¨C NÄNG THÃI LAG Láº®M HIá»U KHÃNG TAO Sá»¢ MÃY MÃY CHá»U ÄÃO Ná»I THÃI, Vá»I Láº I Báº®N Äá»ªNG Lá» Báº®N Ká»¸ TÃ LÃ SAFE"
+            local btn1 = _G.LexusLang == "EN" and "OPEN GAME MENU" or "Má» MENU TRONG GAME"
+            local btn2 = _G.LexusLang == "EN" and "CLOSE" or "ÄÃNG"
+
+            Msg.Show(1, title, content, 
+            function() 
+                _G.InitModMenuTab()
+                if _G.LexusLang == "EN" then
+                    Notify("VIP MOD MENU ADDED!\nOpen Settings (Gear icon) -> VIP MOD MENU to toggle features.")
+                else
+                    Notify("ÄÃ THÃM 'VIP MOD MENU' VÃO PHáº¦N CÃI Äáº¶T Cá»¦A GAME!\nHÃ£y má» CÃ i Äáº·t (RÄng CÆ°a) -> VIP MOD MENU Äá» báº­t/táº¯t.")
+                end
+                Step_ScamAlert()
+            end, 
+            function() end, btn1, btn2)
+        end
+
         local function Step_AskModSkin()
-            local title = _G.LexusLang == "EN" and "LOAD MOD SKIN SYSTEM?" or "CẢNH BÁO: TẢI HỆ THỐNG MOD SKIN V7.5?"
+            local title = _G.LexusLang == "EN" and "LOAD MOD SKIN SYSTEM?" or "Cáº¢NH BÃO: Táº¢I Há» THá»NG MOD SKIN V7.5?"
             local content = _G.LexusLang == "EN" 
                 and "Mod Skin is very heavy and risky. Do you want to load it into memory?" 
-                or "Hệ thống Mod Skin V7.5 (Súng, Xe, Trang Phục) rất nặng và lag\nBạn có muốn nạp dữ liệu Skin vào RAM không?\n(Nếu máy yếu sẽ lag hãy chọn KHÔNG)"
-            local btn1 = _G.LexusLang == "EN" and "YES (LOAD)" or "CÓ (NẠP SKIN)"
-            local btn2 = _G.LexusLang == "EN" and "NO (SKIP)" or "KHÔNG (BỎ QUA)"
+                or "Há» thá»ng Mod Skin V7.5 (SÃºng, Xe, Trang Phá»¥c) ráº¥t náº·ng vÃ  lag\nBáº¡n cÃ³ muá»n náº¡p dá»¯ liá»u Skin vÃ o RAM khÃ´ng?\n(Náº¿u mÃ¡y yáº¿u sá»£ lag hÃ£y chá»n KHÃNG)"
+            local btn1 = _G.LexusLang == "EN" and "YES (LOAD)" or "CÃ (Náº P SKIN)"
+            local btn2 = _G.LexusLang == "EN" and "NO (SKIP)" or "KHÃNG (Bá» QUA)"
 
             Msg.Show(2, title, content,
             function()
                 _G.EnableLogicModSkin = true
-                if _G.LoadModSkinSystem then _G.LoadModSkinSystem() end
-                FinishMenu()
+                if _G.LoadModSkinSystem then _G.LoadModSkinSystem() end -- KÃCH HOáº T NGAY Láº¬P Tá»¨C
+                Step_Welcome()
             end,
             function()
                 _G.EnableLogicModSkin = false
-                FinishMenu()
+                Step_Welcome()
             end, btn1, btn2)
         end
 
         local function Step_AskESPV2()
-            local title = _G.LexusLang == "EN" and "LOAD ESP V2 (REDBOX)?" or "TẢI LOGIC ESP V2 (REDBOX) KHÔNG?"
+            local title = _G.LexusLang == "EN" and "LOAD ESP V2 (REDBOX)?" or "Táº¢I LOGIC ESP V2 (REDBOX) KHÃNG?"
             local content = _G.LexusLang == "EN" 
                 and "ESP V2 includes Snapline, Skeleton, and RedBox. It consumes more CPU. Load it?" 
-                or "Logic ESP Loại 9 (Khung Xương, Dây Nối, RedBox) các kỹ năng và có thể gây tụt FPS.\nBạn có muốn nạp nó vào RAM không?\n(Chỉ dùng nếu máy khỏe, máy yếu vui lòng chọn KHÔNG)"
-            local btn1 = _G.LexusLang == "EN" and "YES (LOAD)" or "CÓ (TẢI ESP V2)"
-            local btn2 = _G.LexusLang == "EN" and "NO (SKIP)" or "KHÔNG (DÙNG ESP THƯỜNG)"
+                or "Logic ESP Loáº¡i 9 (Khung XÆ°Æ¡ng, DÃ¢y Ná»i, RedBox) cá»±c ká»³ náº·ng vÃ  cÃ³ thá» gÃ¢y tá»¥t FPS.\nBáº¡n cÃ³ muá»n náº¡p nÃ³ vÃ o RAM khÃ´ng?\n(Chá» dÃ¹ng náº¿u mÃ¡y khá»e, mÃ¡y yáº¿u vui lÃ²ng chá»n KHÃNG)"
+            local btn1 = _G.LexusLang == "EN" and "YES (LOAD)" or "CÃ (Táº¢I ESP V2)"
+            local btn2 = _G.LexusLang == "EN" and "NO (SKIP)" or "KHÃNG (DÃNG ESP THÆ¯á»NG)"
 
             Msg.Show(2, title, content,
             function()
                 _G.EnableLogicESPV2 = true
-                if _G.LoadESPV2System then _G.LoadESPV2System() end
+                if _G.LoadESPV2System then _G.LoadESPV2System() end -- KÃCH HOáº T NGAY Láº¬P Tá»¨C
                 Step_AskModSkin()
             end,
             function()
@@ -981,7 +913,7 @@ local function ShowLexusVIPMenu()
         end
 
         local function Step_SelectLanguage()
-            Msg.Show(2, "SELECT LANGUAGE / CHỌN NGÔN NGỮ", "Please select your preferred language.\nVui lòng chọn ngôn ngữ bạn muốn sử dụng.",
+            Msg.Show(2, "SELECT LANGUAGE / CHá»N NGÃN NGá»®", "Please select your preferred language.\nVui lÃ²ng chá»n ngÃ´n ngá»¯ báº¡n muá»n sá»­ dá»¥ng.",
             function()
                 _G.LexusLang = "VN"
                 Step_AskESPV2()
@@ -989,11 +921,48 @@ local function ShowLexusVIPMenu()
             function()
                 _G.LexusLang = "EN"
                 Step_AskESPV2()
-            end, "TIẾNG VIỆT", "ENGLISH")
+            end, "TIáº¾NG VIá»T", "ENGLISH")
+        end
+
+        local function Step_LegalNotice()
+            local legal_title = "ThÃ´ng BÃ¡o Tá»« Admin @dung0610 - Announcement from Admin @dung0610"
+            local legal_content = "HÃY LÆ¯á»T XUá»NG Äá» Äá»C Äáº¦Y Äá»¦ - SCROLL DOWN TO READ THE FULL ARTICLE\n\nESP V2  = VÄng Game Má»t Sá» MÃ¡y ( Game crashes on some devices )\nMAGIC BULLET = RISK BAN X\nGLOBAL = SAFE â( AN TOÃN )\nVNG = SAFE â( AN TOÃN )\nKOREA = SAFR â(AN TOÃN)\nTAIWAN = SAFE â( AN TOÃN )\n\nVIE ChÃ o CÃ¡c Báº¡n ÄÃ¢y LÃ  Báº£n Mod TÃ´i LÃ m, HÃ£y Cáº©n Tháº­n Äá»«ng Giao Dá»ch Mua BÃ¡n Vá»i Ai NgoÃ i TÃ´i Telegram @dung0610 Zalo 0922520900, Náº¿u Ai NgoÃ i TÃ´i MÃ  Giao Dá»ch Vá»i Báº¡n Vá» CÃ¡c Báº£n Mod NÃ y ThÃ¬ Xin ChÃºc Má»«ng Báº¡n Bá» Lá»«a Rá»i HaHaHa, Náº¿u Báº¡n Trong KÃªnh Telegram Cá»§a TÃ´i Vui LÃ²ng Äá»c CÃ¡c HÆ°á»ng Dáº«n CÃ¡c Chá»©c NÄng, Äá»«ng Há»i Nhá»¯ng Thá»© Chá»©ng Minh MÃ¬nh Ngu NhÃ©\n\nENGLISH Hi everyone, this is a mod I created. Please be careful and do not conduct any transactions with anyone other than me (Telegram: @dung0610, Zalo: 0922520900). If anyone else tries to trade these mods with youâcongratulations, you've been scammed! Hahaha. If you are in my Telegram channel, please read the instructions on the features; don't ask questions that just prove your stupidity."
+            local legal_btnOK = "Äá»ng Ã (Agree)"
+            local legal_btnCancel = "Há»§y (cancel)"
+            local legal_url = "https://t.me/dung0610" 
+
+            local legal_msg = require("client.slua.logic.common.logic_common_legal_msg")
+            if not legal_msg then
+                -- Náº¿u game thiáº¿u thÆ° viá»n legal, fallback chuyá»n luÃ´n sang báº£ng chá»n ngÃ´n ngá»¯
+                Step_SelectLanguage()
+                return
+            end
+            
+            legal_msg.ShowOnePopUI({
+                tabType = 0,
+                title = legal_title,
+                content = legal_content,
+                tipsText = nil,
+                btnOKText = legal_btnOK,
+                btnCancelText = legal_btnCancel, 
+                acceptFunc = function()
+                    -- Báº¥m Confirm -> Má» báº£ng chá»n ngÃ´n ngá»¯
+                    Step_SelectLanguage()
+                end,
+                refuseFunc = function()
+                    -- Báº¥m Join Channel -> Má» link Telegram -> Má» báº£ng chá»n ngÃ´n ngá»¯
+                    local KismetSystemLibrary = import("KismetSystemLibrary")
+                    if KismetSystemLibrary then
+                        KismetSystemLibrary:LaunchURL(legal_url)
+                    end
+                    Step_SelectLanguage()
+                end
+            })
         end
 
         _G.LexusState.MenuStep = 1
-        Step_SelectLanguage()
+        -- Gá»i báº£ng Legal Notice Äáº§u tiÃªn thay vÃ¬ báº£ng chá»n NgÃ´n Ngá»¯
+        Step_LegalNotice() 
     end)
 end
 
@@ -1001,7 +970,6 @@ end
 -- LOGIC Má» KHÃA 165 FPS VÃ UI IPAD VIEW 
 -- ========================================== 
 local function InitializeGraphicsUnlock() 
-    if isExpired then return end
     if _G.LexusState.GraphicsUnlocked or currentTime > limitTime then return end
 
     pcall(function()
@@ -2615,13 +2583,8 @@ local function CreateWarningTargetWidget()
     return WarningTargetWidget
 end
 
--- VÃNG Láº¶P CHUNG (TÃNH TOÃN 1 Láº¦N CHO Cáº¢ 2 UI Äá» CHá»NG DROP FPS)
-local function _M_DrawCounter()
-    if isExpired then
-        _G.CleanUpEnemyCounterWidget()
-        return
-    end
 
+local function _M_DrawCounter()
     pcall(function()
         local player = GameplayData.GetPlayerCharacter()
         if not slua.isValid(player) then 
@@ -2641,7 +2604,7 @@ local function _M_DrawCounter()
             widgetCounter:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
         end
 
-        -- [Tá»I Æ¯U FPS] KhÃ³a nhá»p tÃ­nh toÃ¡n 0.5 giÃ¢y / láº§n Äá» trÃ¡nh quÃ¡ táº£i CPU
+
         local curTime = os.clock()
         if (curTime - LastCounterTime) > 0.5 then
             LastCounterTime = curTime
@@ -5952,7 +5915,7 @@ local function EnsurePermanentDungCu()
     pcall(function() txtTitle = CGame:NewObjectFromPath("/Script/UMG.TextBlock", ParentCanvas) end)
     if txtTitle and slua.isValid(txtTitle) then
         pcall(function()
-            txtTitle:SetText("v.v")
+            txtTitle:SetText("FREEV19DUNGCU")
             local FLinearColor = import("LinearColor") or _G.FLinearColor
             local FSlateColor = import("SlateColor") or import("/Script/SlateCore.SlateColor")
             local redLinear = FLinearColor and FLinearColor(1.0, 0.0, 0.0, 1.0) or {R=255, G=0, B=0, A=255}
@@ -5988,22 +5951,15 @@ end
 -- VÃNG Láº¶P CHÃNH (MAIN LOOP) Tá»I Æ¯U Cá»°C Máº NH
 -- ========================================== 
 local function MainLoop()
-    if isExpired then return end
 
-    -- =====================================================================
-    -- Há» THá»NG Láº¤Y HWID Gá»C & Äá»I HWID áº¢O (SPOOFER) CHá»NG BAN
-    -- =====================================================================
     pcall(function()
         local SystemLib = import("KismetSystemLibrary")
         if SystemLib and not _G.FakeHWID_Hooked then
-            -- LÆ°u láº¡i hÃ m láº¥y HWID gá»c
             _G.Original_GetDeviceId = SystemLib.GetDeviceId
 
-            -- Ghi ÄÃ¨ hÃ m cá»§a game
             SystemLib.GetDeviceId = function(...)
                 if _G.LexusConfig.FakeHWID then
                     if not _G.FakeHWID_String then
-                        -- Táº¡o ngáº«u nhiÃªn má»t HWID áº£o 32 kÃ½ tá»±
                         local chars = "0123456789abcdef"
                         local hwid = ""
                         for i = 1, 32 do 
@@ -6011,11 +5967,8 @@ local function MainLoop()
                         end
                         _G.FakeHWID_String = hwid
                     end
-                    -- Tráº£ vá» HWID áº£o
                     return _G.FakeHWID_String
                 end
-                
-                -- Náº¿u táº¯t Fake HWID thÃ¬ tráº£ vá» HWID tháº­t
                 if _G.Original_GetDeviceId then return _G.Original_GetDeviceId(...) end
                 return "UNKNOWN"
             end
@@ -6023,7 +5976,6 @@ local function MainLoop()
         end
     end)
 
-    -- HÃ m Äá»c láº­p Äá» báº¡n láº¥y HWID Gá»c (náº¿u sau nÃ y cáº§n hiá»n thá»)
     _G.GetOriginalHWID = function()
         if _G.Original_GetDeviceId then
             return tostring(_G.Original_GetDeviceId())
@@ -7735,44 +7687,8 @@ local function MainLoop()
     end)
 end
 
-_G.LexusState.LoopToken = (_G.LexusState.LoopToken or 0) + 1 
-local myToken = _G.LexusState.LoopToken
-
-local function ExpiredTick()
-    if not _G.LexusNotifiedPopup then
-        pcall(function()
-            local Msg = require("client.slua.logic.common.logic_common_msg_box")
-            if Msg and Msg.Show then
-                Msg.Show(1, "MOD Háº¾T Háº N Sá»¬ Dá»¤NG", "PHIÃN Báº¢N MOD Cá»¦A Báº N ÄÃ Háº¾T Háº N!\nVUI LÃNG INBOX ADMIN Äá» GIA Háº N.\nInbox Tele @dung0610 Zalo 0922520900 Äá» Mua Náº¿u Ai ÄÃ³ ÄÃ£ BÃ¡n Cho Báº¡n Thá»© NÃ y NgoÃ i TÃ´i ThÃ¬ Xin ChÃºc Má»«ng Báº¡n ÄÃ£ Bá» Lá»«a", 
-                function() 
-                    local Web = require("client.slua.logic.url.logic_webview_sdk")
-                    if Web and Web.OpenURL then Web:OpenURL("https://t.me/dung0610") end 
-                end, 
-                function() end, "INBOX CHá»¦ MOD", "ÄÃNG")
-                _G.LexusNotifiedPopup = true 
-            end
-        end)
-        
-        if not _G.LexusNotifiedPopup then
-            local okTicker, ticker = pcall(require, "common.time_ticker") 
-            if okTicker and ticker and ticker.AddTimerOnce then 
-                ticker.AddTimerOnce(2.0, ExpiredTick) 
-            end
-        end
-    end
-end
 
 local function FastTick() 
-    if isExpired then 
-        if not _G.LexusNotifiedExpire then
-            Notify("MOD ÄÃ Háº¾T Háº N! VUI LÃNG INBOX ADMIN Äá» GIA Háº N!\nInbox Tele @dung0610 Zalo 0922520900 Äá» Mua Náº¿u Ai ÄÃ³ ÄÃ£ BÃ¡n Cho Báº¡n Thá»© NÃ y NgoÃ i TÃ´i ThÃ¬ Xin ChÃºc Má»«ng Báº¡n ÄÃ£ Bá» Lá»«a")
-            _G.LexusNotifiedExpire = true
-            ExpiredTick() 
-        end
-        return 
-    end
-
-    if myToken ~= _G.LexusState.LoopToken then return end
     pcall(MainLoop) 
     local okTicker, ticker = pcall(require, "common.time_ticker") 
     if okTicker and ticker and ticker.AddTimerOnce then 
@@ -7780,18 +7696,11 @@ local function FastTick()
     end 
 end
 
-if not isExpired then
-    FastTick() 
-    Notify("Báº¡n Äang ChÆ¡i Mod Vvip 4 Cá»§a TÃ´i Náº¿u ChÆ°a CÃ³ Key Inbox Tele @dung0610 Zalo 0922520900 Äá» Mua Náº¿u Ai ÄÃ³ ÄÃ£ BÃ¡n Cho Báº¡n Thá»© NÃ y NgoÃ i TÃ´i ThÃ¬ Xin ChÃºc Má»«ng Báº¡n ÄÃ£ Bá» Lá»«a")
-else
-    FastTick() 
-end
 
--- ===================================================================================
--- SYSTEM HOOKS Tá»ª BYPASS Má»I
--- ===================================================================================
+    FastTick() 
+
+
 local function InitAllModSystems()
-    if isExpired then return end 
 
     pcall(function()
         if _G.InitializeAutoHeadHooks then _G.InitializeAutoHeadHooks() end
@@ -7812,16 +7721,13 @@ local function InitAllModSystems()
     end)
 end
 
-if not isExpired then
     pcall(function() 
         require("common.time_ticker").AddTimerOnce(0.5, InitAllModSystems) 
     end)
-end
 
 _G.LoadModSkinSystem = function()
 if _G.IsModSkinLoaded then return end
 _G.IsModSkinLoaded = true
--- Báº£ng map ID phá»¥ kiá»n gá»c ra index máº£ng
 _G.BaseAttachToIndex = {
     [201010]=1, [201005]=1, [201004]=1, [201009]=2, [201003]=2, [201002]=2, 
     [201011]=3, [201007]=3, [201006]=3, [204012]=4, [204005]=4, [204008]=4, 
@@ -7831,7 +7737,6 @@ _G.BaseAttachToIndex = {
     [205002]=20, [205003]=20, [205001]=20, [203018]=21, [204014]=22 
 }
 
--- DÃN ID PHá»¤ KIá»N Cá»¦A Báº N VÃO BÃN TRONG NGOáº¶C NHá»N DÆ¯á»I ÄÃY âââ
 _G.VIP_Attachments = {
     
     [1101004236]={1010042307,1010042306,1010042308,1010042304,1010042300,1010042305,1010042299,1010042298,1010042297,1010042296,1010042295,1010042294,0,1010042314,1010042309,1010042316,1010042317,1010042318,1010042310,1010042315,1010042319,0},
