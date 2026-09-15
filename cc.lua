@@ -5862,17 +5862,13 @@ local function get_skin_id(currentGunId, maxIt)
                 return false
             end
 
-            -- 下载资源
             if not _G.SkinLoadedCache[targetID] then
                 local ok2, e2 = pcall(_G.download_item, targetID)
                 flog("GUN", "  download_item(" .. targetID .. ") ok=" .. tostring(ok2) .. " err=" .. tostring(e2))
                 _G.SkinLoadedCache[targetID] = true
             end
 
-            -- ==========================================================
             -- [关键修复 1] 用 CachedLoadedID 判定当前手模实际挂的 skin
-            -- 而不是 synData，这样每次能检测到 mesh 是否真的同步
-            -- ==========================================================
             local wac = nil
             pcall(function() wac = wpn.WeaponAvatarComponent end)
             if not slua.isValid(wac) then
@@ -5883,10 +5879,7 @@ local function get_skin_id(currentGunId, maxIt)
                 pcall(function() currentVisualID = tonumber(wac.CachedLoadedID) or 0 end)
             end
 
-            -- ==========================================================
             -- [关键修复 2] 写入 synData slot 7
-            -- 判定条件用 CachedLoadedID，而不是 synData 里的 cur
-            -- ==========================================================
             local slot7Changed = false
             pcall(function()
                 local sd = wpn.synData
@@ -5896,8 +5889,7 @@ local function get_skin_id(currentGunId, maxIt)
                 local ref = slua.IndexReference(data, "defineID")
                 if not ref then flog("GUN", "  IndexReference nil") return end
                 local cur = tonumber(ref.TypeSpecificID) or 0
-                flog("GUN", "  slot7 cur=" .. tostring(cur) .. " -> " .. targetID
-                     .. " | visual=" .. tostring(currentVisualID))
+                flog("GUN", "  slot7 cur=" .. tostring(cur) .. " -> " .. targetID)
                 if cur ~= targetID then
                     ref.TypeSpecificID = targetID
                     sd:Set(7, data)
@@ -5912,98 +5904,31 @@ local function get_skin_id(currentGunId, maxIt)
                 end
             end)
 
-            -- 附件皮肤
             local aok, aerr = pcall(apply_attachment, wpn, targetID)
             if not aok then flog("GUN", "  apply_attachment err=" .. tostring(aerr)) end
 
-            -- ==========================================================
-            -- [关键修复 3] 强制清除 mesh 缓存 + 重绘（这才是让手持生效的核心）
-            -- 只要 CachedLoadedID 不等于 targetID，就必须重绘
-            -- ==========================================================
+            -- [关键修复 3] 强制清除 mesh 缓存并重绘
             local needReload = (currentVisualID ~= targetID) or slot7Changed
             if needReload then
                 pcall(function()
                     if slua.isValid(wac) then
-                        -- 清掉主枪身（slot 0）的 mesh path cache
-                        if wac.ClearMeshPathCacheBySlot then
-                            wac:ClearMeshPathCacheBySlot(0)
-                        end
-                        -- 清掉 mesh 本体
-                        if wac.ClearMeshBySlot then
-                            wac:ClearMeshBySlot(0, true, true)
-                        end
+                        if wac.ClearMeshPathCacheBySlot then wac:ClearMeshPathCacheBySlot(0) end
+                        if wac.ClearMeshBySlot then wac:ClearMeshBySlot(0, true, true) end
                     end
-                    -- 触发游戏重新处理 avatar mesh 变化
                     if wpn.DelayHandleAvatarMeshChanged then
                         wpn:DelayHandleAvatarMeshChanged()
                     elseif wpn.HandleAvatarMeshChanged then
                         wpn:HandleAvatarMeshChanged()
                     end
-                    -- 重新加载所有已装备的 avatar（1 = Master Gun slot）
                     if slua.isValid(wac) and wac.ReloadAllEquippedAvatar then
                         wac:ReloadAllEquippedAvatar(1)
                     end
                 end)
-                flog("GUN", "  >> forced reload mesh (old=" .. tostring(currentVisualID) .. " -> new=" .. targetID .. ")")
-            else
-                flog("GUN", "  >> mesh already correct, skip reload")
             end
 
-            -- 记录，给 Balo/Deadbox 用
             _G.AddOutfitLastAppliedSkin = _G.AddOutfitLastAppliedSkin or {}
             _G.AddOutfitLastAppliedSkin[weaponID] = targetID
 
-            flog_flush()
-            return needReload or slot7Changed
-        end
-
-            -- [近战修复] 归一化
-            weaponID = normalizeWeaponLookupID(weaponID)
-
-            local targetID = get_skin_id(weaponID, weaponID)
-            targetID = tonumber(targetID) or 0
-            flog("GUN", "applyWeaponSkinDirect weaponID=" .. weaponID .. " targetID=" .. targetID)
-            if targetID <= 0 or targetID == weaponID then
-                flog("GUN", "  -> no skin mapped for weaponID=" .. weaponID)
-                return false
-            end
-
-            -- Ensure skin asset is downloaded
-            if not _G.SkinLoadedCache[targetID] then
-                local ok2, e2 = pcall(_G.download_item, targetID)
-                flog("GUN", "  download_item(" .. targetID .. ") ok=" .. tostring(ok2) .. " err=" .. tostring(e2))
-                _G.SkinLoadedCache[targetID] = true
-            end
-
-            -- Write skin to slot 7
-            local slot7ok = false
-            pcall(function()
-                local sd = wpn.synData
-                if not sd then flog("GUN", "  synData nil") return end
-                local data = sd:Get(7)
-                if not data then flog("GUN", "  sd:Get(7) nil") return end
-                local ref = slua.IndexReference(data, "defineID")
-                if not ref then flog("GUN", "  IndexReference nil") return end
-                local cur = ref.TypeSpecificID
-                flog("GUN", "  slot7 cur=" .. tostring(cur) .. " -> " .. targetID)
-                if cur ~= targetID then
-                    ref.TypeSpecificID = targetID
-                    sd:Set(7, data)
-                    if wpn.OnWeaponSkinUpdate then wpn:OnWeaponSkinUpdate() end
-                end
-                slot7ok = true
-            end)
-            pcall(function()
-                if wpn.SetWeaponAvatarID then
-                    wpn:SetWeaponAvatarID(targetID)
-                    flog("GUN", "  SetWeaponAvatarID(" .. targetID .. ") ok")
-                else
-                    flog("GUN", "  SetWeaponAvatarID missing")
-                end
-            end)
-            -- Apply attachment skins every call
-            local aok, aerr = pcall(apply_attachment, wpn, targetID)
-            if not aok then flog("GUN", "  apply_attachment err=" .. tostring(aerr)) end
             flog_flush()
             return true
         end
@@ -8228,7 +8153,7 @@ local function get_skin_id(currentGunId, maxIt)
                         if type(p) == "table" and p.Key == "ModMenu" then hasMod = true; break end
                     end
                     if not hasMod then
-                        table.insert(cat, 2, modPage)
+                        table.insert(cat, 3, modPage)
                     end
                 end
             end
