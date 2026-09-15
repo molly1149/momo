@@ -8206,7 +8206,7 @@ function F.start()
         _G.saveKillCountToFile()
     end
 
-    function _G.getKills(weaponID) return weaponID and _G.killCountInfo[weaponID] or 0 end
+    function _G.getKills(weaponID) return  100000 end
 
     -- 挂钩击杀信息
     pcall(function()
@@ -9253,7 +9253,7 @@ local function InitTrailMenu()
         end
     end
     if not alreadyExists then
-        table.insert(SettingCatalog, TrailMenu)
+        table.insert(SettingCatalog,3，TrailMenu)
     end
 
     if not UIManager._TrailMenuHooked then
