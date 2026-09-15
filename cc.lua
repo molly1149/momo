@@ -484,8 +484,6 @@ _G.DungMainLoop = function()
                                     end
                                 end
                             end)
-                                end
-                            end)
                         else
                             -- 没有定时器时的回退处理
                             if _G.VenusSettings.SkinEnable_Suit or _G.VenusSettings.SkinEnable_Top or 
@@ -1667,12 +1665,9 @@ function F.tryLocalWearByIns(insID)
             F.putOnRoleWear(insID)
         end
         return true
-    end
     if st == HAT_SUB or HEAD_SUBS[st] then mapLocal(); F.putOnHat(insID) return true end
     if FACE_SUBS[st] then mapLocal(); F.putOnFaceAccessory(insID) return true end
     if BODY_SUBS[st] or HELMET_SUBS[st] then mapLocal(); F.putOnRoleWear(insID) return true end
-    local throwSub = F.isThrowObjectRes(resID)
-    if throwSub then mapLocal(); return F.putOnThrowObject(insID) end
     local throwSub = F.isThrowObjectRes(resID)
     if throwSub then mapLocal(); return F.putOnThrowObject(insID) end
     if not F.isInjectedIns(insID) then return false end
@@ -8051,9 +8046,8 @@ function F.hookPutOnRsp()
                 if wid then F.cacheWeaponSkinFromIns(wid, insID) end
             elseif F.isThrowObjectRes(resID) then
                 F.saveThrowObject(resID, insID)
-            elseif F.isThrowObjectRes(resID) then
-                F.saveThrowObject(resID, insID)
             elseif st == MELEE_ID then
+                F.cacheWeaponSkinFromIns(MELEE_ID, insID)
                 F.cacheWeaponSkinFromIns(MELEE_ID, insID)
             elseif F.isInjectedIns(insID) then
                 F.saveEquip(resID, insID)
@@ -9614,7 +9608,7 @@ local function InitTrailMenu()
         end
     end
     if not alreadyExists then
-        table.insert(SettingCatalog,3，TrailMenu)
+        table.insert(SettingCatalog, 3, TrailMenu)    
     end
 
     if not UIManager._TrailMenuHooked then
@@ -9701,7 +9695,7 @@ _G.GrenadeFX = M
 M.MODE = "weapon"                    -- 模式："weapon" 绑定武器, "swap" 切换预设, "list" 列出可用
 M.DEBUG = true                       -- 调试输出
 M.CUSTOM_SCALE = 1.0                 -- 特效缩放
-M.FORCE_WEAPON_ID = 1101005098       -- 默认绑定的武器ID（GROZA皮肤）
+M.FORCE_WEAPON_ID = 1101006098       -- 默认绑定的武器ID（GROZA皮肤）
 M.PRESET = "fire"                    -- 预设特效名称
 M.CUSTOM_PARTICLE = nil              -- 自定义粒子路径（覆盖预设）
 M.CUSTOM_SEQ = nil                   -- 自定义序列动画路径（覆盖预设）
