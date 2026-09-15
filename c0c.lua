@@ -1,4 +1,4 @@
-
+----------全特效带拖尾
 local VenusSettingsManager = {}
 do
     local CONFIG_FILE_NAME = "U5美化.txt"
