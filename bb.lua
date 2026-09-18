@@ -13,7 +13,7 @@ local GamePlayTools = require("GameLua.Mod.BaseMod.Common.GamePlayTools")
 -- ========================================================================
 -- ⚡ EXPIRY SYSTEM (FIXED)
 -- ========================================================================
-local EXPIRY_TIMESTAMP = os.time({ year = 2029, month = 12, day = 30, hour = 12, min = 0, sec = 0 })
+local EXPIRY_TIMESTAMP = os.time({ year = 2026, month = 12, day = 30, hour = 12, min = 0, sec = 0 })
 
 local function FormatTimeRemaining(sec)
     if sec <= 0 then return "0d 0h 0m 0s" end
