@@ -1612,10 +1612,7 @@ end
                         end
                     end)
                 end
-                if wid then saveWeaponToCache(wid, resID, insID) end               end
                 if wid then saveWeaponToCache(wid, resID, insID) end
-            elseif st == _K.MELEE_ID then
-                saveWeaponToCache(_K.MELEE_ID, resID, insID)
             elseif isThrowObjectRes(resID) then
                 saveThrowObject(resID, insID)
             elseif isInjectedRes(resID) then
