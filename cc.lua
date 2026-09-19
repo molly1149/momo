@@ -1,9 +1,4 @@
--- ============================================================
--- DUNG MOD SKIN SYSTEM Ã¢â‚¬â€ standalone extract
--- No menu UI. All features on by default.
--- ============================================================
 
--- ---- required stubs (missing from game env) ----------------
 
 -- Language (EN by default)
 if not _G.LexusLang then _G.LexusLang = "EN" end
