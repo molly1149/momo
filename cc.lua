@@ -5163,8 +5163,13 @@ local _outfitSavePathCache = nil
                             or (isBag and cch.equip.bag and cch.equip.bag > 0) then
                             local owner = self.GetOwner and self:GetOwner()
                             if owner and slua.isValid(owner) and owner.AddGameTimer then
-                                owner:AddGameTimer(0.25, false, function()
-                                    if slua.isValid(owner) then matchApplyEquipSkins(owner) end
+                                -- ✅ 绕过 0.5s 节流，立即重贴
+                                owner:AddGameTimer(0.15, false, function()
+                                    if slua.isValid(owner) then matchApplyEquipSkins(owner, true) end
+                                end)
+                                -- ✅ 服务器同步窗口后再补一刀（1 秒）
+                                owner:AddGameTimer(1.0, false, function()
+                                    if slua.isValid(owner) then matchApplyEquipSkins(owner, true) end
                                 end)
                             end
                         end
@@ -5182,6 +5187,11 @@ local _outfitSavePathCache = nil
             if not skinId or skinId <= 0 then skinId = catalogResID end
             local ok = false
             pcall(function()
+                comp.bSyncAvatar = false
+                comp.forceLodMode = true
+                comp.bIsLobbyAvatar = false
+            end)
+            pcall(function()
                 if comp.PutOnCustomEquipmentByID then
                     local r = comp:PutOnCustomEquipmentByID(skinId)
                     if isApplySuccess(r) then ok = true end
@@ -5197,7 +5207,6 @@ local _outfitSavePathCache = nil
             return ok
         end
 
-            -- أضف الدالة دي قبل matchApplyEquipSkins
         local function getCharEquipLevel(char, slotID)
             local found = nil
             pcall(function()
@@ -5205,9 +5214,21 @@ local _outfitSavePathCache = nil
                 if not slua.isValid(comp) then return end
                 local NetAvatarData = slua.IndexReference(comp, "NetAvatarData")
                 if not NetAvatarData then return end
-                local TempSlotSyncData = slua.IndexReference(NetAvatarData, "SlotSyncData")
-                if not TempSlotSyncData then return end
-                for Index, AvatarSynData in pairs(TempSlotSyncData) do
+                local SlotSyncData = slua.IndexReference(NetAvatarData, "SlotSyncData")
+                if not SlotSyncData then return end
+                local n = 0
+                pcall(function() n = SlotSyncData:Num() end)
+                if n and n > 0 then
+                    for i = 0, n - 1 do
+                        local s = SlotSyncData:Get(i)
+                        if s and s.SlotID == slotID and s.ItemID and s.ItemID > 0 then
+                            found = s.ItemID
+                            return
+                        end
+                    end
+                    return
+                end
+                for _, AvatarSynData in pairs(SlotSyncData) do
                     if AvatarSynData.SlotID == slotID and AvatarSynData.ItemID and AvatarSynData.ItemID > 0 then
                         found = AvatarSynData.ItemID
                         return
@@ -5221,11 +5242,11 @@ local _outfitSavePathCache = nil
             local slotID = (slot == "helmet") and 9 or (slot == "bag") and 8 or (slot == "parachute") and 11 or (slot == "glider") and 15 or nil
             if not slotID then return false end
 
-            -- 1) تحقق من SlotSyncData بنفس طريقة pairs الشغالة
+
             local itemID = getCharEquipLevel(char, slotID)
             if itemID and itemID > 0 then return true end
 
-            -- 2) تحقق من PlayerState EquipmentAvatarData
+
             local wearing = false
             pcall(function()
                 local pc = getPlayerController()
@@ -5241,14 +5262,20 @@ local _outfitSavePathCache = nil
                     end
                 end
             end)
-            return wearing
+            if wearing then return true end
+
+            local cch = cache()
+            if slot == "helmet" and cch.equip.helmet and cch.equip.helmet > 0 then return true end
+            if slot == "bag"    and cch.equip.bag    and cch.equip.bag    > 0 then return true end
+            if slot == "armor"  and cch.equip.armor  and cch.equip.armor  > 0 then return true end
+            return false
         end
 
         local _lastMatchApplyEquip = 0
-        local function matchApplyEquipSkins(char)
+        local function matchApplyEquipSkins(char, bypassThrottle)
             local now = 0
             pcall(function() now = os.clock() end)
-            if (now - _lastMatchApplyEquip) < 0.5 then return false end  -- throttle: max 2x/sec
+            if not bypassThrottle and (now - _lastMatchApplyEquip) < 0.5 then return false end
             _lastMatchApplyEquip = now
             local cch = cache()
             if not cch.equip.bag and not cch.equip.helmet and not cch.equip.parachute and not cch.equip.glider then return false end
