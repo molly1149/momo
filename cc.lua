@@ -384,7 +384,7 @@ local _outfitSavePathCache = nil
                 if uid and uid ~= 0 then pid = tostring(uid) end
             end
         end)
-        _modSavePathCache = "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_AddOutfit_Save_" .. pid .. ".txt"
+        _modSavePathCache = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_AddOutfit_Save_" .. pid .. ".txt"
         return _modSavePathCache
     end
     local function _getOutfitSavePath()
@@ -997,7 +997,7 @@ local _outfitSavePathCache = nil
         -- Settings & Mod Menu persistence
         _G.menu_modskin_only = true
         _G.LexusConfig = _G.LexusConfig or {}
-        local _SETTINGS_PATH = "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_Settings.txt"
+        local _SETTINGS_PATH = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_Settings.txt"
 
         local function loadSettings()
             pcall(function()
