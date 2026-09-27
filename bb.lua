@@ -1431,50 +1431,6 @@ function _G.InitializeAutoHeadHooks()
     end)
 end
 
-        local finalColor = LinearColorClass and LinearColorClass(r * glowIntensity, g * glowIntensity, b * glowIntensity, 1.0) or { R = r * 255 * glowIntensity, G = g * 255 * glowIntensity, B = b * 255 * glowIntensity, A = 255 }
-
-        for slot = 1, 3 do
-            local Weapon = WeaponManager:GetInventoryWeaponByPropSlot(slot)
-            if slua.isValid(Weapon) then
-                local ok, meshComponent = pcall(function() return import("/Script/Engine.MeshComponent") end)
-                if ok then
-                    local ok2, components = pcall(function() return Weapon:GetComponentsByClass(meshComponent) end)
-                    if ok2 and components then
-                        local count = type(components.Num) == "function" and components:Num() or #components
-                        for i = 1, count do
-                            local comp = type(components.Get) == "function" and components:Get(i-1) or components[i]
-                            if slua.isValid(comp) then
-                                if isGlowEnabled then
-                                    pcall(function()
-                                        comp.UseScopeDistanceCulling = false
-                                        comp.PrimitiveShadingStrategy = 1
-                                        comp.ShadingRate = 6
-                                        if comp.SetDrawIdeaOutline then
-                                            comp:SetDrawIdeaOutline(true)
-                                            if comp.OverrideIdeaOutlineColor then comp:OverrideIdeaOutlineColor(true, finalColor) end
-                                            if comp.OverrideIdeaOutlineThickness then comp:OverrideIdeaOutlineThickness(true, thickness) end
-                                        elseif comp.SetRenderCustomDepth then
-                                            comp:SetRenderCustomDepth(true)
-                                        end
-                                    end)
-                                else
-                                    pcall(function()
-                                        if comp.SetDrawIdeaOutline then comp:SetDrawIdeaOutline(false)
-                                        elseif comp.SetRenderCustomDepth then comp:SetRenderCustomDepth(false) end
-                                    end)
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end)
-end
-
--- ========================================== 
--- HỆ THỐNG LƯU VÀ TẢI SETTING MENU VIP (TỰ ĐỘNG)
--- ========================================== 
 local function GetConfigPaths(fileName)
     local paths = {
         "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Paks/" .. fileName,
