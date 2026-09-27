@@ -995,9 +995,9 @@ local _outfitSavePathCache = nil
         }
 
         -- Settings & Mod Menu persistence
-        _G.menu_modskin_only = true
+        _G.menu_modskin_only = false
         _G.LexusConfig = _G.LexusConfig or {}
-        local _SETTINGS_PATH = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_Settings.txt"
+        local _SETTINGS_PATH = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/AddOutfit_Save_.txt"
 
         local function loadSettings()
             pcall(function()
