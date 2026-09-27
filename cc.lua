@@ -373,8 +373,10 @@ end
 
 local _outfitSavePathCache = nil
     local _modSavePathCache = nil
-    local function _getModSavePath()
-        if _modSavePathCache then return _modSavePathCache end
+    local _gameDirCache = nil
+    local _gamePidCache = nil
+    local function _detectGameDirAndPid()
+        if _gameDirCache then return _gameDirCache, _gamePidCache end
         local pid = "default"
         pcall(function()
             local Subsystem = require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
@@ -384,36 +386,39 @@ local _outfitSavePathCache = nil
                 if uid and uid ~= 0 then pid = tostring(uid) end
             end
         end)
-        _modSavePathCache = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/ok" .. pid .. ".txt"
-        return _modSavePathCache
-    end
-    local function _getOutfitSavePath()
-        if _outfitSavePathCache then return _outfitSavePathCache end
-        local pid = "default"
-        pcall(function()
-            local Subsystem = require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
-            local AccountSubsystem = Subsystem:Get("AccountSubsystem")
-            if AccountSubsystem and AccountSubsystem.GetAccountUID then
-                local uid = AccountSubsystem:GetAccountUID()
-                if uid and uid ~= 0 then pid = tostring(uid) end
-            end
-        end)
-        local fileName = "AddOutfit_Save_" .. pid .. ".txt"
         local possibleDirs = {
             '/storage/emulated/0/Android/data/com.pubg.imobile/files/',
             '/storage/emulated/0/Android/data/com.pubg.krmobile/files/',
             '/storage/emulated/0/Android/data/com.vng.pubgmobile/files/',
             '/storage/emulated/0/Android/data/com.rekoo.pubgm/files/'
         }
+        -- 1) Prefer a dir that already contains one of our files.
         for _, dir in ipairs(possibleDirs) do
-            local f = io.open(dir .. fileName, 'r')
-            if f then f:close(); _outfitSavePathCache = dir .. fileName; return _outfitSavePathCache end
+            local f = io.open(dir .. "AddOutfit_Save_" .. pid .. ".txt", 'r')
+            if f then f:close(); _gameDirCache, _gamePidCache = dir, pid; return dir, pid end
+            local f2 = io.open(dir .. "ok" .. pid .. ".txt", 'r')
+            if f2 then f2:close(); _gameDirCache, _gamePidCache = dir, pid; return dir, pid end
         end
+        -- 2) Fall back to whichever package has a config.ini.
         for _, dir in ipairs(possibleDirs) do
             local f = io.open(dir .. "config.ini", 'r')
-            if f then f:close(); _outfitSavePathCache = dir .. fileName; return _outfitSavePathCache end
+            if f then f:close(); _gameDirCache, _gamePidCache = dir, pid; return dir, pid end
         end
-        _outfitSavePathCache = possibleDirs[1] .. fileName
+        _gameDirCache, _gamePidCache = possibleDirs[1], pid
+        return _gameDirCache, _gamePidCache
+    end
+
+    local function _getModSavePath()
+        if _modSavePathCache then return _modSavePathCache end
+        local dir, pid = _detectGameDirAndPid()
+        _modSavePathCache = dir .. "ok" .. pid .. ".txt"
+        return _modSavePathCache
+    end
+
+    local function _getOutfitSavePath()
+        if _outfitSavePathCache then return _outfitSavePathCache end
+        local dir, pid = _detectGameDirAndPid()
+        _outfitSavePathCache = dir .. "AddOutfit_Save_" .. pid .. ".txt"
         return _outfitSavePathCache
     end
 
@@ -827,6 +832,22 @@ local _outfitSavePathCache = nil
         if _saveDirty then _flushSave(false) end
     end
 
+    -- Public: force a synchronous save of every selected skin to TXT now.
+    _G.AddOutfitSaveToTxt = function()
+        pcall(function() _flushSave(true) end)
+        print("[AddOutfit] Saved all skins to " .. tostring(_getOutfitSavePath()))
+        return true
+    end
+
+    -- Public: re-read TXT and re-apply everything in lobby.
+    _G.AddOutfitLoadFromTxt = function()
+        pcall(_loadEquippedCache)
+        pcall(function()
+            if _G.AddOutfitReapplyLobby then _G.AddOutfitReapplyLobby() end
+        end)
+        print("[AddOutfit] Reloaded skins from " .. tostring(_getOutfitSavePath()))
+        return true
+    end
     -- ========== حقن WardrobeNewHandler (لإصلاح حفظ السيارات في اللوبي) ==========
     pcall(function()
         local WardrobeNewHandler = {}
@@ -3540,7 +3561,7 @@ local _outfitSavePathCache = nil
                 end
             end)
         end
-
+       _G.AddOutfitReapplyLobby = reapplyLobbyEquipped
         local function initHooks()
         local function hookLobbySwipePersistence()
             pcall(function()
@@ -4123,6 +4144,7 @@ local _outfitSavePathCache = nil
                             if EventSystem and EVENTTYPE_WARDROBE and EVENTID_WARDROBE_VEHICLE_SLOT_DATA_CHANGE then
                                 EventSystem:postEvent(EVENTTYPE_WARDROBE, EVENTID_WARDROBE_VEHICLE_SLOT_DATA_CHANGE)
                             end
+                            pcall(_AutoSaveOutfit)
                             return
                         end
                         return oEquipSlot(self, resid, dragVehicleInsID, Index)
@@ -4139,6 +4161,7 @@ local _outfitSavePathCache = nil
                         InsID = tonumber(InsID)
                         if InsID and isInjectedIns(InsID) then
                             self:OnEquipVehicle(Position, InsID)
+                            pcall(_AutoSaveOutfit)
                             return
                         end
                         return oEquip(self, Position, InsID)
@@ -4157,10 +4180,12 @@ local _outfitSavePathCache = nil
                                 end
                             end
                             if hasInjected and not next(filtered) then
+                                pcall(_AutoSaveOutfit)
                                 return
                             end
                             InsIDList = filtered
                         end
+                        if hasInjected then pcall(_AutoSaveOutfit) end
                         return oBatch(self, InsIDList)
                     end
 
