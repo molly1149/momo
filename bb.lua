@@ -70,7 +70,8 @@ local CFG = {
   CounterFontSize = 17,
   CounterW = 300.0,
   CounterH = 28.0,
-  DeadZone = 0.5,           -- px, isse kam harkat = slate ko chhuna nahi (flicker fix)
+  DeadZone = 1.5,           -- px, ↑ from 0.5：吸收相机旋转时的亚像素抖动
+  BoxDeadZone = 2.0,        -- px, 框/血条位置的整体死区（L/R/T/B 一起更新）
   VisInterval = 0.15,       -- sec, LineTrace itni der me ek bar per target (lag fix)
   SizeHyst = 2.0,           -- px, viewport me itna farq ignore
 }
@@ -126,6 +127,7 @@ ESP.Infos = {}      -- bottom texts: key -> {Container, Name, Dist, State, slots
 ESP.Counter = nil   -- top "Players: X | Bots: Y"
 ESP.EnemyCache = {}
 ESP.VisCache = {}   -- visibility cache: key -> {b, t}
+ESP.BoxCache = {}   
 ESP.ScaleX = 1.0
 ESP.ScaleY = 1.0
 ESP.OffsetX = 0.0
@@ -691,8 +693,8 @@ end
 function ESP.DrawLine(data, x1, y1, x2, y2, thickness)
   if not data or not ESPValid(data.Widget) or not data.Slot then return false end
   if x1 ~= x1 or y1 ~= y1 or x2 ~= x2 or y2 ~= y2 then return false end
-  x1, y1, x2, y2 = RND(x1), RND(y1), RND(x2), RND(y2)
-  local dz = CFG.DeadZone or 0.5
+  -- ★ 不再 RND，保留浮点；靠 DeadZone 吸收亚像素抖动
+  local dz = CFG.DeadZone or 1.5
   if data.lx1 and data.th == thickness then
     if math.abs((data.lx1 or 0) - x1) < dz and math.abs((data.ly1 or 0) - y1) < dz
     and math.abs((data.lx2 or 0) - x2) < dz and math.abs((data.ly2 or 0) - y2) < dz then
@@ -706,8 +708,6 @@ function ESP.DrawLine(data, x1, y1, x2, y2, thickness)
     return false
   end
   local angle = ((math.atan2 and math.atan2(dy, dx)) or math.atan(dy, dx)) * 180.0 / math.pi
-  angle = math.floor(angle * 10 + 0.5) / 10
-  len = RND(len)
   if data.lx1 == x1 and data.ly1 == y1 and data.lx2 == x2 and data.ly2 == y2 and data.th == thickness then
     if data.hidden == true then
       pcall(function() data.Widget:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
@@ -732,8 +732,8 @@ function ESP.DrawVBar(data, x, top, h, thickness)
   -- vertical health bar: no angle math, seedha Position+Size (double-draw fix)
   if not data or not ESPValid(data.Widget) or not data.Slot then return false end
   if h ~= h or h < 1 then ESP.Hide(data) return false end
-  x, top, h = RND(x), RND(top), RND(h)
-  local dz = CFG.DeadZone or 0.5
+  -- ★ 不再 RND
+  local dz = CFG.DeadZone or 1.5
   if data.bx ~= nil then
     if math.abs(data.bx - x) < dz and math.abs(data.bt - top) < dz and math.abs(data.bh - h) < dz then
       if data.hidden ~= true then return true end
@@ -1072,6 +1072,7 @@ function ESP.ReleaseTarget(key)
   ESP.Destroy(ESP.Infos[key])
   ESP.Infos[key] = nil
   ESP.VisCache[key] = nil
+  ESP.BoxCache[key] = nil        -- ★
 end
 
 function ESP.ResetWidgets()
@@ -1088,6 +1089,7 @@ function ESP.ResetWidgets()
   ESP.Marks = {}
   ESP.Infos = {}
   ESP.VisCache = {}
+  ESP.BoxCache = {}      -- ★
   if ESP.Counter then ESP.Destroy(ESP.Counter) end
   ESP.Counter = nil
   ESP.Canvas = nil
@@ -1141,6 +1143,12 @@ function ESP.Update()
     ESP.LastWorld = world
     ESP.LastScan = -999.0
     ESP.LastTransform = -999.0
+    -- ★ 新世界：清掉计时器挂载标记，允许在（可能是新的）PC 上重新挂载
+    ESP._TimerHooked = false
+    ESP._TimerPC = nil
+    ESP._TimerHandle = nil
+    _G._ESPStartedPC = nil
+    _G._ESPLookTickStarted = nil     -- 允许底部启动块再跑一次
   end
   local canvas = ESP.GetCanvas()
   if not canvas then return end
@@ -1199,6 +1207,18 @@ function ESP.Update()
               local R = cx + W * 0.5
               local T = headS.Y - padT
               local B = feetS.Y + padB
+
+              -- ★ 转镜头抖动修复：L/R/T/B 作为一个整体做死区缓存，
+              --   避免每帧浮点误差让框体大小/位置抖动，同时血条因为绑 T/B 也一起稳定
+              local bdz = CFG.BoxDeadZone or 2.0
+              local bc = ESP.BoxCache[key]
+              if bc
+                 and math.abs(bc.L - L) < bdz and math.abs(bc.R - R) < bdz
+                 and math.abs(bc.T - T) < bdz and math.abs(bc.B - B) < bdz then
+                L, R, T, B = bc.L, bc.R, bc.T, bc.B
+              else
+                ESP.BoxCache[key] = { L = L, R = R, T = T, B = B }
+              end
 
               -- 1) white corners (8 segments)
               local arm = math.min(R - L, B - T) * (CFG.CornerLen or 0.28)
@@ -1281,11 +1301,18 @@ function ESP.AttachTimers()
   pcall(function()
     local pc = ESP.GetController()
     if ESPValid(pc) and pc.AddGameTimer then
+      -- 已经挂在同一个 PC 上且还有效，跳过
       if ESP._TimerPC == pc and ESP._TimerHooked then return end
+
+      -- 取消旧计时器（如果旧 PC 还活着且支持 RemoveGameTimer）
+      if ESP._TimerPC and ESPValid(ESP._TimerPC) and ESP._TimerHandle
+         and ESP._TimerPC.RemoveGameTimer then
+        pcall(function() ESP._TimerPC:RemoveGameTimer(ESP._TimerHandle) end)
+      end
+
       ESP._TimerPC = pc
       ESP._TimerHooked = true
-      -- ek hi repeating timer: andar Scan (0.35) + Transform (0.5) throttled
-      pc:AddGameTimer(ESP.LightInterval or 0.033, true, function()
+      ESP._TimerHandle = pc:AddGameTimer(ESP.LightInterval or 0.033, true, function()
         if ESP.bActive then pcall(ESP.Tick) end
       end)
     else
@@ -1296,12 +1323,29 @@ function ESP.AttachTimers()
         end)
       end)
     end
-    pcall(function() require("timer").SetGameTimer(5.0, false, function() ESP.AttachTimers() end) end)
   end)
+
+  -- ★ 关键：看门狗改成重复计时器，每 3 秒检查一次是否需要重新挂载
+  --   旧代码是一次性（false），只重试一次，第二局就死了
+  if not ESP._WatchdogStarted then
+    ESP._WatchdogStarted = true
+    pcall(function()
+      require("timer").SetGameTimer(3.0, true, function()
+        if not ESP.bActive then return end
+        local pc = ESP.GetController()
+        -- PC 变了 / 或旧计时器丢了 → 强制重新挂载
+        if ESPValid(pc) and (pc ~= ESP._TimerPC or not ESP._TimerHooked) then
+          ESP._TimerHooked = false
+          ESP._TimerPC = nil
+          ESP._TimerHandle = nil
+          pcall(ESP.AttachTimers)
+        end
+      end)
+    end)
+  end
 end
 
 function ESP.Start()
-  if ESP.bActive then return end
   ESP.bActive = true
   pcall(ESP.Update)
   ESP.AttachTimers()
@@ -1317,31 +1361,36 @@ local function ESPLater(sec, fn)
   pcall(function() require("timer").SetGameTimer(sec, false, fn) end)
 end
 
-local _ESPStartedPC = nil
 local function ESPStartAll()
   pcall(function()
     local pc = nil
     if slua_GameFrontendHUD then pc = slua_GameFrontendHUD:GetPlayerController() end
     if not ESPValid(pc) then pc = ESP.GetController() end
-    if ESPValid(pc) then
-      if pc ~= _ESPStartedPC then
-        _ESPStartedPC = pc
-        ESP._TimerHooked = false
-        ESP._TimerPC = nil
-        ESP.Start()
-      else
-        ESP.AttachTimers()
-      end
+    if not ESPValid(pc) then return end
+
+    local started = _G._ESPStartedPC
+    if tostring(pc) ~= tostring(started) then
+      -- ★ 新 PC：清标记 + 重启
+      _G._ESPStartedPC = pc
+      ESP._TimerHooked = false
+      ESP._TimerPC = nil
+      ESP._TimerHandle = nil
+      ESP.Start()
+    else
+      -- 同一个 PC：确保计时器还在
+      ESP.bActive = true
+      ESP.AttachTimers()
     end
   end)
 end
 
 pcall(function()
   ESPStartAll()
-  ESPLater(1.0, ESPStartAll)
+  ESPLater(1.0,  ESPStartAll)
+  ESPLater(3.0,  ESPStartAll)
+  ESPLater(8.0,  ESPStartAll)     -- ★ 保险：等第二局加载完成后再次尝试
 end)
-if not _G.__ESPLookTickStarted then
-  _G.__ESPLookTickStarted = true
-  ESP.bActive = true
-  ESP.AttachTimers()
-end
+
+-- ★ 去掉 __ESPLookTickStarted 一次性守卫，改为可重入
+ESP.bActive = true
+pcall(ESP.AttachTimers)
