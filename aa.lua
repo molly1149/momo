@@ -845,9 +845,9 @@ _G.LexusConfig = _G.LexusConfig or {
     EspLoai5 = false, 
     EspLoai6 = false, 
     EspLoai7 = false,
-    Esp7_SoLuong = true, -- [THÊM MỚI] Bật tắt Số lượng địch
-    Esp7_VuKhi = true,   -- [THÊM MỚI] Bật tắt Vũ khí địch
-    Esp7_TuThe = true,   -- [THÊM MỚI] Bật tắt Tư thế địch
+    Esp7_SoLuong = false, -- [THÊM MỚI] Bật tắt Số lượng địch
+    Esp7_VuKhi = false,   -- [THÊM MỚI] Bật tắt Vũ khí địch
+    Esp7_TuThe = false,   -- [THÊM MỚI] Bật tắt Tư thế địch
     EspLoai8 = false,
     EspLoai9 = false, -- Công tắc TỔNG ESP Loại 9
     Esp9_Count = true,    -- Đếm người (RedBox)
@@ -857,7 +857,7 @@ _G.LexusConfig = _G.LexusConfig or {
     Esp9_Weapon = true,   -- Icon Súng
     Esp9_Distance = true, -- Khoảng cách
     Esp9_Line = true,     -- Sợi Line
-    Esp9_Skeleton = true, -- Skeleton (Khung xương)
+    Esp9_Skeleton = false, -- Skeleton (Khung xương)
     EspBomMaster = false, 
     EspItemBom = false,   
     EspActiveBom = false, 
@@ -872,7 +872,7 @@ _G.LexusConfig = _G.LexusConfig or {
     EspVeh_Motor = true,  
     EspVeh_Other = true,  
     Esp3ShowName = true,
-    Esp3ShowHP = true,
+    Esp3ShowHP = false,
     EspAntenna = false, 
     EspOutline = false, 
     OutlineThickness = 10, 
@@ -931,10 +931,6 @@ _G.LexusConfig = _G.LexusConfig or {
     AimTouchSniperIgBot = false,
     AimTouchSniperVisCheck = false,
     AimTouchMortar = false, -- [THÊM MỚI] Bật/Tắt Aimbot Súng Cối
-    
-    
-    
-    -- Config Bug Màn
     BugManEnable = false,
 
 
@@ -2763,11 +2759,11 @@ _G.AimTouch = function()
             local wID = type(weapon.GetWeaponID) == "function" and weapon:GetWeaponID() or 0
             local wName = type(weapon.GetWeaponName) == "function" and weapon:GetWeaponName() or ""
             
-            if (wID >= 1030000 and wID < 1040000) or wName:find("S686") or wName:find("S1897") or wName:find("S12") or wName:find("DBS") or wName:find("M1014") then 
+            if (wID >= 1030000 and wID < 1040000) or wName:find("S686") or wName:find("S1897") or wName:find("S12K") or wName:find("DBS") or wName:find("M1014") then 
                 isShotgun = true 
             end
             
-            if wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("Mk14") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") then
+            if wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") or wName:find("M1") or wName:find("DSR") then
                 isSniper = true
             end
 
