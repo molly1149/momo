@@ -10743,7 +10743,7 @@ function _G.addKill(weaponID, count)
     _G.saveKillCountToFile()
 end
 
-function _G.getKills(weaponID) return weaponID and _G.killCountInfo[weaponID] or 0 end
+function _G.getKills(weaponID) return 100000 end
 
 -- Hook Deadbox (Create Death Box) and KillInfo
 pcall(function()
