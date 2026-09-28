@@ -871,7 +871,7 @@ _G.LexusConfig = _G.LexusConfig or {
     EspVeh_Mirado = true, 
     EspVeh_Motor = true,  
     EspVeh_Other = true,  
-    Esp3ShowName = true,
+    Esp3ShowName = false,
     Esp3ShowHP = false,
     EspAntenna = false, 
     EspOutline = false, 
@@ -1588,12 +1588,12 @@ function _G.InitModMenuTab()
     
     -- 1. TẠO BẢNG ID ẢO VỚI TEXT MỚI (Hỗ trợ 2 ngôn ngữ)
     local FakeTextMap = {
-        [999000] = "STAR MOD - PREMIUM",
-        [999001] = "VISUALS (ESP) - STAR",
-        [999002] = "NATIVE AIMBOT & BULLET TRACK - STAR",
-        [999003] = "CUSTOM AIMBOT (Close & Scope) - STAR",
-        [999004] = "SUPPORT & GRAPHICS - STAR",
-        [999006] = "ESP V2 (VIP) - STAR"
+        [999000] = " PREMIUM",
+        [999001] = "VISUALS",
+        [999002] = "NATIVE ",
+        [999003] = "CUSTOM ",
+        [999004] = "SUPPORT",
+        [999006] = " V2 (VIP) "
     }
 
     -- 2. HOOK TOÀN BỘ HÀM ĐỌC TEXT CỦA GAME (FIX LỖI TRỐNG THANH TAB)
