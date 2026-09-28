@@ -429,7 +429,7 @@ local _outfitSavePathCache = nil
                 if uid and uid ~= 0 then pid = tostring(uid) end
             end
         end)
-        _modSavePathCache = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_AddOutfit_Save_" .. pid .. ".txt"
+        _modSavePathCache = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/ok" .. pid .. ".txt"
         return _modSavePathCache
     end
     local function _getOutfitSavePath()
