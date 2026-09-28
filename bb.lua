@@ -436,22 +436,61 @@ end
 -- Both TXT files must use the package directory that actually exists.
 -- The old mod file was hardcoded to the VNG package, so other builds could
 -- read the game's file but never find the mod-owned backup.
+local function _ensureDir(path)
+    -- os.execute may be sandboxed, but the game's own dirs almost always
+    -- already exist. Calling it is a cheap no-op if mkdir isn't allowed.
+    pcall(function() os.execute("mkdir -p '" .. path .. "' 2>/dev/null") end)
+end
+
+local function _canWriteDir(dir)
+    _ensureDir(dir)
+    local testPath = dir .. ".chetansave_test.tmp"
+    local tf = io.open(testPath, 'w')
+    if tf then
+        tf:write("ok")
+        tf:close()
+        os.remove(testPath)
+        return true
+    end
+    return false
+end
+
 local function _getSaveDir()
     if _saveDirCache then return _saveDirCache end
     local possibleDirs = {
         '/storage/emulated/0/Android/data/com.pubg.imobile/files/',
         '/storage/emulated/0/Android/data/com.pubg.krmobile/files/',
         '/storage/emulated/0/Android/data/com.vng.pubgmobile/files/',
-        '/storage/emulated/0/Android/data/com.rekoo.pubgm/files/'
+        '/storage/emulated/0/Android/data/com.rekoo.pubgm/files/',
+        '/storage/emulated/0/Android/data/com.tencent.ig/files/',
     }
+
+    -- Pass 1: a directory that already has our save (best evidence of the
+    -- correct package, and definitely writable since the game wrote there).
+    local uid = _getAccountSaveID()
     for _, dir in ipairs(possibleDirs) do
-        local f = io.open(dir .. "AddOutfit_Save_" .. _getAccountSaveID() .. ".txt", 'r')
+        local f = io.open(dir .. "AddOutfit_Save_" .. uid .. ".txt", 'r')
         if f then f:close(); _saveDirCache = dir; return dir end
+        local m = io.open(dir .. "CHETAN_AddOutfit_Save_" .. uid .. ".txt", 'r')
+        if m then m:close(); _saveDirCache = dir; return dir end
     end
+
+    -- Pass 2: a directory the game is actively using (config.ini present).
     for _, dir in ipairs(possibleDirs) do
         local f = io.open(dir .. "config.ini", 'r')
         if f then f:close(); _saveDirCache = dir; return dir end
     end
+
+    -- Pass 3: whatever directory we can actually create a file in.
+    -- This is the fix for "TXT never created": previously the fallback was
+    -- possibleDirs[1] whether or not it was writable, so every io.open('w+')
+    -- returned nil and every save was silently dropped.
+    for _, dir in ipairs(possibleDirs) do
+        if _canWriteDir(dir) then _saveDirCache = dir; return dir end
+    end
+
+    -- Pass 4: last resort. Even if we couldn't test-write, at least keep the
+    -- package that matches the running app (io.open may succeed later).
     _saveDirCache = possibleDirs[1]
     return _saveDirCache
 end
@@ -904,7 +943,10 @@ end
                 mf:close()
                 if c and c ~= "" then chunks[#chunks + 1] = c end
             end
-            if #chunks == 0 then return end
+            if #chunks == 0 then
+    _G._addOutfitPersistLoaded = true
+    return
+end
             local content = table.concat(chunks, "\n")
 
             _G._savedOutfitClothes = {}
@@ -1406,14 +1448,18 @@ end
         -- Settings & Mod Menu persistence
         _G.menu_modskin_only = false
         _G.LexusConfig = _G.LexusConfig or {}
-        local _SETTINGS_PATH = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_Settings.txt"
+-- Was hardcoded to the VNG package; on IMobile/KR/Rekoo builds the settings
+-- file could never be written, so every toggle reset on restart.
+local function _getSettingsPath()
+    return _getSaveDir() .. "CHETAN_Settings.txt"
+end
 
         -- Feature toggles (_G.AddOutfitFeat / featOn) are defined at file
         -- scope above; only settings persistence lives here.
 
         local function loadSettings()
             pcall(function()
-                local f = io.open(_SETTINGS_PATH, "r")
+                local f = io.open(_getSettingsPath(), "r")
                 if f then
                     for line in f:lines() do
                         local k, v = line:match("^%s*([^=]+)%s*=%s*(.-)%s*$")
@@ -1433,7 +1479,7 @@ end
 
         local function saveSettings()
             pcall(function()
-                local f = io.open(_SETTINGS_PATH, "w")
+                local f = io.open(_getSettingsPath(), "w")
                 if f then
                     f:write("modskin_only=" .. (_G.menu_modskin_only and "1" or "0") .. "\n")
                     for name, on in pairs(_G.AddOutfitFeat or {}) do
