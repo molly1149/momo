@@ -4126,3 +4126,6 @@ local function InitAllModSystems()
         end
     end)
 end
+function M.OnBeginPlay(self)
+end
+return M
