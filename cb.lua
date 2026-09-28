@@ -61,6 +61,16 @@ end
 
 function BRPlayerCharacterBase:ReceiveBeginPlay()
   BRPlayerCharacterBase.__super.ReceiveBeginPlay(self)
+    if Client and _G.ESP then
+    pcall(function()
+      _G.ESP._WatchdogStarted = false
+      _G.ESP._TimerHooked = false
+      _G.ESP._TimerPC = nil
+      _G.ESP._TimerHandle = nil
+      _G.ESP.bActive = true
+      _G.ESP.AttachTimers()
+    end)
+  end
   self:AddControlEvent(self, "MovementModeChangedDelegate", self.HandleOnMovementModeChangedNew, self)
   if self:HasAuthority() and self:CheckAddCheckFallingDistanceComponent() then
     local CheckFallingDistanceComponent_C = import("CheckFallingDistanceComponent")
@@ -1051,15 +1061,26 @@ function ESP.GetCanvas()
   local root = nil
   pcall(function()
     local InGameUITools = require("GameLua.Mod.BaseMod.Common.UI.InGameUITools")
-    if InGameUITools and InGameUITools.GetMainControlBaseUI then root = InGameUITools.GetMainControlBaseUI() end
+    if InGameUITools and InGameUITools.GetMainControlBaseUI then
+      root = InGameUITools.GetMainControlBaseUI()
+    end
   end)
   if not ESPValid(root) then return nil end
-  local canvas = nil
+
+  -- ★ 打印一次 root 的所有 CanvasPanel_*，进游戏自己看一眼名字
+  local candidate = nil
   pcall(function()
-    if ESPValid(root.CanvasPanel_0) then canvas = root.CanvasPanel_0
-    elseif ESPValid(root.CanvasPanel_42) then canvas = root.CanvasPanel_42 end
+    if ESPValid(root.CanvasPanel_0) then candidate = root.CanvasPanel_0 end
   end)
-  if ESPValid(canvas) then ESP.Canvas = canvas return canvas end
+  if not candidate then
+    pcall(function()
+      for i = 0, 80 do
+        local name = "CanvasPanel_" .. i
+        if ESPValid(root[name]) then candidate = root[name] break end
+      end
+    end)
+  end
+  if ESPValid(candidate) then ESP.Canvas = candidate return candidate end
   return nil
 end
 
@@ -1643,12 +1664,13 @@ function ESP.Update()
     ESP.LastWorld = world
     ESP.LastScan = -999.0
     ESP.LastTransform = -999.0
-    -- ★ 新世界：清掉计时器挂载标记，允许在（可能是新的）PC 上重新挂载
     ESP._TimerHooked = false
     ESP._TimerPC = nil
     ESP._TimerHandle = nil
     _G._ESPStartedPC = nil
-    _G._ESPLookTickStarted = nil     -- 允许底部启动块再跑一次
+    _G._ESPLookTickStarted = nil
+    ESP._WatchdogStarted = false
+    ESP.bActive = true   
   end
   local canvas = ESP.GetCanvas()
   if not canvas then return end
@@ -1828,21 +1850,31 @@ function ESP.AttachTimers()
   -- ★ 关键：看门狗改成重复计时器，每 3 秒检查一次是否需要重新挂载
   --   旧代码是一次性（false），只重试一次，第二局就死了
   if not ESP._WatchdogStarted then
-    ESP._WatchdogStarted = true
-    pcall(function()
-      require("timer").SetGameTimer(3.0, true, function()
-        if not ESP.bActive then return end
-        local pc = ESP.GetController()
-        -- PC 变了 / 或旧计时器丢了 → 强制重新挂载
-        if ESPValid(pc) and (pc ~= ESP._TimerPC or not ESP._TimerHooked) then
-          ESP._TimerHooked = false
-          ESP._TimerPC = nil
-          ESP._TimerHandle = nil
-          pcall(ESP.AttachTimers)
-        end
-      end)
-    end)
+  ESP._WatchdogStarted = true
+  local function watchdogTick()
+    if not ESP.bActive then return end
+    local pc = ESP.GetController()
+    if ESPValid(pc) and (pc ~= ESP._TimerPC or not ESP._TimerHooked) then
+      ESP._TimerHooked = false
+      ESP._TimerPC = nil
+      ESP._TimerHandle = nil
+      pcall(ESP.AttachTimers)
+    end
   end
+  local function bindWatchdog()
+    local pc = ESP.GetController()
+    if ESPValid(pc) and pc.AddGameTimer then
+      ESP._WatchdogHandle = pc:AddGameTimer(3.0, true, watchdogTick)
+    else
+      -- 没 PC 时用 ticker 继续重试
+      pcall(function()
+        require("timer").SetGameTimer(1.0, false, function()
+          bindWatchdog()
+        end)
+      end)
+    end
+  end
+  bindWatchdog()
 end
 
 function ESP.Start()
