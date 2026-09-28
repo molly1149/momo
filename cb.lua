@@ -1874,9 +1874,9 @@ function ESP.AttachTimers()
       end)
     end
   end
-  bindWatchdog()
-end
-
+    bindWatchdog()
+  end
+end 
 function ESP.Start()
   ESP.bActive = true
   pcall(ESP.Update)
