@@ -1,3 +1,6 @@
+local M = {}
+local GameplayStatics=import("GameplayStatics")
+local GameplayData=require("GameLua.GameCore.Data.GameplayData")
 local function Notify(msg)
   local s = "[New] " .. tostring(msg)
   pcall(function() if _G.LexusNotify then _G.LexusNotify(s) end end)
