@@ -557,7 +557,7 @@ end
 
 local CFG = {
   MaxDistance = 40000,      -- cm (400 m)
-  MaxTracked = 16,
+  MaxTracked = 12,
   ScreenMargin = 220,
   TopTextY = 6.0,           -- canvas px, bilkul upar center
   SnapOriginY = 0.0,        -- top edge se start (esplook jaisa)
@@ -600,7 +600,7 @@ local CFG = {
   GreenCorners = true,
   DeadZone = 1.5,           -- px, ↑ from 0.5：吸收相机旋转时的亚像素抖动
   BoxDeadZone = 2.0,        -- px, 框/血条位置的整体死区（L/R/T/B 一起更新）
-  VisInterval = 0.15,       -- sec, LineTrace itni der me ek bar per target (lag fix)
+  VisInterval = 0.30,       -- sec, visibility trace cache
   SizeHyst = 2.0,           -- px, viewport me itna farq ignore
 }
 
@@ -664,13 +664,15 @@ ESP.OffsetX = 0.0
 ESP.OffsetY = 0.0
 ESP.ViewW = 1920
 ESP.ViewH = 1080
-ESP.ScanInterval = 0.35
-ESP.LightInterval = 0.033
-ESP.TransformInterval = 0.50
+ESP.ScanInterval = 0.50
+ESP.LightInterval = 0.050
+ESP.TransformInterval = 1.00
 ESP.LastScan = -999.0
 ESP.LastTransform = -999.0
 ESP.LastWorld = nil
 ESP.bActive = false
+ESP._WatchdogPC = nil
+ESP._WatchdogHandle = nil
 
 function ESP.GetGameplayData()
   if ESP._GDP then return ESP._GDP end
@@ -721,10 +723,10 @@ function ESP.GetController()
   return ESPValid(pc) and pc or nil
 end
 
-function ESP.GetLocalCharacter()
+function ESP.GetLocalCharacter(controller)
   local c = nil
   pcall(function()
-    local pc = ESP.GetController()
+    local pc = controller or ESP.GetController()
     if pc and pc.GetPawn then c = pc:GetPawn() end
   end)
   if not ESPValid(c) then
@@ -753,6 +755,12 @@ function ESP.UntrackCharacter(Character)
   end
 end
 
+function ESP.PruneCharacterCache()
+  for key, Character in pairs(ESP.CharacterCache) do
+    if not ESPValid(Character) then ESP.CharacterCache[key] = nil end
+  end
+end
+
 function ESP.GetAllCharacters()
   local AllChars = {}
 
@@ -778,6 +786,7 @@ function ESP.GetAllCharacters()
   end
 
   -- Some match modes do not expose every remote pawn through Game:GetAllPlayerPawns.
+  ESP.PruneCharacterCache()
   mergeCharacters(ESP.CharacterCache)
   pcall(function()
     local Pawns = Game:GetAllPlayerPawns()
@@ -1800,9 +1809,26 @@ function ESP.ResetWidgets()
   ESP.EnemyCache = {}
 end
 
-function ESP.Scan()
-  local pc = ESP.GetController()
-  local me = ESP.GetLocalCharacter()
+function ESP.StopTimers()
+  if ESP._TimerPC and ESPValid(ESP._TimerPC) and ESP._TimerHandle
+     and ESP._TimerPC.RemoveGameTimer then
+    pcall(function() ESP._TimerPC:RemoveGameTimer(ESP._TimerHandle) end)
+  end
+  if ESP._WatchdogPC and ESPValid(ESP._WatchdogPC) and ESP._WatchdogHandle
+     and ESP._WatchdogPC.RemoveGameTimer then
+    pcall(function() ESP._WatchdogPC:RemoveGameTimer(ESP._WatchdogHandle) end)
+  end
+  ESP._TimerPC = nil
+  ESP._TimerHandle = nil
+  ESP._TimerHooked = false
+  ESP._WatchdogPC = nil
+  ESP._WatchdogHandle = nil
+  ESP._WatchdogStarted = false
+end
+
+function ESP.Scan(controller)
+  local pc = controller or ESP.GetController()
+  local me = ESP.GetLocalCharacter(pc)
   if not pc or not me then ESP.EnemyCache = {} return pc, 0, 0 end
   local myLoc = ESP.ActorLocation(me)
   if not myLoc then ESP.EnemyCache = {} return pc, 0, 0 end
@@ -1844,18 +1870,17 @@ end
 function ESP.Update()
   if not ESP_Enabled then ESP.ResetWidgets() return end
   local world = ESP.World()
-  if world ~= ESP.LastWorld then
+  local worldKey = world and tostring(world) or nil
+  if worldKey ~= ESP.LastWorld then
+    ESP.StopTimers()
     ESP.ResetWidgets()
-    ESP.LastWorld = world
+    ESP.LastWorld = worldKey
     ESP.LastScan = -999.0
     ESP.LastTransform = -999.0
-    ESP._TimerHooked = false
-    ESP._TimerPC = nil
-    ESP._TimerHandle = nil
     _G._ESPStartedPC = nil
     _G._ESPLookTickStarted = nil
-    ESP._WatchdogStarted = false
     ESP.bActive = true   
+    ESP.AttachTimers()
   end
   local canvas = ESP.GetCanvas()
   if not canvas then return end
@@ -1868,7 +1893,7 @@ function ESP.Update()
   end
   if (now - ESP.LastScan) >= (ESP.ScanInterval or 0.35) then
     local r, b
-    pc, r, b = ESP.Scan()
+    pc, r, b = ESP.Scan(pc)
     ESP.LastScan = now
     ESP.RealCount, ESP.BotCount = r or 0, b or 0
   end
@@ -2022,13 +2047,19 @@ function ESP.Update()
   local function stillActive(k)
     return active[k] == true
   end
-  for k, _ in pairs(ESP.Lines) do if not stillActive(k) then ESP.HideTarget(k) end end
-  for k, _ in pairs(ESP.Infos) do if not stillActive(k) then ESP.HideTarget(k) end end
-  for k, _ in pairs(ESP.Corners) do
-    if not stillActive(k) and not seenCache[k] then ESP.ReleaseTarget(k) end
-  end
-  for k, _ in pairs(ESP.HealthBg) do
-    if not seenCache[k] and not stillActive(k) then ESP.ReleaseTarget(k) end
+  -- Release widgets for players that left the cache; hiding alone leaked them
+  -- across rounds and made the second match progressively slower.
+  local widgetKeys = {}
+  for k, _ in pairs(ESP.Lines) do widgetKeys[k] = true end
+  for k, _ in pairs(ESP.Infos) do widgetKeys[k] = true end
+  for k, _ in pairs(ESP.Corners) do widgetKeys[k] = true end
+  for k, _ in pairs(ESP.HealthBg) do widgetKeys[k] = true end
+  for k, _ in pairs(ESP.HealthFill) do widgetKeys[k] = true end
+  for k, _ in pairs(ESP.Marks) do widgetKeys[k] = true end
+  for k, _ in pairs(widgetKeys) do
+    if not stillActive(k) then
+      if seenCache[k] then ESP.HideTarget(k) else ESP.ReleaseTarget(k) end
+    end
   end
 end
 
@@ -2048,6 +2079,9 @@ function ESP.AttachTimers()
         ESP._TimerHooked = false
         ESP._TimerPC = nil
         ESP._TimerHandle = nil
+        ESP._WatchdogStarted = false
+        ESP._WatchdogPC = nil
+        ESP._WatchdogHandle = nil
         ESP.AttachTimers()
       end)
     end)
@@ -2057,6 +2091,7 @@ function ESP.AttachTimers()
   pcall(function()
     local pc = ESP.GetController()
     if ESPValid(pc) and pc.AddGameTimer then
+      if ESP._TimerPC ~= pc then ESP.StopTimers() end
       -- 已经挂在同一个 PC 上且还有效，跳过
       if ESP._TimerPC == pc and ESP._TimerHooked then return end
 
@@ -2107,8 +2142,11 @@ function ESP.AttachTimers()
         return pc:AddGameTimer(3.0, true, watchdogTick)
       end)
       if ok then
+        ESP._WatchdogPC = pc
         ESP._WatchdogHandle = handle
       else
+        ESP._WatchdogPC = nil
+        ESP._WatchdogHandle = nil
         ESP._WatchdogStarted = false
         scheduleRetry()
       end
@@ -2147,9 +2185,7 @@ local function ESPStartAll()
     if tostring(pc) ~= tostring(started) then
       -- ★ 新 PC：清标记 + 重启
       _G._ESPStartedPC = pc
-      ESP._TimerHooked = false
-      ESP._TimerPC = nil
-      ESP._TimerHandle = nil
+      ESP.StopTimers()
       ESP.Start()
     else
       -- 同一个 PC：确保计时器还在
