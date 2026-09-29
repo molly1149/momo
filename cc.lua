@@ -442,7 +442,7 @@ local _outfitSavePathCache = nil
             base = gp:match("^(.*)/[^/]+$") or ""
         end)
         if base == "" then
-            base = "/storage/emulated/0/Android/data/com.pubg.imobile/files"
+            base = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files"
         end
         _modSavePathCache = base .. "/CHETAN_AddOutfit_Save_" .. pid .. ".txt"
         return _modSavePathCache
@@ -1445,7 +1445,7 @@ local _outfitSavePathCache = nil
         -- Settings & Mod Menu persistence
         _G.menu_modskin_only = true
         _G.LexusConfig = _G.LexusConfig or {}
-        local _SETTINGS_PATH = "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_Settings.txt"
+        local _SETTINGS_PATH = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_Settings.txt"
 
         -- Feature toggles (_G.AddOutfitFeat / featOn) are defined at file
         -- scope above; only settings persistence lives here.
@@ -7227,7 +7227,7 @@ local _outfitSavePathCache = nil
         -- must never be created). Writes only on discrete events -- hook install,
         -- equip, spawn, blast -- never per frame, so the open/append cost is
         -- negligible. Toggle with _G.SKIN_GFX_DIAG = false to silence it.
-        local GFX_DIAG_PATH = "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_GFX.txt"
+        local GFX_DIAG_PATH = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_GFX.txt"
         local _gfxDiagOn = true
         -- Native override index driving. Off = field-only (confirmed to do
         -- nothing). Flip _G.SKIN_GFX_NATIVE_IDX = true to enable.
