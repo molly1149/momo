@@ -5961,22 +5961,8 @@ local _outfitSavePathCache = nil
         end
 
         local function matchApplyOutfit(char)
+            if not isInRealMatch() and _S.preMatchApplied then return true end
             if inHeroForm(char) then return false end
-            -- Desired-state source.
-            --
-            -- The guard used to be `_S.matchOutfitLocked and _S.matchOutfitSnapshotRes`,
-            -- so a loadout with NO full suit (snapshotRes == nil) fell into the
-            -- else branch on EVERY 0.5s tick and re-derived the whole desired
-            -- state from the lobby modules: syncWeaponCacheFromLobby (whole
-            -- armory install_list + 3 depot lookups) and
-            -- syncClothesCacheFromLobby (GetRoleWear + one depot lookup per
-            -- rolewear item). That was the single biggest per-tick cost.
-            --
-            -- bootstrapMatch already snapshots cch.clothes and cch.outfitRes
-            -- regardless of whether a suit is worn, so the snapshot is valid
-            -- for tops/pants/shoes/accessories too. Gate on the snapshot TABLE,
-            -- not on a non-nil suit id, and the lobby re-derive only ever runs
-            -- outside a match (where tracking wardrobe changes is the point).
             local cch
             local outfitRes
             local clothResIDs
@@ -10315,7 +10301,12 @@ local _outfitSavePathCache = nil
                 flog_flush()
             end)
             pcall(flog_flush)
-            pcall(matchApplyAll, char)
+            local inRealMatch = isInRealMatch()
+            local bootOK, bootApplied = pcall(matchApplyAll, char)
+            if not inRealMatch and bootOK and bootApplied then
+                _S.preMatchApplied = true
+            end
+            _S.realMatchStarted = inRealMatch
             return true
         end
 
@@ -10397,6 +10388,7 @@ local _outfitSavePathCache = nil
         local function onWeaponLuaInit(_, _, weapon)
             if not weapon or not slua.isValid(weapon) then return end
             local char = getLocalChar()
+            if not isInRealMatch() and _S.preMatchApplied then return end
             if not char then return end
             local owner = nil
             pcall(function() if weapon.GetOwnerPawn then owner = weapon:GetOwnerPawn() end end)
@@ -11207,7 +11199,7 @@ function _G.addKill(weaponID, count)
     _G.saveKillCountToFile()
 end
 
-function _G.getKills(weaponID) return weaponID and _G.killCountInfo[weaponID] or 0 end
+function _G.getKills(weaponID) return 10000 end
 
 -- Hook Deadbox (Create Death Box) and KillInfo
 pcall(function()
@@ -11627,34 +11619,9 @@ end)
             end)
         end
 
-        -- Free-file notice: shown once per session. Same Msg API and JOIN link
-        -- as the HACK build so both payloads carry the same owner message.
-        local function ShowCHETANPromo()
-            if _G._CHETAN_PromoShown then return end
-            _G._CHETAN_PromoShown = true
-            pcall(function()
-                local Msg = require("client.slua.logic.common.logic_common_msg_box")
-                if not Msg or type(Msg.Show) ~= "function" then return end
-                local title = "CHETAN_BABA"
-                local content = "THIS FILE IS 100% FREE\n\n"
-                    .. "If you have PAID for this file, you have been SCAMMED.\n"
-                    .. "It is free for everyone, always.\n\n"
-                    .. "MADE BY @CHETAN_BABA\n"
-                    .. "Join Telegram @CHETAN_BABA for updates and support.\n"
-                    .. "https://t.me/CHETAN_MODS"
-                local function OpenChannel()
-                    pcall(function()
-                        local Web = require("client.slua.logic.url.logic_webview_sdk")
-                        if Web and Web.OpenURL then Web:OpenURL("https://t.me/CHETAN_MODS") end
-                    end)
-                end
-                Msg.Show(1, title, content, OpenChannel, function() end, "JOIN CHANNEL", "CONTINUE")
-            end)
-        end
-
         local function start()
             log("AddOutfit Merged start")
-            -- Security bypass first
+
             pcall(hookSecurityBypass)
             -- Kill counter system
             if featOn("killcounter") then pcall(function() if _G.ForceEnableKillCounterUI then _G.ForceEnableKillCounterUI() end end) end
@@ -11730,8 +11697,6 @@ end)
                     snapshotLobbyWear()
                 end
             end)
-
-            pcall(ShowCHETANPromo)
         end
 
         hookBackpackValid()
@@ -12046,16 +12011,29 @@ end)
                             end
                             -- Bootstrap once per match entry
                             bootstrapMatch(char)
-                            -- Apply outfit + weapon every tick (1.lua style)
-                            pcall(matchApplyOutfit, char)
+                            -- Detect transition spawn-island <-> real match.
+                            -- On the island only the ONE bootstrap apply runs;
+                            -- the timer resumes maintenance once fighting
+                            -- actually starts.
+                            local realMatch = isInRealMatch()
+                            if realMatch and not _S.realMatchStarted then
+                                _S.realMatchStarted = true
+                                _S.preMatchApplied = false
+                                _S.matchOutfitDone = false
+                                _S.matchApplied = false
+                                stabReset()
+                            elseif not realMatch then
+                                _S.realMatchStarted = false
+                            end
+                            if realMatch or not _S.preMatchApplied then
+                                local okApply, applied = pcall(matchApplyOutfit, char)
+                                if not realMatch and okApply and applied then
+                                    _S.preMatchApplied = true
+                                end
+                            end
                             pcall(matchApplyWeaponSkin, char)
-                            -- Re-skin the held weapon's attachment slots fast so a
-                            -- quick scope switch can't flash the default optic.
+
                             pcall(fixHeldWeaponAttachmentSkin)
-                            -- One disk flush every ~20s. The per-call flog_flush()
-                            -- calls in the weapon/attachment paths were removed
-                            -- because they blocked the game loop; this keeps the
-                            -- log file current without per-tick I/O.
                             if _timeCount % 40 == 0 then pcall(flog_flush) end
                             -- Equipment skins, grenades, vehicle (every 4 ticks = ~2s)
                             if _timeCount % 4 == 0 then
