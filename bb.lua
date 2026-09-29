@@ -557,19 +557,19 @@ end
 
 local CFG = {
   MaxDistance = 40000,      -- cm (400 m)
-  MaxTracked = 12,
+  MaxTracked = 8,
   ScreenMargin = 220,
   TopTextY = 6.0,           -- canvas px, bilkul upar center
   SnapOriginY = 0.0,        -- top edge se start (esplook jaisa)
   SnapThickness = 1.8,
-  CornerThickness = 2.2,
-  CornerLen = 0.28,
-  CornerMin = 6,
-  CornerMax = 28,
-  BoxMinWidth = 22,
-  BoxMaxWidth = 320,
+  CornerThickness = 1.6,
+  CornerLen = 0.22,
+  CornerMin = 4,
+  CornerMax = 18,
+  BoxMinWidth = 14,
+  BoxMaxWidth = 180,
   BoxMinHeight = 14,
-  BoxWidthFactor = 0.62,
+  BoxWidthFactor = 0.42,
   WidthScale = 1.22,
   HeadExtra = 0.06,
   FootExtra = 0.02,
@@ -600,7 +600,7 @@ local CFG = {
   GreenCorners = false,
   DeadZone = 1.5,           -- px, ↑ from 0.5：吸收相机旋转时的亚像素抖动
   BoxDeadZone = 2.0,        -- px, 框/血条位置的整体死区（L/R/T/B 一起更新）
-  VisInterval = 0.30,       -- sec, visibility trace cache
+  VisInterval = 0.50,       -- sec, stagger expensive visibility traces
   SizeHyst = 2.0,           -- px, viewport me itna farq ignore
 }
 
@@ -664,9 +664,9 @@ ESP.OffsetX = 0.0
 ESP.OffsetY = 0.0
 ESP.ViewW = 1920
 ESP.ViewH = 1080
-ESP.ScanInterval = 0.50
-ESP.LightInterval = 0.050
-ESP.TransformInterval = 1.00
+ESP.ScanInterval = 0.75
+ESP.LightInterval = 0.066
+ESP.TransformInterval = 1.25
 ESP.LastScan = -999.0
 ESP.LastTransform = -999.0
 ESP.LastWorld = nil
@@ -1643,8 +1643,8 @@ function ESP.UpdateInfo(key, Character, isBot, distM, bVisible, footX, footY, to
     d.CachedName = name
   end
   local dl = string.format("%dm", math.max(0, math.floor((tonumber(distM) or 0) + 0.5)))
-  local st = "Cover"
-  local stKey = "cover"
+  local st = bVisible and "Open" or "Cover"
+  local stKey = bVisible and "open" or "cover"
   pcall(function()
     if d.LastN ~= name then
       d.Name:SetText(name) d.LastN = name
@@ -1653,7 +1653,7 @@ function ESP.UpdateInfo(key, Character, isBot, distM, bVisible, footX, footY, to
     if d.LastD ~= dl then d.Dist:SetText(dl) d.LastD = dl end
     if d.LastS ~= st then
       d.State:SetText(st) d.LastS = st
-      ESP.SetTextColor(d.State, C_RED)
+        ESP.SetTextColor(d.State, bVisible and C_GREEN or C_RED)
     end
     if d.LastK ~= stKey then d.LastK = stKey end
   end)
@@ -1944,8 +1944,8 @@ function ESP.Update()
             -- sanity: ulti box / bahut badi box = garbage projection, hide
             if H >= (CFG.BoxMinHeight or 14) and H <= vh * 1.5 then
               active[key] = true
-              local W = H * (CFG.BoxWidthFactor or 0.62)
-              W = math.max(CFG.BoxMinWidth or 22, math.min(CFG.BoxMaxWidth or 320, W))
+               local W = H * (CFG.BoxWidthFactor or 0.42)
+               W = math.max(CFG.BoxMinWidth or 14, math.min(CFG.BoxMaxWidth or 180, W))
               local padT = H * (CFG.HeadExtra or 0)
               local padB = H * (CFG.FootExtra or 0)
               local cx = (headS.X + feetS.X) * 0.5
@@ -2009,9 +2009,16 @@ function ESP.Update()
                 if marks then for i = 1, 4 do ESP.Hide(marks[i]) end end
               end
 
+              local visible = true
+              if CFG.ShowSnapLine or CFG.ShowTargetInfo then
+                visible = ESP.IsVisible(key, pc, camLoc, c)
+              end
+
               -- 4) optional snap line
               if CFG.ShowSnapLine and origin then
-                ESP.DrawLine(ESP.EnsureSnap(key), origin.X, origin.Y, headS.X, headS.Y,
+                local snap = ESP.EnsureSnap(key)
+                ESP.SetBrush(snap, visible and C_GREEN or C_RED, visible and "visible" or "blocked")
+                ESP.DrawLine(snap, origin.X, origin.Y, headS.X, headS.Y,
                              CFG.SnapThickness or 1.8)
               else
                 ESP.Hide(ESP.Lines[key])
@@ -2019,7 +2026,7 @@ function ESP.Update()
 
               -- 5) optional bottom info
               if CFG.ShowTargetInfo then
-                ESP.UpdateInfo(key, c, item.IsBot, item.Distance, false, cx, B, T)
+                ESP.UpdateInfo(key, c, item.IsBot, item.Distance, visible, cx, B, T)
               else
                 local info = ESP.Infos[key]
                 if info and ESPValid(info.Container) then
