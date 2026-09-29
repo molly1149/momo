@@ -588,15 +588,15 @@ local CFG = {
   CounterFontSize = 17,
   CounterW = 300.0,
   CounterH = 28.0,
-  ShowRing = true,
+  ShowRing = false,
   RingRadiusRatio = 0.40,     -- relative to the shorter screen side
   RingSegments = 64,
   RingThickness = 2.0,
   ShowCounter = false,
-  ShowSnapLine = false,
-  ShowHealthBar = false,
+  ShowSnapLine = true,
+  ShowHealthBar = true,
   ShowTargetMarks = false,
-  ShowTargetInfo = false,
+  ShowTargetInfo = true,
   GreenCorners = true,
   DeadZone = 1.5,           -- px, ↑ from 0.5：吸收相机旋转时的亚像素抖动
   BoxDeadZone = 2.0,        -- px, 框/血条位置的整体死区（L/R/T/B 一起更新）
@@ -607,10 +607,10 @@ local CFG = {
 -- esplook.png colors
 local C_WHITE  = ESPMKC(1.0, 1.0, 1.0, 1.0)
 local C_BLACK  = ESPMKC(0.0, 0.0, 0.0, 1.0)
-local C_GREEN  = ESPMKC(0.12, 1.0, 0.25, 1.0)   -- snap line + "Open"
-local C_RED    = ESPMKC(1.0, 0.15, 0.15, 1.0)   -- low health + "Close"
-local C_YELLOW = ESPMKC(1.0, 0.90, 0.30, 1.0)   -- double chevron
-local C_BLUE   = ESPMKC(0.38, 0.72, 1.0, 1.0)   -- "Bot" name
+local C_GREEN  = ESPMKC(0.12, 1.0, 0.25, 1.0)   -- target corners + health
+local C_RED    = ESPMKC(1.0, 0.15, 0.15, 1.0)   -- snap line + "Cover"
+local C_YELLOW = ESPMKC(1.0, 0.90, 0.30, 1.0)   -- target name
+local C_BLUE   = ESPMKC(0.38, 0.72, 1.0, 1.0)   -- fallback name
 
 local function RND(v)
   if v ~= v then return 0 end
@@ -965,7 +965,6 @@ local function NormalizeName(v)
 end
 
 function ESP.ResolveName(Character, isBot)
-  if isBot then return "Bot" end
   local name = nil
   local function take(v)
     if not name then name = NormalizeName(v) end
@@ -988,7 +987,7 @@ function ESP.ResolveName(Character, isBot)
       pcall(function() if not name then take(ps.NickName) end end)
     end
   end
-  return name or "Player"
+  return name or (isBot and "Bot" or "Player")
 end
 
 function ESP.GetBonePos(Character, boneName)
@@ -1585,7 +1584,7 @@ function ESP.CreateInfo()
     return nil
   end
   pcall(function()
-    tName:SetText("Bot")
+     tName:SetText("Player")
     tDist:SetText("0m")
     tState:SetText("Open")
     tName:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
@@ -1595,7 +1594,7 @@ function ESP.CreateInfo()
     if tDist.SetJustification then tDist:SetJustification(1) end
     if tState.SetJustification then tState:SetJustification(1) end
   end)
-  ESP.SetTextColor(tName, C_BLUE)
+   ESP.SetTextColor(tName, C_YELLOW)
   ESP.SetTextColor(tDist, C_WHITE)
   ESP.SetTextColor(tState, C_GREEN)
   ESP.SetFont(tName, CFG.NameFontSize)
@@ -1620,7 +1619,7 @@ function ESP.CreateInfo()
            S1 = s1, S2 = s2, S3 = s3, Slot = ms }
 end
 
-function ESP.UpdateInfo(key, Character, isBot, distM, bVisible, footX, footY)
+function ESP.UpdateInfo(key, Character, isBot, distM, bVisible, footX, footY, topY)
   local d = ESP.Infos[key]
   if not d or not ESPValid(d.Container) then
     ESP.Destroy(d)
@@ -1628,26 +1627,20 @@ function ESP.UpdateInfo(key, Character, isBot, distM, bVisible, footX, footY)
     ESP.Infos[key] = d
   end
   if not d then return end
-  -- Bot pe "Bot", real player pe real name (cache, flicker fix)
+  -- Target name is shown above the box, matching the reference style.
   local name = d.CachedName
   if not name then
     name = ESP.ResolveName(Character, isBot)
     d.CachedName = name
   end
-  if isBot then
-    name = "Bot"
-    d.CachedName = "Bot"
-  end
   local dl = string.format("%dm", math.max(0, math.floor((tonumber(distM) or 0) + 0.5)))
-  -- Visibility: Open (green) / Close (red)
-  local st = bVisible and "Open" or "Close"
-  local stKey = bVisible and "open" or "close"
+  -- Visibility: Open (green) / Cover (red)
+  local st = bVisible and "Open" or "Cover"
+  local stKey = bVisible and "open" or "cover"
   pcall(function()
     if d.LastN ~= name then
       d.Name:SetText(name) d.LastN = name
-      -- Bot = blue, real name = white
-      if isBot then ESP.SetTextColor(d.Name, C_BLUE)
-      else ESP.SetTextColor(d.Name, C_WHITE) end
+       ESP.SetTextColor(d.Name, C_YELLOW)
     end
     if d.LastD ~= dl then d.Dist:SetText(dl) d.LastD = dl end
     if d.LastS ~= st then
@@ -1657,19 +1650,21 @@ function ESP.UpdateInfo(key, Character, isBot, distM, bVisible, footX, footY)
     end
     if d.LastK ~= stKey then d.LastK = stKey end
   end)
-  -- 3 lines, centered under feet (pos cache, flicker fix)
-  local w = 120.0
+  -- Name above the box; distance and cover state below it.
+  local w = 180.0
   local h1, h2, h3 = 20.0, 17.0, 17.0
   local x = RND(footX - w * 0.5)
-  local y = RND(footY + 4.0)
+  local boxTop = tonumber(topY) or (footY - 60.0)
+  local anchorH = math.max(20.0, footY - boxTop)
+  local y = RND(boxTop - h1 - 3.0)
   if d.ix == nil or math.abs(d.ix - x) >= 1.0 or math.abs((d.iy or 0) - y) >= 1.0 then
     d.ix, d.iy = x, y
     pcall(function()
       d.Slot:SetPosition(ESPV2(x, y))
-      d.Slot:SetSize(ESPV2(w, h1 + h2 + h3 + 6.0))
+      d.Slot:SetSize(ESPV2(w, anchorH + h1 + h2 + h3 + 10.0))
       d.S1:SetPosition(ESPV2(w * 0.5, h1 * 0.5))
-      d.S2:SetPosition(ESPV2(w * 0.5, h1 + h2 * 0.5 + CFG.TextGap))
-      d.S3:SetPosition(ESPV2(w * 0.5, h1 + h2 + h3 * 0.5 + CFG.TextGap * 2.0))
+      d.S2:SetPosition(ESPV2(w * 0.5, anchorH + h1 + h2 * 0.5 + 2.0))
+      d.S3:SetPosition(ESPV2(w * 0.5, anchorH + h1 + h2 + h3 * 0.5 + 4.0))
       d.Container:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
     end)
   else
@@ -1744,7 +1739,7 @@ end
 function ESP.EnsureSnap(key)
   local d = ESP.Lines[key]
   if d and ESPValid(d.Widget) then return d end
-  d = ESP.NewLine(C_GREEN, 30)
+  d = ESP.NewLine(C_RED, 30)
   ESP.Lines[key] = d
   return d
 end
@@ -1899,6 +1894,9 @@ function ESP.Update()
   elseif ESP.Counter then
     pcall(function() ESP.Counter.Container:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed) end)
   end
+  if CFG.ShowSnapLine and not origin then
+    origin = ESP.SnapOrigin(pc, vw)
+  end
   local camLoc = ESP.GetCamLoc(pc)
 
   local active = {}
@@ -1997,7 +1995,7 @@ function ESP.Update()
               -- 5) optional bottom info
               if CFG.ShowTargetInfo then
                 local bVis = ESP.IsVisible(key, pc, camLoc, c)
-                ESP.UpdateInfo(key, c, item.IsBot, item.Distance, bVis, cx, B)
+                ESP.UpdateInfo(key, c, item.IsBot, item.Distance, bVis, cx, B, T)
               else
                 local info = ESP.Infos[key]
                 if info and ESPValid(info.Container) then
