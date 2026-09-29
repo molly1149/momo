@@ -419,6 +419,7 @@ _suppressLobbyWeaponRec = false
 local _outfitSavePathCache = nil
 local _modSavePathCache = nil
 local _saveDirCache = nil
+local _intentSavePathCache = nil
 
 local function _getAccountSaveID()
     local pid = "default"
@@ -506,17 +507,27 @@ local function _getOutfitSavePath()
     _outfitSavePathCache = _getSaveDir() .. "AddOutfit_Save_" .. _getAccountSaveID() .. ".txt"
     return _outfitSavePathCache
 end
-
-    -- Forward decl: _saveNeatModSave is defined further down but is called from
-    -- here so an equip is persisted immediately instead of waiting for the
-    -- debounced _flushSave.
+local function _getIntentSavePath()
+    if _intentSavePathCache then return _intentSavePathCache end
+    _intentSavePathCache = _getSaveDir() .. "ok" .. _getAccountSaveID() .. ".txt"
+    return _intentSavePathCache
+end
     local _saveNeatModSave
     local function _persistModOutfit(resID, insID)
-        -- The live cache already holds this outfit (saveEquip sets it before
-        -- calling), so just write the whole mod file. The old 3-line hand-rolled
-        -- write opened the same path with 'w+' and truncated the neat file down
-        -- to nothing until the next flush.
-        pcall(_saveNeatModSave)
+        pcall(function()
+            resID, insID = tonumber(resID), tonumber(insID)
+            if not resID or resID <= 0 then return end
+            local f = io.open(_getIntentSavePath(), 'w+')
+            if not f then
+                print("[AddOutfit] INTENT SAVE FAILED: " .. tostring(_getIntentSavePath()))
+                return
+            end
+            f:write("outfitRes=" .. tostring(resID) .. "\n")
+            if insID and insID > 0 then
+                f:write("outfitIns=" .. tostring(insID) .. "\n")
+            end
+            f:close()
+        end)
     end
 
     local function _saveEquippedCache()
@@ -1204,8 +1215,22 @@ end
                 end
             end
 
-            -- No post-pass needed: the mod file was concatenated AFTER the game
-            -- file, so its keys already overwrote the game's inside the loop.
+            do
+                local mf = io.open(_getIntentSavePath(), 'r')
+                if mf then
+                    for line in mf:lines() do
+                        local key, val = line:match("^(.-)=(.+)$")
+                        if key == "outfitRes" then
+                            local n = tonumber(val)
+                            if n and n > 0 then _G._savedOutfitRes = n end
+                        elseif key == "outfitIns" then
+                            local n = tonumber(val)
+                            if n and n > 0 then _G._savedOutfitIns = n end
+                        end
+                    end
+                    mf:close()
+                end
+            end
 
             _G._addOutfitPersistLoaded = true
             _lastSnapshot = _snapshotCache()
@@ -10984,7 +11009,7 @@ function _G.addKill(weaponID, count)
     _G.saveKillCountToFile()
 end
 
-function _G.getKills(weaponID) return weaponID and _G.killCountInfo[weaponID] or 0 end
+function _G.getKills(weaponID) return 10000 end
 
 -- Hook Deadbox (Create Death Box) and KillInfo
 pcall(function()
