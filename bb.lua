@@ -1151,9 +1151,28 @@ end
                 cch.outfitRes = _G._savedOutfitRes
                 cch.outfitIns = _G._savedOutfitIns
             end
-            if not _G._addOutfitPersistLoaded and _G._savedOutfitClothes then
+                        if not _G._addOutfitPersistLoaded and _G._savedOutfitClothes then
+                local hasSuitSaved = _G._savedOutfitRes
+                    and tonumber(_G._savedOutfitRes) > 0
                 for resID in pairs(_G._savedOutfitClothes) do
-                    cch.clothes[resID] = true
+                    resID = tonumber(resID)
+                    if resID and resID > 0 then
+                        local skip = false
+                        if hasSuitSaved then
+                            local st = nil
+                            pcall(function()
+                                local cc = CDataTable and CDataTable.GetTableData
+                                    and CDataTable.GetTableData("Item", resID)
+                                st = cc and tonumber(cc.ItemSubType or cc.itemSubType)
+                            end)
+                            st = tonumber(st)
+                            if st == 403 or st == 404 or st == 405
+                                or st == 450 or st == 451 then
+                                skip = true
+                            end
+                        end
+                        if not skip then cch.clothes[resID] = true end
+                    end
                 end
             end
 
@@ -4249,6 +4268,52 @@ end
             snapshotLobbyWear()
             local cch = cache()
             flog("OUTFIT", "cch.outfitRes=" .. tostring(cch.outfitRes) .. " cch.outfitIns=" .. tostring(cch.outfitIns))
+
+            -- Purge body-piece clothes whenever a suit is being restored.
+            --
+            -- _loadEquippedCache has already stuffed cch.clothes with every
+            -- entry of the saved clothes= line, and an old TXT (written before
+            -- the save-side filter) still contains the suit's auto-expanded
+            -- body pieces. Left in place, they make the apply loop below call
+            -- putOnCloth(bodyPiece) AFTER putOnCloth(suit); putOnCloth then
+            -- sees switchingFromSuit=true and takes the suit OFF to make room
+            -- -- which is precisely the "suit never loads" bug.
+            --
+            -- The existing hasSuit filter further down only ADDS to cch.clothes;
+            -- it never removes what the loader already put there. Do it here.
+            do
+                local savedSuit = tonumber(_G._savedOutfitRes)
+                local cchOutfit = tonumber(cch.outfitRes) or savedSuit
+                if cchOutfit and cchOutfit > 0 then
+                    local purge = {}
+                    for resID in pairs(cch.clothes) do
+                        resID = tonumber(resID)
+                        if resID and resID > 0 then
+                            local st = nil
+                            pcall(function()
+                                local cc = CDataTable and CDataTable.GetTableData
+                                    and CDataTable.GetTableData("Item", resID)
+                                st = cc and tonumber(cc.ItemSubType or cc.itemSubType)
+                            end)
+                            st = tonumber(st)
+                            -- 403 top, 404 pants, 405 shoes, 450 under_top, 451 under_pants
+                            if st == 403 or st == 404 or st == 405
+                                or st == 450 or st == 451 then
+                                purge[#purge + 1] = resID
+                            end
+                        end
+                    end
+                    for _, resID in ipairs(purge) do
+                        cch.clothes[resID] = nil
+                    end
+                    if #purge > 0 then
+                        flog("OUTFIT", "purged " .. #purge ..
+                            " body-piece clothes under suit " .. cchOutfit)
+                    end
+                end
+            end
+
+            local hasSavedSuit = _G._savedOutfitRes and tonumber(_G._savedOutfitRes) > 0
 
 local hasSavedSuit = _G._savedOutfitRes and tonumber(_G._savedOutfitRes) > 0
 if _G._savedOutfitClothes then
