@@ -6002,6 +6002,10 @@ end
         local STAB_FAST = 0.5
         local STAB_MAX  = 2.0
         local _stab = { next = 0, step = STAB_FAST, sig = nil, force = true }
+        local _extraAppliedComp = nil
+        local _extraAppliedSig = nil
+        local _extraApplied = {}
+        local EXTRA_REASSERT_INTERVAL = 15
 
         -- Deterministic signature of the desired cosmetic state. Iterated by
         -- numeric slot (not pairs) so key order can never change the result.
@@ -6153,6 +6157,11 @@ end
                 ac = char.CharacterAvatarComp2_BP
             end
             if not ac or not slua.isValid(ac) then return false end
+            if _extraAppliedComp ~= ac or _extraAppliedSig ~= stateSig then
+                _extraAppliedComp = ac
+                _extraAppliedSig = stateSig
+                _extraApplied = {}
+            end
 
             local applied = false
             local BackpackUtils = nil
@@ -6337,7 +6346,10 @@ end
             end
             for _, key in ipairs(extraKeys) do
                 local id = extraMap and extraMap[key]
-                if id and id > 0 then
+                local now = os.clock()
+                local lastApplied = _extraApplied[key]
+                if id and id > 0 and (not lastApplied or lastApplied.id ~= id
+                    or now - lastApplied.time >= EXTRA_REASSERT_INTERVAL) then
                     -- Every key is re-asserted under the same adaptive gate.
                     -- Pants/Shoes/Armor used to PutOn on EVERY 0.5s tick, which
                     -- rebuilt the character mesh and was the most visible part
@@ -6345,7 +6357,7 @@ end
                     pcall(function()
                         ac:PutOnCustomEquipmentByID(id)
                         applied = true
-                        didWrite = true
+                        _extraApplied[key] = { id = id, time = now }
                     end)
                 end
             end
