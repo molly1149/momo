@@ -6672,6 +6672,13 @@ end
                     pc.PlayerState.MetroPlayerStateAvatarFeature.InitialEquipmentAvatar = eq
                 end
             end)
+            local equipSig = table.concat({
+                tostring(eq.BagAvatar or 0), tostring(eq.HelmetAvatar or 0),
+                tostring(eq.ArmorAvatar or 0), tostring(eq.ParachuteAvatar or 0),
+                tostring(eq.GliderAvatar or 0),
+            }, ":")
+            local lastEquip = _G._AO_EQUIP_AVATAR_SIG
+            local changed = not lastEquip or lastEquip.pc ~= pc or lastEquip.sig ~= equipSig
             pcall(function()
                 local comp = char and char.CharacterAvatarComp2_BP
                 if slua.isValid(comp) and comp.GetEquipmentSkinItemID then
@@ -6689,13 +6696,16 @@ end
                     end
                 end
             end)
-            pcall(function()
-                if pc.OnEquipmentAvatarChange and pc.OnEquipmentAvatarChange.Broadcast then
-                    pc.OnEquipmentAvatarChange:Broadcast()
-                end
-            end)
-            notify("معدات: خوذة=" .. tostring(eq.HelmetAvatar) .. " شنطة=" .. tostring(eq.BagAvatar))
-            return true
+            if changed then
+                _G._AO_EQUIP_AVATAR_SIG = { pc = pc, sig = equipSig }
+                pcall(function()
+                    if pc.OnEquipmentAvatarChange and pc.OnEquipmentAvatarChange.Broadcast then
+                        pc.OnEquipmentAvatarChange:Broadcast()
+                    end
+                end)
+                notify("معدات: خوذة=" .. tostring(eq.HelmetAvatar) .. " شنطة=" .. tostring(eq.BagAvatar))
+            end
+            return changed
         end
 
         local function hookEquipMapping()
@@ -7016,7 +7026,18 @@ end
                 end
             end
 
-            if cch.equip.parachute and cch.equip.parachute > 0 then
+            _G._AO_SPECIAL_EQUIP_CACHE = _G._AO_SPECIAL_EQUIP_CACHE or {}
+            local specialCache = _G._AO_SPECIAL_EQUIP_CACHE
+            if specialCache.comp ~= comp then
+                specialCache.comp = comp
+                specialCache.items = {}
+            end
+            specialCache.items = specialCache.items or {}
+            local nowSpecial = os.clock()
+            if cch.equip.parachute and cch.equip.parachute > 0
+                and (not specialCache.items.parachute
+                    or specialCache.items.parachute.id ~= cch.equip.parachute
+                    or nowSpecial - specialCache.items.parachute.time >= 15) then
                 if isWearingEquip(char, "parachute") then
                     local paraResID = cch.equip.parachute
                     pcall(function()
@@ -7024,6 +7045,7 @@ end
                             local r = comp:PutOnCustomEquipmentByID(paraResID)
                             if isApplySuccess(r) then
                                 ok = true
+                                specialCache.items.parachute = { id = paraResID, time = nowSpecial }
                                 notify("براشوت ماتش OK " .. tostring(paraResID))
                             end
                         end
@@ -7045,13 +7067,17 @@ end
                 end
             end
 
-            if cch.equip.glider and cch.equip.glider > 0 then
+            if cch.equip.glider and cch.equip.glider > 0
+                and (not specialCache.items.glider
+                    or specialCache.items.glider.id ~= cch.equip.glider
+                    or nowSpecial - specialCache.items.glider.time >= 15) then
                 local gliderResID = cch.equip.glider
                 pcall(function()
                     if comp.PutOnCustomEquipmentByID then
                         local r = comp:PutOnCustomEquipmentByID(gliderResID)
                         if isApplySuccess(r) then
                             ok = true
+                            specialCache.items.glider = { id = gliderResID, time = nowSpecial }
                             notify("جلايدر ماتش OK " .. tostring(gliderResID))
                         end
                     end
@@ -7314,6 +7340,17 @@ end
                 if info.resID and info.resID > 0 then hasThrow = true break end
             end
             if not hasThrow then return false end
+            local sig = {}
+            for _, st in ipairs({ 612, 613, 614, 615 }) do
+                local info = cch.throwObjects[st]
+                sig[#sig + 1] = tostring(st) .. ":" .. tostring(info and info.resID or 0)
+            end
+            sig = table.concat(sig, ",")
+            local prev = _G._AO_GRENADE_APPLIED
+            local now = os.clock()
+            if prev and prev.pc == pc and prev.sig == sig and now - prev.time < 15 then
+                return false
+            end
             pcall(function()
                 if pc.AddToGrenadeAvatarItemList then
                     for st, info in pairs(cch.throwObjects) do
@@ -7364,6 +7401,7 @@ end
                     end
                 end
             end)
+            _G._AO_GRENADE_APPLIED = { pc = pc, sig = sig, time = now }
             return true
         end
 
@@ -9668,6 +9706,17 @@ end
                 log("applyMatchThrowObjects: throwObjects cache empty")
                 return false
             end
+            local sig = {}
+            for _, st in ipairs({ 612, 613, 614, 615 }) do
+                local info = cch.throwObjects[st]
+                sig[#sig + 1] = tostring(st) .. ":" .. tostring(info and info.resID or 0)
+            end
+            sig = table.concat(sig, ",")
+            local prev = _G._AO_THROW_LIST_APPLIED
+            local now = os.clock()
+            if prev and prev.pc == pc and prev.sig == sig and now - prev.time < 15 then
+                return false
+            end
             local applied = false
             pcall(function()
                 -- Try setting InitialConsumableAvatar fields (works if Lua table reference)
@@ -9694,6 +9743,7 @@ end
                     end
                 end
             end)
+            _G._AO_THROW_LIST_APPLIED = { pc = pc, sig = sig, time = now }
             return applied
         end
 
