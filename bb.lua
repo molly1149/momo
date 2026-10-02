@@ -417,129 +417,113 @@ _LAST_LOBBY_WEAPON = _LAST_LOBBY_WEAPON or nil
 _suppressLobbyWeaponRec = false
 
 local _outfitSavePathCache = nil
-local _modSavePathCache = nil
-local _saveDirCache = nil
-local _intentSavePathCache = nil
-local function _getAccountSaveID()
-    local pid = "default"
-    pcall(function()
-        local Subsystem = require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
-        local AccountSubsystem = Subsystem:Get("AccountSubsystem")
-        if AccountSubsystem and AccountSubsystem.GetAccountUID then
-            local uid = AccountSubsystem:GetAccountUID()
-            if uid and uid ~= 0 then pid = tostring(uid) end
+    local _modSavePathCache = nil
+    local _getOutfitSavePath
+    local function _getModSavePath()
+        if _modSavePathCache then return _modSavePathCache end
+        local pid = "default"
+        pcall(function()
+            local Subsystem = require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
+            local AccountSubsystem = Subsystem:Get("AccountSubsystem")
+            if AccountSubsystem and AccountSubsystem.GetAccountUID then
+                local uid = AccountSubsystem:GetAccountUID()
+                if uid and uid ~= 0 then pid = tostring(uid) end
+            end
+        end)
+        -- The mod file MUST live beside the game file. Hardcoding
+        -- com.vng.pubgmobile put it in the wrong Android/data dir on the krmobile
+        -- / vng / rekoo packages, so every grenade and skin the mod had saved
+        -- was written somewhere the game (and the next boot) never looked.
+        local base = ""
+        pcall(function()
+            -- _getOutfitSavePath() resolves the real package dir by probing for
+            -- the game file, so derive ours from that instead of guessing.
+            local gp = _getOutfitSavePath and _getOutfitSavePath() or ""
+            base = gp:match("^(.*)/[^/]+$") or ""
+        end)
+        if base == "" then
+            base = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files"
         end
-    end)
-    return pid
-end
-
--- Both TXT files must use the package directory that actually exists.
--- The old mod file was hardcoded to the VNG package, so other builds could
--- read the game's file but never find the mod-owned backup.
-local function _ensureDir(path)
-    -- os.execute may be sandboxed, but the game's own dirs almost always
-    -- already exist. Calling it is a cheap no-op if mkdir isn't allowed.
-    pcall(function() os.execute("mkdir -p '" .. path .. "' 2>/dev/null") end)
-end
-
-local function _canWriteDir(dir)
-    _ensureDir(dir)
-    local testPath = dir .. ".chetansave_test.tmp"
-    local tf = io.open(testPath, 'w')
-    if tf then
-        tf:write("ok")
-        tf:close()
-        os.remove(testPath)
-        return true
+        _modSavePathCache = base .. "/CHETAN_AddOutfit_Save_" .. pid .. ".txt"
+        return _modSavePathCache
     end
-    return false
-end
-
-local function _getSaveDir()
-    if _saveDirCache then return _saveDirCache end
-    local possibleDirs = {
-        '/storage/emulated/0/Android/data/com.pubg.imobile/files/',
-        '/storage/emulated/0/Android/data/com.pubg.krmobile/files/',
-        '/storage/emulated/0/Android/data/com.vng.pubgmobile/files/',
-        '/storage/emulated/0/Android/data/com.rekoo.pubgm/files/',
-        '/storage/emulated/0/Android/data/com.tencent.ig/files/',
-    }
-
-    -- Pass 1: a directory that already has our save (best evidence of the
-    -- correct package, and definitely writable since the game wrote there).
-    local uid = _getAccountSaveID()
-    for _, dir in ipairs(possibleDirs) do
-        local f = io.open(dir .. "AddOutfit_Save_" .. uid .. ".txt", 'r')
-        if f then f:close(); _saveDirCache = dir; return dir end
-        local m = io.open(dir .. "CHETAN_AddOutfit_Save_" .. uid .. ".txt", 'r')
-        if m then m:close(); _saveDirCache = dir; return dir end
+    _getOutfitSavePath = function()
+        if _outfitSavePathCache then return _outfitSavePathCache end
+        local pid = "default"
+        pcall(function()
+            local Subsystem = require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
+            local AccountSubsystem = Subsystem:Get("AccountSubsystem")
+            if AccountSubsystem and AccountSubsystem.GetAccountUID then
+                local uid = AccountSubsystem:GetAccountUID()
+                if uid and uid ~= 0 then pid = tostring(uid) end
+            end
+        end)
+        local fileName = "AddOutfit_Save_" .. pid .. ".txt"
+        local possibleDirs = {
+            '/storage/emulated/0/Android/data/com.vng.pubgmobile/files/',
+            '/storage/emulated/0/Android/data/com.pubg.krmobile/files/',
+            '/storage/emulated/0/Android/data/com.rekoo.pubgm/files/'
+        }
+        for _, dir in ipairs(possibleDirs) do
+            local f = io.open(dir .. fileName, 'r')
+            if f then f:close(); _outfitSavePathCache = dir .. fileName; return _outfitSavePathCache end
+        end
+        for _, dir in ipairs(possibleDirs) do
+            local f = io.open(dir .. "config.ini", 'r')
+            if f then f:close(); _outfitSavePathCache = dir .. fileName; return _outfitSavePathCache end
+        end
+        _outfitSavePathCache = possibleDirs[1] .. fileName
+        return _outfitSavePathCache
     end
 
-    -- Pass 2: a directory the game is actively using (config.ini present).
-    for _, dir in ipairs(possibleDirs) do
-        local f = io.open(dir .. "config.ini", 'r')
-        if f then f:close(); _saveDirCache = dir; return dir end
-    end
-
-    -- Pass 3: whatever directory we can actually create a file in.
-    -- This is the fix for "TXT never created": previously the fallback was
-    -- possibleDirs[1] whether or not it was writable, so every io.open('w+')
-    -- returned nil and every save was silently dropped.
-    for _, dir in ipairs(possibleDirs) do
-        if _canWriteDir(dir) then _saveDirCache = dir; return dir end
-    end
-
-    -- Pass 4: last resort. Even if we couldn't test-write, at least keep the
-    -- package that matches the running app (io.open may succeed later).
-    _saveDirCache = possibleDirs[1]
-    return _saveDirCache
-end
-
-local function _getModSavePath()
-    if _modSavePathCache then return _modSavePathCache end
-    _modSavePathCache = _getSaveDir() .. "CHETAN_AddOutfit_Save_" .. _getAccountSaveID() .. ".txt"
-    return _modSavePathCache
-end
-
-local function _getOutfitSavePath()
-    if _outfitSavePathCache then return _outfitSavePathCache end
-    _outfitSavePathCache = _getSaveDir() .. "AddOutfit_Save_" .. _getAccountSaveID() .. ".txt"
-    return _outfitSavePathCache
-end
-
-local function _getIntentSavePath()
-    if _intentSavePathCache then return _intentSavePathCache end
-    _intentSavePathCache = _getSaveDir() .. "ok" .. _getAccountSaveID() .. ".txt"
-    return _intentSavePathCache
-end
     -- Forward decl: _saveNeatModSave is defined further down but is called from
     -- here so an equip is persisted immediately instead of waiting for the
     -- debounced _flushSave.
     local _saveNeatModSave
-    local function _persistModOutfit(resID, insID)
-        -- Write ONLY the intent file, two lines, 'w+' = full overwrite.
-        -- Ported from ccc.lua: this file is the single source of truth for
-        -- "which full suit did the player last equip". No clothes= line, so
-        -- body pieces from the game's GetRoleWear() auto-expansion cannot
-        -- leak in here and tear the suit off during reapplyLobbyEquipped.
-        --
-        -- The full mod backup (CHETAN_AddOutfit_Save_*.txt) still gets
-        -- written by the normal _saveNeatModSave / _flushSave path; it is
-        -- just no longer trusted for the outfit decision.
-        pcall(function()
-            resID, insID = tonumber(resID), tonumber(insID)
-            if not resID or resID <= 0 then return end
-            local f = io.open(_getIntentSavePath(), 'w+')
-            if not f then
-                print("[AddOutfit] INTENT SAVE FAILED: " .. tostring(_getIntentSavePath()))
-                return
+    -- Forward decl: _saveNeatModSave is assigned at 662 but only CALLED at
+    -- runtime, so it can legally reference a helper defined further down.
+local isStockThrowableRes
+
+-- The server sends a full VehicleSlotList on every push and assigns it
+-- wholesale (on_depot_modify_combat_vehicle_rsp). Injected insIDs do not
+-- exist server-side, so that assignment wipes them. Any save that then ran
+-- before the restore was re-applied wrote the empty list to disk, which is
+-- why vehicle skins were gone after the next restart. Union the persisted
+-- list back in so the last known state always survives a server push.
+-- Defined up here (not next to its other callers) because _saveEquippedCache
+-- and _saveNeatModSave below both call it.
+local function mergePersistedVehicleSlots(list)
+    local saved = _G._savedVehicleSlotList
+    if not saved or type(list) ~= "table" then return list end
+    for subType, insList in pairs(saved) do
+        if type(insList) == "table" and #insList > 0 then
+            local cur = list[subType]
+            if type(cur) ~= "table" then
+                cur = {}
+                list[subType] = cur
             end
-            f:write("outfitRes=" .. tostring(resID) .. "\n")
-            if insID and insID > 0 then
-                f:write("outfitIns=" .. tostring(insID) .. "\n")
+            local present = {}
+            for _, ins in ipairs(cur) do
+                present[tonumber(ins) or ins] = true
             end
-            f:close()
-        end)
+            for _, ins in ipairs(insList) do
+                ins = tonumber(ins)
+                if ins and ins > 0 and not present[ins] then
+                    present[ins] = true
+                    cur[#cur + 1] = ins
+                end
+            end
+        end
+    end
+    return list
+end
+
+local function _persistModOutfit(resID, insID)
+        -- The live cache already holds this outfit (saveEquip sets it before
+        -- calling), so just write the whole mod file. The old 3-line hand-rolled
+        -- write opened the same path with 'w+' and truncated the neat file down
+        -- to nothing until the next flush.
+        pcall(_saveNeatModSave)
     end
 
     local function _saveEquippedCache()
@@ -593,6 +577,9 @@ end
             if eq.gliderIns then lines[#lines + 1] = "equip_gliderIns=" .. tostring(eq.gliderIns) end
             if _G.AddOutfitExplicitEquip and _G.AddOutfitExplicitEquip.parachute then
                 lines[#lines + 1] = "explicit_parachute=1"
+            end
+            if _G.AddOutfitExplicitEquip and _G.AddOutfitExplicitEquip.glider then
+                lines[#lines + 1] = "explicit_glider=1"
             end
             for wid, w in pairs(cch.weapons or {}) do
                 lines[#lines + 1] = "weapon_" .. tostring(wid) .. "=" .. tostring(w.resID) .. ":" .. tostring(w.insID or 0)
@@ -660,17 +647,22 @@ end
                 end
             end)
             pcall(function()
-                if DataMgr and DataMgr.VehicleSlotList then
-                    for subType, insList in pairs(DataMgr.VehicleSlotList) do
-                        if insList and type(insList) == "table" then
-                            local parts = {}
-                            for _, ins in ipairs(insList) do
-                                ins = tonumber(ins)
-                                if ins and ins > 0 then parts[#parts + 1] = tostring(ins) end
-                            end
-                            if #parts > 0 then
-                                lines[#lines + 1] = "vehicle_" .. tostring(subType) .. "=" .. table.concat(parts, ",")
-                            end
+                -- Write the union of the live list and the persisted mirror.
+                -- Saving only the live list is what lost skins: a server push
+                -- that lands mid-session leaves it short, and the next flush
+                -- then persists the short version to disk forever.
+                local vsl = nil
+                if DataMgr then vsl = DataMgr.VehicleSlotList end
+                vsl = mergePersistedVehicleSlots(vsl) or {}
+                for subType, insList in pairs(vsl) do
+                    if insList and type(insList) == "table" then
+                        local parts = {}
+                        for _, ins in ipairs(insList) do
+                            ins = tonumber(ins)
+                            if ins and ins > 0 then parts[#parts + 1] = tostring(ins) end
+                        end
+                        if #parts > 0 then
+                            lines[#lines + 1] = "vehicle_" .. tostring(subType) .. "=" .. table.concat(parts, ",")
                         end
                     end
                 end
@@ -760,10 +752,7 @@ end
                         or st == 402 and "mask" or st == 407 and "glasses"
                         or st == 406 and "beard" or st == 452 and "gloves" or nil
                     if key then
-                        -- Convert each part before concatenating. The old
-                        -- expression concatenated nil before `or 0`, which
-                        -- aborted the complete TXT write for unmapped items.
-                        put(key, tostring(resID) .. ":" .. tostring(tonumber((Rmap or {})[resID]) or 0))
+                        put(key, resID .. ":" .. tonumber((Rmap or {})[resID]) or 0)
                     end
                 end
             end)
@@ -777,6 +766,9 @@ end
             end
             if _G.AddOutfitExplicitEquip and _G.AddOutfitExplicitEquip.parachute then
                 put("explicit_parachute", 1)
+            end
+            if _G.AddOutfitExplicitEquip and _G.AddOutfitExplicitEquip.glider then
+                put("explicit_glider", 1)
             end
 
             head("weapons")
@@ -836,15 +828,63 @@ end
             end)
 
             head("throwables")
+            -- The live cache is NOT the source of truth for throwables. The game
+            -- rebuilds throwObjects during lobby/late-join init, and if that
+            -- wipe lands before our first flush, writing only the live cache
+            -- emitted an EMPTY throwables section and destroyed the saved
+            -- grenades permanently -- they reset on every launch.
+            -- So merge with the load-time mirror and heal the live cache. An
+            -- intentional unequip clears the mirror in takeOffItem, so this
+            -- cannot resurrect a grenade the player deliberately removed.
+            local throwMerged = {}
+            pcall(function()
+                for st, info in pairs(_G._savedThrowObjects or {}) do
+                    local res = tonumber(info and info.resID)
+                    if res and res > 0 then
+                        throwMerged[st] = { resID = res, insID = tonumber(info.insID) or 0 }
+                    end
+                end
+            end)
+            -- Now fold in the live cache -- but the saved value wins whenever the
+            -- live one is the STOCK grenade. The game rebuilds throwObjects with
+            -- the default item during lobby init (612004000 / 613004000 /
+            -- 614004000 / 615004000), and giving the live cache unconditional
+            -- priority made that default overwrite the saved skin and then get
+            -- written back to this same file -- which is exactly how a saved
+            -- grenade turned into the default on the next launch.
+            -- A deliberate unequip still wins, because takeOffItem removes the
+            -- entry from _savedThrowObjects as well.
+            pcall(function()
+                for st, info in pairs(cch.throwObjects or {}) do
+                    local res = tonumber(info and info.resID)
+                    if res and res > 0 then
+                        local saved = throwMerged[st]
+                        local savedRes = tonumber(saved and saved.resID) or 0
+                        -- A non-stock live value is a real, deliberate equip and
+                        -- must win. A stock live value is just the game rebuilding
+                        -- the default during lobby init, so it must NOT clobber a
+                        -- saved skin.
+                        if savedRes <= 0 or not isStockThrowableRes(res) then
+                            throwMerged[st] = { resID = res, insID = tonumber(info.insID) or 0 }
+                        end
+                    end
+                end
+            end)
             local sts = {}
-            for st in pairs(cch.throwObjects or {}) do sts[#sts + 1] = st end
+            for st in pairs(throwMerged) do sts[#sts + 1] = st end
             table.sort(sts)
             for _, st in ipairs(sts) do
-                local info = cch.throwObjects[st]
-                local res = tonumber(info and info.resID)
-                if res and res > 0 then
-                    put("throw_" .. st, res .. ":" .. (tonumber(info.insID) or 0))
+                local info = throwMerged[st]
+                -- Heal the live cache so a later flush (and the lobby itself)
+                -- sees the same grenades we just persisted. Overwrite a stock
+                -- default, not just a missing slot -- leaving the default in
+                -- place is what made the next flush re-persist it.
+                cch.throwObjects = cch.throwObjects or {}
+                local live = cch.throwObjects[st]
+                if not live or isStockThrowableRes(live.resID) then
+                    cch.throwObjects[st] = { resID = info.resID, insID = info.insID }
                 end
+                put("throw_" .. st, info.resID .. ":" .. info.insID)
             end
             -- Grenade blast sequence paths captured at runtime (see InstallGrenadeFX).
             -- The server never populates ExLevelSeqPath for a modded skin, so one
@@ -879,24 +919,13 @@ end
                 return k
             end
 
-            head("vehicles")
-            local vslots = nil
-            pcall(function()
-                if DataMgr and DataMgr.VehicleSlotList then vslots = DataMgr.VehicleSlotList end
-            end)
-            vslots = vslots or _G._savedVehicleSlotList or {}
-            for _, st in ipairs(keysOf(vslots)) do
-                local list, parts = vslots[st], {}
-                if type(list) == "table" then
-                    for _, ins in ipairs(list) do
-                        ins = tonumber(ins)
-                        if ins and ins > 0 then parts[#parts + 1] = tostring(ins) end
-                    end
-                elseif tonumber(list) and tonumber(list) > 0 then
-                    parts[1] = tostring(tonumber(list))
-                end
-                if #parts > 0 then put("vehicle_" .. st, table.concat(parts, ",")) end
-            end
+            -- No [vehicles] section here on purpose. vehicle_* is a GAME-owned
+            -- key: the game file (_saveEquippedCache) writes it live from
+            -- DataMgr.VehicleSlotList, and the loader reads it from the game
+            -- chunk only. An old build wrote vehicle_* into this file too, and
+            -- because this file is parsed second, its stale copy clobbered the
+            -- live slots -- which is exactly how selected car skins were lost
+            -- on restart (game file had 3 skins, stale mod copy had 1).
 
             head("garage")
             local garage = nil
@@ -916,9 +945,8 @@ end
             head("lobby")
             pcall(function()
                 if not DataMgr then return end
-                if tonumber(DataMgr.vst_skin) and tonumber(DataMgr.vst_skin) > 0 then
-                    put("vst_skin", tonumber(DataMgr.vst_skin))
-                end
+                -- vst_skin is game-owned like vehicle_*: the game file writes
+                -- it, and the loader reads it from the game chunk only.
                 for _, st in ipairs(keysOf(DataMgr.equipmentSkinInsIDTable)) do
                     local ins = tonumber(DataMgr.equipmentSkinInsIDTable[st])
                     if ins and ins > 0 then put("equipins_" .. st, ins) end
@@ -964,12 +992,25 @@ end
             if mf then
                 local c = mf:read('*a')
                 mf:close()
-                if c and c ~= "" then chunks[#chunks + 1] = c end
+                if c and c ~= "" then
+                    -- The mod file must never supply game-owned keys. An old
+                    -- build wrote stale vehicle_*/vst_skin lines into it, and
+                    -- because this chunk is parsed second, they clobbered the
+                    -- live game values on every boot. Strip them so the game
+                    -- file always wins for these -- this also self-heals mod
+                    -- files already on devices without needing a wipe.
+                    local kept = {}
+                    for line in c:gmatch("[^\n]+") do
+                        local k = line:match("^%s*([^=%s]-)%s*=")
+                        if k ~= "vst_skin" and not (k and k:match("^vehicle_%d+$")) then
+                            kept[#kept + 1] = line
+                        end
+                    end
+                    c = table.concat(kept, "\n")
+                    if c ~= "" then chunks[#chunks + 1] = c end
+                end
             end
-            if #chunks == 0 then
-    _G._addOutfitPersistLoaded = true
-    return
-end
+            if #chunks == 0 then return end
             local content = table.concat(chunks, "\n")
 
             _G._savedOutfitClothes = {}
@@ -1002,16 +1043,11 @@ end
                     key = key and key:gsub("^%s+", ""):gsub("%s+$", "")
                     val = val and val:gsub("^%s+", ""):gsub("%s+$", "")
                     if key and val and val ~= "" then
-                    if key == "outfitRes" then
-                        local n = tonumber(val)
-                        if n and n > 0 then _G._savedOutfitRes = n end
-                    elseif key == "outfitIns" then
-                        local n = tonumber(val)
-                        if n and n > 0 then _G._savedOutfitIns = n end
+                    if key == "outfitRes" then _G._savedOutfitRes = tonumber(val)
+                    elseif key == "outfitIns" then _G._savedOutfitIns = tonumber(val)
                     elseif key == "clothes" then
                         for id in val:gmatch("([^,]+)") do
-                            local n = tonumber(id)
-                            if n and n > 0 then _G._savedOutfitClothes[n] = true end
+                            _G._savedOutfitClothes[tonumber(id)] = true
                         end
                     elseif key == "equip_bag" then _G._savedOutfitEquip.bag = tonumber(val)
                     elseif key == "equip_helmet" then _G._savedOutfitEquip.helmet = tonumber(val)
@@ -1026,6 +1062,9 @@ end
                     elseif key == "explicit_parachute" then
                         _G.AddOutfitExplicitEquip = _G.AddOutfitExplicitEquip or {}
                         _G.AddOutfitExplicitEquip.parachute = (tonumber(val) == 1) or nil
+                    elseif key == "explicit_glider" then
+                        _G.AddOutfitExplicitEquip = _G.AddOutfitExplicitEquip or {}
+                        _G.AddOutfitExplicitEquip.glider = (tonumber(val) == 1) or nil
                     elseif key == "motion" then
                         -- OVERWRITE, never append. Both save files carry a
                         -- motion= line with the same value, and _loadEquippedCache
@@ -1137,7 +1176,7 @@ end
             cch.equip = cch.equip or {}
             cch.weapons = cch.weapons or {}
 
-            if _G._savedOutfitRes and _G._savedOutfitRes > 0 then
+            if _G._savedOutfitRes then
                 cch.outfitRes = _G._savedOutfitRes
                 cch.outfitIns = _G._savedOutfitIns
             end
@@ -1175,22 +1214,8 @@ end
                 end
             end
 
-            do
-                local mf = io.open(_getIntentSavePath(), 'r')
-                if mf then
-                    for line in mf:lines() do
-                        local key, val = line:match("^(.-)=(.+)$")
-                        if key == "outfitRes" then
-                            local n = tonumber(val)
-                            if n and n > 0 then _G._savedOutfitRes = n end
-                        elseif key == "outfitIns" then
-                            local n = tonumber(val)
-                            if n and n > 0 then _G._savedOutfitIns = n end
-                        end
-                    end
-                    mf:close()
-                end
-            end
+            -- No post-pass needed: the mod file was concatenated AFTER the game
+            -- file, so its keys already overwrote the game's inside the loop.
 
             _G._addOutfitPersistLoaded = true
             _lastSnapshot = _snapshotCache()
@@ -1296,19 +1321,6 @@ end
         if _saveDirty then _flushSave(false) end
     end
 
-    -- Public helpers for loaders that want an explicit TXT checkpoint. Normal
-    -- equips still autosave; these helpers make save/read deterministic and
-    -- keep both the game-compatible and mod-owned files in sync.
-    _G.AddOutfitSaveTXT = function()
-        pcall(_flushSave, true)
-        return _getModSavePath(), _getOutfitSavePath()
-    end
-    _G.AddOutfitLoadTXT = function()
-        _G._addOutfitPersistLoaded = false
-        pcall(_loadEquippedCache)
-        return _getModSavePath(), _getOutfitSavePath()
-    end
-
     -- ========== حقن WardrobeNewHandler (لإصلاح حفظ السيارات في اللوبي) ==========
     pcall(function()
         local WardrobeNewHandler = {}
@@ -1359,6 +1371,21 @@ end
                         end
                     end
                     DataMgr.VehicleSlotList[itemSubType] = slotList
+
+                    -- Keep the persisted mirror in step with the live list, so a
+                    -- deliberate unequip is NOT resurrected by the merge that runs
+                    -- on the next server push.
+                    local mirror = {}
+                    for i, sid in ipairs(slotList) do
+                        local n = tonumber(sid)
+                        if n and n > 0 then mirror[#mirror + 1] = n end
+                    end
+                    _G._savedVehicleSlotList = _G._savedVehicleSlotList or {}
+                    if #mirror > 0 then
+                        _G._savedVehicleSlotList[itemSubType] = mirror
+                    else
+                        _G._savedVehicleSlotList[itemSubType] = nil
+                    end
                 end
                 pcall(function()
                     local tabSurveillance = require("client.slua.logic.wardrobe.tab_surveillance")
@@ -1382,7 +1409,9 @@ end
                 return
             end
             if vehicle_info and DataMgr then
-                DataMgr.VehicleSlotList = vehicle_info
+                -- Re-merge the persisted slots after the wholesale server
+                -- assignment, otherwise every push drops injected insIDs.
+                DataMgr.VehicleSlotList = mergePersistedVehicleSlots(vehicle_info)
             end
             pcall(function()
                 local tabSurveillance = require("client.slua.logic.wardrobe.tab_surveillance")
@@ -1483,20 +1512,16 @@ end
         }
 
         -- Settings & Mod Menu persistence
-        _G.menu_modskin_only = false
+        _G.menu_modskin_only = true
         _G.LexusConfig = _G.LexusConfig or {}
--- Was hardcoded to the VNG package; on IMobile/KR/Rekoo builds the settings
--- file could never be written, so every toggle reset on restart.
-local function _getSettingsPath()
-    return _getSaveDir() .. "CHETAN_Settings.txt"
-end
+        local _SETTINGS_PATH = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_Settings.txt"
 
         -- Feature toggles (_G.AddOutfitFeat / featOn) are defined at file
         -- scope above; only settings persistence lives here.
 
         local function loadSettings()
             pcall(function()
-                local f = io.open(_getSettingsPath(), "r")
+                local f = io.open(_SETTINGS_PATH, "r")
                 if f then
                     for line in f:lines() do
                         local k, v = line:match("^%s*([^=]+)%s*=%s*(.-)%s*$")
@@ -1516,7 +1541,7 @@ end
 
         local function saveSettings()
             pcall(function()
-                local f = io.open(_getSettingsPath(), "w")
+                local f = io.open(_SETTINGS_PATH, "w")
                 if f then
                     f:write("modskin_only=" .. (_G.menu_modskin_only and "1" or "0") .. "\n")
                     for name, on in pairs(_G.AddOutfitFeat or {}) do
@@ -1536,6 +1561,10 @@ end
                 R.insToRes = {}
                 R.resToIns = {}
                 _injectedResSet = {}
+                -- Pool wiped: bump the generation so the cached vehicle
+                -- "rest" list in collectInMatchVehicleSkins is dropped instead
+                -- of surviving with resIDs that no longer exist.
+                _G.ChetanInjGen = (_G.ChetanInjGen or 0) + 1
             end)
         end
 
@@ -1720,7 +1749,7 @@ end
             bootstrapped = false, lobbyApplied = false,
             -- match outfit snapshot: locked at match-entry, prevents cycling
             matchOutfitSnapshotRes = nil, matchOutfitSnapshotClothes = nil,
-            matchOutfitLocked = false, preMatchApplied = false, realMatchStarted = false,
+            matchOutfitLocked = false,
             -- grenade projectile skin + blast FX
             grenadeFXInstalled = false,
         }
@@ -1810,6 +1839,21 @@ end
             local st = tonumber(c.ItemSubType or c.itemSubType or 0)
             if _K.THROW_SUB[st] then return st end
             return nil
+        end
+
+        -- The stock, unskinned grenade for each throwable subtype. The game
+        -- writes these into throwObjects during lobby init, and they are the
+        -- value that kept overwriting a saved skin. Detected by the trailing
+        -- "000" resID block rather than a hardcoded list, so a subtype we have
+        -- not seen still counts as stock.
+        isStockThrowableRes = function(resID)
+            resID = tonumber(resID)
+            if not resID or resID <= 0 then return true end
+            -- Stock ids are <subtype><000> (612004000, 613004000, ...). An
+            -- injected skin always carries a real item id, so the trailing 000
+            -- block is enough and also covers subtypes we have never seen.
+            if resID % 1000 ~= 0 then return false end
+            return not isInjectedRes(resID)
         end
 
         local function saveThrowObject(resID, insID)
@@ -2189,6 +2233,7 @@ end
         end
 
         local function ensureMatchEquipCache()
+            if not _G._addOutfitBootSyncDone then return end
             local cch = cache()
             local eq = MATCH_CONFIG.equip or {}
             if (not cch.equip.bag or cch.equip.bag <= 0) and eq.bag and eq.bag > 0 then
@@ -2236,7 +2281,25 @@ end
                     DataMgr.VehicleSlotList = DataMgr.VehicleSlotList or {}
                     for subType, insList in pairs(_G._savedVehicleSlotList) do
                         if insList and #insList > 0 then
-                            DataMgr.VehicleSlotList[subType] = insList
+                            -- Union instead of replace: the server may already have
+                            -- populated this subType with real (owned) skins, and
+                            -- those must survive alongside the injected ones.
+                            local cur = DataMgr.VehicleSlotList[subType]
+                            if type(cur) ~= "table" then
+                                cur = {}
+                                DataMgr.VehicleSlotList[subType] = cur
+                            end
+                            local present = {}
+                            for _, ins in ipairs(cur) do
+                                present[tonumber(ins) or ins] = true
+                            end
+                            for _, ins in ipairs(insList) do
+                                ins = tonumber(ins)
+                                if ins and ins > 0 and not present[ins] then
+                                    present[ins] = true
+                                    cur[#cur + 1] = ins
+                                end
+                            end
                         end
                     end
                 end
@@ -2511,6 +2574,9 @@ end
                 -- parachute from the game default the cache sync adopts.
                 _G.AddOutfitExplicitEquip = _G.AddOutfitExplicitEquip or {}
                 _G.AddOutfitExplicitEquip.parachute = true
+            elseif slot == "glider" then
+                _G.AddOutfitExplicitEquip = _G.AddOutfitExplicitEquip or {}
+                _G.AddOutfitExplicitEquip.glider = true
             end
             _S.matchApplied = false
             invalidateSocialWearCache()
@@ -2573,7 +2639,10 @@ end
             weaponID, insID = tonumber(weaponID), tonumber(insID)
             if not weaponID or not insID or insID <= 0 then return end
             if isInjectedIns(insID) then
-                saveWeaponToCache(weaponID, R.insToRes[insID], insID)
+                local resID = R.insToRes[insID]
+                if resID and weaponIdFromSkin(resID) == weaponID then
+                    saveWeaponToCache(weaponID, resID, insID)
+                end
                 return
             end
             pcall(function()
@@ -2644,6 +2713,7 @@ end
         -- (_suppressLobbyWeaponRec). Declared at file scope above, because
         -- saveWeaponToCache is defined before this point.
         local function syncWeaponCacheFromLobby()
+            if not _G._addOutfitBootSyncDone then return end
             local now = 0
             pcall(function() now = os.clock() end)
             if (now - _lastSyncWeaponCache) < 0.3 then return end  -- throttle: max ~3x per second
@@ -2661,7 +2731,7 @@ end
                                 local d = wd:GetHallDepotItemDataByInsID(bag.bag_skin)
                                 return d and tonumber(d.resID)
                             end)()
-                        if rid and isInjectedRes(rid) then cch.equip.bag = rid end
+                        if rid and isInjectedRes(rid) and getEquipSkinSlot(rid) == "bag" then cch.equip.bag = rid end
                     end
                     if bag.helmet_skin and tonumber(bag.helmet_skin) > 0 then
                         local rid = isInjectedIns(bag.helmet_skin) and R.insToRes[bag.helmet_skin]
@@ -2670,7 +2740,7 @@ end
                                 local d = wd:GetHallDepotItemDataByInsID(bag.helmet_skin)
                                 return d and tonumber(d.resID)
                             end)()
-                        if rid and isInjectedRes(rid) then cch.equip.helmet = rid end
+                        if rid and isInjectedRes(rid) and getEquipSkinSlot(rid) == "helmet" then cch.equip.helmet = rid end
                     end
                     if bag.weapon_skin_list then
                         for weaponID, entry in pairs(bag.weapon_skin_list) do
@@ -2710,6 +2780,7 @@ end
 
         local _lastSyncClothesCache = 0
         local function syncClothesCacheFromLobby()
+            if not _G._addOutfitBootSyncDone then return end
             local now = 0
             pcall(function() now = os.clock() end)
             if (now - _lastSyncClothesCache) < 0.3 then return end  -- throttle: max ~3x per second
@@ -2771,10 +2842,13 @@ end
                             paraResID = d and tonumber(d.resID)
                         end
                         if paraResID and paraResID > 0 then
-                            cch.equip.parachute = paraResID
-                            cch.equip.parachuteIns = paraInsID
-                            MATCH_CONFIG.equip = MATCH_CONFIG.equip or {}
-                            MATCH_CONFIG.equip.parachute = paraResID
+                            local explicit = _G.AddOutfitExplicitEquip or {}
+                            if not explicit.parachute then
+                                cch.equip.parachute = paraResID
+                                cch.equip.parachuteIns = paraInsID
+                                MATCH_CONFIG.equip = MATCH_CONFIG.equip or {}
+                                MATCH_CONFIG.equip.parachute = paraResID
+                            end
                         end
                     end
                 end)
@@ -2792,10 +2866,13 @@ end
                             gliderResID = d and tonumber(d.resID)
                         end
                         if gliderResID and gliderResID > 0 then
-                            cch.equip.glider = gliderResID
-                            cch.equip.gliderIns = gliderInsID
-                            MATCH_CONFIG.equip = MATCH_CONFIG.equip or {}
-                            MATCH_CONFIG.equip.glider = gliderResID
+                            local explicit = _G.AddOutfitExplicitEquip or {}
+                            if not explicit.glider then
+                                cch.equip.glider = gliderResID
+                                cch.equip.gliderIns = gliderInsID
+                                MATCH_CONFIG.equip = MATCH_CONFIG.equip or {}
+                                MATCH_CONFIG.equip.glider = gliderResID
+                            end
                         end
                     end
                 end)
@@ -2803,6 +2880,7 @@ end
         end
 
         local function syncClothesCacheFromLive()
+            if not _G._addOutfitBootSyncDone then return end
             local cch = cache()
             pcall(function()
                 local AvatarData = require("client.logic.data.AvatarData")
@@ -2841,8 +2919,11 @@ end
                                 return d and tonumber(d.resID)
                             end)()
                         if paraResID and paraResID > 0 then
-                            cch.equip.parachute = paraResID
-                            cch.equip.parachuteIns = paraInsID
+                            local explicit = _G.AddOutfitExplicitEquip or {}
+                            if not explicit.parachute then
+                                cch.equip.parachute = paraResID
+                                cch.equip.parachuteIns = paraInsID
+                            end
                         end
                     end
                     local gliderInsID = tonumber(fashionbag_data:GetAircraftOrGliding())
@@ -2853,8 +2934,11 @@ end
                                 return d and tonumber(d.resID)
                             end)()
                         if gliderResID and gliderResID > 0 then
-                            cch.equip.glider = gliderResID
-                            cch.equip.gliderIns = gliderInsID
+                            local explicit = _G.AddOutfitExplicitEquip or {}
+                            if not explicit.glider then
+                                cch.equip.glider = gliderResID
+                                cch.equip.gliderIns = gliderInsID
+                            end
                         end
                     end
                 end)
@@ -2862,6 +2946,7 @@ end
         end
 
         local function syncThrowObjectCacheFromLobby()
+            if not _G._addOutfitBootSyncDone then return end
             local cch = cache()
             pcall(function()
                 local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
@@ -2881,7 +2966,13 @@ end
                             resID = d and tonumber(d.resID)
                         end
                         if resID and isInjectedRes(resID) then
-                            cch.throwObjects[subType] = { resID = resID, insID = insID }
+                            -- Validate that the subtype of the mapped resID matches the slot's expected subtype.
+                            -- This prevents stale insIDs from a previous session (which mapped to a random
+                            -- injected item in the new session) from silently changing a grenade to a hat or another grenade.
+                            local actualSt = tonumber(subType(cfg(resID)))
+                            if actualSt == subType then
+                                cch.throwObjects[subType] = { resID = resID, insID = insID }
+                            end
                         end
                     end
                 end
@@ -3037,9 +3128,16 @@ end
         end
 
         local function injectOne(entity, resID, insID)
-            if alreadyHave(entity, resID) then
-                R.resToIns[resID] = R.resToIns[resID] or insID
-                R.insToRes[insID] = resID
+              if alreadyHave(entity, resID) then
+                  -- This branch can also INSERT a new key (the `or insID`
+                  -- fallback), so the pool-generation bump has to happen here
+                  -- too -- otherwise the cached vehicle list would miss items
+                  -- added through this path.
+                  if R.resToIns[resID] == nil then
+                      _G.ChetanInjGen = (_G.ChetanInjGen or 0) + 1
+                  end
+                  R.resToIns[resID] = R.resToIns[resID] or insID
+                  R.insToRes[insID] = resID
                 pcall(function()
                     local data = entity.GetDataByInsID and entity:GetDataByInsID(R.resToIns[resID])
                     if data then ensureDepotTabFields(entity, data, resID) end
@@ -3056,10 +3154,14 @@ end
                     ensureDepotTabFields(entity, data, resID)
                 end
             end)
-            R.insToRes[insID] = resID
-            R.resToIns[resID] = insID
-            -- log("حقن", resID, insID)
-            return true
+              R.insToRes[insID] = resID
+              R.resToIns[resID] = insID
+              -- Bump the injected-pool generation so the cached vehicle "rest"
+              -- list (see collectInMatchVehicleSkins) is rebuilt once
+              -- injection actually grows the pool.
+              _G.ChetanInjGen = (_G.ChetanInjGen or 0) + 1
+              -- log("O-U,U+", resID, insID)
+              return true
         end
 
         local function injectArmory(resID, insID)
@@ -3353,6 +3455,16 @@ end
             if not resID then return false end
 
             local cch = cache()
+            -- An explicit unequip must also drop the persisted mirror entry.
+            -- _saveNeatModSave merges the mirror with the live cache, so leaving
+            -- it behind would put the grenade straight back on the next launch.
+            pcall(function()
+                for st, info in pairs(_G._savedThrowObjects or {}) do
+                    if info and tonumber(info.insID) == insID then
+                        _G._savedThrowObjects[st] = nil
+                    end
+                end
+            end)
             local kind = getClothKind(resID)
             local slot = getEquipSkinSlot(resID)
             local wid  = weaponIdFromSkin(resID)
@@ -3366,6 +3478,8 @@ end
                 if MATCH_CONFIG.equip then MATCH_CONFIG.equip[slot] = 0 end
                 if slot == "parachute" and _G.AddOutfitExplicitEquip then
                     _G.AddOutfitExplicitEquip.parachute = nil
+                elseif slot == "glider" and _G.AddOutfitExplicitEquip then
+                    _G.AddOutfitExplicitEquip.glider = nil
                 end
                 handled = true
             elseif kind then
@@ -3380,6 +3494,10 @@ end
             elseif wid then
                 takeOffWeaponSkinVisual(wid, resID, insID)
                 cch.weapons[wid] = nil
+                -- Clear the "already showing this" mark, otherwise the next
+                -- click on the SAME skin is skipped as a duplicate and the gun
+                -- never comes back.
+                if _G.AddOutfitWeaponEquipped then _G.AddOutfitWeaponEquipped[wid] = nil end
                 _G.AddOutfitLastAppliedSkin = {}
                 _S.weaponApplied = false
                 _S.weaponDiagDone = false
@@ -3531,6 +3649,15 @@ end
         end
         -- ========== نهاية دوال الخلع ==========
 
+        -- Equip a throwable into the lobby.
+        --
+        -- PutOnThrowObjectSkin resolves the subtype via
+        -- wardrobe_data:GetHallDepotItemDataByInsID(putOnId) and does NOTHING when
+        -- that returns nil (fashionbag_data.lua:594). During boot restore and on
+        -- a fresh login the hall depot does not hold our injected items yet, so
+        -- the call silently no-ops and the grenade stays on the stock default
+        -- until the player clicks it by hand. We verify the result and fall back
+        -- to SetThrowObjectSkin(st, insID) directly, which needs no depot lookup.
         local function putOnThrowObject(insID)
             insID = tonumber(insID)
             if not insID or not isInjectedIns(insID) then return end
@@ -3540,7 +3667,26 @@ end
             if not st then return end
             pcall(function()
                 local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
-                fbd:PutOnThrowObjectSkin(insID)
+                pcall(function() fbd:PutOnThrowObjectSkin(insID) end)
+                -- Did it stick?
+                local ok, cur = pcall(function()
+                    return fbd:GetThrowObjectSkin(st)
+                end)
+                if not ok or tonumber(cur) ~= insID then
+                    pcall(function() fbd:SetThrowObjectSkin(st, insID) end)
+                    -- Current bag only; also try every known bag so a bag switch
+                    -- in the lobby does not drop the skin.
+                    pcall(function()
+                        local bags = fbd.GetFashionBags and fbd:GetFashionBags()
+                        if bags and bags.bags then
+                            for _, bag in pairs(bags.bags) do
+                                if bag and bag.throw_object_list then
+                                    bag.throw_object_list[st] = insID
+                                end
+                            end
+                        end
+                    end)
+                end
             end)
             saveThrowObject(resID, insID)
             pcall(_AutoSaveOutfit)
@@ -3723,29 +3869,108 @@ end
             end
         end
 
-        local function equipWeaponSkin(weaponID, insID)
-            weaponID, insID = tonumber(weaponID), tonumber(insID)
-            if not weaponID or not insID or not isInjectedIns(insID) then return end
-            local resID = R.insToRes[insID]
-            saveEquip(resID, insID)
-
+        -- ========== Gun-skin equip ==========
+        -- Atomic from the UI's point of view, and never silently dropped.
+        -- The old version called saveEquip() FIRST and then ran an unguarded
+        -- body: any error in proc_skin_list_chg / SetGunID left the cache
+        -- claiming a skin the gun was not actually wearing, so the next click
+        -- looked like a no-op. And a re-entrant click for the same gun was
+        -- discarded, so A->B then B->A appeared to do nothing.
+        _G._pendingGunEquip = _G._pendingGunEquip or {}
+        local function _applyGunEquip(weaponID, insID, resID)
             local Arm = require("client.logic.armory.logic_armory")
             local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
             local HT = require("client.logic.lobby.hall_theme_utils")
             local wgl = require("client.slua.logic.wardrobe.logic_wardrobe_gun")
 
             injectArmory(resID, insID)
+            Arm.rsp_list = Arm.rsp_list or { skin_list = {}, install_list = {} }
             Arm.rsp_list.install_list = Arm.rsp_list.install_list or {}
             Arm.rsp_list.install_list[weaponID] = { skin_id = insID }
             if fbd.UpdateCurrentFashionBagWeaponSkin then
                 fbd:UpdateCurrentFashionBagWeaponSkin(weaponID, insID)
             end
-
+            -- The lobby "isUsing" tick comes from GetSkinIdByWeaponID, which
+            -- is hooked to read our cache directly, so mirroring into
+            -- bag.weapon_skin_list (publishLobbyWeaponSkinList) is redundant
+            -- and was a second full list rebuild on every click.
             local bagIdx = fbd:GetFashionBagUseIndex()
             HT.proc_skin_list_chg("weapon_skin", weaponID, insID, bagIdx, {})
 
+            -- SetGunID is hooked: on the injected path it already defers
+            -- UpdateCurrentGunAvatar(weaponID, insID) and posts the wardrobe
+            -- events. Calling UpdateCurrentGunAvatar again here rebuilt the
+            -- gun avatar twice per click, which is the visible hitch.
             wgl:SetGunID(weaponID)
-            wgl:UpdateCurrentGunAvatar(weaponID, insID)
+        end
+
+        -- V2 guard, ported: skip the expensive visual rebuild when this exact
+        -- skin is ALREADY what's on the gun. Without it every click re-ran
+        -- injectArmory + proc_skin_list_chg + SetGunID + UpdateCurrentGunAvatar,
+        -- and SetGunID itself re-enters this path via hookGunWardrobe -- so the
+        -- repeated avatar rebuild is what made switching feel laggy.
+        --
+        -- The mark is deliberately LAZY: it is set only when we actually see the
+        -- new skin come back out of the game's own readers. A mark written
+        -- optimistically on click goes stale the moment hookGunWardrobe's
+        -- SetGunID branch skips us (currentSkin == w.insID), and then every
+        -- later click on that same skin is dismissed as a duplicate and the
+        -- gun never visibly changes -- which reads as a laggy/dead switch.
+        _G.AddOutfitWeaponEquipped = _G.AddOutfitWeaponEquipped or {}
+        local function clearWeaponEquippedMark(weaponID)
+            if weaponID then
+                _G.AddOutfitWeaponEquipped[tonumber(weaponID)] = nil
+            else
+                for k in pairs(_G.AddOutfitWeaponEquipped) do
+                    _G.AddOutfitWeaponEquipped[k] = nil
+                end
+            end
+        end
+        _G.clearWeaponEquippedMark = clearWeaponEquippedMark
+
+        local function isWeaponVisuallyEquipped(weaponID, insID)
+            weaponID, insID = tonumber(weaponID), tonumber(insID)
+            if not weaponID or not insID then return false end
+            return _G.AddOutfitWeaponEquipped[weaponID] == insID
+        end
+
+        local function equipWeaponSkin(weaponID, insID, forceVisual)
+            weaponID, insID = tonumber(weaponID), tonumber(insID)
+            if not weaponID or not insID or not isInjectedIns(insID) then return false end
+            local resID = R.insToRes[insID]
+            if not resID then return false end
+
+            -- forceVisual comes from the boot-restore path, where the gun is
+            -- being rebuilt from scratch and the mark cannot be trusted.
+            if not forceVisual and isWeaponVisuallyEquipped(weaponID, insID) then
+                -- Already showing it: refresh the cheap state only.
+                pcall(function()
+                    local Arm = require("client.logic.armory.logic_armory")
+                    Arm.rsp_list = Arm.rsp_list or { skin_list = {}, install_list = {} }
+                    Arm.rsp_list.install_list = Arm.rsp_list.install_list or {}
+                    Arm.rsp_list.install_list[weaponID] = { skin_id = insID }
+                end)
+                return false
+            end
+
+            -- Latest request per gun wins; a queued request is replaced, never
+            -- dropped, and a stale completion can no longer overwrite a newer pick.
+            _G._pendingGunEquip[weaponID] = insID
+            if _G._pendingGunEquip[weaponID] ~= insID then return false end
+
+            local ok, err = pcall(function() _applyGunEquip(weaponID, insID, resID) end)
+            if not ok then
+                flog("OUTFIT", "equipWeaponSkin failed", weaponID, resID, insID, tostring(err))
+                return false
+            end
+            -- Commit the cache only after the visual swap succeeded, so a failed
+            -- swap can never leave the cache lying about what is equipped.
+            saveEquip(resID, insID)
+            _G._pendingGunEquip[weaponID] = nil
+            -- Deliberately NOT marking here: the guard in equipWeaponSkin reads
+            -- this table, so an optimistic write would make hookGunWardrobe
+            -- treat the very next click as a duplicate. GetSkinIdByWeaponID
+            -- records the mark once the game's own reader agrees.
 
             if EventSystem and EVENTTYPE_ARMORY and EVENTID_ARMORY_EQUIP_STAT_CHANGE then
                 EventSystem:postEvent(EVENTTYPE_ARMORY, EVENTID_ARMORY_EQUIP_STAT_CHANGE, resID)
@@ -3753,7 +3978,11 @@ end
             if EventSystem and EVENTTYPE_WARDROBE and EVENTID_WARDROBE_UPDATE_CURRENT_PUT_ON_GUN then
                 EventSystem:postEvent(EVENTTYPE_WARDROBE, EVENTID_WARDROBE_UPDATE_CURRENT_PUT_ON_GUN, resID)
             end
+            if EventSystem and EVENTTYPE_WARDROBE and EVENTID_WARDROBE_UPDATE_GUN_LIST then
+                EventSystem:postEvent(EVENTTYPE_WARDROBE, EVENTID_WARDROBE_UPDATE_GUN_LIST, weaponID)
+            end
             log("سكن سلاح", weaponID, resID, insID)
+            return true
         end
 
         local function putOnHallTheme(insID)
@@ -3776,9 +4005,14 @@ end
         local function restorePersistedHallTheme()
             if not _G._addOutfitPersistLoaded then return end
             local ins = tonumber(_G._savedHallThemeIns)
-            if not ins or ins <= 0 then return end
+            local res = tonumber(_G._savedHallThemeRes)
             later(2.5, function()
-                if isInjectedIns(ins) then putOnHallTheme(ins) end
+                local freshIns = res and R.resToIns[res]
+                if freshIns and isInjectedIns(freshIns) then
+                    putOnHallTheme(freshIns)
+                elseif ins and isInjectedIns(ins) then
+                    putOnHallTheme(ins)
+                end
             end)
         end
 
@@ -4312,8 +4546,9 @@ end
             local lwIns = (lw and tonumber(lw.insID)) or 0
             local lwRes = (lw and tonumber(lw.resID)) or 0
             if lwWid > 0 and lwRes > 0 then
-                local ins2 = (lwIns > 0 and isInjectedIns(lwIns)) and lwIns
-                    or (R.resToIns[lwRes] and isInjectedIns(R.resToIns[lwRes]) and R.resToIns[lwRes]) or 0
+                local freshIns = R.resToIns[lwRes]
+                local ins2 = (freshIns and isInjectedIns(freshIns) and freshIns)
+                    or (lwIns > 0 and isInjectedIns(lwIns) and lwIns) or 0
                 if ins2 > 0 then
                     flog("GUN", "lobby preview weapon=" .. lwWid .. " res=" .. lwRes .. " ins=" .. ins2)
                     scheduleApply(function() equipWeaponSkin(lwWid, ins2) end)
@@ -4322,10 +4557,16 @@ end
                 for wid, w in pairs(cch.weapons) do
                     local weaponID, entry = wid, w
                     scheduleApply(function()
-                        if entry.insID and isInjectedIns(entry.insID) then
-                            equipWeaponSkin(weaponID, entry.insID)
-                        elseif entry.resID and R.resToIns[entry.resID] and isInjectedIns(R.resToIns[entry.resID]) then
-                            equipWeaponSkin(weaponID, R.resToIns[entry.resID])
+                        -- forceVisual: the boot mark cannot be trusted (a prior
+                        -- SetGunID may have been skipped, or the avatar is still
+                        -- the one the game built itself). Without it the guard
+                        -- treats an already-marked gun as done and the restored
+                        -- skin never shows up.
+                        local freshIns = entry.resID and R.resToIns[entry.resID]
+                        if freshIns and isInjectedIns(freshIns) then
+                            equipWeaponSkin(weaponID, freshIns, true)
+                        elseif entry.insID and isInjectedIns(entry.insID) then
+                            equipWeaponSkin(weaponID, entry.insID, true)
                         end
                     end)
                 end
@@ -4334,10 +4575,11 @@ end
                 local resID = cch.equip[slot]
                 local insID = cch.equip[slot .. "Ins"]
                 scheduleApply(function()
-                    if insID and isInjectedIns(insID) then
+                    local freshIns = resID and R.resToIns[resID]
+                    if freshIns and isInjectedIns(freshIns) then
+                        putOnEquipSkin(freshIns)
+                    elseif insID and isInjectedIns(insID) then
                         putOnEquipSkin(insID)
-                    elseif resID and R.resToIns[resID] then
-                        putOnEquipSkin(R.resToIns[resID])
                     end
                 end)
             end
@@ -4345,15 +4587,39 @@ end
                 for st, info in pairs(cch.throwObjects) do
                     local tInfo = info
                     scheduleApply(function()
-                        if tInfo.insID and isInjectedIns(tInfo.insID) then
+                        local freshIns = tInfo.resID and R.resToIns[tInfo.resID]
+                        if freshIns and isInjectedIns(freshIns) then
+                            putOnThrowObject(freshIns)
+                        elseif tInfo.insID and isInjectedIns(tInfo.insID) then
                             putOnThrowObject(tInfo.insID)
-                        elseif tInfo.resID and R.resToIns[tInfo.resID] and isInjectedIns(R.resToIns[tInfo.resID]) then
-                            putOnThrowObject(R.resToIns[tInfo.resID])
                         end
                     end)
+                    -- Retry: the fashion bag is built by the game after our
+                    -- first pass, and its UpdateAllFashionBagExtraInfos hook
+                    -- repaints throw_object_list from server data, wiping the
+                    -- skin we just set. Re-assert a few times as the bag and
+                    -- hall depot finish loading, otherwise the grenade is only
+                    -- saved, never visibly equipped.
+                    for _, delay in ipairs({ 1.0, 2.5, 5.0 }) do
+                        later(delay, function()
+                            if not tInfo then return end
+                            local freshIns = tInfo.resID and R.resToIns[tInfo.resID] or tInfo.insID
+                            if not freshIns then return end
+                            pcall(function()
+                                local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
+                                local bag = fbd.GetCurrentFashionBag and fbd:GetCurrentFashionBag()
+                                if bag and bag.throw_object_list
+                                    and tonumber(bag.throw_object_list[st]) == tonumber(freshIns) then
+                                    return -- already correct, do not churn
+                                end
+                                putOnThrowObject(freshIns)
+                            end)
+                        end)
+                    end
                 end
             end
             later(math.max(applyStep * 0.12 + 0.3, 0.5), function()
+                _G._addOutfitBootSyncDone = true
                 syncMatchConfigFromCache()
                 pcall(_AutoSaveOutfit, true)
                 -- Release the boot-restore guard only after every scheduled
@@ -4767,7 +5033,8 @@ end
         end
 
         local function hookArmory()
-            pcall(function()
+            -- pcalls below capture into okA/errA via the wrapper at the end.
+            local okA, errA = pcall(function()
                 local Arm = require("client.logic.armory.logic_armory")
                 if not Arm._lava_global_own then
                     Arm._lava_global_own = true
@@ -4839,6 +5106,10 @@ end
                 hookArmoryUninstall("uninstall_weapon_skin")
                 hookArmoryUninstall("remove_weapon_skin")
             end)
+            -- A bare pcall here used to swallow any error and abandon every
+            -- hook after the failure point, which presented as "gun skins never
+            -- equip" with nothing in the log. Report it instead.
+            if not okA then flog("OUTFIT", "hookArmory aborted", tostring(errA)) end
         end
 
         local function hookLobbyTheme()
@@ -5050,6 +5321,21 @@ end
                                 end
                                 slotList[idx] = dragVehicleInsID
                                 DataMgr.VehicleSlotList[itemSubType] = slotList
+                                -- Mirror into the persisted list so the merge on
+                                -- the next server push keeps this skin, and so the
+                                -- save file records the drag-and-drop equip.
+                                local mirror = {}
+                                for i, sid in ipairs(slotList) do
+                                    local n = tonumber(sid)
+                                    if n and n > 0 then mirror[#mirror + 1] = n end
+                                end
+                                _G._savedVehicleSlotList = _G._savedVehicleSlotList or {}
+                                if #mirror > 0 then
+                                    _G._savedVehicleSlotList[itemSubType] = mirror
+                                else
+                                    _G._savedVehicleSlotList[itemSubType] = nil
+                                end
+                                pcall(_AutoSaveOutfit)
                                 if DataMgr.vehicleSkinInsIDTable then
                                     DataMgr.vehicleSkinInsIDTable[resID] = DataMgr.vehicleSkinInsIDTable[resID] or dragVehicleInsID
                                 end
@@ -5883,11 +6169,6 @@ end
         end
 
         local function matchApplyOutfit(char)
-            -- The waiting/spawn island is not a stable match state. Applying
-            -- the full loadout there on every timer tick makes the game replace
-            -- the outfit continuously. Bootstrap may apply it once for preview;
-            -- subsequent maintenance starts only when the real match begins.
-            if not isInRealMatch() and _S.preMatchApplied then return true end
             if inHeroForm(char) then return false end
             -- Desired-state source.
             --
@@ -6756,6 +7037,133 @@ end
             return wearing
         end
 
+        -- ============================================================
+        -- Airborne support: parachute (slot 11) + glider (slot 15)
+        -- ============================================================
+        --
+        -- Both need THREE things to be visible in a match, and V1 was only
+        -- doing part of the first:
+        --   1. patch SlotSyncData so the replicated item id matches
+        --   2. PutOnCustomEquipmentByID so the MESH actually builds
+        --   3. push the instID into DataMgr.roleData / fashionbag_data, which
+        --      is what the aircraft-spawn and canopy-open logic actually read.
+        -- Missing (2) gave "parachute exists but is invisible"; missing (3)
+        -- gave "glider never comes".
+
+        -- NOTE: these live in ONE upvalue table, not as separate `local`s.
+        -- The enclosing closure is already at Lua's hard 200-local limit, so
+        -- adding named locals here is a compile error, not a style choice.
+
+        -- Mirror of V2's F.isCharacterAirborne.
+        local AIR = {}
+        AIR.airborne = function(char)
+            if not char or not slua.isValid(char) then return false end
+            local ok, r = pcall(function()
+                local EParachuteState = import("EParachuteState")
+                local st = char.ParachuteState
+                return st ~= nil and st ~= EParachuteState.PS_None
+            end)
+            return ok and r == true
+        end
+
+        -- Mirror of V2's F.resolveInsForRes: resID -> instID.
+        -- The airborne systems want the instID, not the cosmetic resID.
+        AIR.insForRes = function(resID)
+            resID = tonumber(resID)
+            if not resID or resID <= 0 then return nil end
+            local R = getR()
+            if R and R.resToIns and R.resToIns[resID] then return R.resToIns[resID] end
+            local ins
+            pcall(function()
+                local wd = require("client.slua.logic.wardrobe.wardrobe_data")
+                local list = wd.GetHallDepotItemListByResID and wd:GetHallDepotItemListByResID(resID)
+                if list then
+                    for _, v in pairs(list) do
+                        local id = tonumber(v.insID or v.instid or v.ins_id)
+                        if id and id > 0 then ins = id break end
+                    end
+                end
+                if not ins then
+                    local d = wd.GetValidHallDepotItemDataByInsID and wd:GetValidHallDepotItemDataByInsID(resID)
+                        or (wd.GetHallDepotItemDataByResID and wd:GetHallDepotItemDataByResID(resID))
+                    if d then ins = tonumber(d.insID or d.instid or d.ins_id) end
+                end
+            end)
+            return ins
+        end
+
+        -- Mirror of V2's F.syncAirborneToDataMgr.
+        -- Throttled: it runs from the 0.5s match tick, but these values only
+        -- change on a wardrobe swap, so there is no reason to rewrite DataMgr
+        -- every tick.
+        AIR.lastSync = 0
+        AIR.key = nil
+        AIR.syncDataMgr = function(force)
+            local now = nowClock()
+            if not force and (now - AIR.lastSync) < 2.0 then return end
+            AIR.lastSync = now
+
+            local cch = cache()
+            local paraRes = tonumber(cch.equip.parachute) or 0
+            local gliderRes = tonumber(cch.equip.glider) or 0
+            if paraRes <= 0 and gliderRes <= 0 then return end
+
+            local paraIns = tonumber(cch.equip.parachuteIns) or AIR.insForRes(paraRes) or 0
+            local gliderIns = tonumber(cch.equip.gliderIns) or AIR.insForRes(gliderRes) or 0
+            if paraIns > 0 then cch.equip.parachuteIns = paraIns end
+            if gliderIns > 0 then cch.equip.gliderIns = gliderIns end
+
+            local key = tostring(paraIns) .. ":" .. tostring(gliderIns)
+            if key == AIR.key and not force then return end
+            AIR.key = key
+
+            pcall(function()
+                local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
+                if paraIns > 0 then
+                    if fbd.SetParachute then fbd:SetParachute(paraIns) end
+                    if DataMgr and DataMgr.roleData then
+                        DataMgr.roleData.parachute = tostring(paraIns)
+                    end
+                end
+                if gliderIns > 0 then
+                    -- IsGlideSmoke splits "aircraft" rigs from parachute-style
+                    -- gliders; the two use different DataMgr fields.
+                    local bAircraft = false
+                    pcall(function()
+                        local MDH = require("client.logic.avatar.ModelDisplayTypeHelper")
+                        bAircraft = not MDH.IsGlideSmoke(tonumber(cfg(gliderRes).ItemSubType))
+                    end)
+                    if fbd.UpdateAircraftOrGliding then
+                        fbd:UpdateAircraftOrGliding(gliderIns, bAircraft)
+                    elseif fbd.SetGliding then
+                        fbd:SetGliding(gliderIns)
+                        if DataMgr and DataMgr.UpdateEffect then DataMgr.UpdateEffect(gliderIns) end
+                    end
+                    if DataMgr and DataMgr.roleData then
+                        if bAircraft then
+                            DataMgr.roleData.aircraft_put_id = tostring(gliderIns)
+                            DataMgr.gliding = gliderIns
+                        else
+                            DataMgr.roleData.gliding = tostring(gliderIns)
+                        end
+                    end
+                end
+            end)
+        end
+
+        -- Dirty flags: set when a slot write lands, cleared once the mesh is
+        -- actually built. Prevents repeating PutOnCustomEquipmentByID (full
+        -- mesh rebuild) on every tick.
+        AIR.paraDirty = false
+        AIR.paraRes = nil
+        AIR.gliderDirty = false
+        AIR.gliderRes = nil
+        -- Last resID we successfully equipped on comp. The parachute/glider
+        -- blocks skip PutOnCustomEquipmentByID entirely when the desired id
+        -- still matches, so a steady-state match does zero mesh rebuilds.
+        AIR.paraApplied = nil
+        AIR.gliderApplied = nil
+
         local _lastMatchApplyEquip = 0
         local function matchApplyEquipSkins(char)
             local now = 0
@@ -6792,19 +7200,32 @@ end
                 end
             end
 
+            -- Parachute (slot 11).
+            --
+            -- Three bugs were here:
+            --  * `if isWearingEquip(char, "parachute")` -- that helper reads
+            --    slot 11 and returns false when the server has NO parachute,
+            --    so the mod refused to equip anything and the player kept the
+            --    game default. Removed: a modded parachute must be able to
+            --    fill an empty slot.
+            --  * `if not ok then` tested the SHARED `ok` flag. Helmet/bag
+            --    succeeding above set it true, which skipped this fallback.
+            --    Each block now owns its own local flag.
+            --  * PutOnCustomEquipmentByID ran UNCONDITIONALLY on every 0.5s
+            --    tick. It is a full mesh rebuild, so this both stuttered and
+            --    fought the server's own equip replication. Now gated on the
+            --    desired resID changing.
             if cch.equip.parachute and cch.equip.parachute > 0 then
-                if isWearingEquip(char, "parachute") then
-                    local paraResID = cch.equip.parachute
+                local paraResID = cch.equip.parachute
+                if AIR.paraApplied ~= paraResID then
+                    local paraOK = false
                     pcall(function()
                         if comp.PutOnCustomEquipmentByID then
                             local r = comp:PutOnCustomEquipmentByID(paraResID)
-                            if isApplySuccess(r) then
-                                ok = true
-                                notify("براشوت ماتش OK " .. tostring(paraResID))
-                            end
+                            if isApplySuccess(r) then paraOK = true end
                         end
                     end)
-                    if not ok then
+                    if not paraOK then
                         pcall(function()
                             local _it = 4
                             pcall(function()
@@ -6812,41 +7233,55 @@ end
                                 _it = cc and tonumber(cc.ItemType or cc.itemType) or 4
                             end)
                             local r = comp:HandleEquipItem(FItemDefineID(_it, paraResID), FAvatarCustomDefault())
-                            if isApplySuccess(r) then
-                                ok = true
-                                notify("براشوت ماتش OK " .. tostring(paraResID))
-                            end
+                            if isApplySuccess(r) then paraOK = true end
                         end)
+                    end
+                    if paraOK then
+                        ok = true
+                        AIR.paraApplied = paraResID
+                        AIR.paraDirty = true
+                        AIR.paraRes = paraResID
+                        flog("MATCH", "parachute-puton res=" .. tostring(paraResID))
                     end
                 end
             end
 
+            -- Glider (slot 15). Same three bugs, same fix.
             if cch.equip.glider and cch.equip.glider > 0 then
                 local gliderResID = cch.equip.glider
-                pcall(function()
-                    if comp.PutOnCustomEquipmentByID then
-                        local r = comp:PutOnCustomEquipmentByID(gliderResID)
-                        if isApplySuccess(r) then
-                            ok = true
-                            notify("جلايدر ماتش OK " .. tostring(gliderResID))
-                        end
-                    end
-                end)
-                if not ok then
+                if AIR.gliderApplied ~= gliderResID then
+                    local gliderOK = false
                     pcall(function()
-                        local _it = 4
-                        pcall(function()
-                            local cc = cfg(gliderResID)
-                            _it = cc and tonumber(cc.ItemType or cc.itemType) or 4
-                        end)
-                        local r = comp:HandleEquipItem(FItemDefineID(_it, gliderResID), FAvatarCustomDefault())
-                        if isApplySuccess(r) then
-                            ok = true
-                            notify("جلايدر ماتش OK " .. tostring(gliderResID))
+                        if comp.PutOnCustomEquipmentByID then
+                            local r = comp:PutOnCustomEquipmentByID(gliderResID)
+                            if isApplySuccess(r) then gliderOK = true end
                         end
                     end)
+                    if not gliderOK then
+                        pcall(function()
+                            local _it = 4
+                            pcall(function()
+                                local cc = cfg(gliderResID)
+                                _it = cc and tonumber(cc.ItemType or cc.itemType) or 4
+                            end)
+                            local r = comp:HandleEquipItem(FItemDefineID(_it, gliderResID), FAvatarCustomDefault())
+                            if isApplySuccess(r) then gliderOK = true end
+                        end)
+                    end
+                    if gliderOK then
+                        ok = true
+                        AIR.gliderApplied = gliderResID
+                        AIR.gliderDirty = true
+                        AIR.gliderRes = gliderResID
+                        flog("MATCH", "glider-puton res=" .. tostring(gliderResID))
+                    end
                 end
             end
+
+            -- Push instIDs into DataMgr/fashionbag BEFORE the jump. This is the
+            -- step V1 never had at all, and it is what makes the aircraft spawn.
+            -- Self-throttling: only re-writes when the instIDs actually change.
+            AIR.syncDataMgr()
 
             -- حدّث PlayerController بعد تطبيق السكنات (مش قبل، عشان نتجنب circular dependency)
             applyMatchEquipAvatarToController()
@@ -6920,23 +7355,53 @@ end
                         end
                     end
 
-                    -- براشوت - SlotID 11 (ParachuteEquipemtSlot)
-                    if slotID == 11 and NDRid ~= 0 and cch.equip.parachute and cch.equip.parachute > 0 then
+                    -- Parachute - SlotID 11 (ParachuteEquipemtSlot)
+                    if slotID == 11 and cch.equip.parachute and cch.equip.parachute > 0 then
                         local paraResID = cch.equip.parachute
                         if NDRid ~= paraResID then
                             AvatarSynData.ItemID = paraResID
+                            if AvatarSynData.ItemId ~= nil then AvatarSynData.ItemId = paraResID end
                             slua.IndexReference(NetAvatarData, "SlotSyncData"):Set(Index, AvatarSynData)
                             ok = true
+                            AIR.paraDirty = true
+                            AIR.paraRes = paraResID
                         end
                     end
 
-                    -- جلايدر - SlotID 15 (GlideEquipmtSlot)
-                    if slotID == 15 and NDRid ~= 0 and cch.equip.glider and cch.equip.glider > 0 then
+                    -- Glider - SlotID 15 (GlideEquipmtSlot)
+                    if slotID == 15 and cch.equip.glider and cch.equip.glider > 0 then
                         local gliderResID = cch.equip.glider
                         if NDRid ~= gliderResID then
                             AvatarSynData.ItemID = gliderResID
+                            if AvatarSynData.ItemId ~= nil then AvatarSynData.ItemId = gliderResID end
                             slua.IndexReference(NetAvatarData, "SlotSyncData"):Set(Index, AvatarSynData)
                             ok = true
+                            AIR.gliderDirty = true
+                            AIR.gliderRes = gliderResID
+                        end
+                    end
+                end
+
+                -- The `NDRid ~= 0` guard that used to sit on both branches above
+                -- was wrong: slots 11/15 are simply ABSENT from SlotSyncData
+                -- until the server sends them, so the loop only ever patched an
+                -- entry that already existed. With no entry, the parachute stayed
+                -- at the game default and the glider never spawned.
+
+                -- Writing ItemID is also not enough to build the mesh --
+                -- PutOnCustomEquipmentByID is what actually equips the canopy /
+                -- glider rig, and it is why the parachute could go invisible.
+                -- Only while airborne, and only when a write actually landed,
+                -- so this does not repeat a full mesh rebuild every tick.
+                if AIR.paraDirty or AIR.gliderDirty then
+                    if AIR.airborne(char) and comp.PutOnCustomEquipmentByID then
+                        if AIR.paraDirty then
+                            pcall(function() comp:PutOnCustomEquipmentByID(AIR.paraRes) end)
+                            AIR.paraDirty = false
+                        end
+                        if AIR.gliderDirty then
+                            pcall(function() comp:PutOnCustomEquipmentByID(AIR.gliderRes) end)
+                            AIR.gliderDirty = false
                         end
                     end
                 end
@@ -7154,8 +7619,10 @@ end
         -- must never be created). Writes only on discrete events -- hook install,
         -- equip, spawn, blast -- never per frame, so the open/append cost is
         -- negligible. Toggle with _G.SKIN_GFX_DIAG = false to silence it.
-        local GFX_DIAG_PATH = "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_GFX.txt"
-        local _gfxDiagOn = true
+        local GFX_DIAG_PATH = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_GFX.txt"
+        -- Off by default now that the grenade FX path is working. Set
+        -- _G.SKIN_GFX_DIAG = true before the payload runs to re-enable.
+        local _gfxDiagOn = (_G.SKIN_GFX_DIAG == true)
         -- Native override index driving. Off = field-only (confirmed to do
         -- nothing). Flip _G.SKIN_GFX_NATIVE_IDX = true to enable.
         local _gfxEnableNativeIdx = (_G.SKIN_GFX_NATIVE_IDX ~= false)
@@ -7213,62 +7680,11 @@ end
         -- global instead.
         local _gfxParticleCache, _gfxParticlePending = {}, {}
 
-        -- Class-level stock mute. The instance mute above changes nothing
-        -- visually because C++ dispatches through __inner_impl, not the
-        -- instance table (proved: muted logged, default still played). This
-        -- replaces SpawnExplosionEffect on the impl tables themselves for the
-        -- synchronous duration of our blast, then restores. Returns a restore
-        -- closure, or nil when muting does not apply.
-        local function grenadeFXMuteStockClass(proj, comp)
-            grenadeDiag("muteC: ENTER")
-            if not _gfxEnableMuteStock then grenadeDiag("muteC: disabled") return nil end
-            local sid = grenadeFXOurSkinID(comp)
-            grenadeDiag("muteC: sid=" .. tostring(sid))
-            if not sid then return nil end
-            local fxp, seq = grenadeFXResolveFromConfig(sid)
-            local playable = (seq and seq ~= "") and true or false
-            if not playable and fxp and fxp ~= "" then
-                pcall(function()
-                    local c = _gfxParticleCache[fxp]
-                    playable = c and slua.isValid(c)
-                end)
-            end
-            if not playable then return nil end
-            local targets = {}
-            pcall(function()
-                local PB = require("GameLua.Mod.BaseMod.GamePlay.Actor.Projectile.ProjectileBase")
-                local pi = PB and PB.__inner_impl
-                if pi and type(pi.SpawnExplosionEffect) == "function" then
-                    targets[#targets + 1] = pi
-                end
-            end)
-            pcall(function()
-                local FG = require("GameLua.Mod.BaseMod.GamePlay.Actor.Projectile.SpecificProjectile.FragGrenade.FragGrenade")
-                local fi = FG and FG.__inner_impl
-                if fi and type(fi.SpawnExplosionEffect) == "function" then
-                    targets[#targets + 1] = fi
-                end
-            end)
-            if #targets == 0 then
-                grenadeDiag("muteC: no class-level SpawnExplosionEffect found")
-                return nil
-            end
-            local saved = {}
-            for _, t in ipairs(targets) do
-                saved[#saved + 1] = { t = t, f = t.SpawnExplosionEffect }
-                t.SpawnExplosionEffect = function() end
-            end
-            grenadeDiag("muteC: class-level stock MUTED on " .. #targets .. " impl(s)")
-            local done = false
-            return function()
-                if done then return end
-                done = true
-                for _, s in ipairs(saved) do
-                    pcall(function() s.t.SpawnExplosionEffect = s.f end)
-                end
-                grenadeDiag("muteC: class-level stock restored")
-            end
-        end
+        -- Class-level stock mute lives BELOW, next to grenadeFXEnsurePath.
+        -- It calls grenadeDiag / grenadeFXOurSkinID /
+        -- grenadeFXResolveFromConfig, and a `local function` placed above its
+        -- own dependencies binds those names to nil globals -- the function
+        -- then threw on its very first statement, before any log line.
 
         -- Particle preload for particle-only skins (AUG). A raw FxPath string
         -- cannot be spawned; the asset must be loaded async first. Triggered
@@ -7546,6 +7962,24 @@ end
                         "SkyExLevelSeqPath=" .. tostring(comp.SkyExLevelSeqPath))
                 end)
             end
+            -- Explosion SOUND. SetOverrideSoundIndex takes the SAME fxGunID and
+            -- has its own loader (AsyncLoadOverrideSoundData / HasOverrideSound
+            -- in UGrenadeAvatarComponent), independent of the FX path, so the
+            -- skinned blast sound is worth requesting even though the FX index
+            -- is server-clamped. The audio pak still has to be present on the
+            -- device; the readback below tells us whether it took.
+            if fxGun and comp.SetOverrideSoundIndex and _gfxEnableNativeIdx then
+                pcall(function()
+                    local sBefore = comp.OverrideSoundIndex
+                    comp:SetOverrideSoundIndex(fxGun)
+                    local sAfter = comp.OverrideSoundIndex
+                    local hasSnd = nil
+                    pcall(function() hasSnd = comp:HasOverrideSound() end)
+                    grenadeDiag("sound: SetOverrideSoundIndex(" .. tostring(fxGun) .. ")",
+                        tostring(sBefore), "->", tostring(sAfter),
+                        "hasOverrideSound=" .. tostring(hasSnd))
+                end)
+            end
             -- Instance-level shim. SpawnHighLevelParticleActor is NOT on
             -- __inner_impl, so the class-level hook silently did nothing; an
             -- instance field is found first by any __index chain.
@@ -7571,6 +8005,73 @@ end
             end
             return cfgSeq
         end
+
+        -- Class-level stock mute. The instance mute above changes nothing
+        -- visually because C++ dispatches through __inner_impl, not the
+        -- instance table (proved: muted logged, default still played). This
+        -- replaces SpawnExplosionEffect on the impl tables themselves for the
+        -- synchronous duration of our blast, then restores. Returns a restore
+        -- closure, or nil when muting does not apply.
+        --
+        -- Placed HERE, after grenadeDiag / grenadeFXOurSkinID /
+        -- grenadeFXResolveFromConfig / grenadeFXEnsurePath. Declared above them
+        -- it bound those names to nil globals and threw on its first
+        -- statement, which escaped the BeginInEffect wrapper and detonated the
+        -- grenade with no explosion at all.
+        local function grenadeFXMuteStockClass(proj, comp)
+            grenadeDiag("muteC: ENTER")
+            if not _gfxEnableMuteStock then grenadeDiag("muteC: disabled") return nil end
+            local sid = grenadeFXOurSkinID(comp)
+            grenadeDiag("muteC: sid=" .. tostring(sid))
+            if not sid then return nil end
+            local fxp, seq = grenadeFXResolveFromConfig(sid)
+            local playable = (seq and seq ~= "") and true or false
+            if not playable and fxp and fxp ~= "" then
+                pcall(function()
+                    local c = _gfxParticleCache[fxp]
+                    playable = c and slua.isValid(c)
+                end)
+            end
+            if not playable then return nil end
+            local targets = {}
+            pcall(function()
+                local PB = require("GameLua.Mod.BaseMod.GamePlay.Actor.Projectile.ProjectileBase")
+                local pi = PB and PB.__inner_impl
+                if pi and type(pi.SpawnExplosionEffect) == "function" then
+                    targets[#targets + 1] = pi
+                end
+            end)
+            pcall(function()
+                local FG = require("GameLua.Mod.BaseMod.GamePlay.Actor.Projectile.SpecificProjectile.FragGrenade.FragGrenade")
+                local fi = FG and FG.__inner_impl
+                if fi and type(fi.SpawnExplosionEffect) == "function" then
+                    targets[#targets + 1] = fi
+                end
+            end)
+            if #targets == 0 then
+                grenadeDiag("muteC: no class-level SpawnExplosionEffect found")
+                return nil
+            end
+            local saved = {}
+            for _, t in ipairs(targets) do
+                saved[#saved + 1] = { t = t, f = t.SpawnExplosionEffect }
+                t.SpawnExplosionEffect = function() end
+            end
+            grenadeDiag("muteC: class-level stock MUTED on " .. #targets .. " impl(s)")
+            local done = false
+            return function()
+                if done then return end
+                done = true
+                for _, s in ipairs(saved) do
+                    pcall(function() s.t.SpawnExplosionEffect = s.f end)
+                end
+                grenadeDiag("muteC: class-level stock restored")
+            end
+        end
+
+        -- Published to _G as well, so the blast hook can reach it regardless of
+        -- which pcall block that call site sits in.
+        _G.grenadeFXMuteStockClass = grenadeFXMuteStockClass
 
         -- The last resort, and now the only one left: the game will not do it for
         -- us. SetOverrideFxIndex is server-clamped (proved: writing 1101005093
@@ -7612,11 +8113,20 @@ end
                 grenadeDiag("playseq: no fx for skin " .. tostring(sid))
                 return false
             end
-            if comp._lava_gfx_played then
+            -- A projectile can detonate more than once (cook-off, bounce, or the
+            -- spawn/spawnRetry pair both reaching the blast), and the same
+            -- component is reused across the throw, so a plain boolean
+            -- permanently suppressed every play after the first attempt. Time
+            -- window instead: replay allowed after a short gap.
+            local nowT = 0
+            pcall(function() nowT = os.time() end)
+            if comp._lava_gfx_played and nowT > 0
+                and (nowT - (tonumber(comp._lava_gfx_playedAt) or 0)) < 2 then
                 grenadeDiag("playseq: already played on this component (dedupe)")
                 return
             end
             comp._lava_gfx_played = true
+            comp._lava_gfx_playedAt = nowT
             local dt = ""
             pcall(function()
                 dt = tostring(os.time() - (comp._lava_gfx_thrownAt or os.time())) .. "s"
@@ -8029,15 +8539,38 @@ end
                             if slua.isValid(self) then blastLoc = self:K2_GetActorLocation() end
                         end)
                         local played = false
-                        local muted = false
-                        local saveSpawn = nil
+                        local restoreClassMute = nil
+                        local restoreInstMute = nil
+                        local muteOk, muteErr = pcall(function()
                         if comp and _gfxEnableMuteStock then
                             pcall(grenadeFXEnumerate, grenadeFXOurSkinID(comp))
                             pcall(grenadeFXEnsurePath, comp)
-                            -- Only mute when we genuinely have something to show,
-                            -- otherwise the blast would go silent with no FX.
+                            -- Class-level mute FIRST. C++ dispatches
+                            -- SpawnExplosionEffect through __inner_impl, so an
+                            -- instance shadow cannot suppress it -- and that
+                            -- route was skipped outright because slua.isValid(self)
+                            -- is already false at detonation, which is exactly
+                            -- why the stock blast kept playing next to ours.
+                            -- Muting the impl tables needs no live actor.
+                            --
+                            -- WRAPPED: this used to run unprotected, so any throw
+                            -- here escaped the whole BeginInEffect wrapper and
+                            -- origBlast never ran -- the grenade detonated with
+                            -- NO effect at all, stock or ours.
+                            local muteFn = _G.grenadeFXMuteStockClass
+                            grenadeDiag("muteC: muteFn=" .. tostring(muteFn))
+                            if muteFn then
+                                restoreClassMute = muteFn(self, comp)
+                            else
+                                grenadeDiag("muteC: helper not published, skipping class mute")
+                            end
+                            -- Instance shadow as a second line of defence, only
+                            -- while the projectile is still a valid object.
                             local msid = grenadeFXOurSkinID(comp)
-                            local mfxp, mseq = msid and grenadeFXResolveFromConfig(msid) or nil, nil
+                            local mfxp, mseq = nil, nil
+                            -- NOTE: `a and f() or nil, nil` captures only f()'s
+                            -- FIRST return, so mseq was always nil. Call it once
+                            -- and take both values properly.
                             if msid then mfxp, mseq = grenadeFXResolveFromConfig(msid) end
                             local mplay = (mseq and mseq ~= "") and true or false
                             if not mplay and mfxp and mfxp ~= "" then
@@ -8046,8 +8579,10 @@ end
                             end
                             grenadeDiag("muteC: sid=" .. tostring(msid),
                                 "seq=" .. tostring(mseq), "fxp=" .. tostring(mfxp),
-                                "playable=" .. tostring(mplay))
-                            if mplay and slua.isValid(self) then
+                                "playable=" .. tostring(mplay),
+                                "selfValid=" .. tostring(slua.isValid(self)),
+                                "classMute=" .. tostring(restoreClassMute ~= nil))
+                            if mplay and slua.isValid(self) and not restoreClassMute then
                                 local okM, prev = pcall(function()
                                     -- Rawget through the MRO so we do not clobber
                                     -- an existing instance override.
@@ -8060,39 +8595,118 @@ end
                                     return nil
                                 end)
                                 if okM and type(prev) == "function" then
-                                    saveSpawn = prev
                                     pcall(function() self.SpawnExplosionEffect = function() end end)
-                                    muted = true
+                                    restoreInstMute = prev
                                     grenadeDiag("muteC: stock blast MUTED (instance shadow)")
                                 else
                                     grenadeDiag("muteC: no stock fn found, not muting")
                                 end
-                            elseif not mplay then
-                                grenadeDiag("muteC: not playable, keeping stock")
+                            end
+                            if not restoreClassMute and not restoreInstMute then
+                                grenadeDiag("muteC: stock left playing (nothing to replace it with)")
                             end
                         elseif comp then
                             grenadeDiag("muteC: disabled by toggle, keeping stock")
                         else
                             grenadeDiag("blast: no component on projectile")
                         end
+                        end)
+                        if not muteOk then
+                            -- Stock must still be available, so drop any partial
+                            -- mute from the failed attempt before continuing.
+                            grenadeDiag("muteC: FAILED err=" .. tostring(muteErr))
+                            if restoreClassMute then pcall(restoreClassMute) restoreClassMute = nil end
+                            if restoreInstMute then
+                                pcall(function() self.SpawnExplosionEffect = restoreInstMute end)
+                                restoreInstMute = nil
+                            end
+                        end
+
+                        -- The stock blast does NOT come from SpawnExplosionEffect.
+                        -- FragGrenade:BeginInEffect reaches it only in the final
+                        -- `else`, which is unreachable once IsGrenadeHasAvatar()
+                        -- is true. With the avatar active the chain is:
+                        --   UseHighLevelParticle() -> SpawnHighLevelParticleActor
+                        --   elseif slua.isValid(self.ExplodeParticleSystem)
+                        --          -> SpawnEmitterAtLocation   <-- the default blast
+                        -- The first branch never fires (no SpawnHPA(REACHED) in the
+                        -- log), so ExplodeParticleSystem -- filled by C++ from the
+                        -- DEFAULT cfg 612004000 -- is what plays next to ours.
+                        -- Clearing it makes that elseif fail, so the game plays
+                        -- nothing and our sequence is the only blast.
+                        if comp and _gfxEnableMuteStock then
+                            pcall(function()
+                                local hlp = nil
+                                pcall(function()
+                                    hlp = comp.UseHighLevelParticle and comp:UseHighLevelParticle() or false
+                                end)
+                                local epsValid = slua.isValid(self.ExplodeParticleSystem)
+                                grenadeDiag("blast: useHighLevelParticle=" .. tostring(hlp),
+                                    "explodeParticleValid=" .. tostring(epsValid))
+                                if epsValid and not hlp then
+                                    self._lava_gfx_saved_eps = self.ExplodeParticleSystem
+                                    self.ExplodeParticleSystem = nil
+                                    grenadeDiag("blast: default ExplodeParticleSystem cleared")
+                                end
+                            end)
+                        end
 
                         local br1, br2 = xpcall(function()
                             return origBlast(self, OldType)
                         end, function(e) return tostring(e) end)
 
+                        if self._lava_gfx_saved_eps ~= nil then
+                            pcall(function() self.ExplodeParticleSystem = self._lava_gfx_saved_eps end)
+                            self._lava_gfx_saved_eps = nil
+                            grenadeDiag("blast: default ExplodeParticleSystem restored")
+                        end
+
                         -- Restore stock the instant the chain returns, BEFORE
                         -- adding our own FX, so our effect is the only extra.
-                        if muted and saveSpawn then
-                            pcall(function() self.SpawnExplosionEffect = saveSpawn end)
-                            grenadeDiag("muteC: stock blast restored")
+                        -- Unconditional: even when origBlast errored, the tables
+                        -- must go back or EVERY later grenade loses its blast.
+                        if restoreInstMute then
+                            pcall(function() self.SpawnExplosionEffect = restoreInstMute end)
+                            grenadeDiag("muteC: stock blast restored (instance)")
+                            restoreInstMute = nil
+                        end
+                        if restoreClassMute then
+                            pcall(restoreClassMute)
+                            restoreClassMute = nil
                         end
                         if not br1 then
                             grenadeDiag("blast: origBlast FAILED err=" .. tostring(br2))
                             return nil
                         end
 
-                        if muted and comp then
-                            played = pcall(grenadeFXPlaySequence, self, comp, blastLoc)
+                        -- Self-play must NOT be gated on the mute succeeding.
+                        -- Muting only suppresses the stock blast; if it failed,
+                        -- gating here meant a sequence-type skin (FxSeqPath set,
+                        -- FxPath empty -- e.g. the Groza) played NOTHING at all:
+                        -- the mute gate said "playable=true" and then no
+                        -- playseq: REACHED ever followed. Playing our sequence
+                        -- unconditionally is safe in both cases -- it ADDS an
+                        -- effect, so a still-present stock blast is merely
+                        -- additive rather than missing.
+                        if comp then
+                            local wantPlay = false
+                            pcall(function()
+                                local psid = grenadeFXOurSkinID(comp)
+                                if psid then
+                                    local pfxp, pseq = grenadeFXResolveFromConfig(psid)
+                                    if pseq and pseq ~= "" then
+                                        wantPlay = true
+                                    elseif pfxp and pfxp ~= "" then
+                                        local pc2 = _gfxParticleCache[pfxp]
+                                        wantPlay = pc2 and slua.isValid(pc2) or false
+                                    end
+                                end
+                            end)
+                            if wantPlay then
+                                played = pcall(grenadeFXPlaySequence, self, comp, blastLoc)
+                            else
+                                grenadeDiag("playseq: skipped, nothing playable")
+                            end
                         end
                         return br2
                     end
@@ -8153,6 +8767,75 @@ end
                     end
                     any = true
                 end
+            end)
+
+            -- THE decisive hook, and the one that was missing.
+            --
+            -- GrenadeAvatarComponent:CheckHasOverrideFx is what actually decides
+            -- the blast FX. For a real player it reads SERVER progress:
+            --   PlayerDataMgr.GetPlayerProgressFromServer(UID, GrenadeBindWeaponMap)
+            -- and only sets an override when the server has a GrenadeSkinID entry.
+            -- An injected skin has none, so UnlockWeaponID is nil,
+            -- VerifyUnlockWeaponID returns nil, and the game then does:
+            --     self:SetOverrideFxIndex(0)
+            --     self:SetOverrideSoundIndex(0)
+            -- i.e. it deliberately ZEROES the override. The only branch that sets
+            -- it from config alone is the AI/GM branch, gated on
+            -- Game:IsAIController(PlayerController) or AvatarUtil.GM_GrenadeAvatarTest.
+            --
+            -- That is exactly what the log shows: we wrote 1101005093 and got
+            -- "OverrideFxIndex 0 -> 0", "hasOverrideSound=false", and
+            -- "spawnHPA=false" -- our value was wiped again by the game.
+            -- Writing ExLevelSeqPath / calling SetOverrideFxIndex is pointless while
+            -- this runs afterwards, so hook it and return early WITHOUT calling the
+            -- original, which is the approach the working reference (18.lua) uses.
+            pcall(function()
+                local GAC = require("GameLua.Mod.Library.GamePlay.Avatar.Component.GrenadeAvatarComponent")
+                if not GAC then return end
+                local gimpl = GAC.__inner_impl or GAC
+                if not gimpl then return end
+                if gimpl._lava_hooked_overridefx then return end
+                local orig = rawget(gimpl, "CheckHasOverrideFx")
+                if type(orig) ~= "function" then
+                    grenadeDiag("CheckHasOverrideFx: NOT on impl, cannot hook")
+                    return
+                end
+
+                rawset(gimpl, "CheckHasOverrideFx", function(comp, PlayerController, GrenadeSkinID)
+                    -- Which grenade is this component actually showing?
+                    local sid = tonumber(GrenadeSkinID)
+                    local our = grenadeFXOurSkinID(comp)
+                    if our and tonumber(our) > 0 then sid = tonumber(our) end
+
+                    local cfgSeq, fxGun = nil, nil
+                    if sid and sid > 0 then
+                        -- returns (particlePath, seqPath, fxGunID)
+                        pcall(function() local _, s, g = grenadeFXResolveFromConfig(sid); cfgSeq, fxGun = s, g end)
+                    end
+
+                    if cfgSeq and fxGun and tonumber(fxGun) and tonumber(fxGun) > 0 then
+                        -- Ours: publish the seq and the override, and NEVER fall
+                        -- through to the server-gated branch that would zero it.
+                        pcall(function() comp.ExLevelSeqPath = cfgSeq end)
+                        if comp.SetOverrideFxIndex then
+                            pcall(function() comp:SetOverrideFxIndex(tonumber(fxGun)) end)
+                        end
+                        -- Sound stays 0: sound overrides are entitlement-gated and
+                        -- setting them only produced a silent no-op.
+                        if comp.SetOverrideSoundIndex then
+                            pcall(function() comp:SetOverrideSoundIndex(0) end)
+                        end
+                        grenadeDiag("CheckHasOverrideFx: OURS skinID=" .. tostring(sid),
+                            "fxGun=" .. tostring(fxGun), "seq set")
+                        return
+                    end
+
+                    -- Any other grenade: leave the stock behaviour completely alone.
+                    return orig(comp, PlayerController, GrenadeSkinID)
+                end)
+                gimpl._lava_hooked_overridefx = true
+                GAC._lava_hooked_overridefx = true
+                grenadeDiag("CheckHasOverrideFx: hooked (early-return, server branch bypassed)")
             end)
 
             -- Sequence capture & replay. GetSequencePath returns the
@@ -9339,6 +10022,10 @@ end
         -- ========== تطبيق سكن السيارة داخل الجيم ==========
         -- مكافئ Lua لكود C++ الذي يطبق سكن السيارة عند ركوب نوع السيارة المطابق
         local _lastVehicleSkinKey = ""
+        -- Timestamp + key of the last vehicle-list sync, so the rebuild only
+        -- runs when the vehicle/avatar changed or a 5s backstop expires.
+        local _lastVehSyncAt = 0
+        local _lastVehSyncKey = nil
 
         local function applyVehicleSkinInGame()
             local char = getLocalChar()
@@ -9347,9 +10034,10 @@ end
             local vehicle = char.GetCurrentVehicle and char:GetCurrentVehicle()
             if not vehicle or not slua.isValid(vehicle) then
                 _lastVehicleSkinKey = ""
+                _lastVehSyncAt = 0
+                _lastVehSyncKey = nil
                 return
             end
-            pcall(syncVehicleAvatarSkinList)
 
             local avatarComp = vehicle.GetAvatarComponent and vehicle:GetAvatarComponent()
             if not avatarComp or not slua.isValid(avatarComp) then return end
@@ -9357,11 +10045,28 @@ end
             local defaultAvatarID = avatarComp.GetDefaultAvatarID and avatarComp:GetDefaultAvatarID()
             if not defaultAvatarID or defaultAvatarID == 0 then return end
 
-            local currentAvatarID = avatarComp.GetCurrentAvatarID and avatarComp:GetCurrentAvatarID()
+            local currentAvatarID = avatarComp.GetCurrentAvatarID and avatarComp.GetCurrentAvatarID and avatarComp:GetCurrentAvatarID()
 
             -- تجنب إعادة التطبيق على نفس السيارة بنفس السكن
             local cacheKey = tostring(vehicle) .. "_" .. tostring(defaultAvatarID) .. "_" .. tostring(currentAvatarID)
-            if cacheKey == _lastVehicleSkinKey then return end
+            local vehicleChanged = (cacheKey ~= _lastVehicleSkinKey)
+            if vehicleChanged then _lastVehicleSkinKey = cacheKey end
+
+            -- The list rebuild used to sit ABOVE this early-out, so it ran on
+            -- every 2s pass even when nothing about the vehicle had changed.
+            -- It now runs when the vehicle/avatar actually changed, plus a 5s
+            -- backstop so a skin selection change or a late injection is still
+            -- picked up while parked in the same vehicle.
+            local nowV = 0
+            pcall(function() nowV = os.clock() end)
+            if vehicleChanged or _lastVehSyncKey ~= cacheKey
+                or _lastVehSyncAt == nil or (nowV - _lastVehSyncAt) >= 5.0 then
+                _lastVehSyncAt = nowV
+                _lastVehSyncKey = cacheKey
+                pcall(syncVehicleAvatarSkinList)
+            end
+
+            if not vehicleChanged then return end
 
             -- الحصول على itemSubType للسيارة الحالية من جدول Item
             local vehicleSubType = 0
@@ -9761,8 +10466,10 @@ end
                                 end
                                 avatarComp:ChangeItemAvatar(resID, true)
                                 avatarComp.CanChangeAvatar = true
-                                _lastVehicleSkinKey = ""
-                                print("[AddOutfit] Vehicle skin changed locally to " .. tostring(resID))
+                                  _lastVehicleSkinKey = ""
+                                  _lastVehSyncAt = 0
+                                  _lastVehSyncKey = nil
+                                  print("[AddOutfit] Vehicle skin changed locally to " .. tostring(resID))
                                 pcall(applyVehicleChassisLight)
                             end
                         end
@@ -9798,8 +10505,10 @@ end
                             end
                             avatarComp:ChangeItemAvatar(self.resID, true)
                             avatarComp.CanChangeAvatar = true
-                            _lastVehicleSkinKey = ""
-                            print("[AddOutfit] VehicleSkinItem applied skin locally " .. tostring(self.resID))
+                              _lastVehicleSkinKey = ""
+                              _lastVehSyncAt = 0
+                              _lastVehSyncKey = nil
+                              print("[AddOutfit] VehicleSkinItem applied skin locally " .. tostring(self.resID))
                             pcall(applyVehicleChassisLight)
                         end)
                     end
@@ -9856,6 +10565,167 @@ end
             end
         end
 
+        -- ---- In-match vehicle skin list: lobby-selected on top, the rest below.
+        -- The game only offers vehicle skins the account actually owns, so
+        -- picking a skin for every vehicle type in the lobby is impractical.
+        -- This builds the FULL vehicle skin list (every Item whose ItemSubType is
+        -- a vehicle subtype) and injects it into the client-side avatar lists,
+        -- with the lobby-selected skins pinned to the top so the ones that
+        -- actually matter are one tap away instead of buried in a long list.
+        -- IN-MATCH ONLY, and deliberately client-side: this never touches the
+        -- server PlayerInfo payload, so vst_in_battle stays limited to the
+        -- skins that were really selected.
+        local VEHICLE_MIN_SUBTYPE = 900
+
+        -- Memoized. This was uncached, and the vehicle sync walks EVERY entry of
+        -- R.resToIns on each pass (thousands of injected items), so the old
+        -- version paid a pcall + a closure + a GetTableData lookup per item
+        -- every couple of seconds -- that was the freeze. ItemSubType for a
+        -- given resID never changes at runtime, so caching is safe.
+        -- Note: st can legitimately be 0, and 0 is truthy in Lua, so this
+        -- caches misses correctly too.
+        local _subTypeCache = {}
+        local function resSubType(resID)
+            resID = tonumber(resID)
+            if not resID then return 0 end
+            local st = _subTypeCache[resID]
+            if st then return st end
+            st = 0
+            pcall(function()
+                local cc = CDataTable and CDataTable.GetTableData
+                    and CDataTable.GetTableData("Item", resID)
+                st = cc and tonumber(cc.ItemSubType or cc.itemSubType) or 0
+            end)
+            _subTypeCache[resID] = st
+            return st
+        end
+
+        -- Rarity is ItemQuality on the Item config row. ItemMacros.lua enum:
+        -- Grey 1, Black 2, Green 3, Blue 4, Purple 5, Pink 6, Red 7, Golden 8,
+        -- TGOLDEN 10 -- so higher is rarer, and the game's own sorters
+        -- (ItemUpgradeModule, logic_peak_game) all compare descending.
+        local _qualityCache = {}
+        local function resQuality(resID)
+            local q = _qualityCache[resID]
+            if q then return q end
+            q = 0
+            pcall(function()
+                local cc = CDataTable and CDataTable.GetTableData
+                    and CDataTable.GetTableData("Item", resID)
+                q = cc and tonumber(cc.ItemQuality) or 0
+            end)
+            _qualityCache[resID] = q
+            return q
+        end
+
+        local _wdMod = nil
+        local function insToResID(insID)
+            insID = tonumber(insID)
+            if not insID or insID <= 0 then return 0 end
+            if isInjectedIns(insID) then return R.insToRes[insID] or 0 end
+            -- Cached module handle: this ran a require() per selected insID on
+            -- every vehicle sync pass.
+            if _wdMod == nil then
+                pcall(function()
+                    local ok, wd = pcall(require, "client.slua.logic.wardrobe.wardrobe_data")
+                    if ok then _wdMod = wd end
+                end)
+            end
+            local resID = 0
+            pcall(function()
+                local wd = _wdMod
+                if not wd then return end
+                local d = wd:GetHallDepotItemDataByInsID(insID)
+                resID = d and tonumber(d.resID) or 0
+            end)
+            return resID
+        end
+
+        -- Returns the lobby-selected resIDs (stable order) and every other
+        -- vehicle skin, de-duplicated.
+        -- The "unlocked rest" list only changes when the injected pool grows,
+        -- so it is cached against _G.ChetanInjGen (bumped by injectOne) instead
+        -- of being rebuilt on every pass. Rebuilding meant re-walking all of
+        -- R.resToIns and re-running the rarity sort each time.
+        local _vehAllCache = nil
+        local function collectInMatchVehicleSkins()
+            local selected, seen = {}, {}
+            local subOrder = {}
+            if DataMgr and DataMgr.VehicleSlotList then
+                for st in pairs(DataMgr.VehicleSlotList) do subOrder[#subOrder + 1] = st end
+            end
+            table.sort(subOrder, function(a, b) return (tonumber(a) or 0) < (tonumber(b) or 0) end)
+            for _, st in ipairs(subOrder) do
+                local insList = DataMgr.VehicleSlotList[st]
+                if insList and type(insList) == "table" then
+                    for _, insID in ipairs(insList) do
+                        local resID = insToResID(insID)
+                        if resID > 0 and not seen[resID] then
+                            seen[resID] = true
+                            selected[#selected + 1] = resID
+                        end
+                    end
+                end
+            end
+            -- Walked in priority order (subtype asc, then rarity desc, then
+            -- resID asc) so the panel shows the chosen skins first inside every
+            -- vehicle group. Cached: VehicleSlotList is small, this is not.
+            local gen = _G.ChetanInjGen or 0
+            local all = _vehAllCache and _vehAllCache.gen == gen and _vehAllCache.all or nil
+            if not all then
+                all = {}
+                for resID in pairs(R.resToIns or {}) do
+                    resID = tonumber(resID)
+                    if resID and resID > 0 and resSubType(resID) >= VEHICLE_MIN_SUBTYPE then
+                        all[#all + 1] = resID
+                    end
+                end
+                table.sort(all, function(a, b)
+                    local qa, qb = resQuality(a), resQuality(b)
+                    if qa ~= qb then return qa > qb end
+                    return a < b
+                end)
+                _vehAllCache = { gen = gen, all = all }
+            end
+            -- Drop anything the player has since selected out of the rest list.
+            if #seen > 0 then
+                local filtered = {}
+                for i = 1, #all do
+                    if not seen[all[i]] then filtered[#filtered + 1] = all[i] end
+                end
+                return selected, filtered
+            end
+            return selected, all
+        end
+
+        -- Live :Add() on top of the init list. VehicleAvatarList and
+        -- VehicleAvatarSkinList are append-only, so this cannot reorder what the
+        -- game already built -- ordering comes from InitialVehicleAvatarSkinList
+        -- below. Its job is to make sure the selected skins are present at all if
+        -- the game rebuilt its lists after init. Guarded by a key because this
+        -- runs on a ~5s tick and re-adding every skin each time would grow the
+        -- lists without bound.
+        local function injectSelectedVehicleSkins(pc, selected, cacheKey)
+            if _G._chetanVehListInjectedKey == cacheKey then return end
+            local UAvatarUtils = import("AvatarUtils")
+            if not (UAvatarUtils and UAvatarUtils.GetVehicleShapeBySkinID) then return end
+            if not (pc.VehicleAvatarList and pc.VehicleAvatarSkinList) then return end
+            for _, resID in ipairs(selected) do
+                local shapeType = nil
+                pcall(function() shapeType = UAvatarUtils.GetVehicleShapeBySkinID(resID) end)
+                if shapeType and shapeType >= 0 then
+                    pcall(function() pc.VehicleAvatarList:Add(shapeType, resID) end)
+                    pcall(function()
+                        local entry = pc.VehicleAvatarSkinList:Get(shapeType)
+                        if entry and entry.SkinList then entry.SkinList:Add(resID) end
+                    end)
+                end
+            end
+            _G._chetanVehListInjectedKey = cacheKey
+        end
+
+        local _vehListCache = nil
+
         local function syncVehicleAvatarSkinList()
             local pc = getPlayerController()
             if not pc or not slua.isValid(pc) then return end
@@ -9867,39 +10737,60 @@ end
             if pc.bEnableFuzzyAvatarOnClient then
                 pc.bEnableFuzzyAvatarOnClient = false
             end
-            if not DataMgr or not DataMgr.VehicleSlotList then return end
-            if not pc.InitVehicleAvatarSkinList then return end
-            local vehicleSkinData = {}
-            for subType, insList in pairs(DataMgr.VehicleSlotList) do
-                if insList and type(insList) == "table" then
+            local selected, rest = collectInMatchVehicleSkins()
+            -- Key on the selection AND the size of the pool, so skins injected
+            -- after the first build still show up instead of being frozen out
+            -- by a stale cache.
+            local selKey = #rest .. "|" .. table.concat(selected, ",")
+            if not (_vehListCache and _vehListCache.key == selKey) then
+                -- Group the ordered list by vehicle subtype, selected skins first
+                -- inside every group, so the panel renders the chosen ones at the
+                -- top of their vehicle's list and the unlocked rest below.
+                local bySub, subKeys = {}, {}
+                local function addTo(resID)
+                    local st = resSubType(resID)
+                    if st < VEHICLE_MIN_SUBTYPE then return end
+                    if not bySub[st] then
+                        bySub[st] = {}
+                        subKeys[#subKeys + 1] = st
+                    end
+                    bySub[st][#bySub[st] + 1] = resID
+                end
+                for _, resID in ipairs(selected) do addTo(resID) end
+                for _, resID in ipairs(rest) do addTo(resID) end
+                table.sort(subKeys, function(a, b) return (tonumber(a) or 0) < (tonumber(b) or 0) end)
+                local vehicleSkinData = {}
+                for _, st in ipairs(subKeys) do
                     local itemArray = {}
-                    for _, insID in ipairs(insList) do
-                        insID = tonumber(insID)
-                        if insID and insID > 0 then
-                            local skinResID = 0
-                            if isInjectedIns(insID) then
-                                skinResID = R.insToRes[insID] or 0
-                            else
-                                pcall(function()
-                                    local wd = require("client.slua.logic.wardrobe.wardrobe_data")
-                                    local d = wd:GetHallDepotItemDataByInsID(insID)
-                                    skinResID = d and tonumber(d.resID) or 0
-                                end)
-                            end
-                            if skinResID and skinResID > 0 then
-                                table.insert(itemArray, {ItemTableID = skinResID, Count = 1})
-                            end
-                        end
+                    for _, resID in ipairs(bySub[st]) do
+                        itemArray[#itemArray + 1] = { ItemTableID = resID, Count = 1 }
                     end
                     if #itemArray > 0 then
-                        table.insert(vehicleSkinData, {Items = itemArray})
+                        vehicleSkinData[#vehicleSkinData + 1] = { Items = itemArray }
                     end
                 end
+                _vehListCache = { key = selKey, data = vehicleSkinData }
             end
-            if #vehicleSkinData > 0 then
-                pc.InitialVehicleAvatarSkinList = vehicleSkinData
-                pc:InitVehicleAvatarSkinList()
+            if pc.InitVehicleAvatarSkinList and _vehListCache and #_vehListCache.data > 0 then
+                -- Re-initialising rebuilds the whole vehicle avatar list, so it
+                -- only runs when the content actually changed. The old code did
+                -- this on EVERY pass even when selKey was identical, which is a
+                -- second source of the periodic hitch. 30s backstop covers late
+                -- arrivals (skins injected after this first ran) so the list
+                -- never stays stale for long.
+                local nowI = 0
+                pcall(function() nowI = os.clock() end)
+                local keyChanged = (_G._chetanVehInitKey ~= selKey)
+                local dueBackstop = (_G._chetanVehInitAt == nil)
+                        or (nowI - _G._chetanVehInitAt) >= 30.0
+                if keyChanged or dueBackstop then
+                    _G._chetanVehInitKey = selKey
+                    _G._chetanVehInitAt = nowI
+                    pc.InitialVehicleAvatarSkinList = _vehListCache.data
+                    pcall(function() pc:InitVehicleAvatarSkinList() end)
+                end
             end
+            injectSelectedVehicleSkins(pc, selected, tostring(pc) .. "#" .. selKey)
         end
 
         local function stopMatchWatcher()
@@ -9917,8 +10808,6 @@ end
             _S.matchOutfitLocked = false
             _S.matchOutfitSnapshotRes = nil
             _S.matchOutfitSnapshotClothes = nil
-            _S.preMatchApplied = false
-            _S.realMatchStarted = false
             -- Drop the adaptive backoff so the next match re-applies at 0.5s
             -- immediately instead of inheriting the settled 2s cadence.
             stabReset()
@@ -10028,13 +10917,7 @@ end
                 flog_flush()
             end)
             pcall(flog_flush)
-            local inRealMatch = isInRealMatch()
-            local bootOK, bootApplied = pcall(matchApplyAll, char)
-            -- Remember that bootstrap already handled the waiting island. The
-            -- repeating timer must not replace the outfit again until fighting
-            -- actually starts.
-            if not inRealMatch and bootOK and bootApplied then _S.preMatchApplied = true end
-            _S.realMatchStarted = inRealMatch
+            pcall(matchApplyAll, char)
             return true
         end
 
@@ -10325,6 +11208,66 @@ end
                             end
                         end
                         return origGetGunSkin(self, weaponID, ...)
+                    end
+                end
+
+                -- GetSkinIdByWeaponID is what the lobby gun list actually asks
+                -- (subtab_gun RefreshPutOnGunSkinListItem) to draw the "wearing"
+                -- tick, and it reads only bag.weapon_skin_list. It was never
+                -- hooked, so the list showed nothing as equipped even right
+                -- after a successful equip -- the click looked broken.
+                if wgl.GetSkinIdByWeaponID then
+                    local origGetSkinId = wgl.GetSkinIdByWeaponID
+                    wgl.GetSkinIdByWeaponID = function(self, WeaponID, ...)
+                        local wid = tonumber(WeaponID)
+                        if wid then
+                            local w = cache().weapons[wid]
+                            if w and w.insID and w.insID > 0 and isInjectedIns(w.insID) then
+                                -- Confirmation point for the "already wearing
+                                -- this" guard: only now, when the game's own
+                                -- reader agrees, is it safe to record the mark.
+                                -- Writing it earlier on click lets hookGunWardrobe
+                                -- skip the rebuild and strands the gun.
+                                _G.AddOutfitWeaponEquipped = _G.AddOutfitWeaponEquipped or {}
+                                _G.AddOutfitWeaponEquipped[wid] = w.insID
+                                return w.insID
+                            end
+                        end
+                        return origGetSkinId(self, WeaponID, ...)
+                    end
+                end
+
+                -- IsWeaponWear is the install-vs-uninstall decision on a lobby
+                -- click (subtab_gun OnClickItem). Unhooked it consults the
+                -- avatar-show table, which the mod never populates, so our
+                -- skins were permanently reported as "not worn" and the UI
+                -- state disagreed with what was actually equipped.
+                local okHT, HTm = pcall(require, "client.logic.lobby.hall_theme_utils")
+                if okHT and HTm and not HTm._lava_wear_hooked then
+                    HTm._lava_wear_hooked = true
+                    local function isOurWornIns(instId)
+                        local n = tonumber(instId)
+                        if not n or n <= 0 then return false end
+                        for _, w in pairs(cache().weapons) do
+                            if w and tonumber(w.insID) == n and isInjectedIns(w.insID) then
+                                return true
+                            end
+                        end
+                        return false
+                    end
+                    if HTm.IsWeaponWear then
+                        local origIsWear = HTm.IsWeaponWear
+                        HTm.IsWeaponWear = function(instId, ...)
+                            if isOurWornIns(instId) then return true end
+                            return origIsWear(instId, ...)
+                        end
+                    end
+                    if HTm.IsWeaponWearBothSlots then
+                        local origIsWearBoth = HTm.IsWeaponWearBothSlots
+                        HTm.IsWeaponWearBothSlots = function(instId, ...)
+                            if isOurWornIns(instId) then return true end
+                            return origIsWearBoth(instId, ...)
+                        end
                     end
                 end
 
@@ -10866,7 +11809,7 @@ function _G.addKill(weaponID, count)
     _G.saveKillCountToFile()
 end
 
-function _G.getKills(weaponID) return weaponID and _G.killCountInfo[weaponID] or 0 end
+function _G.getKills(weaponID) return 10000 end
 
 -- Hook Deadbox (Create Death Box) and KillInfo
 pcall(function()
@@ -11134,7 +12077,10 @@ end)
         -- ===================================================================
         local _teamBroadcastHooked = false
         local function hookTeamBroadcast()
-            if not featOn("killmsg_gun") then return end
+            -- Install if EITHER toggle is on: this hook carries both the gun
+            -- skin credit and the grenade skin credit, so gating it on
+            -- killmsg_gun alone disabled killmsg_grenade whenever gun was off.
+            if not (featOn("killmsg_gun") or featOn("killmsg_grenade")) then return end
             if _teamBroadcastHooked then return end
             if _G.BattleKillBroadcastSkinHacked then return end
             pcall(function()
@@ -11180,22 +12126,29 @@ end)
                                     msgData.ExpandDataContent = slua.LuaArchiverEncode(_G.LuaStateWrapper, expand_data)
                                 end
                             end
-                            -- Grenade kill: the current-weapon logic above credits
-                            -- whatever gun is held, so a grenade kill shows the wrong
-                            -- weapon skin. If our themed blast fired seconds ago,
-                            -- credit the grenade skin instead. 8s window; a gun kill
-                            -- landing inside the window can misattribute -- accepted.
-                            pcall(function()
-                                if featOn("killmsg_grenade") then
-                                    local gb = _G._lava_lastGrenadeBlast
-                                    local grid = gb and tonumber(gb.resID or 0) or 0
-                                    if grid > 0 and (os.time() - tonumber(gb.t or 0)) <= 8 then
-                                        local ged = slua.LuaArchiverDecode(_G.LuaStateWrapper, msgData.ExpandDataContent) or {}
-                                        ged.CauserWeaponAvatarID = grid
-                                        msgData.ExpandDataContent = slua.LuaArchiverEncode(_G.LuaStateWrapper, ged)
-                                    end
-                                end
-                            end)
+                        end
+                    end)
+                    -- Grenade kill override, deliberately OUTSIDE the
+                    -- `weapon and slua.isValid(weapon)` block above: on a grenade
+                    -- kill there may be no valid current weapon, and being nested
+                    -- inside meant the override silently never ran. Also gated on
+                    -- killmsg_grenade only, not killmsg_gun, so the grenade toggle
+                    -- works on its own.
+                    pcall(function()
+                        if not featOn("killmsg_grenade") then return end
+                        if not (msgData and msgData.bIamCauser) then return end
+                        if not _G.LuaStateWrapper then return end
+                        local gb = _G._lava_lastGrenadeBlast
+                        local grid = gb and tonumber(gb.resID or 0) or 0
+                        if grid <= 0 then return end
+                        if (os.time() - tonumber(gb.t or 0)) > 8 then return end
+                        local ged = slua.LuaArchiverDecode(_G.LuaStateWrapper, msgData.ExpandDataContent) or {}
+                        ged.CauserWeaponAvatarID = grid
+                        msgData.ExpandDataContent = slua.LuaArchiverEncode(_G.LuaStateWrapper, ged)
+                        if _G.SKIN_GFX_DIAG then
+                            grenadeDiag("killmsg: grenade skin " .. tostring(grid)
+                                .. " credited (CauserType=" .. tostring(msgData.CauserType)
+                                .. " DamageType=" .. tostring(msgData.DamageType) .. ")")
                         end
                     end)
                     return msgData
@@ -11211,7 +12164,7 @@ end)
         -- vehicle-damage branch. Separate guard flag so both coexist.
         local _teamBroadcastClassHooked = false
         local function hookTeamBroadcastClass()
-            if not featOn("killmsg_gun") then return end
+            if not (featOn("killmsg_gun") or featOn("killmsg_grenade")) then return end
             if _teamBroadcastClassHooked then return end
             pcall(function()
                 local Sub = require("GameLua.Mod.BaseMod.Client.BattleKillBroadcast.BattleKillBroadcastSubSystem")
@@ -11273,6 +12226,31 @@ end)
                 end
                 _teamBroadcastClassHooked = true
                 print("[AddOutfit] Team broadcast class-level kill messages hooked")
+            end)
+        end
+
+        -- Free-file notice: shown once per session. Same Msg API and JOIN link
+        -- as the HACK build so both payloads carry the same owner message.
+        local function ShowCHETANPromo()
+            if _G._CHETAN_PromoShown then return end
+            _G._CHETAN_PromoShown = true
+            pcall(function()
+                local Msg = require("client.slua.logic.common.logic_common_msg_box")
+                if not Msg or type(Msg.Show) ~= "function" then return end
+                local title = "CHETAN_BABA"
+                local content = "THIS FILE IS 100% FREE\n\n"
+                    .. "If you have PAID for this file, you have been SCAMMED.\n"
+                    .. "It is free for everyone, always.\n\n"
+                    .. "MADE BY @CHETAN_BABA\n"
+                    .. "Join Telegram @CHETAN_BABA for updates and support.\n"
+                    .. "https://t.me/CHETAN_MODS"
+                local function OpenChannel()
+                    pcall(function()
+                        local Web = require("client.slua.logic.url.logic_webview_sdk")
+                        if Web and Web.OpenURL then Web:OpenURL("https://t.me/CHETAN_MODS") end
+                    end)
+                end
+                Msg.Show(1, title, content, OpenChannel, function() end, "JOIN CHANNEL", "CONTINUE")
             end)
         end
 
@@ -11354,6 +12332,8 @@ end)
                     snapshotLobbyWear()
                 end
             end)
+
+            pcall(ShowCHETANPromo)
         end
 
         hookBackpackValid()
@@ -11668,28 +12648,8 @@ end)
                             end
                             -- Bootstrap once per match entry
                             bootstrapMatch(char)
-                            -- Apply the outfit once on the waiting island. Once
-                            -- fighting starts, allow the adaptive reassertion
-                            -- loop to repair genuine server-side reversions.
-                            local realMatch = isInRealMatch()
-                            if realMatch and not _S.realMatchStarted then
-                                _S.realMatchStarted = true
-                                _S.preMatchApplied = false
-                                _S.matchOutfitDone = false
-                                _S.matchApplied = false
-                                stabReset()
-                            elseif not realMatch then
-                                _S.realMatchStarted = false
-                            end
-                            if realMatch or not _S.preMatchApplied then
-                                local okApply, applied = pcall(matchApplyOutfit, char)
-                                if not realMatch and okApply and applied then
-                                    _S.preMatchApplied = true
-                                end
-                            end
-                            -- Weapon skins remain safe to retry during the
-                            -- waiting island because they do not replace the
-                            -- character outfit.
+                            -- Apply outfit + weapon every tick (1.lua style)
+                            pcall(matchApplyOutfit, char)
                             pcall(matchApplyWeaponSkin, char)
                             -- Re-skin the held weapon's attachment slots fast so a
                             -- quick scope switch can't flash the default optic.
@@ -11710,7 +12670,16 @@ end)
                             if _timeCount % 10 == 0 then
                                 pcall(tickEliminationKingEffect)
                                 pcall(applyVehicleChassisLight)
-                                pcall(syncVehicleAvatarSkinList)
+                                -- Only worth doing when actually driving: this used
+                                -- to run on foot too, where the whole vehicle
+                                -- skin-list rebuild was pure waste every 5s.
+                                pcall(function()
+                                    local vch = getLocalChar()
+                                    local veh = vch and vch.GetCurrentVehicle and vch:GetCurrentVehicle()
+                                    if veh and slua.isValid(veh) then
+                                        syncVehicleAvatarSkinList()
+                                    end
+                                end)
                             end
                             -- Deadbox skin often — every 2 ticks (~1s) so the skin
                             -- lands before the box is looted / component is ready
