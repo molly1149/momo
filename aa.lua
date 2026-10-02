@@ -1459,7 +1459,7 @@ _G.AimTouch = function()
                 isSniper = true
             end
 
-            if wName:lower():find("mortar") or wName:lower():find("cối") then
+            if wName:lower():find("mortar") or wName:lower():find("迫击炮") then
                 isMortar = true
             end
             
