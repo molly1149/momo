@@ -1,3 +1,4 @@
+
 if not _G.MODSKIN_LIST then
 _G.MODSKIN_IDS = _G.MODSKIN_IDS or {}
 _G.MODSKIN_LIST = {
@@ -430,7 +431,7 @@ local _outfitSavePathCache = nil
             end
         end)
         -- The mod file MUST live beside the game file. Hardcoding
-        -- com.pubg.imobile put it in the wrong Android/data dir on the krmobile
+        -- com.vng.pubgmobile put it in the wrong Android/data dir on the krmobile
         -- / vng / rekoo packages, so every grenade and skin the mod had saved
         -- was written somewhere the game (and the next boot) never looked.
         local base = ""
@@ -576,6 +577,9 @@ local function _persistModOutfit(resID, insID)
             if eq.gliderIns then lines[#lines + 1] = "equip_gliderIns=" .. tostring(eq.gliderIns) end
             if _G.AddOutfitExplicitEquip and _G.AddOutfitExplicitEquip.parachute then
                 lines[#lines + 1] = "explicit_parachute=1"
+            end
+            if _G.AddOutfitExplicitEquip and _G.AddOutfitExplicitEquip.glider then
+                lines[#lines + 1] = "explicit_glider=1"
             end
             for wid, w in pairs(cch.weapons or {}) do
                 lines[#lines + 1] = "weapon_" .. tostring(wid) .. "=" .. tostring(w.resID) .. ":" .. tostring(w.insID or 0)
@@ -748,7 +752,7 @@ local function _persistModOutfit(resID, insID)
                         or st == 402 and "mask" or st == 407 and "glasses"
                         or st == 406 and "beard" or st == 452 and "gloves" or nil
                     if key then
-                        put(key, resID .. ":" .. tostring(tonumber((Rmap or {})[resID]) or 0))
+                        put(key, resID .. ":" .. tonumber((Rmap or {})[resID]) or 0)
                     end
                 end
             end)
@@ -762,6 +766,9 @@ local function _persistModOutfit(resID, insID)
             end
             if _G.AddOutfitExplicitEquip and _G.AddOutfitExplicitEquip.parachute then
                 put("explicit_parachute", 1)
+            end
+            if _G.AddOutfitExplicitEquip and _G.AddOutfitExplicitEquip.glider then
+                put("explicit_glider", 1)
             end
 
             head("weapons")
@@ -962,8 +969,6 @@ local function _persistModOutfit(resID, insID)
         end)
     end
 
-    local _snapshotCache
-    local _lastSnapshot = ""
     local function _loadEquippedCache()
         pcall(function()
             local path = _getOutfitSavePath()
@@ -1057,6 +1062,9 @@ local function _persistModOutfit(resID, insID)
                     elseif key == "explicit_parachute" then
                         _G.AddOutfitExplicitEquip = _G.AddOutfitExplicitEquip or {}
                         _G.AddOutfitExplicitEquip.parachute = (tonumber(val) == 1) or nil
+                    elseif key == "explicit_glider" then
+                        _G.AddOutfitExplicitEquip = _G.AddOutfitExplicitEquip or {}
+                        _G.AddOutfitExplicitEquip.glider = (tonumber(val) == 1) or nil
                     elseif key == "motion" then
                         -- OVERWRITE, never append. Both save files carry a
                         -- motion= line with the same value, and _loadEquippedCache
@@ -1215,7 +1223,7 @@ local function _persistModOutfit(resID, insID)
         end)
     end
 
-    _snapshotCache = function()
+    local function _snapshotCache()
         local cch = _G.AddOutfitEquippedCache
         if not cch then return "" end
         local parts = {}
@@ -1553,6 +1561,10 @@ local function _persistModOutfit(resID, insID)
                 R.insToRes = {}
                 R.resToIns = {}
                 _injectedResSet = {}
+                -- Pool wiped: bump the generation so the cached vehicle
+                -- "rest" list in collectInMatchVehicleSkins is dropped instead
+                -- of surviving with resIDs that no longer exist.
+                _G.ChetanInjGen = (_G.ChetanInjGen or 0) + 1
             end)
         end
 
@@ -2221,6 +2233,7 @@ local function _persistModOutfit(resID, insID)
         end
 
         local function ensureMatchEquipCache()
+            if not _G._addOutfitBootSyncDone then return end
             local cch = cache()
             local eq = MATCH_CONFIG.equip or {}
             if (not cch.equip.bag or cch.equip.bag <= 0) and eq.bag and eq.bag > 0 then
@@ -2561,6 +2574,9 @@ local function _persistModOutfit(resID, insID)
                 -- parachute from the game default the cache sync adopts.
                 _G.AddOutfitExplicitEquip = _G.AddOutfitExplicitEquip or {}
                 _G.AddOutfitExplicitEquip.parachute = true
+            elseif slot == "glider" then
+                _G.AddOutfitExplicitEquip = _G.AddOutfitExplicitEquip or {}
+                _G.AddOutfitExplicitEquip.glider = true
             end
             _S.matchApplied = false
             invalidateSocialWearCache()
@@ -2623,7 +2639,10 @@ local function _persistModOutfit(resID, insID)
             weaponID, insID = tonumber(weaponID), tonumber(insID)
             if not weaponID or not insID or insID <= 0 then return end
             if isInjectedIns(insID) then
-                saveWeaponToCache(weaponID, R.insToRes[insID], insID)
+                local resID = R.insToRes[insID]
+                if resID and weaponIdFromSkin(resID) == weaponID then
+                    saveWeaponToCache(weaponID, resID, insID)
+                end
                 return
             end
             pcall(function()
@@ -2694,6 +2713,7 @@ local function _persistModOutfit(resID, insID)
         -- (_suppressLobbyWeaponRec). Declared at file scope above, because
         -- saveWeaponToCache is defined before this point.
         local function syncWeaponCacheFromLobby()
+            if not _G._addOutfitBootSyncDone then return end
             local now = 0
             pcall(function() now = os.clock() end)
             if (now - _lastSyncWeaponCache) < 0.3 then return end  -- throttle: max ~3x per second
@@ -2711,7 +2731,7 @@ local function _persistModOutfit(resID, insID)
                                 local d = wd:GetHallDepotItemDataByInsID(bag.bag_skin)
                                 return d and tonumber(d.resID)
                             end)()
-                        if rid and isInjectedRes(rid) then cch.equip.bag = rid end
+                        if rid and isInjectedRes(rid) and getEquipSkinSlot(rid) == "bag" then cch.equip.bag = rid end
                     end
                     if bag.helmet_skin and tonumber(bag.helmet_skin) > 0 then
                         local rid = isInjectedIns(bag.helmet_skin) and R.insToRes[bag.helmet_skin]
@@ -2720,7 +2740,7 @@ local function _persistModOutfit(resID, insID)
                                 local d = wd:GetHallDepotItemDataByInsID(bag.helmet_skin)
                                 return d and tonumber(d.resID)
                             end)()
-                        if rid and isInjectedRes(rid) then cch.equip.helmet = rid end
+                        if rid and isInjectedRes(rid) and getEquipSkinSlot(rid) == "helmet" then cch.equip.helmet = rid end
                     end
                     if bag.weapon_skin_list then
                         for weaponID, entry in pairs(bag.weapon_skin_list) do
@@ -2760,6 +2780,7 @@ local function _persistModOutfit(resID, insID)
 
         local _lastSyncClothesCache = 0
         local function syncClothesCacheFromLobby()
+            if not _G._addOutfitBootSyncDone then return end
             local now = 0
             pcall(function() now = os.clock() end)
             if (now - _lastSyncClothesCache) < 0.3 then return end  -- throttle: max ~3x per second
@@ -2821,10 +2842,13 @@ local function _persistModOutfit(resID, insID)
                             paraResID = d and tonumber(d.resID)
                         end
                         if paraResID and paraResID > 0 then
-                            cch.equip.parachute = paraResID
-                            cch.equip.parachuteIns = paraInsID
-                            MATCH_CONFIG.equip = MATCH_CONFIG.equip or {}
-                            MATCH_CONFIG.equip.parachute = paraResID
+                            local explicit = _G.AddOutfitExplicitEquip or {}
+                            if not explicit.parachute then
+                                cch.equip.parachute = paraResID
+                                cch.equip.parachuteIns = paraInsID
+                                MATCH_CONFIG.equip = MATCH_CONFIG.equip or {}
+                                MATCH_CONFIG.equip.parachute = paraResID
+                            end
                         end
                     end
                 end)
@@ -2842,10 +2866,13 @@ local function _persistModOutfit(resID, insID)
                             gliderResID = d and tonumber(d.resID)
                         end
                         if gliderResID and gliderResID > 0 then
-                            cch.equip.glider = gliderResID
-                            cch.equip.gliderIns = gliderInsID
-                            MATCH_CONFIG.equip = MATCH_CONFIG.equip or {}
-                            MATCH_CONFIG.equip.glider = gliderResID
+                            local explicit = _G.AddOutfitExplicitEquip or {}
+                            if not explicit.glider then
+                                cch.equip.glider = gliderResID
+                                cch.equip.gliderIns = gliderInsID
+                                MATCH_CONFIG.equip = MATCH_CONFIG.equip or {}
+                                MATCH_CONFIG.equip.glider = gliderResID
+                            end
                         end
                     end
                 end)
@@ -2853,6 +2880,7 @@ local function _persistModOutfit(resID, insID)
         end
 
         local function syncClothesCacheFromLive()
+            if not _G._addOutfitBootSyncDone then return end
             local cch = cache()
             pcall(function()
                 local AvatarData = require("client.logic.data.AvatarData")
@@ -2891,8 +2919,11 @@ local function _persistModOutfit(resID, insID)
                                 return d and tonumber(d.resID)
                             end)()
                         if paraResID and paraResID > 0 then
-                            cch.equip.parachute = paraResID
-                            cch.equip.parachuteIns = paraInsID
+                            local explicit = _G.AddOutfitExplicitEquip or {}
+                            if not explicit.parachute then
+                                cch.equip.parachute = paraResID
+                                cch.equip.parachuteIns = paraInsID
+                            end
                         end
                     end
                     local gliderInsID = tonumber(fashionbag_data:GetAircraftOrGliding())
@@ -2903,8 +2934,11 @@ local function _persistModOutfit(resID, insID)
                                 return d and tonumber(d.resID)
                             end)()
                         if gliderResID and gliderResID > 0 then
-                            cch.equip.glider = gliderResID
-                            cch.equip.gliderIns = gliderInsID
+                            local explicit = _G.AddOutfitExplicitEquip or {}
+                            if not explicit.glider then
+                                cch.equip.glider = gliderResID
+                                cch.equip.gliderIns = gliderInsID
+                            end
                         end
                     end
                 end)
@@ -2912,6 +2946,7 @@ local function _persistModOutfit(resID, insID)
         end
 
         local function syncThrowObjectCacheFromLobby()
+            if not _G._addOutfitBootSyncDone then return end
             local cch = cache()
             pcall(function()
                 local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
@@ -2931,7 +2966,13 @@ local function _persistModOutfit(resID, insID)
                             resID = d and tonumber(d.resID)
                         end
                         if resID and isInjectedRes(resID) then
-                            cch.throwObjects[subType] = { resID = resID, insID = insID }
+                            -- Validate that the subtype of the mapped resID matches the slot's expected subtype.
+                            -- This prevents stale insIDs from a previous session (which mapped to a random
+                            -- injected item in the new session) from silently changing a grenade to a hat or another grenade.
+                            local actualSt = tonumber(subType(cfg(resID)))
+                            if actualSt == subType then
+                                cch.throwObjects[subType] = { resID = resID, insID = insID }
+                            end
                         end
                     end
                 end
@@ -3087,9 +3128,16 @@ local function _persistModOutfit(resID, insID)
         end
 
         local function injectOne(entity, resID, insID)
-            if alreadyHave(entity, resID) then
-                R.resToIns[resID] = R.resToIns[resID] or insID
-                R.insToRes[insID] = resID
+              if alreadyHave(entity, resID) then
+                  -- This branch can also INSERT a new key (the `or insID`
+                  -- fallback), so the pool-generation bump has to happen here
+                  -- too -- otherwise the cached vehicle list would miss items
+                  -- added through this path.
+                  if R.resToIns[resID] == nil then
+                      _G.ChetanInjGen = (_G.ChetanInjGen or 0) + 1
+                  end
+                  R.resToIns[resID] = R.resToIns[resID] or insID
+                  R.insToRes[insID] = resID
                 pcall(function()
                     local data = entity.GetDataByInsID and entity:GetDataByInsID(R.resToIns[resID])
                     if data then ensureDepotTabFields(entity, data, resID) end
@@ -3106,10 +3154,14 @@ local function _persistModOutfit(resID, insID)
                     ensureDepotTabFields(entity, data, resID)
                 end
             end)
-            R.insToRes[insID] = resID
-            R.resToIns[resID] = insID
-            -- log("حقن", resID, insID)
-            return true
+              R.insToRes[insID] = resID
+              R.resToIns[resID] = insID
+              -- Bump the injected-pool generation so the cached vehicle "rest"
+              -- list (see collectInMatchVehicleSkins) is rebuilt once
+              -- injection actually grows the pool.
+              _G.ChetanInjGen = (_G.ChetanInjGen or 0) + 1
+              -- log("O-U,U+", resID, insID)
+              return true
         end
 
         local function injectArmory(resID, insID)
@@ -3426,6 +3478,8 @@ local function _persistModOutfit(resID, insID)
                 if MATCH_CONFIG.equip then MATCH_CONFIG.equip[slot] = 0 end
                 if slot == "parachute" and _G.AddOutfitExplicitEquip then
                     _G.AddOutfitExplicitEquip.parachute = nil
+                elseif slot == "glider" and _G.AddOutfitExplicitEquip then
+                    _G.AddOutfitExplicitEquip.glider = nil
                 end
                 handled = true
             elseif kind then
@@ -3951,9 +4005,14 @@ local function _persistModOutfit(resID, insID)
         local function restorePersistedHallTheme()
             if not _G._addOutfitPersistLoaded then return end
             local ins = tonumber(_G._savedHallThemeIns)
-            if not ins or ins <= 0 then return end
+            local res = tonumber(_G._savedHallThemeRes)
             later(2.5, function()
-                if isInjectedIns(ins) then putOnHallTheme(ins) end
+                local freshIns = res and R.resToIns[res]
+                if freshIns and isInjectedIns(freshIns) then
+                    putOnHallTheme(freshIns)
+                elseif ins and isInjectedIns(ins) then
+                    putOnHallTheme(ins)
+                end
             end)
         end
 
@@ -4487,8 +4546,9 @@ local function _persistModOutfit(resID, insID)
             local lwIns = (lw and tonumber(lw.insID)) or 0
             local lwRes = (lw and tonumber(lw.resID)) or 0
             if lwWid > 0 and lwRes > 0 then
-                local ins2 = (lwIns > 0 and isInjectedIns(lwIns)) and lwIns
-                    or (R.resToIns[lwRes] and isInjectedIns(R.resToIns[lwRes]) and R.resToIns[lwRes]) or 0
+                local freshIns = R.resToIns[lwRes]
+                local ins2 = (freshIns and isInjectedIns(freshIns) and freshIns)
+                    or (lwIns > 0 and isInjectedIns(lwIns) and lwIns) or 0
                 if ins2 > 0 then
                     flog("GUN", "lobby preview weapon=" .. lwWid .. " res=" .. lwRes .. " ins=" .. ins2)
                     scheduleApply(function() equipWeaponSkin(lwWid, ins2) end)
@@ -4502,10 +4562,11 @@ local function _persistModOutfit(resID, insID)
                         -- the one the game built itself). Without it the guard
                         -- treats an already-marked gun as done and the restored
                         -- skin never shows up.
-                        if entry.insID and isInjectedIns(entry.insID) then
+                        local freshIns = entry.resID and R.resToIns[entry.resID]
+                        if freshIns and isInjectedIns(freshIns) then
+                            equipWeaponSkin(weaponID, freshIns, true)
+                        elseif entry.insID and isInjectedIns(entry.insID) then
                             equipWeaponSkin(weaponID, entry.insID, true)
-                        elseif entry.resID and R.resToIns[entry.resID] and isInjectedIns(R.resToIns[entry.resID]) then
-                            equipWeaponSkin(weaponID, R.resToIns[entry.resID], true)
                         end
                     end)
                 end
@@ -4514,10 +4575,11 @@ local function _persistModOutfit(resID, insID)
                 local resID = cch.equip[slot]
                 local insID = cch.equip[slot .. "Ins"]
                 scheduleApply(function()
-                    if insID and isInjectedIns(insID) then
+                    local freshIns = resID and R.resToIns[resID]
+                    if freshIns and isInjectedIns(freshIns) then
+                        putOnEquipSkin(freshIns)
+                    elseif insID and isInjectedIns(insID) then
                         putOnEquipSkin(insID)
-                    elseif resID and R.resToIns[resID] then
-                        putOnEquipSkin(R.resToIns[resID])
                     end
                 end)
             end
@@ -4525,10 +4587,11 @@ local function _persistModOutfit(resID, insID)
                 for st, info in pairs(cch.throwObjects) do
                     local tInfo = info
                     scheduleApply(function()
-                        if tInfo.insID and isInjectedIns(tInfo.insID) then
+                        local freshIns = tInfo.resID and R.resToIns[tInfo.resID]
+                        if freshIns and isInjectedIns(freshIns) then
+                            putOnThrowObject(freshIns)
+                        elseif tInfo.insID and isInjectedIns(tInfo.insID) then
                             putOnThrowObject(tInfo.insID)
-                        elseif tInfo.resID and R.resToIns[tInfo.resID] and isInjectedIns(R.resToIns[tInfo.resID]) then
-                            putOnThrowObject(R.resToIns[tInfo.resID])
                         end
                     end)
                     -- Retry: the fashion bag is built by the game after our
@@ -4539,21 +4602,24 @@ local function _persistModOutfit(resID, insID)
                     -- saved, never visibly equipped.
                     for _, delay in ipairs({ 1.0, 2.5, 5.0 }) do
                         later(delay, function()
-                            if not tInfo or not tInfo.insID then return end
+                            if not tInfo then return end
+                            local freshIns = tInfo.resID and R.resToIns[tInfo.resID] or tInfo.insID
+                            if not freshIns then return end
                             pcall(function()
                                 local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
                                 local bag = fbd.GetCurrentFashionBag and fbd:GetCurrentFashionBag()
                                 if bag and bag.throw_object_list
-                                    and tonumber(bag.throw_object_list[st]) == tonumber(tInfo.insID) then
+                                    and tonumber(bag.throw_object_list[st]) == tonumber(freshIns) then
                                     return -- already correct, do not churn
                                 end
-                                putOnThrowObject(tInfo.insID)
+                                putOnThrowObject(freshIns)
                             end)
                         end)
                     end
                 end
             end
             later(math.max(applyStep * 0.12 + 0.3, 0.5), function()
+                _G._addOutfitBootSyncDone = true
                 syncMatchConfigFromCache()
                 pcall(_AutoSaveOutfit, true)
                 -- Release the boot-restore guard only after every scheduled
@@ -5775,10 +5841,13 @@ local function _persistModOutfit(resID, insID)
         end
 
         local function notify(msg)
-    if not DEBUG then return end
-    msg = "[AddOutfit] " .. tostring(msg)
-    log(msg:gsub("^%[AddOutfit%] ", ""))
-end
+            if not DEBUG or isInMatchOrGame() then return end
+            msg = "[AddOutfit] " .. tostring(msg)
+            log(msg:gsub("^%[AddOutfit%] ", ""))
+            pcall(function()
+                if ShowNotice then ShowNotice(msg, false, 10) end
+            end)
+        end
 
         local function getDesiredOutfit()
             if MATCH_CONFIG.outfitRes and tonumber(MATCH_CONFIG.outfitRes) > 0 then
@@ -6002,10 +6071,6 @@ end
         local STAB_FAST = 0.5
         local STAB_MAX  = 2.0
         local _stab = { next = 0, step = STAB_FAST, sig = nil, force = true }
-        local _extraAppliedComp = nil
-        local _extraAppliedSig = nil
-        local _extraApplied = {}
-        local EXTRA_REASSERT_INTERVAL = 15
 
         -- Deterministic signature of the desired cosmetic state. Iterated by
         -- numeric slot (not pairs) so key order can never change the result.
@@ -6157,11 +6222,6 @@ end
                 ac = char.CharacterAvatarComp2_BP
             end
             if not ac or not slua.isValid(ac) then return false end
-            if _extraAppliedComp ~= ac or _extraAppliedSig ~= stateSig then
-                _extraAppliedComp = ac
-                _extraAppliedSig = stateSig
-                _extraApplied = {}
-            end
 
             local applied = false
             local BackpackUtils = nil
@@ -6346,10 +6406,7 @@ end
             end
             for _, key in ipairs(extraKeys) do
                 local id = extraMap and extraMap[key]
-                local now = os.clock()
-                local lastApplied = _extraApplied[key]
-                if id and id > 0 and (not lastApplied or lastApplied.id ~= id
-                    or now - lastApplied.time >= EXTRA_REASSERT_INTERVAL) then
+                if id and id > 0 then
                     -- Every key is re-asserted under the same adaptive gate.
                     -- Pants/Shoes/Armor used to PutOn on EVERY 0.5s tick, which
                     -- rebuilt the character mesh and was the most visible part
@@ -6357,7 +6414,7 @@ end
                     pcall(function()
                         ac:PutOnCustomEquipmentByID(id)
                         applied = true
-                        _extraApplied[key] = { id = id, time = now }
+                        didWrite = true
                     end)
                 end
             end
@@ -6672,13 +6729,6 @@ end
                     pc.PlayerState.MetroPlayerStateAvatarFeature.InitialEquipmentAvatar = eq
                 end
             end)
-            local equipSig = table.concat({
-                tostring(eq.BagAvatar or 0), tostring(eq.HelmetAvatar or 0),
-                tostring(eq.ArmorAvatar or 0), tostring(eq.ParachuteAvatar or 0),
-                tostring(eq.GliderAvatar or 0),
-            }, ":")
-            local lastEquip = _G._AO_EQUIP_AVATAR_SIG
-            local changed = not lastEquip or lastEquip.pc ~= pc or lastEquip.sig ~= equipSig
             pcall(function()
                 local comp = char and char.CharacterAvatarComp2_BP
                 if slua.isValid(comp) and comp.GetEquipmentSkinItemID then
@@ -6696,16 +6746,13 @@ end
                     end
                 end
             end)
-            if changed then
-                _G._AO_EQUIP_AVATAR_SIG = { pc = pc, sig = equipSig }
-                pcall(function()
-                    if pc.OnEquipmentAvatarChange and pc.OnEquipmentAvatarChange.Broadcast then
-                        pc.OnEquipmentAvatarChange:Broadcast()
-                    end
-                end)
-                notify("معدات: خوذة=" .. tostring(eq.HelmetAvatar) .. " شنطة=" .. tostring(eq.BagAvatar))
-            end
-            return changed
+            pcall(function()
+                if pc.OnEquipmentAvatarChange and pc.OnEquipmentAvatarChange.Broadcast then
+                    pc.OnEquipmentAvatarChange:Broadcast()
+                end
+            end)
+            notify("معدات: خوذة=" .. tostring(eq.HelmetAvatar) .. " شنطة=" .. tostring(eq.BagAvatar))
+            return true
         end
 
         local function hookEquipMapping()
@@ -6990,6 +7037,133 @@ end
             return wearing
         end
 
+        -- ============================================================
+        -- Airborne support: parachute (slot 11) + glider (slot 15)
+        -- ============================================================
+        --
+        -- Both need THREE things to be visible in a match, and V1 was only
+        -- doing part of the first:
+        --   1. patch SlotSyncData so the replicated item id matches
+        --   2. PutOnCustomEquipmentByID so the MESH actually builds
+        --   3. push the instID into DataMgr.roleData / fashionbag_data, which
+        --      is what the aircraft-spawn and canopy-open logic actually read.
+        -- Missing (2) gave "parachute exists but is invisible"; missing (3)
+        -- gave "glider never comes".
+
+        -- NOTE: these live in ONE upvalue table, not as separate `local`s.
+        -- The enclosing closure is already at Lua's hard 200-local limit, so
+        -- adding named locals here is a compile error, not a style choice.
+
+        -- Mirror of V2's F.isCharacterAirborne.
+        local AIR = {}
+        AIR.airborne = function(char)
+            if not char or not slua.isValid(char) then return false end
+            local ok, r = pcall(function()
+                local EParachuteState = import("EParachuteState")
+                local st = char.ParachuteState
+                return st ~= nil and st ~= EParachuteState.PS_None
+            end)
+            return ok and r == true
+        end
+
+        -- Mirror of V2's F.resolveInsForRes: resID -> instID.
+        -- The airborne systems want the instID, not the cosmetic resID.
+        AIR.insForRes = function(resID)
+            resID = tonumber(resID)
+            if not resID or resID <= 0 then return nil end
+            local R = getR()
+            if R and R.resToIns and R.resToIns[resID] then return R.resToIns[resID] end
+            local ins
+            pcall(function()
+                local wd = require("client.slua.logic.wardrobe.wardrobe_data")
+                local list = wd.GetHallDepotItemListByResID and wd:GetHallDepotItemListByResID(resID)
+                if list then
+                    for _, v in pairs(list) do
+                        local id = tonumber(v.insID or v.instid or v.ins_id)
+                        if id and id > 0 then ins = id break end
+                    end
+                end
+                if not ins then
+                    local d = wd.GetValidHallDepotItemDataByInsID and wd:GetValidHallDepotItemDataByInsID(resID)
+                        or (wd.GetHallDepotItemDataByResID and wd:GetHallDepotItemDataByResID(resID))
+                    if d then ins = tonumber(d.insID or d.instid or d.ins_id) end
+                end
+            end)
+            return ins
+        end
+
+        -- Mirror of V2's F.syncAirborneToDataMgr.
+        -- Throttled: it runs from the 0.5s match tick, but these values only
+        -- change on a wardrobe swap, so there is no reason to rewrite DataMgr
+        -- every tick.
+        AIR.lastSync = 0
+        AIR.key = nil
+        AIR.syncDataMgr = function(force)
+            local now = nowClock()
+            if not force and (now - AIR.lastSync) < 2.0 then return end
+            AIR.lastSync = now
+
+            local cch = cache()
+            local paraRes = tonumber(cch.equip.parachute) or 0
+            local gliderRes = tonumber(cch.equip.glider) or 0
+            if paraRes <= 0 and gliderRes <= 0 then return end
+
+            local paraIns = tonumber(cch.equip.parachuteIns) or AIR.insForRes(paraRes) or 0
+            local gliderIns = tonumber(cch.equip.gliderIns) or AIR.insForRes(gliderRes) or 0
+            if paraIns > 0 then cch.equip.parachuteIns = paraIns end
+            if gliderIns > 0 then cch.equip.gliderIns = gliderIns end
+
+            local key = tostring(paraIns) .. ":" .. tostring(gliderIns)
+            if key == AIR.key and not force then return end
+            AIR.key = key
+
+            pcall(function()
+                local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
+                if paraIns > 0 then
+                    if fbd.SetParachute then fbd:SetParachute(paraIns) end
+                    if DataMgr and DataMgr.roleData then
+                        DataMgr.roleData.parachute = tostring(paraIns)
+                    end
+                end
+                if gliderIns > 0 then
+                    -- IsGlideSmoke splits "aircraft" rigs from parachute-style
+                    -- gliders; the two use different DataMgr fields.
+                    local bAircraft = false
+                    pcall(function()
+                        local MDH = require("client.logic.avatar.ModelDisplayTypeHelper")
+                        bAircraft = not MDH.IsGlideSmoke(tonumber(cfg(gliderRes).ItemSubType))
+                    end)
+                    if fbd.UpdateAircraftOrGliding then
+                        fbd:UpdateAircraftOrGliding(gliderIns, bAircraft)
+                    elseif fbd.SetGliding then
+                        fbd:SetGliding(gliderIns)
+                        if DataMgr and DataMgr.UpdateEffect then DataMgr.UpdateEffect(gliderIns) end
+                    end
+                    if DataMgr and DataMgr.roleData then
+                        if bAircraft then
+                            DataMgr.roleData.aircraft_put_id = tostring(gliderIns)
+                            DataMgr.gliding = gliderIns
+                        else
+                            DataMgr.roleData.gliding = tostring(gliderIns)
+                        end
+                    end
+                end
+            end)
+        end
+
+        -- Dirty flags: set when a slot write lands, cleared once the mesh is
+        -- actually built. Prevents repeating PutOnCustomEquipmentByID (full
+        -- mesh rebuild) on every tick.
+        AIR.paraDirty = false
+        AIR.paraRes = nil
+        AIR.gliderDirty = false
+        AIR.gliderRes = nil
+        -- Last resID we successfully equipped on comp. The parachute/glider
+        -- blocks skip PutOnCustomEquipmentByID entirely when the desired id
+        -- still matches, so a steady-state match does zero mesh rebuilds.
+        AIR.paraApplied = nil
+        AIR.gliderApplied = nil
+
         local _lastMatchApplyEquip = 0
         local function matchApplyEquipSkins(char)
             local now = 0
@@ -7026,31 +7200,32 @@ end
                 end
             end
 
-            _G._AO_SPECIAL_EQUIP_CACHE = _G._AO_SPECIAL_EQUIP_CACHE or {}
-            local specialCache = _G._AO_SPECIAL_EQUIP_CACHE
-            if specialCache.comp ~= comp then
-                specialCache.comp = comp
-                specialCache.items = {}
-            end
-            specialCache.items = specialCache.items or {}
-            local nowSpecial = os.clock()
-            if cch.equip.parachute and cch.equip.parachute > 0
-                and (not specialCache.items.parachute
-                    or specialCache.items.parachute.id ~= cch.equip.parachute
-                    or nowSpecial - specialCache.items.parachute.time >= 15) then
-                if isWearingEquip(char, "parachute") then
-                    local paraResID = cch.equip.parachute
+            -- Parachute (slot 11).
+            --
+            -- Three bugs were here:
+            --  * `if isWearingEquip(char, "parachute")` -- that helper reads
+            --    slot 11 and returns false when the server has NO parachute,
+            --    so the mod refused to equip anything and the player kept the
+            --    game default. Removed: a modded parachute must be able to
+            --    fill an empty slot.
+            --  * `if not ok then` tested the SHARED `ok` flag. Helmet/bag
+            --    succeeding above set it true, which skipped this fallback.
+            --    Each block now owns its own local flag.
+            --  * PutOnCustomEquipmentByID ran UNCONDITIONALLY on every 0.5s
+            --    tick. It is a full mesh rebuild, so this both stuttered and
+            --    fought the server's own equip replication. Now gated on the
+            --    desired resID changing.
+            if cch.equip.parachute and cch.equip.parachute > 0 then
+                local paraResID = cch.equip.parachute
+                if AIR.paraApplied ~= paraResID then
+                    local paraOK = false
                     pcall(function()
                         if comp.PutOnCustomEquipmentByID then
                             local r = comp:PutOnCustomEquipmentByID(paraResID)
-                            if isApplySuccess(r) then
-                                ok = true
-                                specialCache.items.parachute = { id = paraResID, time = nowSpecial }
-                                notify("براشوت ماتش OK " .. tostring(paraResID))
-                            end
+                            if isApplySuccess(r) then paraOK = true end
                         end
                     end)
-                    if not ok then
+                    if not paraOK then
                         pcall(function()
                             local _it = 4
                             pcall(function()
@@ -7058,45 +7233,55 @@ end
                                 _it = cc and tonumber(cc.ItemType or cc.itemType) or 4
                             end)
                             local r = comp:HandleEquipItem(FItemDefineID(_it, paraResID), FAvatarCustomDefault())
-                            if isApplySuccess(r) then
-                                ok = true
-                                notify("براشوت ماتش OK " .. tostring(paraResID))
-                            end
+                            if isApplySuccess(r) then paraOK = true end
                         end)
+                    end
+                    if paraOK then
+                        ok = true
+                        AIR.paraApplied = paraResID
+                        AIR.paraDirty = true
+                        AIR.paraRes = paraResID
+                        flog("MATCH", "parachute-puton res=" .. tostring(paraResID))
                     end
                 end
             end
 
-            if cch.equip.glider and cch.equip.glider > 0
-                and (not specialCache.items.glider
-                    or specialCache.items.glider.id ~= cch.equip.glider
-                    or nowSpecial - specialCache.items.glider.time >= 15) then
+            -- Glider (slot 15). Same three bugs, same fix.
+            if cch.equip.glider and cch.equip.glider > 0 then
                 local gliderResID = cch.equip.glider
-                pcall(function()
-                    if comp.PutOnCustomEquipmentByID then
-                        local r = comp:PutOnCustomEquipmentByID(gliderResID)
-                        if isApplySuccess(r) then
-                            ok = true
-                            specialCache.items.glider = { id = gliderResID, time = nowSpecial }
-                            notify("جلايدر ماتش OK " .. tostring(gliderResID))
-                        end
-                    end
-                end)
-                if not ok then
+                if AIR.gliderApplied ~= gliderResID then
+                    local gliderOK = false
                     pcall(function()
-                        local _it = 4
-                        pcall(function()
-                            local cc = cfg(gliderResID)
-                            _it = cc and tonumber(cc.ItemType or cc.itemType) or 4
-                        end)
-                        local r = comp:HandleEquipItem(FItemDefineID(_it, gliderResID), FAvatarCustomDefault())
-                        if isApplySuccess(r) then
-                            ok = true
-                            notify("جلايدر ماتش OK " .. tostring(gliderResID))
+                        if comp.PutOnCustomEquipmentByID then
+                            local r = comp:PutOnCustomEquipmentByID(gliderResID)
+                            if isApplySuccess(r) then gliderOK = true end
                         end
                     end)
+                    if not gliderOK then
+                        pcall(function()
+                            local _it = 4
+                            pcall(function()
+                                local cc = cfg(gliderResID)
+                                _it = cc and tonumber(cc.ItemType or cc.itemType) or 4
+                            end)
+                            local r = comp:HandleEquipItem(FItemDefineID(_it, gliderResID), FAvatarCustomDefault())
+                            if isApplySuccess(r) then gliderOK = true end
+                        end)
+                    end
+                    if gliderOK then
+                        ok = true
+                        AIR.gliderApplied = gliderResID
+                        AIR.gliderDirty = true
+                        AIR.gliderRes = gliderResID
+                        flog("MATCH", "glider-puton res=" .. tostring(gliderResID))
+                    end
                 end
             end
+
+            -- Push instIDs into DataMgr/fashionbag BEFORE the jump. This is the
+            -- step V1 never had at all, and it is what makes the aircraft spawn.
+            -- Self-throttling: only re-writes when the instIDs actually change.
+            AIR.syncDataMgr()
 
             -- حدّث PlayerController بعد تطبيق السكنات (مش قبل، عشان نتجنب circular dependency)
             applyMatchEquipAvatarToController()
@@ -7170,23 +7355,53 @@ end
                         end
                     end
 
-                    -- براشوت - SlotID 11 (ParachuteEquipemtSlot)
-                    if slotID == 11 and NDRid ~= 0 and cch.equip.parachute and cch.equip.parachute > 0 then
+                    -- Parachute - SlotID 11 (ParachuteEquipemtSlot)
+                    if slotID == 11 and cch.equip.parachute and cch.equip.parachute > 0 then
                         local paraResID = cch.equip.parachute
                         if NDRid ~= paraResID then
                             AvatarSynData.ItemID = paraResID
+                            if AvatarSynData.ItemId ~= nil then AvatarSynData.ItemId = paraResID end
                             slua.IndexReference(NetAvatarData, "SlotSyncData"):Set(Index, AvatarSynData)
                             ok = true
+                            AIR.paraDirty = true
+                            AIR.paraRes = paraResID
                         end
                     end
 
-                    -- جلايدر - SlotID 15 (GlideEquipmtSlot)
-                    if slotID == 15 and NDRid ~= 0 and cch.equip.glider and cch.equip.glider > 0 then
+                    -- Glider - SlotID 15 (GlideEquipmtSlot)
+                    if slotID == 15 and cch.equip.glider and cch.equip.glider > 0 then
                         local gliderResID = cch.equip.glider
                         if NDRid ~= gliderResID then
                             AvatarSynData.ItemID = gliderResID
+                            if AvatarSynData.ItemId ~= nil then AvatarSynData.ItemId = gliderResID end
                             slua.IndexReference(NetAvatarData, "SlotSyncData"):Set(Index, AvatarSynData)
                             ok = true
+                            AIR.gliderDirty = true
+                            AIR.gliderRes = gliderResID
+                        end
+                    end
+                end
+
+                -- The `NDRid ~= 0` guard that used to sit on both branches above
+                -- was wrong: slots 11/15 are simply ABSENT from SlotSyncData
+                -- until the server sends them, so the loop only ever patched an
+                -- entry that already existed. With no entry, the parachute stayed
+                -- at the game default and the glider never spawned.
+
+                -- Writing ItemID is also not enough to build the mesh --
+                -- PutOnCustomEquipmentByID is what actually equips the canopy /
+                -- glider rig, and it is why the parachute could go invisible.
+                -- Only while airborne, and only when a write actually landed,
+                -- so this does not repeat a full mesh rebuild every tick.
+                if AIR.paraDirty or AIR.gliderDirty then
+                    if AIR.airborne(char) and comp.PutOnCustomEquipmentByID then
+                        if AIR.paraDirty then
+                            pcall(function() comp:PutOnCustomEquipmentByID(AIR.paraRes) end)
+                            AIR.paraDirty = false
+                        end
+                        if AIR.gliderDirty then
+                            pcall(function() comp:PutOnCustomEquipmentByID(AIR.gliderRes) end)
+                            AIR.gliderDirty = false
                         end
                     end
                 end
@@ -7340,17 +7555,6 @@ end
                 if info.resID and info.resID > 0 then hasThrow = true break end
             end
             if not hasThrow then return false end
-            local sig = {}
-            for _, st in ipairs({ 612, 613, 614, 615 }) do
-                local info = cch.throwObjects[st]
-                sig[#sig + 1] = tostring(st) .. ":" .. tostring(info and info.resID or 0)
-            end
-            sig = table.concat(sig, ",")
-            local prev = _G._AO_GRENADE_APPLIED
-            local now = os.clock()
-            if prev and prev.pc == pc and prev.sig == sig and now - prev.time < 15 then
-                return false
-            end
             pcall(function()
                 if pc.AddToGrenadeAvatarItemList then
                     for st, info in pairs(cch.throwObjects) do
@@ -7401,7 +7605,6 @@ end
                     end
                 end
             end)
-            _G._AO_GRENADE_APPLIED = { pc = pc, sig = sig, time = now }
             return true
         end
 
@@ -9706,17 +9909,6 @@ end
                 log("applyMatchThrowObjects: throwObjects cache empty")
                 return false
             end
-            local sig = {}
-            for _, st in ipairs({ 612, 613, 614, 615 }) do
-                local info = cch.throwObjects[st]
-                sig[#sig + 1] = tostring(st) .. ":" .. tostring(info and info.resID or 0)
-            end
-            sig = table.concat(sig, ",")
-            local prev = _G._AO_THROW_LIST_APPLIED
-            local now = os.clock()
-            if prev and prev.pc == pc and prev.sig == sig and now - prev.time < 15 then
-                return false
-            end
             local applied = false
             pcall(function()
                 -- Try setting InitialConsumableAvatar fields (works if Lua table reference)
@@ -9743,7 +9935,6 @@ end
                     end
                 end
             end)
-            _G._AO_THROW_LIST_APPLIED = { pc = pc, sig = sig, time = now }
             return applied
         end
 
@@ -9831,6 +10022,10 @@ end
         -- ========== تطبيق سكن السيارة داخل الجيم ==========
         -- مكافئ Lua لكود C++ الذي يطبق سكن السيارة عند ركوب نوع السيارة المطابق
         local _lastVehicleSkinKey = ""
+        -- Timestamp + key of the last vehicle-list sync, so the rebuild only
+        -- runs when the vehicle/avatar changed or a 5s backstop expires.
+        local _lastVehSyncAt = 0
+        local _lastVehSyncKey = nil
 
         local function applyVehicleSkinInGame()
             local char = getLocalChar()
@@ -9839,9 +10034,10 @@ end
             local vehicle = char.GetCurrentVehicle and char:GetCurrentVehicle()
             if not vehicle or not slua.isValid(vehicle) then
                 _lastVehicleSkinKey = ""
+                _lastVehSyncAt = 0
+                _lastVehSyncKey = nil
                 return
             end
-            pcall(syncVehicleAvatarSkinList)
 
             local avatarComp = vehicle.GetAvatarComponent and vehicle:GetAvatarComponent()
             if not avatarComp or not slua.isValid(avatarComp) then return end
@@ -9849,11 +10045,28 @@ end
             local defaultAvatarID = avatarComp.GetDefaultAvatarID and avatarComp:GetDefaultAvatarID()
             if not defaultAvatarID or defaultAvatarID == 0 then return end
 
-            local currentAvatarID = avatarComp.GetCurrentAvatarID and avatarComp:GetCurrentAvatarID()
+            local currentAvatarID = avatarComp.GetCurrentAvatarID and avatarComp.GetCurrentAvatarID and avatarComp:GetCurrentAvatarID()
 
             -- تجنب إعادة التطبيق على نفس السيارة بنفس السكن
             local cacheKey = tostring(vehicle) .. "_" .. tostring(defaultAvatarID) .. "_" .. tostring(currentAvatarID)
-            if cacheKey == _lastVehicleSkinKey then return end
+            local vehicleChanged = (cacheKey ~= _lastVehicleSkinKey)
+            if vehicleChanged then _lastVehicleSkinKey = cacheKey end
+
+            -- The list rebuild used to sit ABOVE this early-out, so it ran on
+            -- every 2s pass even when nothing about the vehicle had changed.
+            -- It now runs when the vehicle/avatar actually changed, plus a 5s
+            -- backstop so a skin selection change or a late injection is still
+            -- picked up while parked in the same vehicle.
+            local nowV = 0
+            pcall(function() nowV = os.clock() end)
+            if vehicleChanged or _lastVehSyncKey ~= cacheKey
+                or _lastVehSyncAt == nil or (nowV - _lastVehSyncAt) >= 5.0 then
+                _lastVehSyncAt = nowV
+                _lastVehSyncKey = cacheKey
+                pcall(syncVehicleAvatarSkinList)
+            end
+
+            if not vehicleChanged then return end
 
             -- الحصول على itemSubType للسيارة الحالية من جدول Item
             local vehicleSubType = 0
@@ -10253,8 +10466,10 @@ end
                                 end
                                 avatarComp:ChangeItemAvatar(resID, true)
                                 avatarComp.CanChangeAvatar = true
-                                _lastVehicleSkinKey = ""
-                                print("[AddOutfit] Vehicle skin changed locally to " .. tostring(resID))
+                                  _lastVehicleSkinKey = ""
+                                  _lastVehSyncAt = 0
+                                  _lastVehSyncKey = nil
+                                  print("[AddOutfit] Vehicle skin changed locally to " .. tostring(resID))
                                 pcall(applyVehicleChassisLight)
                             end
                         end
@@ -10290,8 +10505,10 @@ end
                             end
                             avatarComp:ChangeItemAvatar(self.resID, true)
                             avatarComp.CanChangeAvatar = true
-                            _lastVehicleSkinKey = ""
-                            print("[AddOutfit] VehicleSkinItem applied skin locally " .. tostring(self.resID))
+                              _lastVehicleSkinKey = ""
+                              _lastVehSyncAt = 0
+                              _lastVehSyncKey = nil
+                              print("[AddOutfit] VehicleSkinItem applied skin locally " .. tostring(self.resID))
                             pcall(applyVehicleChassisLight)
                         end)
                     end
@@ -10360,14 +10577,27 @@ end
         -- skins that were really selected.
         local VEHICLE_MIN_SUBTYPE = 900
 
+        -- Memoized. This was uncached, and the vehicle sync walks EVERY entry of
+        -- R.resToIns on each pass (thousands of injected items), so the old
+        -- version paid a pcall + a closure + a GetTableData lookup per item
+        -- every couple of seconds -- that was the freeze. ItemSubType for a
+        -- given resID never changes at runtime, so caching is safe.
+        -- Note: st can legitimately be 0, and 0 is truthy in Lua, so this
+        -- caches misses correctly too.
+        local _subTypeCache = {}
         local function resSubType(resID)
-            local st = nil
+            resID = tonumber(resID)
+            if not resID then return 0 end
+            local st = _subTypeCache[resID]
+            if st then return st end
+            st = 0
             pcall(function()
                 local cc = CDataTable and CDataTable.GetTableData
                     and CDataTable.GetTableData("Item", resID)
-                st = cc and tonumber(cc.ItemSubType or cc.itemSubType)
+                st = cc and tonumber(cc.ItemSubType or cc.itemSubType) or 0
             end)
-            return st or 0
+            _subTypeCache[resID] = st
+            return st
         end
 
         -- Rarity is ItemQuality on the Item config row. ItemMacros.lua enum:
@@ -10388,13 +10618,23 @@ end
             return q
         end
 
+        local _wdMod = nil
         local function insToResID(insID)
             insID = tonumber(insID)
             if not insID or insID <= 0 then return 0 end
             if isInjectedIns(insID) then return R.insToRes[insID] or 0 end
+            -- Cached module handle: this ran a require() per selected insID on
+            -- every vehicle sync pass.
+            if _wdMod == nil then
+                pcall(function()
+                    local ok, wd = pcall(require, "client.slua.logic.wardrobe.wardrobe_data")
+                    if ok then _wdMod = wd end
+                end)
+            end
             local resID = 0
             pcall(function()
-                local wd = require("client.slua.logic.wardrobe.wardrobe_data")
+                local wd = _wdMod
+                if not wd then return end
                 local d = wd:GetHallDepotItemDataByInsID(insID)
                 resID = d and tonumber(d.resID) or 0
             end)
@@ -10403,6 +10643,11 @@ end
 
         -- Returns the lobby-selected resIDs (stable order) and every other
         -- vehicle skin, de-duplicated.
+        -- The "unlocked rest" list only changes when the injected pool grows,
+        -- so it is cached against _G.ChetanInjGen (bumped by injectOne) instead
+        -- of being rebuilt on every pass. Rebuilding meant re-walking all of
+        -- R.resToIns and re-running the rarity sort each time.
+        local _vehAllCache = nil
         local function collectInMatchVehicleSkins()
             local selected, seen = {}, {}
             local subOrder = {}
@@ -10422,19 +10667,34 @@ end
                     end
                 end
             end
-            local all = {}
-            for resID in pairs(R.resToIns or {}) do
-                resID = tonumber(resID)
-                if resID and resID > 0 and not seen[resID]
-                    and resSubType(resID) >= VEHICLE_MIN_SUBTYPE then
-                    all[#all + 1] = resID
+            -- Walked in priority order (subtype asc, then rarity desc, then
+            -- resID asc) so the panel shows the chosen skins first inside every
+            -- vehicle group. Cached: VehicleSlotList is small, this is not.
+            local gen = _G.ChetanInjGen or 0
+            local all = _vehAllCache and _vehAllCache.gen == gen and _vehAllCache.all or nil
+            if not all then
+                all = {}
+                for resID in pairs(R.resToIns or {}) do
+                    resID = tonumber(resID)
+                    if resID and resID > 0 and resSubType(resID) >= VEHICLE_MIN_SUBTYPE then
+                        all[#all + 1] = resID
+                    end
                 end
+                table.sort(all, function(a, b)
+                    local qa, qb = resQuality(a), resQuality(b)
+                    if qa ~= qb then return qa > qb end
+                    return a < b
+                end)
+                _vehAllCache = { gen = gen, all = all }
             end
-            table.sort(all, function(a, b)
-                local qa, qb = resQuality(a), resQuality(b)
-                if qa ~= qb then return qa > qb end
-                return a < b
-            end)
+            -- Drop anything the player has since selected out of the rest list.
+            if #seen > 0 then
+                local filtered = {}
+                for i = 1, #all do
+                    if not seen[all[i]] then filtered[#filtered + 1] = all[i] end
+                end
+                return selected, filtered
+            end
             return selected, all
         end
 
@@ -10512,8 +10772,23 @@ end
                 _vehListCache = { key = selKey, data = vehicleSkinData }
             end
             if pc.InitVehicleAvatarSkinList and _vehListCache and #_vehListCache.data > 0 then
-                pc.InitialVehicleAvatarSkinList = _vehListCache.data
-                pcall(function() pc:InitVehicleAvatarSkinList() end)
+                -- Re-initialising rebuilds the whole vehicle avatar list, so it
+                -- only runs when the content actually changed. The old code did
+                -- this on EVERY pass even when selKey was identical, which is a
+                -- second source of the periodic hitch. 30s backstop covers late
+                -- arrivals (skins injected after this first ran) so the list
+                -- never stays stale for long.
+                local nowI = 0
+                pcall(function() nowI = os.clock() end)
+                local keyChanged = (_G._chetanVehInitKey ~= selKey)
+                local dueBackstop = (_G._chetanVehInitAt == nil)
+                        or (nowI - _G._chetanVehInitAt) >= 30.0
+                if keyChanged or dueBackstop then
+                    _G._chetanVehInitKey = selKey
+                    _G._chetanVehInitAt = nowI
+                    pc.InitialVehicleAvatarSkinList = _vehListCache.data
+                    pcall(function() pc:InitVehicleAvatarSkinList() end)
+                end
             end
             injectSelectedVehicleSkins(pc, selected, tostring(pc) .. "#" .. selKey)
         end
@@ -11954,6 +12229,30 @@ end)
             end)
         end
 
+        -- Free-file notice: shown once per session. Same Msg API and JOIN link
+        -- as the HACK build so both payloads carry the same owner message.
+        local function ShowCHETANPromo()
+            if _G._CHETAN_PromoShown then return end
+            _G._CHETAN_PromoShown = true
+            pcall(function()
+                local Msg = require("client.slua.logic.common.logic_common_msg_box")
+                if not Msg or type(Msg.Show) ~= "function" then return end
+                local title = "CHETAN_BABA"
+                local content = "THIS FILE IS 100% FREE\n\n"
+                    .. "If you have PAID for this file, you have been SCAMMED.\n"
+                    .. "It is free for everyone, always.\n\n"
+                    .. "MADE BY @CHETAN_BABA\n"
+                    .. "Join Telegram @CHETAN_BABA for updates and support.\n"
+                    .. "https://t.me/CHETAN_MODS"
+                local function OpenChannel()
+                    pcall(function()
+                        local Web = require("client.slua.logic.url.logic_webview_sdk")
+                        if Web and Web.OpenURL then Web:OpenURL("https://t.me/CHETAN_MODS") end
+                    end)
+                end
+                Msg.Show(1, title, content, OpenChannel, function() end, "JOIN CHANNEL", "CONTINUE")
+            end)
+        end
 
         local function start()
             log("AddOutfit Merged start")
@@ -12034,6 +12333,7 @@ end)
                 end
             end)
 
+            pcall(ShowCHETANPromo)
         end
 
         hookBackpackValid()
@@ -12370,7 +12670,16 @@ end)
                             if _timeCount % 10 == 0 then
                                 pcall(tickEliminationKingEffect)
                                 pcall(applyVehicleChassisLight)
-                                pcall(syncVehicleAvatarSkinList)
+                                -- Only worth doing when actually driving: this used
+                                -- to run on foot too, where the whole vehicle
+                                -- skin-list rebuild was pure waste every 5s.
+                                pcall(function()
+                                    local vch = getLocalChar()
+                                    local veh = vch and vch.GetCurrentVehicle and vch:GetCurrentVehicle()
+                                    if veh and slua.isValid(veh) then
+                                        syncVehicleAvatarSkinList()
+                                    end
+                                end)
                             end
                             -- Deadbox skin often — every 2 ticks (~1s) so the skin
                             -- lands before the box is looted / component is ready
@@ -12686,8 +12995,8 @@ end)
         if featOn("killcounter") and _G.ForceEnableKillCounterUI then pcall(_G.ForceEnableKillCounterUI) end
 
         log("AddOutfit Merged loaded")
+        notify("السكربت جاهز")
     end)
     if not _ao_ok then
         print("[AddOutfit] LOAD ERROR:", tostring(_ao_err))
     end
-
