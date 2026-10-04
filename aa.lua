@@ -1097,7 +1097,7 @@ function _G.InitModMenuTab()
             }
         }
         
-        table.insert(SettingCatalog, 0, SettingPageDefine.ModMenu)
+        table.insert(SettingCatalog, 1, SettingPageDefine.ModMenu)
     end
 
     local UIManager = _G.UIManager
@@ -5828,9 +5828,10 @@ local function MainLoop()
     local localPlayer = nil
     if Valid(pc) then localPlayer = pc:GetPlayerCharacterSafety() end 
 
-    -- XÓA SẠCH SÀNH SANH RÁC KHỎI RAM KHI BẠN CHẾT, ĐỔI MAP, VÀO SẢNH
+    if _G.LexusConfig.UnlockFPS then InitializeGraphicsUnlock() end
+    InitializeNativeESP()
+    ShowLexusVIPMenu()
     if not Valid(localPlayer) then 
-        -- [THÊM MỚI] Dọn dẹp rác của ESP Loại 9
         if _G.PlayerMapMarker and type(_G.PlayerMapMarker.Stop) == "function" then
             _G.PlayerMapMarker.Stop()
         end
@@ -5877,11 +5878,8 @@ local function MainLoop()
     pcall(function() Cached_SecurityCommonUtils = require("GameLua.Mod.BaseMod.Common.Security.SecurityCommonUtils") end)
     local Cached_MyHUD = pc and pc.MyHUD or nil
 
-    if _G.LexusConfig.UnlockFPS then InitializeGraphicsUnlock() end
-    InitializeNativeESP()
-    ShowLexusVIPMenu()
     
-    -- [GỌI LOGIC ESP ITEM VÀ VEHICLE VÀO VÒNG LẶP]
+
     if _G.LexusConfig.WallVehicle or _G.LexusConfig.EspItem_Master then
         _G.RunOptimizedItemAndVehicleESP(pc)
     end
