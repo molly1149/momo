@@ -1097,7 +1097,7 @@ function _G.InitModMenuTab()
             }
         }
         
-        table.insert(SettingCatalog, 1, SettingPageDefine.ModMenu)
+        table.insert(SettingCatalog, 0, SettingPageDefine.ModMenu)
     end
 
     local UIManager = _G.UIManager
