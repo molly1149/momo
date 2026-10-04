@@ -859,12 +859,12 @@ function _G.InitModMenuTab()
     
     -- 1. TẠO BẢNG ID ẢO VỚI TEXT MỚI (Hỗ trợ 2 ngôn ngữ)
     local FakeTextMap = {
-        [999000] = T(" MOD FREE Cẩn Thận Bị Lừa Mod Chủ Quyền Zalo  Telegram", "DUNG'S MOD Zalo  Telegram"),
-        [999001] = T("HIỂN THỊ (ESP) TELE  ZALO ", "VISUALS (ESP) TELE "),
-        [999002] = T("AIMBOT GỐC & ĐẠN TELE ", "NATIVE AIMBOT & BULLET TRACK"),
+        [999000] = T(" MOD FREE Cẩn Thận Bị Lừa Mod Chủ Quyền", "MOD "),
+        [999001] = T("HIỂN THỊ (ESP)  ", "VISUALS (ESP)  "),
+        [999002] = T("AIMBOT GỐC & ĐẠN  ", "NATIVE AIMBOT & BULLET TRACK"),
         [999003] = T("AIMBOT ROYAL - CUSTOM ( Aim Gần - Aim Scope )", "CUSTOM AIMBOT (Close & Scope)"),
-        [999004] = T("HỖ TRỢ & ĐỒ HỌA TELE  ZALO ", "SUPPORT & GRAPHICS TELE "),
-        [999006] = T("ESP V2 (BẢN VIP) TELE ", "ESP V2 (VIP) TELE ")
+        [999004] = T("HỖ TRỢ & ĐỒ HỌA ", "SUPPORT & GRAPHICS "),
+        [999006] = T("ESP V2 (BẢN VIP)", "ESP V2 (VIP)  ")
     }
 
     -- 2. HOOK TOÀN BỘ HÀM ĐỌC TEXT CỦA GAME (FIX LỖI TRỐNG THANH TAB)
@@ -1970,7 +1970,7 @@ _G.AimTouch = function()
                 isSniper = true
             end
 
-            if wName:lower():find("mortar") or wName:lower():find("cối") then
+            if wName:lower():find("mortar") or wName:lower():find("迫击炮") then
                 isMortar = true
             end
             
