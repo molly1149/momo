@@ -1322,63 +1322,75 @@ local function InitializeGraphicsUnlock()
     Notify("Graphics & FPS 165Hz Unlocked (Upgraded Version)")
 end
 
-local function InitializeNativeESP()
-    if _G.LexusState.NativeESPReady then return end
-    pcall(function()
-        local GamePlayTools = require("GameLua.Mod.BaseMod.Common.GamePlayTools")
-        local function ApplyCfg()
-            local cfg = GamePlayTools.GetCurrentConfig("ScreenMarkConfig")
-            if not cfg then return false end
-            cfg[1006] = cfg[1006] or {}
-            cfg[1006].bBindBlocked = true
-            cfg[1006].bBindOutScreen = true
-            cfg[1006].MaxWidgetNum = 99
-            cfg[1006].MaxShowDistance = 6000000
-            cfg[1006].bScaleByDistance = false
-            cfg[1006].BindSocketName = "root"
-            cfg[1006].bUseLuaWorldSocketName = true
-            cfg[1006].WorldPositionOffset = FVector(0, 0, -30)
+-- ========================================== 
+-- KHỞI TẠO HỆ THỐNG ESP (GỐC)
+-- ========================================== 
+local function InitializeNativeESP() 
+    local configVersion = 2
+    if _G.LexusState.NativeESPReady and _G.LexusState.NativeESPConfigVersion == configVersion then return end
+    local now = os.clock()
+    if _G.LexusState.NativeESPNextRetry and now < _G.LexusState.NativeESPNextRetry then return end
+    _G.LexusState.NativeESPNextRetry = now + 1.0
 
-            cfg[8888] = {
+    local ok, configured = pcall(function() 
+        local GamePlayTools = require("GameLua.Mod.BaseMod.Common.GamePlayTools") 
+        local currentMarkCfg = GamePlayTools.GetCurrentConfig("ScreenMarkConfig") 
+        local appliedCfg = false
+        local function ApplyCfg(cfg)
+            if not cfg then return end 
+            if cfg[1006] then 
+                cfg[1006].bBindBlocked = true;
+                cfg[1006].bBindOutScreen = true; 
+                cfg[1006].MaxWidgetNum = 99
+                cfg[1006].MaxShowDistance = 6000000; 
+                cfg[1006].bScaleByDistance = false
+                cfg[1006].BindSocketName = "root"; 
+                cfg[1006].bUseLuaWorldSocketName = true
+                cfg[1006].WorldPositionOffset = FVector(0, 0, -30) 
+            end 
+            -- [FIX ESP LOẠI 4] Thay vì dùng 1003 dễ bị game xóa, ta tạo ID độc quyền 8888
+            cfg[8888] = { 
                 UIPathName = "/Game/Mod/EvoBase/BluePrints/UIBP/QuickSign/QuickSign_TipHitEnemy_UIBP_New.QuickSign_TipHitEnemy_UIBP_New_C",
-                MaxWidgetNum = 99,
-                MaxShowDistance = 6000000,
+                MaxWidgetNum = 99, 
+                MaxShowDistance = 6000000, 
                 bBindOutScreen = true,
-                bBindBlocked = true,
-                bIsBindingActor = true,
+                bBindBlocked = true, 
+                bIsBindingActor = true,     -- Bắt buộc phải có để bám theo địch
                 BindSocketName = "head",
-                bUseLuaWorldSocketName = true,
+                bUseLuaWorldSocketName = true, 
                 WorldPositionOffset = FVector(0, 0, 30),
-                bNeedPreLoad = true,
-                Priority = 2
-            }
-            cfg[9999] = {
-                UIPathName = "/Game/Mod/BaseMod/BluePrints/UI/QuickSign/QuickSign_TipHitEnemy_UIBP_New.QuickSign_TipHitEnemy_UIBP_New_C",
-                MaxWidgetNum = 99,
-                MaxShowDistance = 6000000,
+                bNeedPreLoad = true,        -- Bắt buộc có để load sẵn UI (chống lỗi)
+                Priority = 2 
+            } 
+            cfg[9999] = { 
+                UIPathName = "/Game/Mod/EvoBase/BluePrints/UIBP/QuickSign/QuickSign_TipHitEnemy_UIBP_New.QuickSign_TipHitEnemy_UIBP_New_C",
+                MaxWidgetNum = 99, 
+                MaxShowDistance = 6000000, 
                 bBindOutScreen = true,
-                bBindBlocked = true,
-                bIsBindingActor = true,
+                bBindBlocked = true, 
+                bIsBindingActor = true, 
                 BindSocketName = "head",
-                bUseLuaWorldSocketName = true,
+                bUseLuaWorldSocketName = true, 
                 WorldPositionOffset = FVector(0, 0, 50),
-                bNeedPreLoad = true,
-                Priority = 2
-            }
-            return true
-        end
-
-        if not ApplyCfg() then return end
-
-        local ticker = require("common.time_ticker")
-        if ticker and ticker.AddTimerOnce then
-            ticker.AddTimerOnce(0.5, ApplyCfg)
-            ticker.AddTimerOnce(1.5, ApplyCfg)
-            ticker.AddTimerOnce(3.0, ApplyCfg)
-        end
+                bNeedPreLoad = true, 
+                Priority = 2 
+            } 
+            appliedCfg = true
+        end 
+        ApplyCfg(currentMarkCfg) 
+        for k, cfg in pairs(package.loaded) do 
+            if type(k) == "string" and string.find(k, "ScreenMarkConfig") and type(cfg) == "table" then 
+                ApplyCfg(cfg) 
+            end 
+        end 
+        return appliedCfg
     end)
-    _G.LexusState.NativeESPReady = true
-    Notify("Native ESP System Initialized")
+    if ok and configured then
+        _G.LexusState.NativeESPReady = true
+        _G.LexusState.NativeESPConfigVersion = configVersion
+        _G.LexusState.NativeESPNextRetry = nil
+        Notify("Native ESP System Initialized")
+    end
 end
 
 -- ========================================== 
