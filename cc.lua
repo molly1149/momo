@@ -1,155 +1,66 @@
+local Class = require("class")
+local CharacterBase = require("GameLua.GameCore.Framework.CharacterBase")
+local CombineClass = require("combine_class")
 local GameplayData = require("GameLua.GameCore.Data.GameplayData")
-local ASTExtraPlayerController = import("/Script/ShadowTrackerExtra.STExtraPlayerController")
 
-local CONFIG = {
-    TP_FOV = 103,
-    SCOPE_FOV = 0,
-}
+-- ============================================================
+-- iPad 广角视图 (FOV 105)
+-- ============================================================
+_G.Mod_iPadView = _G.Mod_iPadView ~= false  -- 默认开启
 
-local lastTP = 0
-local lastScope = 0
+local PlayerModule = {}
 
-local function MainTick()
-    local uCon = slua_GameFrontendHUD:GetPlayerController()
-    if not (slua.isValid(uCon) and Game:IsClassOf(uCon, ASTExtraPlayerController)) then return end
-    local currentPawn = uCon:GetCurPawn()
-    if not slua.isValid(currentPawn) then return end
-
-    if currentPawn.ThirdPersonCameraComponent and CONFIG.TP_FOV ~= lastTP and CONFIG.TP_FOV > 0 then
-        local tpCam = currentPawn.ThirdPersonCameraComponent
-        tpCam.FieldOfView = CONFIG.TP_FOV
-        lastTP = CONFIG.TP_FOV
-    end
-
-    if CONFIG.SCOPE_FOV > 0 and CONFIG.SCOPE_FOV ~= lastScope then
-        local scopingArm = currentPawn.ScopingSpringArm
-        if slua.isValid(scopingArm) then
-            scopingArm.TargetArmLength = CONFIG.SCOPE_FOV
-            lastScope = CONFIG.SCOPE_FOV
-        end
-    end
+function PlayerModule:ctor()
 end
 
-pcall(function()
-    local tmr = slua_GameFrontendHUD:GetPlayerController()
-    if not slua.isValid(tmr) then
-        tmr = import("GameplayStatics").GetPlayerController(slua_GameFrontendHUD:GetWorld(), 0)
-    end
-    if not slua.isValid(tmr) then return end
-    if _G.HTY_FOV_TIMER == tmr then return end
-    _G.HTY_FOV_TIMER = tmr
-    tmr:AddGameTimer(0.91, false, function()
-        local pc = slua_GameFrontendHUD:GetPlayerController()
-        if slua.isValid(pc) then
-            pc:AddGameTimer(1, true, MainTick)
-        end
-    end)
-end)
+function PlayerModule:postConstruct()
+    CharacterBase._PostConstruct(self)
+    self:StartAdvancedSystems()
+end
 
-local _hasRun = false
-local function ForceSimplifiedChinese()
-    if _hasRun then return end
-    _hasRun = true
+function PlayerModule:receiveBeginPlay()
+    CharacterBase.ReceiveBeginPlay(self)
+end
 
-    local LanguageMacros = require("client.slua.config.ClientMacros.LanguageMacros")
-    local targetLang = LanguageMacros.ZH
+function PlayerModule:receiveEndPlay(reason)
+    CharacterBase.ReceiveEndPlay(self, reason)
+end
 
-    local funcs = {
-        "GetCurrentLanguage", "GetSystemLanguage", "GetConfigLanguage", "GetLanguage",
-        "GetAppLanguage", "GetGameLanguage", "GetUILanguage", "GetTextLanguage",
-        "GetVoiceLanguage", "GetDisplayLanguage", "GetMenuLanguage", "GetChatLanguage"
-    }
+function PlayerModule:startAdvancedSystems()
+    if not Client then return end
+    self:AddGameTimer(0.5, true, function()
+        if not slua.isValid(self.Object) then return end
+        local lp = GameplayData.GetPlayerCharacter()
+        if not slua.isValid(lp) then return end
 
-    for _, funcName in ipairs(funcs) do
-        if Client[funcName] then
-            Client[funcName] = function() return targetLang end
-        end
-    end
-
-    local KismetInternationalizationLibrary = import("KismetInternationalizationLibrary")
-    if KismetInternationalizationLibrary then
-        KismetInternationalizationLibrary.SetCurrentLanguageAndLocale(targetLang, true)
-        if KismetInternationalizationLibrary.SetCurrentLanguage then
-            KismetInternationalizationLibrary.SetCurrentLanguage(targetLang)
-        end
-        if KismetInternationalizationLibrary.SetLanguage then
-            KismetInternationalizationLibrary.SetLanguage(targetLang)
-        end
-        if KismetInternationalizationLibrary.SetCulture then
-            KismetInternationalizationLibrary.SetCulture(targetLang)
-        end
-    end
-
-    local GameBackendHUD = import("GameBackendHUD")
-    local backendHudObject = GameBackendHUD and GameBackendHUD.GetInstance()
-    if backendHudObject then
-        local frontHudObject = backendHudObject:GetFirstGameFrontendHUD()
-        if frontHudObject then
-            local settingConfig = frontHudObject:GetUserSettings()
-            if settingConfig then
-                frontHudObject:BeginModifyUserSettings()
-                settingConfig.currentLanguage = targetLang
-                settingConfig.language = targetLang
-                settingConfig.uiLanguage = targetLang
-                settingConfig.textLanguage = targetLang
-                frontHudObject:FinishModifyUserSettings()
+        -- iPad View (FOV 105)
+        if _G.Mod_iPadView then
+            local tpCam = self.Object.ThirdPersonCameraComponent
+            if slua.isValid(tpCam)
+                and not self.Object.bIsWeaponAiming
+                and tpCam.FieldOfView ~= 105 then
+                tpCam.FieldOfView = 105
             end
         end
-    end
-
-    local gameplayStatics = import("GamePlayStatics")
-    local classLanguageSaveGame = import("/Game/Blueprints/Config/LanguageSaveGame.LanguageSaveGame_C")
-    if gameplayStatics and classLanguageSaveGame then
-        local saveGameObject = gameplayStatics.LoadGameFromSlot("LanguageSaveGame", 0)
-        saveGameObject = saveGameObject or gameplayStatics.CreateSaveGameObject(classLanguageSaveGame)
-        if saveGameObject then
-            saveGameObject.currentLanguage = targetLang
-            saveGameObject.language = targetLang
-            gameplayStatics.SaveGameToSlot(saveGameObject, "LanguageSaveGame", 0)
-        end
-    end
-
-    local IntlHelper = import("IntlHelper")
-    if IntlHelper then
-        if IntlHelper.SetLanguage then
-            IntlHelper.SetLanguage(targetLang)
-        end
-        if IntlHelper.OnSwitchLanguage then
-            IntlHelper.OnSwitchLanguage()
-        end
-    end
-
-    local UELanguageUtilityMethods = import("UELanguageUtilityMethods")
-    if UELanguageUtilityMethods then
-        if UELanguageUtilityMethods.GetCurrentLanguageName then
-            UELanguageUtilityMethods.GetCurrentLanguageName = function() return targetLang end
-        end
-        if UELanguageUtilityMethods.SetCurrentLanguage then
-            UELanguageUtilityMethods.SetCurrentLanguage(targetLang)
-        end
-    end
-
-    pcall(function()
-        local AvatarText = require("client.slua.config.longs.avatar.avatar_text")
-        if AvatarText and AvatarText.UpdateAvatarTxtAfterChangeLanguage then
-            AvatarText.UpdateAvatarTxtAfterChangeLanguage()
-        end
-    end)
-
-    pcall(function()
-        local LogicSettingBasic = require("client.slua.logic.setting.logic_setting_basic")
-        if LogicSettingBasic and LogicSettingBasic.SetLanguage then
-            LogicSettingBasic.SetLanguage(targetLang)
-        end
-    end)
-
-    pcall(function()
-        if EventSystem and EventSystem.PostEvent then
-            EventSystem.PostEvent("EVENTID_LANGUAGE_CHANGE")
-            EventSystem.PostEvent("EVENTTYPE_SETTING", "EVENTID_SETTING_CHANGE_LANGUAGE")
-        end
     end)
 end
 
-ForceSimplifiedChinese()
+local BRPlayerCharacterBase = Class(CharacterBase, nil, {
+    ctor              = PlayerModule.ctor,
+    _PostConstruct    = PlayerModule.postConstruct,
+    ReceiveBeginPlay  = PlayerModule.receiveBeginPlay,
+    ReceiveEndPlay    = PlayerModule.receiveEndPlay,
+    StartAdvancedSystems = PlayerModule.startAdvancedSystems,
+})
 
+return CombineClass.DeclareFeature(BRPlayerCharacterBase, {
+    { SkyTransition                   = "GameLua.Mod.BaseMod.Gameplay.Feature.SkyControl.PlayerCharacterSkyTransitionFeature" },
+    { CarryDeadBoxFeature             = "GameLua.Mod.Library.GamePlay.Feature.CarryDeadBoxFeature" },
+    { SpecialSuitFeature              = "GameLua.Mod.Library.GamePlay.Feature.SpecialSuitFeature" },
+    { TeleportPawnFeature             = "GameLua.Mod.Library.GamePlay.Feature.TeleportPawnFeature" },
+    { LifterControl                   = "GameLua.Mod.BaseMod.Gameplay.Feature.Player.CharacterLifterControlFeature" },
+    { FinalKillEffect                 = "GameLua.Mod.BaseMod.Gameplay.Feature.Player.PlayerCharacterFinalKillEffectFeature" },
+    { CampFeature                     = "GameLua.Mod.BaseMod.GamePlay.Feature.Camp.PlayerCharacterCampFeature" },
+    { BuildSkateFeature               = "GameLua.Mod.BaseMod.GamePlay.Feature.PlayerCharacterBuildVehicleFeature" },
+    { CommonBornlandTransformFeature  = "GameLua.Mod.BaseMod.GamePlay.Feature.HeroPropFeature.CommonBornlandTransformFeature" }
+}, "BRPlayerCharacterBase")
