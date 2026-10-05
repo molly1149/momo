@@ -2914,7 +2914,7 @@ local RedBoxOverlay = {
     TextBlockPlayer = nil, -- Đã tách chữ
     TextBlockBot = nil,    -- Đã tách chữ
     Width = 260,
-    Height = 26,
+    Height = 20,
     OffsetY = 8,
     PlayerCount = 0,
     BotCount = 0,
@@ -2993,7 +2993,7 @@ function RedBoxOverlay.Create()
             pcall(function()
                 txtSlot1:SetAutoSize(true)
                 txtSlot1:SetAlignment(FVector2D(0.5, 0.5))
-                txtSlot1:SetPosition(FVector2D(totalWidth * 0.25, RedBoxOverlay.Height * 0.5))
+                txtSlot1:SetPosition(FVector2D(totalWidth * 0.25, RedBoxOverlay.Height * 0.3))
                 txtSlot1:SetZOrder(1000)
             end)
         end
@@ -3026,7 +3026,7 @@ function RedBoxOverlay.Create()
             pcall(function()
                 txtSlot2:SetAutoSize(true)
                 txtSlot2:SetAlignment(FVector2D(0.5, 0.5))
-                txtSlot2:SetPosition(FVector2D(totalWidth * 0.75, RedBoxOverlay.Height * 0.5))
+                txtSlot2:SetPosition(FVector2D(totalWidth * 0.75, RedBoxOverlay.Height * 0.3))
                 txtSlot2:SetZOrder(1000)
             end)
         end
@@ -4451,8 +4451,8 @@ function PlayerMapMarker.CreateESPWidget()
         local SizeBox_HP = Widget.SizeBox_HP
         if SizeBox_HP and slua.isValid(SizeBox_HP) then
             pcall(function() SizeBox_HP:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
-            pcall(function() SizeBox_HP:SetHeightOverride(5) end)
-            pcall(function() SizeBox_HP:SetWidthOverride(PlayerMapMarker.ESPHealthBarWidth or 64) end)
+            pcall(function() SizeBox_HP:SetHeightOverride(3) end)
+            pcall(function() SizeBox_HP:SetWidthOverride(PlayerMapMarker.ESPHealthBarWidth or 30) end)
 
             local ExistingChild = nil
             pcall(function() if SizeBox_HP.GetContent then ExistingChild = SizeBox_HP:GetContent() end end)
@@ -4475,7 +4475,7 @@ function PlayerMapMarker.CreateESPWidget()
                         pcall(function() PB:SetPercent(1.0) end)
                         pcall(function() PB:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
                         pcall(function() PB:SetRenderOpacity(1.0) end)
-                        pcall(function() PB:SetDesiredSizeOverride(FVector2D and FVector2D(PlayerMapMarker.ESPHealthBarWidth or 64, 5) or {X=PlayerMapMarker.ESPHealthBarWidth or 64, Y=5}) end)
+                        pcall(function() PB:SetDesiredSizeOverride(FVector2D and FVector2D(PlayerMapMarker.ESPHealthBarWidth or 30, 3) or {X=PlayerMapMarker.ESPHealthBarWidth or 30, Y=3}) end)
                         pcall(function() ExistingChild:AddChild(PB) end)
                         HealthFill = PB
                     end
@@ -4487,7 +4487,7 @@ function PlayerMapMarker.CreateESPWidget()
                     pcall(function() PB:SetPercent(1.0) end)
                     pcall(function() PB:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
                     pcall(function() PB:SetRenderOpacity(1.0) end)
-                    pcall(function() PB:SetDesiredSizeOverride(FVector2D and FVector2D(PlayerMapMarker.ESPHealthBarWidth or 64, 5) or {X=PlayerMapMarker.ESPHealthBarWidth or 64, Y=5}) end)
+                    pcall(function() PB:SetDesiredSizeOverride(FVector2D and FVector2D(PlayerMapMarker.ESPHealthBarWidth or 30, 3) or {X=PlayerMapMarker.ESPHealthBarWidth or 30, Y=3}) end)
 
                     local bUsedSetContent = false
                     pcall(function() if SizeBox_HP.SetContent then SizeBox_HP:SetContent(PB) bUsedSetContent = true end end)
