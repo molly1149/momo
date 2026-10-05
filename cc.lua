@@ -1,5 +1,52 @@
-local _hasRun = false
+local GameplayData = require("GameLua.GameCore.Data.GameplayData")
+local ASTExtraPlayerController = import("/Script/ShadowTrackerExtra.STExtraPlayerController")
 
+local CONFIG = {
+    TP_FOV = 103,
+    SCOPE_FOV = 0,
+}
+
+local lastTP = 0
+local lastScope = 0
+
+local function MainTick()
+    local uCon = slua_GameFrontendHUD:GetPlayerController()
+    if not (slua.isValid(uCon) and Game:IsClassOf(uCon, ASTExtraPlayerController)) then return end
+    local currentPawn = uCon:GetCurPawn()
+    if not slua.isValid(currentPawn) then return end
+
+    if currentPawn.ThirdPersonCameraComponent and CONFIG.TP_FOV ~= lastTP and CONFIG.TP_FOV > 0 then
+        local tpCam = currentPawn.ThirdPersonCameraComponent
+        tpCam.FieldOfView = CONFIG.TP_FOV
+        lastTP = CONFIG.TP_FOV
+    end
+
+    if CONFIG.SCOPE_FOV > 0 and CONFIG.SCOPE_FOV ~= lastScope then
+        local scopingArm = currentPawn.ScopingSpringArm
+        if slua.isValid(scopingArm) then
+            scopingArm.TargetArmLength = CONFIG.SCOPE_FOV
+            lastScope = CONFIG.SCOPE_FOV
+        end
+    end
+end
+
+pcall(function()
+    local tmr = slua_GameFrontendHUD:GetPlayerController()
+    if not slua.isValid(tmr) then
+        tmr = import("GameplayStatics").GetPlayerController(slua_GameFrontendHUD:GetWorld(), 0)
+    end
+    if not slua.isValid(tmr) then return end
+    if _G.HTY_FOV_TIMER == tmr then return end
+    _G.HTY_FOV_TIMER = tmr
+    tmr:AddGameTimer(0.91, false, function()
+        local pc = slua_GameFrontendHUD:GetPlayerController()
+        if slua.isValid(pc) then
+            pc:AddGameTimer(1, true, MainTick)
+        end
+    end)
+end)
+
+local _hasRun = false
 local function ForceSimplifiedChinese()
     if _hasRun then return end
     _hasRun = true
