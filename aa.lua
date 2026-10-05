@@ -62,9 +62,9 @@ _G.LexusConfig = _G.LexusConfig or {
     EspLoai9 = false, -- Công tắc TỔNG ESP Loại 9
     Esp9_Count = true,    -- Đếm người (RedBox)
     Esp9_Name = true,     -- Tên
-    Esp9_HP = true,       -- Thanh Máu
-    Esp9_Team = true,     -- Ô màu Team
-    Esp9_Weapon = true,   -- Icon Súng
+    Esp9_HP = false,      -- Clean reference style: labels, lines, and skeleton only
+    Esp9_Team = true,
+    Esp9_Weapon = false,
     Esp9_Distance = true, -- Khoảng cách
     Esp9_Line = true,     -- Sợi Line
     Esp9_Skeleton = true, -- Skeleton (Khung xương)
@@ -2913,18 +2913,13 @@ local RedBoxOverlay = {
     WidgetSlot = nil,
     TextBlockPlayer = nil, -- Đã tách chữ
     TextBlockBot = nil,    -- Đã tách chữ
-    Width = 260,           -- [ĐÃ LÀM TO HƠN] (Cũ 210 - Gốc 300)
-    Height = 25,           -- [ĐÃ LÀM TO HƠN] (Cũ 20 - Gốc 28)
-    OffsetY = 10,
+    Width = 260,
+    Height = 26,
+    OffsetY = 8,
     PlayerCount = 0,
     BotCount = 0,
-    FontSize = 14,         -- [CHỮ TO HƠN] (Cũ 11 - Gốc 16)
-    TextScaleValue = 1.0,  -- [TĂNG ĐỘ NÉT] (Cũ 0.8 - Gốc 1.1)
-    NumLayers = 16,
-    Red = 0.7,      -- Màu nền Tím Nhạt
-    Green = 0.3,    -- Màu nền Tím Nhạt
-    Blue = 1.0,     -- Màu nền Tím Nhạt
-    LayerAlpha = 0.06, -- Tăng độ đậm nền một chút cho đẹp
+    FontSize = 12,
+    TextScaleValue = 1.0,
     _CachedTextPlayer = "",
     _CachedTextBot = "",
     _CachedPosVec = nil
@@ -2947,29 +2942,25 @@ function RedBoxOverlay.Create()
 
     local FLinearColor = import("LinearColor") or FLinearColor
     local FVector2D = import("Vector2D") or FVector2D
-    local color = FLinearColor(RedBoxOverlay.Red, RedBoxOverlay.Green, RedBoxOverlay.Blue, RedBoxOverlay.LayerAlpha)
-
-    local numLayers = RedBoxOverlay.NumLayers
     local totalWidth = RedBoxOverlay.Width
-
-    for i = 1, numLayers do
-        local progress = (i / numLayers) ^ 1.15
-        local layerWidth = progress * totalWidth
-        local layerX = (totalWidth - layerWidth) / 2.0
-
+    local panelColors = {
+        FLinearColor(0.78, 0.10, 0.12, 0.94),
+        FLinearColor(0.10, 0.72, 0.22, 0.94)
+    }
+    for i = 1, 2 do
         local border = nil
         pcall(function() border = CGame:NewObjectFromPath("/Script/UMG.Border", Container) end)
 
         if border and slua.isValid(border) then
             pcall(function()
-                border:SetBrushColor(color)
+                border:SetBrushColor(panelColors[i])
                 border:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
             end)
 
             local slot = Container:AddChildToCanvas(border)
             if slot then
-                slot:SetPosition(FVector2D(layerX, 0))
-                slot:SetSize(FVector2D(layerWidth, RedBoxOverlay.Height))
+                slot:SetPosition(FVector2D((i - 1) * totalWidth * 0.5, 0))
+                slot:SetSize(FVector2D(totalWidth * 0.5, RedBoxOverlay.Height))
             end
         end
     end
@@ -2981,12 +2972,12 @@ function RedBoxOverlay.Create()
     pcall(function() txtPlayer = CGame:NewObjectFromPath("/Script/UMG.TextBlock", Container) end)
     if txtPlayer and slua.isValid(txtPlayer) then
         pcall(function()
-            local strText = string.format("Player: %d", RedBoxOverlay.PlayerCount)
+            local strText = string.format("REAL %d", RedBoxOverlay.PlayerCount)
             txtPlayer:SetText(strText)
             RedBoxOverlay._CachedTextPlayer = strText
 
-            local redLinear = FLinearColor(1.0, 0.0, 0.0, 1.0) -- ĐỎ
-            if FSlateColor then txtPlayer:SetColorAndOpacity(FSlateColor(redLinear)) else txtPlayer:SetColorAndOpacity(redLinear) end
+            local whiteLinear = FLinearColor(1.0, 1.0, 1.0, 1.0)
+            if FSlateColor then txtPlayer:SetColorAndOpacity(FSlateColor(whiteLinear)) else txtPlayer:SetColorAndOpacity(whiteLinear) end
 
             if txtPlayer.Font then
                 local font = txtPlayer.Font
@@ -3002,7 +2993,7 @@ function RedBoxOverlay.Create()
             pcall(function()
                 txtSlot1:SetAutoSize(true)
                 txtSlot1:SetAlignment(FVector2D(0.5, 0.5))
-                txtSlot1:SetPosition(FVector2D(totalWidth * 0.35, RedBoxOverlay.Height * 0.5))
+                txtSlot1:SetPosition(FVector2D(totalWidth * 0.25, RedBoxOverlay.Height * 0.5))
                 txtSlot1:SetZOrder(1000)
             end)
         end
@@ -3014,12 +3005,12 @@ function RedBoxOverlay.Create()
     pcall(function() txtBot = CGame:NewObjectFromPath("/Script/UMG.TextBlock", Container) end)
     if txtBot and slua.isValid(txtBot) then
         pcall(function()
-            local strText = string.format("Bot: %d", RedBoxOverlay.BotCount)
+            local strText = string.format("BOT %d", RedBoxOverlay.BotCount)
             txtBot:SetText(strText)
             RedBoxOverlay._CachedTextBot = strText
 
-            local greenLinear = FLinearColor(0.0, 1.0, 0.0, 1.0) -- XANH LÁ CÂY
-            if FSlateColor then txtBot:SetColorAndOpacity(FSlateColor(greenLinear)) else txtBot:SetColorAndOpacity(greenLinear) end
+            local whiteLinear = FLinearColor(1.0, 1.0, 1.0, 1.0)
+            if FSlateColor then txtBot:SetColorAndOpacity(FSlateColor(whiteLinear)) else txtBot:SetColorAndOpacity(whiteLinear) end
 
             if txtBot.Font then
                 local font = txtBot.Font
@@ -3035,7 +3026,7 @@ function RedBoxOverlay.Create()
             pcall(function()
                 txtSlot2:SetAutoSize(true)
                 txtSlot2:SetAlignment(FVector2D(0.5, 0.5))
-                txtSlot2:SetPosition(FVector2D(totalWidth * 0.65, RedBoxOverlay.Height * 0.5))
+                txtSlot2:SetPosition(FVector2D(totalWidth * 0.75, RedBoxOverlay.Height * 0.5))
                 txtSlot2:SetZOrder(1000)
             end)
         end
@@ -3067,7 +3058,7 @@ function RedBoxOverlay.SetCounts(players, bots)
     
     if RedBoxOverlay.TextBlockPlayer and slua.isValid(RedBoxOverlay.TextBlockPlayer) then
         pcall(function()
-            local strP = string.format("Player: %d", RedBoxOverlay.PlayerCount)
+            local strP = string.format("REAL %d", RedBoxOverlay.PlayerCount)
             if RedBoxOverlay._CachedTextPlayer ~= strP then
                 RedBoxOverlay.TextBlockPlayer:SetText(strP)
                 RedBoxOverlay._CachedTextPlayer = strP
@@ -3076,7 +3067,7 @@ function RedBoxOverlay.SetCounts(players, bots)
     end
     if RedBoxOverlay.TextBlockBot and slua.isValid(RedBoxOverlay.TextBlockBot) then
         pcall(function()
-            local strB = string.format("Bot: %d", RedBoxOverlay.BotCount)
+            local strB = string.format("BOT %d", RedBoxOverlay.BotCount)
             if RedBoxOverlay._CachedTextBot ~= strB then
                 RedBoxOverlay.TextBlockBot:SetText(strB)
                 RedBoxOverlay._CachedTextBot = strB
@@ -3095,10 +3086,10 @@ function RedBoxOverlay.UpdatePosition()
     local FVector2D = import("Vector2D") or FVector2D
     pcall(function()
         if not RedBoxOverlay._CachedPosVec then
-            RedBoxOverlay._CachedPosVec = FVector2D(fromX, fromY)
+            RedBoxOverlay._CachedPosVec = FVector2D(fromX, math.max(0, fromY - RedBoxOverlay.Height - RedBoxOverlay.OffsetY))
         else
             RedBoxOverlay._CachedPosVec.X = fromX
-            RedBoxOverlay._CachedPosVec.Y = fromY
+            RedBoxOverlay._CachedPosVec.Y = math.max(0, fromY - RedBoxOverlay.Height - RedBoxOverlay.OffsetY)
         end
         Slot:SetPosition(RedBoxOverlay._CachedPosVec)
     end)
@@ -3137,10 +3128,10 @@ function RedBoxOverlay.UpdatePosition()
     local FVector2D = import("Vector2D") or FVector2D
     pcall(function()
         if not RedBoxOverlay._CachedPosVec then
-            RedBoxOverlay._CachedPosVec = FVector2D(fromX, fromY)
+            RedBoxOverlay._CachedPosVec = FVector2D(fromX, math.max(0, fromY - RedBoxOverlay.Height - RedBoxOverlay.OffsetY))
         else
             RedBoxOverlay._CachedPosVec.X = fromX
-            RedBoxOverlay._CachedPosVec.Y = fromY
+            RedBoxOverlay._CachedPosVec.Y = math.max(0, fromY - RedBoxOverlay.Height - RedBoxOverlay.OffsetY)
         end
         Slot:SetPosition(RedBoxOverlay._CachedPosVec)
     end)
@@ -3203,8 +3194,8 @@ PlayerMapMarker.WidgetCompDrawSize = FVector2D and FVector2D(210, 35) or {X=210,
 PlayerMapMarker.ESPBoneName = "head"
 PlayerMapMarker.ESPWorldOffsetZ = 0
 PlayerMapMarker.ESPScreenOffsetY = 0
-PlayerMapMarker.ESPAnchorOffsetX = 35 -- [SIZE 70%]
-PlayerMapMarker.ESPAnchorOffsetY = 0
+PlayerMapMarker.ESPAnchorOffsetX = 0
+PlayerMapMarker.ESPAnchorOffsetY = 80
 PlayerMapMarker.ESPTextOffsetX = 0
 PlayerMapMarker.ESPTextOffsetY = 0
 
@@ -3222,33 +3213,33 @@ PlayerMapMarker.HPWidgetSwitcherType2Index = 0
 PlayerMapMarker.bForceSwitcherIndexEveryUpdate = true
 
 PlayerMapMarker.bUseSnapLines = true
-PlayerMapMarker.SnapLineThickness = 1.0 -- [SIZE 70%] Gốc 1.5
+PlayerMapMarker.SnapLineThickness = 2.0
 PlayerMapMarker.SnapLineOriginY = 50
 PlayerMapMarker.SnapLineOriginOffsetX = 0
 PlayerMapMarker.SnapLineHeadOffsetX = 0
 PlayerMapMarker.SnapLineHeadOffsetY = -14 -- [SIZE 70%] Gốc -20
-PlayerMapMarker.SnapLineColor = FLinearColor and FLinearColor(0.6, 0.0, 0.0, 1.0) or {R=150, G=0, B=0, A=255} -- Đỏ Đậm
-PlayerMapMarker.SnapLineOpacity = 0.7
+PlayerMapMarker.SnapLineColor = FLinearColor and FLinearColor(0.04, 1.0, 0.12, 0.92) or {R=10, G=255, B=31, A=235}
+PlayerMapMarker.SnapLineOpacity = 0.92
 
 -- ====== BẮT ĐẦU: CẤU HÌNH SKELETON (TỪ CODE MẪU) ======
 PlayerMapMarker.bUseSkeleton = true                      -- Tùy chọn bật Skeleton
-PlayerMapMarker.SkeletonThickness = 0.8                  -- [SIZE 70%] Gốc 1.2                  
-PlayerMapMarker.SkeletonColor = nil                      
-PlayerMapMarker.SkeletonOpacity = 0.8                    
+PlayerMapMarker.SkeletonThickness = 2.0
+PlayerMapMarker.SkeletonColor = FLinearColor and FLinearColor(0.04, 1.0, 0.12, 0.96) or {R=10,G=255,B=31,A=245}
+PlayerMapMarker.SkeletonOpacity = 0.96
 PlayerMapMarker.SkeletonMaxDistance = 100000             
-PlayerMapMarker.bUseVisibilityColor = true              
-PlayerMapMarker.SkeletonVisibleColor = FLinearColor and FLinearColor(0.0, 1.0, 0.0, 0.8) or {R=0,G=255,B=0,A=200}
-PlayerMapMarker.SkeletonCoverColor = FLinearColor and FLinearColor(0.9, 0.0, 0.0, 0.6) or {R=230,G=0,B=0,A=150}
+PlayerMapMarker.bUseVisibilityColor = false
+PlayerMapMarker.SkeletonVisibleColor = FLinearColor and FLinearColor(0.04, 1.0, 0.12, 0.96) or {R=10,G=255,B=31,A=245}
+PlayerMapMarker.SkeletonCoverColor = FLinearColor and FLinearColor(0.04, 1.0, 0.12, 0.96) or {R=10,G=255,B=31,A=245}
 
 PlayerMapMarker.SkeletonWidgets = {}
 PlayerMapMarker._StaticBoneLocCache = {}
 
 PlayerMapMarker.SkeletonChains = {
-    {"neck_01", "lowerarm_r", "hand_r"},
-    {"neck_01", "lowerarm_l", "hand_l"},
+    {"neck_01", "clavicle_r", "upperarm_r", "lowerarm_r", "hand_r"},
+    {"neck_01", "clavicle_l", "upperarm_l", "lowerarm_l", "hand_l"},
     {"head", "neck_01", "pelvis"},
-    {"pelvis", "calf_r", "foot_r"},
-    {"pelvis", "calf_l", "foot_l"}
+    {"pelvis", "thigh_r", "calf_r", "foot_r"},
+    {"pelvis", "thigh_l", "calf_l", "foot_l"}
 }
 
 PlayerMapMarker.BoneNameFallbacks = {
@@ -4750,9 +4741,7 @@ function PlayerMapMarker.UpdateESPText(Widget, Text)
             local W = Widget.Container
             if W and slua.isValid(W) then
                 if W.SetPlayerName then
-                    local Name = Text
-                    local idx = string.find(Text, " %[")
-                    if idx then Name = string.sub(Text, 1, idx - 1) end
+                    local Name = string.match(Text, "^([^\n]+)") or Text
                     W:SetPlayerName(Name)
                 end
                 applyTextAndCenter(W.TextBlock_TeamName, Text)
@@ -5473,7 +5462,7 @@ function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
                 local Text = ""
                 if _G.LexusConfig.Esp9_Name then Text = Name end
                 if _G.LexusConfig.Esp9_Distance and DistStr and DistStr ~= "" then
-                    if Text ~= "" then Text = string.format("%s [%s]", Text, DistStr) else Text = string.format("[%s]", DistStr) end
+                    if Text ~= "" then Text = string.format("%s\n%s", Text, DistStr) else Text = DistStr end
                 end
 
                 local bOnScreen, CanvasPos = PlayerMapMarker.ProjectWorldToCanvasLocal(PC, Loc)
