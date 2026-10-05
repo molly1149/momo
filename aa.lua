@@ -1178,11 +1178,11 @@ local function InitializeGraphicsUnlock()
         local SettingCfg = require("client.logic.setting.setting_config")
         local GraphicSettingDB = require("client.slua.umg.NewSetting.GraphicsNew.GraphicSettingDB")
         if SettingCfg then
-            if SettingCfg.TpViewValue then SettingCfg.TpViewValue.max = 160 end
-            if SettingCfg.FpViewValue then SettingCfg.FpViewValue.max = 160 end
+            if SettingCfg.TpViewValue then SettingCfg.TpViewValue.max = 140 end
+            if SettingCfg.FpViewValue then SettingCfg.FpViewValue.max = 140 end
         end
         if GraphicSettingDB then
-            if GraphicSettingDB.TpViewValue then GraphicSettingDB.TpViewValue.max = 160 end
+            if GraphicSettingDB.TpViewValue then GraphicSettingDB.TpViewValue.max = 140 end
         end
     end)
 
