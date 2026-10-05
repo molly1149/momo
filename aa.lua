@@ -62,7 +62,7 @@ _G.LexusConfig = _G.LexusConfig or {
     EspLoai9 = false, -- Công tắc TỔNG ESP Loại 9
     Esp9_Count = true,    -- Đếm người (RedBox)
     Esp9_Name = true,     -- Tên
-    Esp9_HP = false,      -- Clean reference style: labels, lines, and skeleton only
+    Esp9_HP = true,
     Esp9_Team = true,
     Esp9_Weapon = false,
     Esp9_Distance = true, -- Khoảng cách
@@ -3195,11 +3195,11 @@ PlayerMapMarker.ESPBoneName = "head"
 PlayerMapMarker.ESPWorldOffsetZ = 0
 PlayerMapMarker.ESPScreenOffsetY = 0
 PlayerMapMarker.ESPAnchorOffsetX = 0
-PlayerMapMarker.ESPAnchorOffsetY = 80
+PlayerMapMarker.ESPAnchorOffsetY = 0
 PlayerMapMarker.ESPTextOffsetX = 0
 PlayerMapMarker.ESPTextOffsetY = 0
 
-PlayerMapMarker.ESPWidgetAlignment = FVector2D and FVector2D(0.5, 1.0) or {X=0.5, Y=1.0}
+PlayerMapMarker.ESPWidgetAlignment = FVector2D and FVector2D(0.5, 0.0) or {X=0.5, Y=0.0}
 PlayerMapMarker.ESPWidgetSize = FVector2D and FVector2D(70, 21) or {X=70, Y=21} -- [SIZE 70%]
 PlayerMapMarker.ESPWidgetAutoSize = true
 PlayerMapMarker.ESPWidgetZOrder = 2
@@ -3220,6 +3220,9 @@ PlayerMapMarker.SnapLineHeadOffsetX = 0
 PlayerMapMarker.SnapLineHeadOffsetY = -14 -- [SIZE 70%] Gốc -20
 PlayerMapMarker.SnapLineColor = FLinearColor and FLinearColor(0.04, 1.0, 0.12, 0.92) or {R=10, G=255, B=31, A=235}
 PlayerMapMarker.SnapLineOpacity = 0.92
+PlayerMapMarker.SnapLineVisibleColor = PlayerMapMarker.SnapLineColor
+PlayerMapMarker.SnapLineOccludedColor = FLinearColor and FLinearColor(1.0, 0.08, 0.08, 0.95) or {R=255, G=20, B=20, A=242}
+PlayerMapMarker.ESPHealthBarWidth = 64
 
 -- ====== BẮT ĐẦU: CẤU HÌNH SKELETON (TỪ CODE MẪU) ======
 PlayerMapMarker.bUseSkeleton = true                      -- Tùy chọn bật Skeleton
@@ -3292,7 +3295,7 @@ PlayerMapMarker._CachedMyKey = nil
 PlayerMapMarker.WidgetComps = {}
 PlayerMapMarker._bAllPathsFailed = false
 PlayerMapMarker._bLightUpdateScheduled = false
-PlayerMapMarker._LightUpdateInterval = 0.05
+PlayerMapMarker._LightUpdateInterval = 0.016
 PlayerMapMarker._bDistanceUpdateScheduled = false
 PlayerMapMarker._DistanceUpdateInterval = 0.25
 PlayerMapMarker._bScreenMarkConfigSetup = false
@@ -4448,8 +4451,8 @@ function PlayerMapMarker.CreateESPWidget()
         local SizeBox_HP = Widget.SizeBox_HP
         if SizeBox_HP and slua.isValid(SizeBox_HP) then
             pcall(function() SizeBox_HP:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
-            pcall(function() SizeBox_HP:SetHeightOverride(6) end)
-            pcall(function() SizeBox_HP:SetWidthOverride(100) end)
+            pcall(function() SizeBox_HP:SetHeightOverride(5) end)
+            pcall(function() SizeBox_HP:SetWidthOverride(PlayerMapMarker.ESPHealthBarWidth or 64) end)
 
             local ExistingChild = nil
             pcall(function() if SizeBox_HP.GetContent then ExistingChild = SizeBox_HP:GetContent() end end)
@@ -4472,7 +4475,7 @@ function PlayerMapMarker.CreateESPWidget()
                         pcall(function() PB:SetPercent(1.0) end)
                         pcall(function() PB:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
                         pcall(function() PB:SetRenderOpacity(1.0) end)
-                        pcall(function() PB:SetDesiredSizeOverride(FVector2D and FVector2D(100, 6) or {X=100, Y=6}) end)
+                        pcall(function() PB:SetDesiredSizeOverride(FVector2D and FVector2D(PlayerMapMarker.ESPHealthBarWidth or 64, 5) or {X=PlayerMapMarker.ESPHealthBarWidth or 64, Y=5}) end)
                         pcall(function() ExistingChild:AddChild(PB) end)
                         HealthFill = PB
                     end
@@ -4484,7 +4487,7 @@ function PlayerMapMarker.CreateESPWidget()
                     pcall(function() PB:SetPercent(1.0) end)
                     pcall(function() PB:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
                     pcall(function() PB:SetRenderOpacity(1.0) end)
-                    pcall(function() PB:SetDesiredSizeOverride(FVector2D and FVector2D(100, 6) or {X=100, Y=6}) end)
+                    pcall(function() PB:SetDesiredSizeOverride(FVector2D and FVector2D(PlayerMapMarker.ESPHealthBarWidth or 64, 5) or {X=PlayerMapMarker.ESPHealthBarWidth or 64, Y=5}) end)
 
                     local bUsedSetContent = false
                     pcall(function() if SizeBox_HP.SetContent then SizeBox_HP:SetContent(PB) bUsedSetContent = true end end)
@@ -4589,7 +4592,7 @@ function PlayerMapMarker.ProjectWorldToCanvasLocal(PC, WorldLoc)
     local ScreenPixelPos = FVector2D and FVector2D(0, 0) or {X=0, Y=0}
     local bOK = false
     pcall(function()
-        local res = PC:ProjectWorldLocationToScreen(WorldLoc, ScreenPixelPos, true)
+        local res = PC:ProjectWorldLocationToScreen(WorldLoc, ScreenPixelPos, false)
         if res == true or res == 1 or (ScreenPixelPos and (ScreenPixelPos.X ~= 0 or ScreenPixelPos.Y ~= 0)) then bOK = true end
     end)
     if not bOK or not ScreenPixelPos or (ScreenPixelPos.X == 0 and ScreenPixelPos.Y == 0) then return false, (FVector2D and FVector2D(0, 0) or {X=0, Y=0}) end
@@ -4629,10 +4632,11 @@ function PlayerMapMarker.GetDynamicViewportSize(PC)
     return PlayerMapMarker._cachedViewportW or 1920, PlayerMapMarker._cachedViewportH or 1080
 end
 
-function PlayerMapMarker.UpdateESPPositionWithPC(Widget, WorldLoc, PC, CanvasPos)
+function PlayerMapMarker.UpdateESPPositionWithPC(Widget, WorldLoc, PC, CanvasPos, bProjectedOnScreen)
     if not Widget or not IsValid(PC) then return false end
     local Container = Widget.Container or Widget
-    local bOnScreen = true
+    local bOnScreen = bProjectedOnScreen
+    if bOnScreen == nil then bOnScreen = true end
     if not CanvasPos then
         if not WorldLoc then return false end
         bOnScreen, CanvasPos = PlayerMapMarker.ProjectWorldToCanvasLocal(PC, WorldLoc)
@@ -4653,10 +4657,10 @@ function PlayerMapMarker.UpdateESPPositionWithPC(Widget, WorldLoc, PC, CanvasPos
                     if type(Widget) == "table" then Widget.Slot = addedSlot end
                     pcall(function() Slot:SetAutoSize(true) end)
                     pcall(function() Slot.bAutoSize = true end)
-                    local align = FVector2D and FVector2D(0.5, 1.0) or {X=0.5, Y=1.0}
+                    local align = FVector2D and FVector2D(0.5, 0.0) or {X=0.5, Y=0.0}
                     pcall(function() Slot.Alignment = align end)
                     pcall(function() Slot:SetAlignment(align) end)
-                    pcall(function() Slot:SetAlignment(0.5, 1.0) end)
+                    pcall(function() Slot:SetAlignment(0.5, 0.0) end)
                     pcall(function() Slot:SetZOrder(PlayerMapMarker.ESPWidgetZOrder or 20) end)
                 end
             end
@@ -4679,8 +4683,8 @@ function PlayerMapMarker.UpdateESPPositionWithPC(Widget, WorldLoc, PC, CanvasPos
                     if Widget.NameText and slua.isValid(Widget.NameText) then pcall(function() Widget.NameText:SetRenderTranslation(FVector2D and FVector2D(0.0, 0.0) or {X=0, Y=0}) end) end
                     if Widget.HealthFill and slua.isValid(Widget.HealthFill) then pcall(function() Widget.HealthFill:SetRenderTranslation(FVector2D and FVector2D(0.0, 0.0) or {X=0, Y=0}) end) end
                 end
-                pcall(function() Container.RenderTransformPivot = FVector2D and FVector2D(0.5, 1.0) or {X=0.5, Y=1.0} end)
-                pcall(function() Container:SetRenderTransformPivot(FVector2D and FVector2D(0.5, 1.0) or {X=0.5, Y=1.0}) end)
+                pcall(function() Container.RenderTransformPivot = FVector2D and FVector2D(0.5, 0.0) or {X=0.5, Y=0.0} end)
+                pcall(function() Container:SetRenderTransformPivot(FVector2D and FVector2D(0.5, 0.0) or {X=0.5, Y=0.0}) end)
                 Widget._OffsetResetDone = true
             end
 
@@ -4953,7 +4957,7 @@ function PlayerMapMarker.GetSnapLineStartPos(PC)
     return fromX, fromY
 end
 
-function PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fromY)
+function PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fromY, Character, PC)
     if not PlayerMapMarker.bUseSnapLines then return end
     if not PlayerMapMarker.ESPCanvas or not Game:IsValid(PlayerMapMarker.ESPCanvas) then return end
 
@@ -4978,6 +4982,13 @@ function PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fro
     local Slot = LineData.Slot
 
     pcall(function() Widget:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
+
+    local isVisible = PlayerMapMarker.IsPlayerVisible(PC, Character)
+    local lineColor = isVisible and PlayerMapMarker.SnapLineVisibleColor or PlayerMapMarker.SnapLineOccludedColor
+    if lineColor and LineData._CachedColor ~= lineColor then
+        pcall(function() Widget:SetBrushColor(lineColor) end)
+        LineData._CachedColor = lineColor
+    end
     
     if not LineData._PivotSet then
         pcall(function() Widget.RenderTransformPivot = FVector2D and FVector2D(0.0, 0.5) or {X=0,Y=0.5} end)
@@ -5046,7 +5057,7 @@ function PlayerMapMarker.ProjectWorldToCanvasLocalRaw(PC, WorldLoc)
     local tempPos = PlayerMapMarker._tempScreenPixelPos
     local bOK = false
     pcall(function()
-        local res = PC:ProjectWorldLocationToScreen(WorldLoc, tempPos, true)
+        local res = PC:ProjectWorldLocationToScreen(WorldLoc, tempPos, false)
         if res == true or res == 1 then bOK = true end
     end)
     if not bOK or (tempPos.X == 0 and tempPos.Y == 0) then return false, 0, 0 end
@@ -5085,6 +5096,30 @@ function PlayerMapMarker.GetBoneLocationWithFallback(Character, PrimaryBoneName)
         end
     end
     return nil
+end
+
+function PlayerMapMarker.GetESPAnchorLocation(Character)
+    local leftFoot = PlayerMapMarker.GetBoneLocationWithFallback(Character, "foot_l")
+    local rightFoot = PlayerMapMarker.GetBoneLocationWithFallback(Character, "foot_r")
+    if leftFoot and rightFoot then
+        local x = (leftFoot.X + rightFoot.X) * 0.5
+        local y = (leftFoot.Y + rightFoot.Y) * 0.5
+        local z = (leftFoot.Z + rightFoot.Z) * 0.5
+        return FVector and FVector(x, y, z) or {X=x, Y=y, Z=z}
+    end
+    if leftFoot or rightFoot then return leftFoot or rightFoot end
+
+    local rootLoc = PlayerMapMarker.GetCharacterLocation(Character)
+    if not rootLoc then return nil end
+    local halfHeight = 85
+    pcall(function()
+        local capsule = Character.CapsuleComponent
+        if capsule and capsule.GetScaledCapsuleHalfHeight then
+            halfHeight = capsule:GetScaledCapsuleHalfHeight() or halfHeight
+        end
+    end)
+    local x, y, z = rootLoc.X, rootLoc.Y, rootLoc.Z - halfHeight
+    return FVector and FVector(x, y, z) or {X=x, Y=y, Z=z}
 end
 
 function PlayerMapMarker.IsPlayerVisible(PC, Character)
@@ -5465,6 +5500,8 @@ function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
                     if Text ~= "" then Text = string.format("%s\n%s", Text, DistStr) else Text = DistStr end
                 end
 
+                local AnchorLoc = PlayerMapMarker.GetESPAnchorLocation(Character) or Loc
+                local bAnchorOnScreen, AnchorCanvasPos = PlayerMapMarker.ProjectWorldToCanvasLocal(PC, AnchorLoc)
                 local bOnScreen, CanvasPos = PlayerMapMarker.ProjectWorldToCanvasLocal(PC, Loc)
 
                 if not ESPData then
@@ -5480,7 +5517,7 @@ function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
                         }
                         PlayerMapMarker.UpdateESPText(Widget, Text)
                         if bIsAlive then
-                            PlayerMapMarker.UpdateESPPositionWithPC(Widget, Loc, PC, CanvasPos)
+                            PlayerMapMarker.UpdateESPPositionWithPC(Widget, AnchorLoc, PC, AnchorCanvasPos, bAnchorOnScreen)
                             PlayerMapMarker.ApplyTeamColor(Widget, TeamID)
                             local HP = Character.Health or 0
                             local MaxHP = Character.MaxHealth or 120
@@ -5494,7 +5531,7 @@ function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
                             PlayerMapMarker.AddWeaponIconToESP(Widget, Character)
                             
                             if PlayerMapMarker.bUseSnapLines then
-                                PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fromY)
+                                PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fromY, Character, PC)
                             else
                                 PlayerMapMarker.RemoveSnapLine(KeyStr)
                             end
@@ -5524,7 +5561,7 @@ function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
                         end
                         
                         PlayerMapMarker.UpdateESPText(ESPData.Widget, Text)
-                        PlayerMapMarker.UpdateESPPositionWithPC(ESPData.Widget, Loc, PC, CanvasPos)
+                        PlayerMapMarker.UpdateESPPositionWithPC(ESPData.Widget, AnchorLoc, PC, AnchorCanvasPos, bAnchorOnScreen)
                         local HP = Character.Health or 0
                         local MaxHP = Character.MaxHealth or 120
                         local pct = 0
@@ -5537,7 +5574,7 @@ function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
                         PlayerMapMarker.AddWeaponIconToESP(ESPData.Widget, Character)
                         
                         if PlayerMapMarker.bUseSnapLines then
-                            PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fromY)
+                            PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fromY, Character, PC)
                         else
                             PlayerMapMarker.RemoveSnapLine(KeyStr)
                         end
@@ -5607,10 +5644,12 @@ function PlayerMapMarker.UpdateESPLight()
                 pcall(function() Container:SetRenderOpacity(1.0) end)
 
                 local Loc = PlayerMapMarker.GetESPLocation(Character)
-                if Loc then
+                local AnchorLoc = PlayerMapMarker.GetESPAnchorLocation(Character) or Loc
+                if Loc and AnchorLoc then
                     local bOnScreen, CanvasPos = PlayerMapMarker.ProjectWorldToCanvasLocal(PC, Loc)
-                    PlayerMapMarker.UpdateESPPositionWithPC(Widget, Loc, PC, CanvasPos)
-                    if PlayerMapMarker.bUseSnapLines then PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fromY)
+                    local bAnchorOnScreen, AnchorCanvasPos = PlayerMapMarker.ProjectWorldToCanvasLocal(PC, AnchorLoc)
+                    PlayerMapMarker.UpdateESPPositionWithPC(Widget, AnchorLoc, PC, AnchorCanvasPos, bAnchorOnScreen)
+                    if PlayerMapMarker.bUseSnapLines then PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fromY, Character, PC)
                     else PlayerMapMarker.RemoveSnapLine(KeyStr) end
 
                     if PlayerMapMarker.bUseSkeleton then
@@ -5662,7 +5701,7 @@ function PlayerMapMarker.UpdateESPDistances()
                     -- Đồng bộ với công tắc ESP 9
                     if _G.LexusConfig.Esp9_Name then Text = Name end
                     if _G.LexusConfig.Esp9_Distance and DistStr and DistStr ~= "" then
-                        if Text ~= "" then Text = string.format("%s [%s]", Text, DistStr) else Text = string.format("[%s]", DistStr) end
+                        if Text ~= "" then Text = string.format("%s\n%s", Text, DistStr) else Text = DistStr end
                     end
                     
                     ESPData.LastDistStr = DistStr
