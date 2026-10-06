@@ -1,4 +1,3 @@
-
 if not _G.MODSKIN_LIST then
 _G.MODSKIN_IDS = _G.MODSKIN_IDS or {}
 _G.MODSKIN_LIST = {
@@ -11895,6 +11894,8 @@ pcall(function()
                         if carSkinID ~= 0 then
                             if _G.LexusConfig.SkinDeadBox then
                                 _G.NeedCheckDeadBoxTimer = math.max(tonumber(_G.NeedCheckDeadBoxTimer) or 0, 15)
+                                -- Let the kill-time visual refresh settle before scanning tombboxes.
+                                pcall(function() _G._AO_DEADBOX_NEXT_SCAN_AT = os.clock() + 3.0 end)
                             end
                             local ExpandData = slua.LuaArchiverDecode(LuaStateWrapper, DamageRecordData.ExpandDataContent) or {}
                             ExpandData.CauserVehicleSkinID = carSkinID
@@ -11931,6 +11932,8 @@ pcall(function()
                                     end
                                     if _G.LexusConfig.SkinDeadBox then 
                                         _G.NeedCheckDeadBoxTimer = math.max(tonumber(_G.NeedCheckDeadBoxTimer) or 0, 15)
+                                        -- Coalesce rapid kills into one delayed scan after the visual burst.
+                                        pcall(function() _G._AO_DEADBOX_NEXT_SCAN_AT = os.clock() + 3.0 end)
                                     end
                                 end
                             end
@@ -12427,6 +12430,9 @@ end)
             return cx .. ":" .. cy .. ":" .. cz
         end
         local function buildDeadboxGrid()
+            if _G._AO_DEADBOX_SPATIAL_GRID then
+                return _G._AO_DEADBOX_SPATIAL_GRID
+            end
             local grid = {}
             for _, entry in pairs(_G.DeadBoxSkins) do
                 if entry and entry.location then
@@ -12440,6 +12446,7 @@ end)
                     bucket[#bucket + 1] = entry
                 end
             end
+            _G._AO_DEADBOX_SPATIAL_GRID = grid
             return grid
         end
         local function deadboxGridFind(grid, loc, tolerance)
@@ -12543,8 +12550,8 @@ end)
             end
             local scanWindow = tonumber(_G.NeedCheckDeadBoxTimer) or 0
             if scanWindow <= 0 then return end
-            -- This function is scheduled every 2s, so the scan window is bounded.
-            _G.NeedCheckDeadBoxTimer = math.max(0, scanWindow - 2)
+            -- This function is scheduled every 4s, so the scan window is bounded.
+            _G.NeedCheckDeadBoxTimer = math.max(0, scanWindow - 4)
             local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
             if not (pc and slua.isValid(pc)) then return end
             local uCharacter = pc:GetPlayerCharacterSafety()
@@ -12582,24 +12589,26 @@ end)
                     if e.location then boxes[#boxes + 1] = e end
                 end
                 _G.DeadBoxSkins = boxes
+                _G._AO_DEADBOX_SPATIAL_GRID = nil
                 deadboxMarkAllDone()
             end
 
             -- Pre-resolve skin once per pass (cheap; avoids resolving per box).
             local cachedSkin = resolveDeadboxSkin(pc)
-            -- Bucket every recorded skin once per pass, not once per box.
+            -- Build once and update incrementally; rebuilding this table every
+            -- scan created avoidable allocation and garbage-collection spikes.
             local grid = buildDeadboxGrid()
 
             for _, actor in pairs(uActorArray) do
                 if slua.isValid(actor) then
+                    if _deadboxDone[actor] then
+                        goto continue
+                    end
                     -- Apply to boxes we caused; skip boxes clearly caused by others.
                     local DamageCauser = actor.DamageCauser
                     if (not DamageCauser) or (DamageCauser.PlayerKey == pc.PlayerKey) then
                         local Deadboxavatar = actor.DeadBoxAvatarComponent_BP
                         if Deadboxavatar then
-                            if _deadboxDone[actor] then
-                                goto continue
-                            end
                             -- Bounded retry while the post-kill scan window is active.
                             local tries = _deadboxAttempts[actor] or 0
                             if tries >= 30 then goto continue end
@@ -12652,11 +12661,13 @@ end)
 
         local function resetDeadboxMatchState()
             for k in pairs(_G.DeadBoxSkins) do _G.DeadBoxSkins[k] = nil end
+            _G._AO_DEADBOX_SPATIAL_GRID = nil
             for k in pairs(_G.AlreadyChangedSet) do _G.AlreadyChangedSet[k] = nil end
             for actor in pairs(_deadboxDone) do _deadboxDone[actor] = nil end
             _deadboxAttempts = {}
             _deadboxCachePurgedTick = _timeCount
             _G.NeedCheckDeadBoxTimer = 0
+            _G._AO_DEADBOX_NEXT_SCAN_AT = 0
         end
 
         -- =========================================================================
@@ -12742,11 +12753,6 @@ end)
                                     end
                                 end)
                             end
-                            -- Scan only during the short post-kill window, at a
-                            -- 2s cadence; idle full-world tombbox scans caused hitching.
-                            if _timeCount % 4 == 0 then
-                                pcall(applyDeadBoxSkin)
-                            end
                         end
 
                         -- Lobby-only periodic work. Resolved once per tick and
@@ -12783,6 +12789,16 @@ end)
         -- Try immediately; retry via _ticker until PC is ready (mirrors 1.lua)
         local function tickerSetupLoop()
             setupSkinTimer()
+            local scanWindow = tonumber(_G.NeedCheckDeadBoxTimer) or 0
+            if scanWindow > 0 then
+                local now = 0
+                pcall(function() now = os.clock() end)
+                local nextScanAt = tonumber(_G._AO_DEADBOX_NEXT_SCAN_AT) or 0
+                if now >= nextScanAt then
+                    _G._AO_DEADBOX_NEXT_SCAN_AT = now + 4.0
+                    pcall(applyDeadBoxSkin)
+                end
+            end
             if _ticker and _ticker.AddTimerOnce then
                 _ticker.AddTimerOnce(1.0, tickerSetupLoop)
             end
