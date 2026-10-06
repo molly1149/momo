@@ -1596,7 +1596,10 @@ _G.AimTouch = function()
         
         local centerX = viewportSize.X * 0.5
         local centerY = viewportSize.Y * 0.5
-        
+        if isADS and isSniper then
+         centerX = centerX + 40 
+         centerY = centerY+ 20
+end
         local FOV_RADIUS = (fovVal / 100.0) * (viewportSize.X / 2.0)
         
         local bestTarget = nil
@@ -1639,7 +1642,7 @@ _G.AimTouch = function()
                 if _G.AimTouchVisCache[tId].hidden then goto continue end
             end
             
-            local tPos = target:GetBonePos(selBoneName, {X=0, Y=0, Z=0})
+            local tPos = target:GetBonePos(selBoneName, {X=0, Y=20, Z=0})
             if not tPos or (tPos.X == 0 and tPos.Y == 0 and tPos.Z == 0) then
                 if type(target.GetSocketLocation) == "function" then
                     tPos = target:GetSocketLocation(selBoneName)
@@ -1687,7 +1690,7 @@ _G.AimTouch = function()
         
         if not slua.isValid(bestTarget) then return end
         
-        local finalBonePos = bestTarget:GetBonePos(selBoneName, {X=0, Y=0, Z=0})
+        local finalBonePos = bestTarget:GetBonePos(selBoneName, {X=0, Y=20, Z=0})
         if not finalBonePos or (finalBonePos.X == 0 and finalBonePos.Y == 0 and finalBonePos.Z == 0) then
             if type(bestTarget.GetSocketLocation) == "function" then
                 finalBonePos = bestTarget:GetSocketLocation(selBoneName)
@@ -4097,7 +4100,7 @@ local function FastTick()
     pcall(MainLoop) 
     local okTicker, ticker = pcall(require, "common.time_ticker") 
     if okTicker and ticker and ticker.AddTimerOnce then 
-        ticker.AddTimerOnce(0.01, FastTick) 
+        ticker.AddTimerOnce(0.02, FastTick) 
     end 
 end
 
