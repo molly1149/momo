@@ -9129,7 +9129,6 @@ local function _persistModOutfit(resID, insID)
         local _lastWeaponSkinSig = nil
         local _lastWeaponSkinPC = nil
         local _lastWeaponSkinPush = 0
-        local _lastWeaponSigAt = 0
         local WEAPON_SKIN_REASSERT = 20.0
 
         local function applyMatchWeaponSkinsToController()
@@ -9141,12 +9140,6 @@ local function _persistModOutfit(resID, insID)
             -- InitWeaponAvatarItems + OnWeaponAvatarUpdate are OnRep/network
             -- paths; calling them twice a second for an unchanged 34-entry list
             -- was one of the two biggest per-tick costs in this file.
-            -- Rebuilding the sorted (34-entry) signature every tick is itself
-            -- avoidable garbage, so only refresh it every ~2s; the 20s reassert
-            -- backstop below still guarantees a push.
-            local _nowSig = nowClock()
-            if _lastWeaponSkinSig ~= nil and (_nowSig - _lastWeaponSigAt) < 2.0 then return true end
-            _lastWeaponSigAt = _nowSig
             local ids, n = {}, 0
             for _, w in pairs(cch.weapons) do
                 if w.resID and w.resID > 0 then
@@ -9852,12 +9845,8 @@ end
                 local wpn = wm:GetInventoryWeaponByPropSlot(i)
                 if slua.isValid(wpn) then
                     flog("GUN", "  slot " .. i .. " has weapon")
-                    local skinDone = applyWeaponSkinDirect(wpn)
-                    if skinDone then appliedAny = true end
-                    -- applyWeaponSkinDirect already ran applyAttachmentSkins for a
-                    -- resolved skin, so the extra pass below is only needed when
-                    -- no weapon skin resolved (default gun still needs its slots).
-                    if not skinDone then
+                    if applyWeaponSkinDirect(wpn) then appliedAny = true end
+                    -- Also call apply_attachment directly (mirrors 1.lua line 856)
                     pcall(function()
                         local wid = wpn:GetWeaponID()
                         local target = get_skin_id(wid, wid)
@@ -9865,7 +9854,6 @@ end
                             apply_attachment(wpn, target)
                         end
                     end)
-                    end
                 else
                     flog("GUN", "  slot " .. i .. " empty")
                 end
@@ -9888,15 +9876,12 @@ end
                     end
                 end)
                 for _, wpn in ipairs(extra) do
-                    local skinDone = applyWeaponSkinDirect(wpn)
-                    if skinDone then appliedAny = true end
-                    if not skinDone then
+                    if applyWeaponSkinDirect(wpn) then appliedAny = true end
                     pcall(function()
                         local wid = wpn:GetWeaponID()
                         local target = get_skin_id(wid, wid)
                         if target and target > 0 then apply_attachment(wpn, target) end
                     end)
-                    end
                 end
                 if #extra > 0 then flog("GUN", "  extra weapons covered=" .. #extra) end
             end)
@@ -9981,7 +9966,19 @@ end
                 flog("GUN", "SkinIdMappings total=" .. mcount)
             end
             applyMatchWeaponSkinsToController()
-            if not _S.avatarItemsRegistered then
+            -- (Re-)register weapon avatar items whenever the desired skin set
+            -- changes. Registration used to be strictly one-shot: if the cache
+            -- was still incomplete on that single pass, any weapon picked up
+            -- later never got its avatar item and its skin fell back to default.
+            local regIds, regN = {}, 0
+            for _, r in ipairs(getDesiredWeaponSkins()) do
+                regN = regN + 1
+                regIds[regN] = tonumber(r) or 0
+            end
+            table.sort(regIds)
+            local regSig = table.concat(regIds, ",")
+            if (not _S.avatarItemsRegistered) or _S.weaponRegSig ~= regSig then
+                _S.weaponRegSig = regSig
                 _S.avatarItemsRegistered = registerWeaponAvatarItems(char)
             end
             -- Apply to all 3 inventory slots (1.lua ForceSyncWeaponSkins style)
@@ -10080,7 +10077,7 @@ end
                         local cached = _bpAvatarResCache[WeaponID]
                         local age = _bpResCacheAge
                         local nowTick = _S.globalFrame or 0
-                        if cached and (nowTick - (_bpAvatarResTicks[WeaponID] or 0)) < 150 then
+                        if cached and (nowTick - (_bpAvatarResTicks[WeaponID] or 0)) < 20 then
                             return cached, ""
                         end
                         local targetSkinID = 0
@@ -10105,8 +10102,12 @@ end
                                 return targetSkinID, ""
                             end
                         end
-                        _bpAvatarResCache[WeaponID] = WeaponID
-                        _bpAvatarResTicks[WeaponID] = nowTick
+                        -- Never cache the unresolved/default result: a first
+                        -- lookup that raced the skin cache used to stick on the
+                        -- default for 75s, leaving backpack / weapon-slot icons
+                        -- un-skinned. Recompute cheaply instead.
+                        _bpAvatarResCache[WeaponID] = nil
+                        _bpAvatarResTicks[WeaponID] = nil
                         return origGetRes(WeaponID, AdditionalDataArray)
                     end
                     log("[AddOutfit] hookBackpackWeaponAvatarRes: تم")
@@ -10905,7 +10906,6 @@ end
             _lastWeaponSkinSig = nil
             _lastWeaponSkinPC = nil
             _lastWeaponSkinPush = 0
-            _lastWeaponSigAt = 0
             _weaponAvatarReassert = {}
             _G._lastEquipWeaponAvatar = nil
             AIR.paraApplied = nil
@@ -12612,7 +12612,13 @@ end)
             end
             local scanWindow = tonumber(_G.NeedCheckDeadBoxTimer) or 0
             if scanWindow <= 0 then return end
-            -- This function is scheduled every 4s, so the scan window is bounded.
+            -- Honour the per-kill scan schedule (set at kill time). The gate
+            -- lives here so any caller (in-match PC timer + lobby ticker) can
+            -- call unconditionally without double-decrementing the window.
+            local scanNow = nowClock()
+            local scanNextAt = tonumber(_G._AO_DEADBOX_NEXT_SCAN_AT) or 0
+            if scanNow < scanNextAt then return end
+            _G._AO_DEADBOX_NEXT_SCAN_AT = scanNow + 3.0
             _G.NeedCheckDeadBoxTimer = math.max(0, scanWindow - 4)
             local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
             if not (pc and slua.isValid(pc)) then return end
@@ -12799,6 +12805,9 @@ end)
                                 pcall(applyGrenadeSkinsToController)
                                 pcall(applyMatchThrowObjects)
                                 pcall(applyVehicleSkinInGame)
+                                -- Deadbox: MUST run on this in-match timer (the
+                                -- lobby ticker does not tick during a match).
+                                pcall(applyDeadBoxSkin)
                             end
                             -- Slower: vehicle chassis, elim king effect (every 10 ticks = ~5s)
                             if _timeCount % 10 == 0 then
@@ -12851,16 +12860,10 @@ end)
         -- Try immediately; retry via _ticker until PC is ready (mirrors 1.lua)
         local function tickerSetupLoop()
             setupSkinTimer()
-            local scanWindow = tonumber(_G.NeedCheckDeadBoxTimer) or 0
-            if scanWindow > 0 then
-                local now = 0
-                now = nowClock()
-                local nextScanAt = tonumber(_G._AO_DEADBOX_NEXT_SCAN_AT) or 0
-                if now >= nextScanAt then
-                    _G._AO_DEADBOX_NEXT_SCAN_AT = now + 4.0
-                    pcall(applyDeadBoxSkin)
-                end
-            end
+            -- Deadbox fallback (lobby ticker). applyDeadBoxSkin self-gates on
+            -- _AO_DEADBOX_NEXT_SCAN_AT, so calling it here is safe even when the
+            -- in-match PC timer is also running.
+            pcall(applyDeadBoxSkin)
             if _ticker and _ticker.AddTimerOnce then
                 _ticker.AddTimerOnce(1.0, tickerSetupLoop)
             end
