@@ -9929,8 +9929,11 @@ end
                         local arr = slua.Array(UEnums.EPropertyClass.Int)
                         local parents = AU.GetWeaponAvatarParentIDList(skinBPID, arr, false)
                         if parents and parents.Num and parents:Num() > 0 and pc.WeaponAvatarItemList then
-                            for _, parentID in pairs(parents) do
-                                pc.WeaponAvatarItemList:Add(parentID, skinBPID)
+                            local pn = parents:Num()
+                            for pi = 0, pn - 1 do
+                                local parentID = nil
+                                pcall(function() parentID = parents:Get(pi) end)
+                                if parentID ~= nil then pc.WeaponAvatarItemList:Add(parentID, skinBPID) end
                             end
                             addedCount = addedCount + 1
                         end
@@ -9947,6 +9950,24 @@ end
         local function matchApplyWeaponSkin(char)
             if not char or not slua.isValid(char) then return false end
             buildSkinMappings()
+            -- Weapon switch / pickup: the held-weapon actor changes. The game
+            -- re-resolves a spawned weapon's avatar from the item list, so force a
+            -- rebuild for the new weapon as soon as we see it. Keyed on weapon ID
+            -- (stable) + object validity, so same-type re-picks do not thrash.
+            pcall(function()
+                local cw = char.GetCurrentWeapon and char:GetCurrentWeapon()
+                if cw and slua.isValid(cw) then
+                    local cwID = 0
+                    pcall(function() cwID = tonumber(cw:GetWeaponID()) or 0 end)
+                    if cwID > 0 and (cwID ~= _S._lastHeldWeaponID or not slua.isValid(_S._lastHeldWeaponObj)) then
+                        _S._lastHeldWeaponID = cwID
+                        _S._lastHeldWeaponObj = cw
+                        flog("GUN", "held weapon changed -> " .. tostring(cwID) .. ", force re-apply")
+                        applyWeaponSkinDirect(cw, true)
+                        pcall(fixHeldWeaponAttachmentSkin)
+                    end
+                end
+            end)
             -- One-time diagnostic: dump weapon cache so we know what skins are loaded
             if not _S._gunDiagLogged then
                 _S._gunDiagLogged = true
@@ -11992,11 +12013,16 @@ pcall(function()
                                         _G.addKill(DefineID, 1)
                                         hasChanged = true
                                     end
-                                    if _G.LexusConfig.SkinDeadBox then 
-                                        _G.NeedCheckDeadBoxTimer = math.max(tonumber(_G.NeedCheckDeadBoxTimer) or 0, 15)
-                                        -- Coalesce rapid kills into one delayed scan after the visual burst.
-                                        _G._AO_DEADBOX_NEXT_SCAN_AT = nowClock() + 3.0
-                                    end
+                                end
+                                -- Deadbox: arm the scan on EVERY kill we cause that ends
+                                -- a player, not only when the equipped skin ID is a mod
+                                -- skin (>1,000,000). A normal/vanilla skin ID (or a skin
+                                -- resolved only through get_skin_id) used to skip this
+                                -- block entirely, so the tomb box kept the default skin.
+                                if _G.LexusConfig.SkinDeadBox then 
+                                    _G.NeedCheckDeadBoxTimer = math.max(tonumber(_G.NeedCheckDeadBoxTimer) or 0, 15)
+                                    -- Coalesce rapid kills into one delayed scan after the visual burst.
+                                    _G._AO_DEADBOX_NEXT_SCAN_AT = nowClock() + 3.0
                                 end
                             end
 
@@ -12602,6 +12628,7 @@ end)
         end
 
         local _deadboxAttempts = {}  -- actor -> attempt count (bounded retry)
+        local _deadboxCompWarned = false
         local _deadboxCachePurgedTick = 0
         local _timeCount = 0
 
@@ -12667,15 +12694,54 @@ end)
             -- scan created avoidable allocation and garbage-collection spikes.
             local grid = buildDeadboxGrid()
 
-            for _, actor in pairs(uActorArray) do
+            -- slua.Array is NOT a plain Lua table: pairs() can yield nothing and
+            -- its indices start at 0, so it must be walked with Num()/Get(). The
+            -- old pairs() loop silently skipped every tombbox on some game builds,
+            -- which is exactly why the deadbox skin never applied. Fall back to
+            -- pairs() only for a genuine Lua table.
+            local _dbActors = {}
+            local _dbN = 0
+            pcall(function() if uActorArray.Num then _dbN = uActorArray:Num() end end)
+            if _dbN and _dbN > 0 then
+                for _dbi = 0, _dbN - 1 do
+                    local _a = nil
+                    pcall(function() _a = uActorArray:Get(_dbi) end)
+                    if _a ~= nil then _dbActors[#_dbActors + 1] = _a end
+                end
+            elseif type(uActorArray) == "table" then
+                _dbActors = uActorArray
+            else
+                pcall(function() for _, _a in pairs(uActorArray) do _dbActors[#_dbActors + 1] = _a end end)
+            end
+            if _dbN and _dbN > 0 then flog("DEADBOX", "scan actors=" .. tostring(_dbN)) end
+
+            for _dbIdx = 1, #_dbActors do
+                local actor = _dbActors[_dbIdx]
                 if slua.isValid(actor) then
                     if _deadboxDone[actor] then
                         goto continue
                     end
-                    -- Apply to boxes we caused; skip boxes clearly caused by others.
+                    -- Apply to boxes we caused; skip boxes clearly caused by others
+                    -- only when both keys are known (unknown -> assume ours).
                     local DamageCauser = actor.DamageCauser
-                    if (not DamageCauser) or (DamageCauser.PlayerKey == pc.PlayerKey) then
+                    local _causerOK = true
+                    if DamageCauser then
+                        local ck, pk = tonumber(DamageCauser.PlayerKey), tonumber(pc.PlayerKey)
+                        if ck and pk then _causerOK = (ck == pk) end
+                    end
+                    if _causerOK then
+                        -- The component property spelling varies across game builds;
+                        -- probe the known names and the accessor before giving up.
                         local Deadboxavatar = actor.DeadBoxAvatarComponent_BP
+                            or actor.DeadBoxAvatarComponent
+                            or actor.DeadboxAvatarComponent
+                        if (not Deadboxavatar) and type(actor.GetDeadBoxAvatarComponent) == "function" then
+                            pcall(function() Deadboxavatar = actor:GetDeadBoxAvatarComponent() end)
+                        end
+                        if (not Deadboxavatar) and (not _deadboxCompWarned) then
+                            _deadboxCompWarned = true
+                            flog("DEADBOX", "tombbox has no DeadBoxAvatarComponent_BP on this build; deadbox skin unavailable")
+                        end
                         if Deadboxavatar then
                             -- Bounded retry while the post-kill scan window is active.
                             local tries = _deadboxAttempts[actor] or 0
@@ -12728,10 +12794,10 @@ end)
         end
 
         local function resetDeadboxMatchState()
-            for k in pairs(_G.DeadBoxSkins) do _G.DeadBoxSkins[k] = nil end
+            _G.DeadBoxSkins = {}
             _G._AO_DEADBOX_SPATIAL_GRID = nil
-            for k in pairs(_G.AlreadyChangedSet) do _G.AlreadyChangedSet[k] = nil end
-            for actor in pairs(_deadboxDone) do _deadboxDone[actor] = nil end
+            _G.AlreadyChangedSet = {}
+            _deadboxDone = {}
             _deadboxAttempts = {}
             _deadboxCachePurgedTick = _timeCount
             _G.NeedCheckDeadBoxTimer = 0
