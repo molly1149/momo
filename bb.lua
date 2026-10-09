@@ -5857,6 +5857,8 @@ local function _persistModOutfit(resID, insID)
             if not comp or not slua.isValid(comp) or not resID or resID <= 0 or not slotName then return false end
             local key = tostring(comp) .. "|" .. tostring(slotName)
             local ok = false
+            local changed = false
+            local visibilityNeeded = _G.NetPatchCache[key] ~= resID
             local dbg = "skip"
             pcall(function()
                 local EAvatarSlotType = import("EAvatarSlotType")
@@ -5869,6 +5871,7 @@ local function _persistModOutfit(resID, insID)
                 -- the server state, not our just-written value.
                 local liveCur = nil
                 if sync then liveCur = tonumber(sync.ItemID) or tonumber(sync.ItemId) end
+                local shouldPutOn = visibilityNeeded or (sync ~= nil and liveCur ~= resID)
                 if sync then
                     local cur = tonumber(sync.ItemID) or tonumber(sync.ItemId) or 0
                     if cur ~= resID then
@@ -5876,7 +5879,11 @@ local function _persistModOutfit(resID, insID)
                         if sync.ItemId ~= nil then sync.ItemId = resID end
                         if sync.FakeItemID ~= nil then sync.FakeItemID = resID end
                         if ESyncOperation then sync.OperationType = ESyncOperation.PutOn end
-                        if comp.ChangeSlotSyncData then comp:ChangeSlotSyncData(sync) ok = true end
+                        if comp.ChangeSlotSyncData then
+                            comp:ChangeSlotSyncData(sync)
+                            ok = true
+                            changed = true
+                        end
                         dbg = "sync-write cur=" .. tostring(cur)
                     else
                         ok = true
@@ -5885,27 +5892,34 @@ local function _persistModOutfit(resID, insID)
                 else
                     dbg = "no-sync-slot"
                 end
-                if slot and comp.CancelHideAvatarBySlot then comp:CancelHideAvatarBySlot(slot) end
-                if slot and comp.SetAvatarVisibility then comp:SetAvatarVisibility(slot, true, true) end
+                if slot and shouldPutOn then
+                    if comp.CancelHideAvatarBySlot then comp:CancelHideAvatarBySlot(slot) end
+                    if comp.SetAvatarVisibility then comp:SetAvatarVisibility(slot, true, true) end
+                end
                 -- Re-assert PutOn while the PRE-WRITE live slot still
                 -- disagrees (the server reverts cosmetic slots; a fired-once
                 -- cache gate would never retry).
-                if liveCur ~= resID then
-                    if comp.PutOnCustomEquipmentByID then comp:PutOnCustomEquipmentByID(resID) end
-                    _G.NetPatchCache[key] = resID
+                if shouldPutOn then
+                    if comp.PutOnCustomEquipmentByID then
+                        comp:PutOnCustomEquipmentByID(resID)
+                        _G.NetPatchCache[key] = resID
+                        ok = true
+                        changed = true
+                        dbg = dbg .. "+puton"
+                    end
+                elseif not sync and _G.NetPatchCache[key] == resID then
+                    -- No net-slot getter is available; the per-component cache
+                    -- prevents repeating the same rebuild blindly.
                     ok = true
-                    dbg = dbg .. "+puton"
                 end
-                -- Refresh ONLY on change (1.lua sleep mode): unconditional
-                -- rectify every 0.5s rebuilds meshes = visible glitching.
-                -- Visibility above stays unconditional (cheap, no re-render).
-                if ok then
+                -- Rebuild the avatar only after a real slot mutation. Treat an
+                -- already-correct slot as success, not as a reason to re-render.
+                if changed then
                     pcall(function() if comp.OnRep_BodySlotStateChanged then comp:OnRep_BodySlotStateChanged() end end)
                     pcall(function() if comp.ProcessAvatarRectify then comp:ProcessAvatarRectify() end end)
                     pcall(function() if comp.RefreshAvatarReAttach then comp:RefreshAvatarReAttach() end end)
-                    if slot and comp.CancelHideAvatarBySlot then comp:CancelHideAvatarBySlot(slot) end
-                    if slot and comp.SetAvatarVisibility then comp:SetAvatarVisibility(slot, true, true) end
                 end
+                if ok then _G.NetPatchCache[key] = resID end
             end)
             if not _G.NetPatchLogged[key] then
                 _G.NetPatchLogged[key] = true
@@ -5914,7 +5928,7 @@ local function _persistModOutfit(resID, insID)
             elseif dbg:find("sync%-write") or dbg:find("%+puton") then
                 flog("MATCH", "acc-net " .. tostring(slotName) .. "=" .. tostring(resID) .. " " .. tostring(dbg))
             end
-            return ok
+            return ok, changed
         end
 
         local function makeWearEntry(resID)
@@ -6355,11 +6369,9 @@ local function _persistModOutfit(resID, insID)
             end
             for _, key in ipairs(extraKeys) do
                 local id = extraMap and extraMap[key]
-                if id and id > 0 then
-                    -- Every key is re-asserted under the same adaptive gate.
-                    -- Pants/Shoes/Armor used to PutOn on EVERY 0.5s tick, which
-                    -- rebuilt the character mesh and was the most visible part
-                    -- of the "everything flickers" glitch.
+                -- Slot-backed clothes are handled by the change-gated network
+                -- path below. Keep direct PutOn only for armor/parachute slots.
+                if id and id > 0 and (key == "Armor" or key == "Parachute") then
                     pcall(function()
                         ac:PutOnCustomEquipmentByID(id)
                         applied = true
@@ -6379,30 +6391,15 @@ local function _persistModOutfit(resID, insID)
                 [14] = "EAvatarSlotType_BeardEquipemtSlot",
                 [16] = "EAvatarSlotType_HandEffectEquipemtSlot",
             }
-            -- Cancel-hide / visibility. Moved off the every-tick path: six
-            -- SetAvatarVisibility calls per 0.5s still force material and
-            -- visibility recalcs on the whole actor. The re-assert below
-            -- already re-applies the slot, so this only needs to ride along
-            -- with it.
-            if doAcc then
-            for slotID in pairs(accTargets) do
-                local name = accSlotNames[slotID]
-                pcall(function()
-                    if not name then return end
-                    local EAvatarSlotType = import("EAvatarSlotType")
-                    local slot = EAvatarSlotType and EAvatarSlotType[name]
-                    if slot then
-                        if ac.CancelHideAvatarBySlot then ac:CancelHideAvatarBySlot(slot) end
-                        if ac.SetAvatarVisibility then ac:SetAvatarVisibility(slot, true, true) end
-                    end
-                end)
-            end
-            end
             -- Full re-assert at the adaptive cadence (doAcc).
             if doAcc then
             for slotID, resID in pairs(accTargets) do
                 local name = accSlotNames[slotID]
-                if name and patchAccSlotNetAvatar(ac, resID, name) then applied = true end
+                if name then
+                    local slotOK, slotChanged = patchAccSlotNetAvatar(ac, resID, name)
+                    if slotOK then applied = true end
+                    if slotChanged then didWrite = true end
+                end
             end
             end
 
@@ -10966,7 +10963,8 @@ end
 
         local function hookMatchAvatar()
             pcall(function()
-                if EventSystem and EventSystem.registEvent
+                if not _G._LAVA_MATCH_AVATAR_EVENT_HOOKED
+                    and EventSystem and EventSystem.registEvent
                     and EVENTTYPE_PLAYEREVENT_AVATAR and EVENTID_LOCAL_PLAYEREVENT_AVATAR_ALL_MESH_LOADED then
                     EventSystem:registEvent(EVENTTYPE_PLAYEREVENT_AVATAR, EVENTID_LOCAL_PLAYEREVENT_AVATAR_ALL_MESH_LOADED, function()
                         if isInLobby() then return end
@@ -10977,6 +10975,7 @@ end
                             matchApplyEquipSkins(char)
                         end
                     end)
+                    _G._LAVA_MATCH_AVATAR_EVENT_HOOKED = true
                 end
             end)
             pcall(function()
