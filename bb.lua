@@ -328,7 +328,13 @@ _G.AddOutfitFeat = _G.AddOutfitFeat or {
     killmsg_grenade = true,  -- kill feed grenade skin on grenade kills
     killcounter   = true,  -- per-weapon kill counter UI
     grenade_fx    = true,  -- grenade explosion effect (custom particle/level sequence)
+    trail         = true,  -- in-match movement trail effect
 }
+_G.TrailConfig = _G.TrailConfig or { TRAIL_ENABLE = 1, TRAIL_TYPE = 4531002 }
+if _G.AddOutfitFeat.trail == nil then
+    _G.AddOutfitFeat.trail = tonumber(_G.TrailConfig.TRAIL_ENABLE) ~= 0
+end
+_G.TrailConfig.TRAIL_TYPE = tonumber(_G.TrailConfig.TRAIL_TYPE) or 4531002
 local function featOn(name)
     local t = _G.AddOutfitFeat
     if not t then return true end
@@ -1460,6 +1466,11 @@ local function _persistModOutfit(resID, insID)
                         local k, v = line:match("^%s*([^=]+)%s*=%s*(.-)%s*$")
                         if k == "modskin_only" then
                             _G.menu_modskin_only = (v == "1" or v:lower() == "true")
+                        elseif k == "trail_type" then
+                            local trailType = tonumber(v)
+                            if trailType == 4531002 or trailType == 4541004 or trailType == 4541001 or trailType == 4531001 then
+                                _G.TrailConfig.TRAIL_TYPE = trailType
+                            end
                         elseif k:match("^feat_") then
                             local name = k:match("^feat_(.+)$")
                             if name and _G.AddOutfitFeat[name] ~= nil then
@@ -1477,6 +1488,7 @@ local function _persistModOutfit(resID, insID)
                 local f = io.open(_SETTINGS_PATH, "w")
                 if f then
                     f:write("modskin_only=" .. (_G.menu_modskin_only and "1" or "0") .. "\n")
+                    f:write("trail_type=" .. tostring(_G.TrailConfig.TRAIL_TYPE or 4531002) .. "\n")
                     for name, on in pairs(_G.AddOutfitFeat or {}) do
                         f:write("feat_" .. name .. "=" .. (on and "1" or "0") .. "\n")
                     end
@@ -1502,6 +1514,7 @@ local function _persistModOutfit(resID, insID)
         end
 
         loadSettings()
+        _G.TrailConfig.TRAIL_ENABLE = _G.AddOutfitFeat.trail and 1 or 0
 
         local ITEMS = {}
         local _itemsLoaded = false  -- منع إعادة تحميل العناصر
@@ -5771,6 +5784,112 @@ local function _persistModOutfit(resID, insID)
                 if char and slua.isValid(char) then return char end
             end
             return nil
+        end
+
+        do
+            local trailIds = { [4531002] = true, [4541004] = true, [4541001] = true, [4531001] = true }
+            local lastComp, lastManager, lastCompKey, lastManagerKey, lastTrailId = nil, nil, nil, nil, nil
+
+            local function currentTrailId()
+                local id = tonumber(_G.TrailConfig and _G.TrailConfig.TRAIL_TYPE) or 4531002
+                return trailIds[id] and id or 4531002
+            end
+
+            local function avatarComponent(char)
+                if not char or not slua.isValid(char) then return nil end
+                local comp = nil
+                pcall(function()
+                    if char.getAvatarComponent2 then comp = char:getAvatarComponent2() end
+                    if not slua.isValid(comp) then comp = char.CharacterAvatarComp2_BP end
+                end)
+                return comp and slua.isValid(comp) and comp or nil
+            end
+
+            local function stopTrail(char, suppliedComp)
+                local comp = suppliedComp or lastComp or avatarComponent(char or getLocalChar())
+                if comp and slua.isValid(comp) and comp.MoveEffectItem ~= 0 then
+                    pcall(function()
+                        comp.MoveEffectItem = 0
+                        local manager = lastManager or comp.AdditionEffectMgr
+                        if manager and manager.SetMoveEffectItem then
+                            manager:SetMoveEffectItem(0)
+                        elseif comp.OnRep_MoveEffectItem then
+                            comp:OnRep_MoveEffectItem(0)
+                        end
+                    end)
+                end
+                lastComp, lastManager, lastCompKey, lastManagerKey, lastTrailId = nil, nil, nil, nil, nil
+                return true
+            end
+
+            local function applyTrail(char, suppliedComp)
+                if not featOn("trail") then return stopTrail(char, suppliedComp) end
+                if not isInGamePlay() then return false end
+                char = char or getLocalChar()
+                local comp = suppliedComp or avatarComponent(char)
+                if not comp or not slua.isValid(comp) then return false end
+
+                local id = currentTrailId()
+                local manager = comp.AdditionEffectMgr
+                local compKey = tostring(comp)
+                local managerKey = manager and tostring(manager) or ""
+                if comp.MoveEffectItem == id and compKey == lastCompKey
+                    and managerKey == lastManagerKey and id == lastTrailId then
+                    return true
+                end
+
+                local applied = false
+                local ok = pcall(function()
+                    comp.MoveEffectItem = id
+                    if manager and manager.SetMoveEffectItem then
+                        manager:SetMoveEffectItem(id)
+                        applied = true
+                    elseif comp.OnRep_MoveEffectItem then
+                        comp:OnRep_MoveEffectItem(0)
+                        applied = true
+                    end
+                end)
+                if ok and applied then
+                    lastComp, lastManager = comp, manager
+                    lastCompKey, lastManagerKey, lastTrailId = compKey, managerKey, id
+                    return true
+                end
+                return false
+            end
+
+            local function setTrailType(value)
+                local id = tonumber(value) or 4531002
+                if not trailIds[id] then id = 4531002 end
+                _G.TrailConfig.TRAIL_TYPE = id
+                local module = _G.GoldenLeavesTrail or {}
+                _G.GoldenLeavesTrail = module
+                module.TRAIL_ITEM_ID = id
+                module.Enabled = featOn("trail")
+                pcall(function() if _G.AddOutfitSaveSettings then _G.AddOutfitSaveSettings() end end)
+                applyTrail()
+                return id
+            end
+
+            local module = _G.GoldenLeavesTrail or {}
+            _G.GoldenLeavesTrail = module
+            module.Enabled = featOn("trail")
+            module.TRAIL_ITEM_ID = currentTrailId()
+            module.Apply = applyTrail
+            module.Stop = stopTrail
+            module.SetType = setTrailType
+            _G.AddOutfitApplyTrail = applyTrail
+            _G.AddOutfitStopTrail = stopTrail
+            _G.AddOutfitSetTrailType = setTrailType
+            _G.SetTrailEnabled = function(enabled)
+                _G.AddOutfitFeat.trail = enabled == true
+                _G.TrailConfig.TRAIL_ENABLE = _G.AddOutfitFeat.trail and 1 or 0
+                module.Enabled = _G.AddOutfitFeat.trail
+                pcall(function() if _G.AddOutfitSaveSettings then _G.AddOutfitSaveSettings() end end)
+                if module.Enabled then applyTrail() else stopTrail() end
+            end
+            _G.GetTrailEnabled = function() return featOn("trail") end
+            _G.SetTrailType = setTrailType
+            _G.GetTrailType = currentTrailId
         end
 
         local function notify(msg)
@@ -12760,6 +12879,7 @@ end)
                             -- Apply outfit + weapon every tick (1.lua style)
                             pcall(matchApplyOutfit, char)
                             pcall(matchApplyWeaponSkin, char)
+                            pcall(applyTrail, char)
                             -- Re-skin the held weapon's attachment slots fast so a
                             -- quick scope switch can't flash the default optic.
                             pcall(fixHeldWeaponAttachmentSkin)
@@ -12857,6 +12977,12 @@ end)
             [99015] = "KILL COUNTER",
             [99016] = "GRENADE EXPLOSION FX",
             [99017] = "KILL MESSAGE - GRENADES",
+            [99018] = "MOVEMENT TRAIL",
+            [99019] = "TRAIL TYPE",
+            [99020] = "GOLDEN LEAVES",
+            [99021] = "GOLDEN SPARKS",
+            [99022] = "GOLDEN WAVE",
+            [99023] = "STAR PURPLE",
         }
 
         local function SetupLocHook()
@@ -12904,6 +13030,16 @@ end)
                 -- guard, so the next explosion reverts to the stock effect
                 -- without re-hooking or reloading the mod.
                 pcall(function() if val then InstallGrenadeFX() end end)
+            elseif key == "trail" then
+                _G.TrailConfig.TRAIL_ENABLE = val and 1 or 0
+                local trail = _G.GoldenLeavesTrail
+                if val then
+                    if trail then trail.Enabled = true end
+                    pcall(_G.AddOutfitApplyTrail)
+                else
+                    if trail then trail.Enabled = false end
+                    pcall(_G.AddOutfitStopTrail)
+                end
             end
             -- killmsg_gun / killmsg_xsuit are read live by the hooks, so the
             -- new value applies on the next elimination without re-hooking.
@@ -12965,6 +13101,19 @@ end)
                 FeatSwitcher(AliasMap, "killcounter", 99015),
                 FeatSwitcher(AliasMap, "grenade_fx", 99016),
                 FeatSwitcher(AliasMap, "killmsg_grenade", 99017),
+                FeatSwitcher(AliasMap, "trail", 99018),
+                {
+                    Key = "TrailType",
+                    UI = AliasMap.TitleSwitcher or AliasMap.Switcher,
+                    Text = 99019,
+                    SwitcherText = {99020, 99021, 99022, 99023},
+                    SwitcherValue = {4531002, 4541004, 4541001, 4531001},
+                    GetFunc = function() return _G.GetTrailType() end,
+                    SetFunc = function(_, value)
+                        _G.AddOutfitSetTrailType(value)
+                        return true
+                    end,
+                },
             }
         end
 
@@ -13041,6 +13190,7 @@ end)
                 -- Status changed, run post-switch logic
                 stopMatchWatcher()
                 if currentStatus ~= "gameplay" then pcall(resetDeadboxMatchState) end
+                if currentStatus ~= "gameplay" then pcall(_G.AddOutfitStopTrail) end
                 _S.bootstrapNotified = false
                 _S.matchOutfitDone = false
                 _S.lobbyApplied = false
