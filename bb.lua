@@ -1506,9 +1506,7 @@ local function _persistModOutfit(resID, insID)
                 R.insToRes = {}
                 R.resToIns = {}
                 _injectedResSet = {}
-                -- Pool wiped: bump the generation so the cached vehicle
-                -- "rest" list in collectInMatchVehicleSkins is dropped instead
-                -- of surviving with resIDs that no longer exist.
+                -- Keep the shared injection-pool generation for companion code.
                 _G.ChetanInjGen = (_G.ChetanInjGen or 0) + 1
             end)
         end
@@ -3075,10 +3073,6 @@ local function _persistModOutfit(resID, insID)
 
         local function injectOne(entity, resID, insID)
               if alreadyHave(entity, resID) then
-                  -- This branch can also INSERT a new key (the `or insID`
-                  -- fallback), so the pool-generation bump has to happen here
-                  -- too -- otherwise the cached vehicle list would miss items
-                  -- added through this path.
                   if R.resToIns[resID] == nil then
                       _G.ChetanInjGen = (_G.ChetanInjGen or 0) + 1
                   end
@@ -3102,9 +3096,6 @@ local function _persistModOutfit(resID, insID)
             end)
               R.insToRes[insID] = resID
               R.resToIns[resID] = insID
-              -- Bump the injected-pool generation so the cached vehicle "rest"
-              -- list (see collectInMatchVehicleSkins) is rebuilt once
-              -- injection actually grows the pool.
               _G.ChetanInjGen = (_G.ChetanInjGen or 0) + 1
               -- log("O-U,U+", resID, insID)
               return true
@@ -10737,24 +10728,6 @@ end
             return st
         end
 
-        -- Rarity is ItemQuality on the Item config row. ItemMacros.lua enum:
-        -- Grey 1, Black 2, Green 3, Blue 4, Purple 5, Pink 6, Red 7, Golden 8,
-        -- TGOLDEN 10 -- so higher is rarer, and the game's own sorters
-        -- (ItemUpgradeModule, logic_peak_game) all compare descending.
-        local _qualityCache = {}
-        local function resQuality(resID)
-            local q = _qualityCache[resID]
-            if q then return q end
-            q = 0
-            pcall(function()
-                local cc = CDataTable and CDataTable.GetTableData
-                    and CDataTable.GetTableData("Item", resID)
-                q = cc and tonumber(cc.ItemQuality) or 0
-            end)
-            _qualityCache[resID] = q
-            return q
-        end
-
         local _wdMod = nil
         local function insToResID(insID)
             insID = tonumber(insID)
@@ -10778,13 +10751,8 @@ end
             return resID
         end
 
-        -- Returns the lobby-selected resIDs (stable order) and every other
-        -- vehicle skin, de-duplicated.
-        -- The "unlocked rest" list only changes when the injected pool grows,
-        -- so it is cached against _G.ChetanInjGen (bumped by injectOne) instead
-        -- of being rebuilt on every pass. Rebuilding meant re-walking all of
-        -- R.resToIns and re-running the rarity sort each time.
-        local _vehAllCache = nil
+        -- Return only explicitly selected vehicle resIDs in stable slot order.
+        -- Unselected injected skins are not part of the refresh list.
         local function collectInMatchVehicleSkins()
             local selected, seen = {}, {}
             local subOrder = {}
@@ -10804,44 +10772,11 @@ end
                     end
                 end
             end
-            -- Walked in priority order (subtype asc, then rarity desc, then
-            -- resID asc) so the panel shows the chosen skins first inside every
-            -- vehicle group. Cached: VehicleSlotList is small, this is not.
-            local gen = _G.ChetanInjGen or 0
-            local all = _vehAllCache and _vehAllCache.gen == gen and _vehAllCache.all or nil
-            if not all then
-                all = {}
-                for resID in pairs(R.resToIns or {}) do
-                    resID = tonumber(resID)
-                    if resID and resID > 0 and resSubType(resID) >= VEHICLE_MIN_SUBTYPE then
-                        all[#all + 1] = resID
-                    end
-                end
-                table.sort(all, function(a, b)
-                    local qa, qb = resQuality(a), resQuality(b)
-                    if qa ~= qb then return qa > qb end
-                    return a < b
-                end)
-                _vehAllCache = { gen = gen, all = all }
-            end
-            -- Drop anything the player has since selected out of the rest list.
-            if #seen > 0 then
-                local filtered = {}
-                for i = 1, #all do
-                    if not seen[all[i]] then filtered[#filtered + 1] = all[i] end
-                end
-                return selected, filtered
-            end
-            return selected, all
+            return selected
         end
 
-        -- Live :Add() on top of the init list. VehicleAvatarList and
-        -- VehicleAvatarSkinList are append-only, so this cannot reorder what the
-        -- game already built -- ordering comes from InitialVehicleAvatarSkinList
-        -- below. Its job is to make sure the selected skins are present at all if
-        -- the game rebuilt its lists after init. Guarded by a key because this
-        -- runs on a ~5s tick and re-adding every skin each time would grow the
-        -- lists without bound.
+        -- Add only lobby-selected skins to the existing game lists. These lists
+        -- are append-only, so never rebuild them or append unselected skins.
         local function injectSelectedVehicleSkins(pc, selected, cacheKey)
             if _G._chetanVehListInjectedKey == cacheKey then return end
             local UAvatarUtils = import("AvatarUtils")
@@ -10861,8 +10796,6 @@ end
             _G._chetanVehListInjectedKey = cacheKey
         end
 
-        local _vehListCache = nil
-
         local function syncVehicleAvatarSkinList()
             local pc = getPlayerController()
             if not pc or not slua.isValid(pc) then return end
@@ -10874,59 +10807,8 @@ end
             if pc.bEnableFuzzyAvatarOnClient then
                 pc.bEnableFuzzyAvatarOnClient = false
             end
-            local selected, rest = collectInMatchVehicleSkins()
-            -- Key on the selection AND the size of the pool, so skins injected
-            -- after the first build still show up instead of being frozen out
-            -- by a stale cache.
-            local selKey = #rest .. "|" .. table.concat(selected, ",")
-            if not (_vehListCache and _vehListCache.key == selKey) then
-                -- Group the ordered list by vehicle subtype, selected skins first
-                -- inside every group, so the panel renders the chosen ones at the
-                -- top of their vehicle's list and the unlocked rest below.
-                local bySub, subKeys = {}, {}
-                local function addTo(resID)
-                    local st = resSubType(resID)
-                    if st < VEHICLE_MIN_SUBTYPE then return end
-                    if not bySub[st] then
-                        bySub[st] = {}
-                        subKeys[#subKeys + 1] = st
-                    end
-                    bySub[st][#bySub[st] + 1] = resID
-                end
-                for _, resID in ipairs(selected) do addTo(resID) end
-                for _, resID in ipairs(rest) do addTo(resID) end
-                table.sort(subKeys, function(a, b) return (tonumber(a) or 0) < (tonumber(b) or 0) end)
-                local vehicleSkinData = {}
-                for _, st in ipairs(subKeys) do
-                    local itemArray = {}
-                    for _, resID in ipairs(bySub[st]) do
-                        itemArray[#itemArray + 1] = { ItemTableID = resID, Count = 1 }
-                    end
-                    if #itemArray > 0 then
-                        vehicleSkinData[#vehicleSkinData + 1] = { Items = itemArray }
-                    end
-                end
-                _vehListCache = { key = selKey, data = vehicleSkinData }
-            end
-            if pc.InitVehicleAvatarSkinList and _vehListCache and #_vehListCache.data > 0 then
-                -- Re-initialising rebuilds the whole vehicle avatar list, so it
-                -- only runs when the content actually changed. The old code did
-                -- this on EVERY pass even when selKey was identical, which is a
-                -- second source of the periodic hitch. 30s backstop covers late
-                -- arrivals (skins injected after this first ran) so the list
-                -- never stays stale for long.
-                local nowI = 0
-                nowI = nowClock()
-                local keyChanged = (_G._chetanVehInitKey ~= selKey)
-                local dueBackstop = (_G._chetanVehInitAt == nil)
-                        or (nowI - _G._chetanVehInitAt) >= 30.0
-                if keyChanged or dueBackstop then
-                    _G._chetanVehInitKey = selKey
-                    _G._chetanVehInitAt = nowI
-                    pc.InitialVehicleAvatarSkinList = _vehListCache.data
-                    pcall(function() pc:InitVehicleAvatarSkinList() end)
-                end
-            end
+            local selected = collectInMatchVehicleSkins()
+            local selKey = table.concat(selected, ",")
             injectSelectedVehicleSkins(pc, selected, tostring(pc) .. "#" .. selKey)
         end
 
@@ -10949,6 +10831,7 @@ end
             _lastWeaponSkinPush = 0
             _weaponAvatarReassert = {}
             _G._lastEquipWeaponAvatar = nil
+            _G._chetanVehListInjectedKey = nil
             AIR.paraApplied = nil
             AIR.gliderApplied = nil
             AIR.paraAppliedAt = 0
