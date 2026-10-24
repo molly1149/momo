@@ -1,18 +1,18 @@
 local GameplayData = require("GameLua.GameCore.Data.GameplayData")
 
 local CONFIG = {
-    NO_RECOIL = 1,        
+    NO_RECOIL = 0,        
     NO_RECOIL_ADS = 1,     
-    ANTI_SHAKE = 1,       
+    ANTI_SHAKE = 0,       
     ALL_GUN_FOCUS = 1,     
-    QUICK_SCOPE = 1,      
-    QUICK_SWITCH = 1,      
+    QUICK_SCOPE = 0,      
+    QUICK_SWITCH = 0,      
     GUN_WALLBANG = 0,      
     SUPER_BULLET = 0,       
     SUPER_FIRE_RATE = 0,   
     INFINITE_AMMO = 0,    
     AIM_ASSIST = 0,         
-    EXTRA_HIT_SCALE = 5     
+    EXTRA_HIT_SCALE = 0     
 }
 
 local function noRecoilJitter(base)
