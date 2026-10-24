@@ -1,6 +1,6 @@
 local GameplayData = require("GameLua.GameCore.Data.GameplayData")
 local CONFIG = {
-    NO_RECOIL = 1,        
+    NO_RECOIL = 0,        
     NO_RECOIL_ADS = 1,      
     ANTI_SHAKE = 1,        
     ALL_GUN_FOCUS = 1,      
