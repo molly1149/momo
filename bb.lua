@@ -560,7 +560,7 @@ _G.AddOutfitPetLog = function(msg)
         local p = _G.AddOutfitPetLogPath
         if not p then
             local paths = {
-                "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_PET.log",
+                "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_PET.log",
                 "CHETAN_PET.log",
             }
             for _, c in ipairs(paths) do
@@ -590,7 +590,7 @@ _G.AddOutfitAirLog = function(tag, msg)
         local p = _G.AddOutfitAirLogPath
         if not p then
             local paths = {
-                "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_AIR.log",
+                "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_AIR.log",
                 "CHETAN_AIR.log",
             }
             for _, c in ipairs(paths) do
@@ -623,7 +623,7 @@ _G.AddOutfitFaceLog = function(msg)
         local p = _G.AddOutfitFaceLogPath
         if not p then
             local paths = {
-                "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_FACE.log",
+                "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_FACE.log",
                 "CHETAN_FACE.log",
             }
             for _, c in ipairs(paths) do
@@ -653,7 +653,7 @@ _G.AddOutfitThemeLog = function(msg)
         local p = _G.AddOutfitThemeLogPath
         if not p then
             local paths = {
-                "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_THEME.log",
+                "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_THEME.log",
                 "CHETAN_THEME.log",
             }
             for _, c in ipairs(paths) do
@@ -685,7 +685,7 @@ _G.AddOutfitGrenadeLog = function(msg)
         local p = _G.AddOutfitGrenadeLogPath
         if not p then
             local paths = {
-                "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_GRENADE.log",
+                "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_GRENADE.log",
                 "CHETAN_GRENADE.log",
             }
             for _, c in ipairs(paths) do
@@ -714,7 +714,7 @@ _G.AddOutfitSummonLog = function(msg)
         local p = _G.AddOutfitSummonLogPath
         if not p then
             local paths = {
-                "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_SUMMON.log",
+                "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_SUMMON.log",
                 "CHETAN_SUMMON.log",
             }
             for _, c in ipairs(paths) do
@@ -807,7 +807,7 @@ local _outfitSavePathCache = nil
     local function _getModSavePath()
         if _modSavePathCache then return _modSavePathCache end
         -- The mod file MUST live beside the game file. Hardcoding
-        -- com.pubg.imobile put it in the wrong Android/data dir on the krmobile
+        -- com.vng.pubgmobile put it in the wrong Android/data dir on the krmobile
         -- / vng / rekoo packages, so every grenade and skin the mod had saved
         -- was written somewhere the game (and the next boot) never looked.
         local base = ""
@@ -818,7 +818,7 @@ local _outfitSavePathCache = nil
             base = gp:match("^(.*)/[^/]+$") or ""
         end)
         if base == "" then
-            base = "/storage/emulated/0/Android/data/com.pubg.imobile/files"
+            base = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files"
         end
         -- Always use 'default' for the mod's file. The user explicitly manages
         -- CHETAN_AddOutfit_Save_default.txt, so separating it by UID causes
@@ -839,9 +839,8 @@ local _outfitSavePathCache = nil
         local pid = _currentPid()
         local fileName = "AddOutfit_Save_" .. pid .. ".txt"
         local possibleDirs = {
-            '/storage/emulated/0/Android/data/com.pubg.imobile/files/',
-            '/storage/emulated/0/Android/data/com.pubg.krmobile/files/',
             '/storage/emulated/0/Android/data/com.vng.pubgmobile/files/',
+            '/storage/emulated/0/Android/data/com.pubg.krmobile/files/',
             '/storage/emulated/0/Android/data/com.rekoo.pubgm/files/'
         }
         for _, dir in ipairs(possibleDirs) do
@@ -2211,7 +2210,7 @@ local function _persistModOutfit(resID, insID)
             -- Settings & Mod Menu persistence (limited-skins OFF by default).
             if _G.menu_modskin_only == nil then _G.menu_modskin_only = false end
         _G.LexusConfig = _G.LexusConfig or {}
-        local _SETTINGS_PATH = "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_Settings.txt"
+        local _SETTINGS_PATH = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_Settings.txt"
 
         -- Feature toggles (_G.AddOutfitFeat / featOn) are defined at file
         -- scope above; only settings persistence lives here.
@@ -7375,7 +7374,7 @@ local function _persistModOutfit(resID, insID)
                 ---------------------------------------------------------------
                 local FNAME = "CHETAN_Emote_Save_default.txt"
                 local DIRS = {
-                    "/storage/emulated/0/Android/data/com.pubg.imobile/files/",
+                    "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/",
                     "/storage/emulated/0/Android/data/com.pubg.krmobile/files/",
                     "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/",
                     "/storage/emulated/0/Android/data/com.rekoo.pubgm/files/",
@@ -11653,7 +11652,7 @@ for slotID, resID in pairs(accTargets) do
         -- must never be created). Writes only on discrete events -- hook install,
         -- equip, spawn, blast -- never per frame, so the open/append cost is
         -- negligible. Toggle with _G.SKIN_GFX_DIAG = false to silence it.
-        local GFX_DIAG_PATH = "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_GFX.txt"
+        local GFX_DIAG_PATH = "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/CHETAN_GFX.txt"
         -- Off by default now that the grenade FX path is working. Set
         -- _G.SKIN_GFX_DIAG = true before the payload runs to re-enable.
         local _gfxDiagOn = (_G.SKIN_GFX_DIAG == true)
