@@ -7377,7 +7377,6 @@ local function _persistModOutfit(resID, insID)
                 local DIRS = {
                     "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/",
                     "/storage/emulated/0/Android/data/com.pubg.krmobile/files/",
-                    "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/",
                     "/storage/emulated/0/Android/data/com.rekoo.pubgm/files/",
                 }
                 local savePath = nil
