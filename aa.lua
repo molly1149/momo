@@ -7383,11 +7383,7 @@ local function InitCircleArrowESP()
     _G.CircleArrowESP = ESP
 end
 
--- ============================================================
--- SMALL CROSSHERE + AIMBOT RECOIL ADS (ported from SAFEBRPlayer.lua)
---   每个 weapon entity 首次见到时缓存原始值，之后按开关来回切换，
---   关闭时会精确还原（避免残留 0.01 散布或放大后的速率）。
--- ============================================================
+
 local function ApplySmallCrosshairAndAimbotRecoilADS(localPlayer)
     pcall(function()
         if not slua.isValid(localPlayer) then return end
@@ -7422,7 +7418,7 @@ local function ApplySmallCrosshairAndAimbotRecoilADS(localPlayer)
             table.insert(entities, weapon.ShootWeaponComponent.ShootWeaponEntityComponent)
         end
 
-        local recoilAmt = 0.1
+        local recoilAmt = 0.5
         if _G.LexusState and _G.LexusState.CustomTextData then
             recoilAmt = tonumber(_G.LexusState.CustomTextData.OuterRecoil) or 0.1
         end
@@ -7467,9 +7463,9 @@ local function ApplySmallCrosshairAndAimbotRecoilADS(localPlayer)
                 end
 
                 if needCrosshair then
-                    pcall(function() entity.RecoilKick = 0.1 end)
-                    pcall(function() entity.RecoilKickADS = 0.1 end)
-                    pcall(function() entity.AnimationKick = 0.1 end)                  
+                    pcall(function() entity.RecoilKick = 0.3 end)
+                    pcall(function() entity.RecoilKickADS = 0.3 end)
+                    pcall(function() entity.AnimationKick = 0.3 end)                  
                     pcall(function() entity.GameDeviationFactor = 0.01 end)
                 elseif entity._LexOrigStats.GameDeviationFactor ~= nil then
                     pcall(function()
