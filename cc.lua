@@ -4346,7 +4346,7 @@ local function MainLoop()
                     if _G.LexusConfig.LessShake then entity.RecoilKick = 0.1; entity.RecoilKickADS = 0.1; entity.AnimationKick = 0.1 end
                     if _G.LexusConfig.Accuracy then entity.GameDeviationAccuracy = 0.01 end
                     if _G.LexusConfig.Crosshair then entity.GameDeviationFactor = 0.01 end
-                    if _G.LexusConfig.GodMode then entity.BulletFireSpeed = 500000.0; entity.ShootInterval = 0.001; entity.BaseDamage = 60000.0 end
+                   
                     
                     if entity.AutoAimingConfig then
                         if not entity.OriginalAutoAimCached then
