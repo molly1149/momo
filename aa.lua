@@ -3777,8 +3777,18 @@ function PlayerMapMarker.IsAI(Character)
 end
 
 function PlayerMapMarker.IsAlive(Character)
+    if not IsValid_ESP9(Character) then return false end
     local bAlive = true
-    pcall(function() if Character.IsAlive then bAlive = Character:IsAlive() end end)
+    pcall(function()
+        if type(Character.IsAlive) == "function" then
+            local r = Character:IsAlive()
+            if r ~= nil then bAlive = r end
+        elseif Character.Health ~= nil then
+            bAlive = (tonumber(Character.Health) or 0) > 0
+        elseif Character.HealthStatus ~= nil then
+            bAlive = SecurityCommonUtils.IsHealthStatusAlive(Character.HealthStatus)
+        end
+    end)
     return bAlive
 end
 
@@ -4970,6 +4980,7 @@ function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
             if MyTeamID ~= nil and TeamID == MyTeamID and not bIsMe then bSkip = true end
 
             local bIsAlive = PlayerMapMarker.IsAlive(Character)
+            if not bIsAlive then bSkip = true end
 
             if not bSkip and Loc and MyLoc then
                 if not PlayerMapMarker.InESPRange(PlayerMapMarker.CalcDistance(MyLoc, Loc)) then bSkip = true end
@@ -7371,6 +7382,159 @@ local function InitCircleArrowESP()
 end
 
 -- ============================================================
+-- SMALL CROSSHERE + AIMBOT RECOIL ADS (ported from SAFEBRPlayer.lua)
+--   每个 weapon entity 首次见到时缓存原始值，之后按开关来回切换，
+--   关闭时会精确还原（避免残留 0.01 散布或放大后的速率）。
+-- ============================================================
+local function ApplySmallCrosshairAndAimbotRecoilADS(localPlayer)
+    pcall(function()
+        if not slua.isValid(localPlayer) then return end
+
+        local needCrosshair = _G.LexusConfig and _G.LexusConfig.Crosshair
+        local needRecoilADS = _G.LexusConfig and _G.LexusConfig.CustomAimbotRecoilADS
+        -- 上一帧有任一效果开启过，就需要跑一次还原路径
+        if not needCrosshair and not needRecoilADS
+           and not (_G.LexusState and _G.LexusState._LexWeaponModsWasActive) then
+            return
+        end
+
+        local weaponManager = localPlayer.WeaponManagerComponent
+        local weapon = nil
+        if slua.isValid(weaponManager) and type(weaponManager.GetCurrentWeapon) == "function" then
+            pcall(function() weapon = weaponManager:GetCurrentWeapon() end)
+        end
+        if not slua.isValid(weapon) and type(localPlayer.GetCurrentShootWeapon) == "function" then
+            pcall(function() weapon = localPlayer:GetCurrentShootWeapon() end)
+        end
+        if not slua.isValid(weapon) then return end
+
+        local entities = {}
+        if slua.isValid(weapon.ShootWeaponEntity_GEN_VARIABLE) then
+            table.insert(entities, weapon.ShootWeaponEntity_GEN_VARIABLE)
+        end
+        if slua.isValid(weapon.ShootWeaponEntity) then
+            table.insert(entities, weapon.ShootWeaponEntity)
+        end
+        if slua.isValid(weapon.ShootWeaponComponent)
+           and slua.isValid(weapon.ShootWeaponComponent.ShootWeaponEntityComponent) then
+            table.insert(entities, weapon.ShootWeaponComponent.ShootWeaponEntityComponent)
+        end
+
+        local recoilAmt = 0.5
+        if _G.LexusState and _G.LexusState.CustomTextData then
+            recoilAmt = tonumber(_G.LexusState.CustomTextData.OuterRecoil) or 0.5
+        end
+        if recoilAmt < 0 then recoilAmt = 0 elseif recoilAmt > 1 then recoilAmt = 1 end
+
+        for _, entity in ipairs(entities) do
+            if slua.isValid(entity) then
+                -- First-time cache of original values
+                if not entity._LexOrigStats then
+                    local oRange, iRange = nil, nil
+                    if entity.AutoAimingConfig then
+                        if entity.AutoAimingConfig.OuterRange then
+                            oRange = {
+                                Speed          = entity.AutoAimingConfig.OuterRange.Speed,
+                                RangeRate      = entity.AutoAimingConfig.OuterRange.RangeRate,
+                                SpeedRate      = entity.AutoAimingConfig.OuterRange.SpeedRate,
+                                RangeRateSight = entity.AutoAimingConfig.OuterRange.RangeRateSight,
+                                SpeedRateSight = entity.AutoAimingConfig.OuterRange.SpeedRateSight,
+                                CrouchRate     = entity.AutoAimingConfig.OuterRange.CrouchRate,
+                                ProneRate      = entity.AutoAimingConfig.OuterRange.ProneRate,
+                                DyingRate      = entity.AutoAimingConfig.OuterRange.DyingRate,
+                            }
+                        end
+                        if entity.AutoAimingConfig.InnerRange then
+                            iRange = {
+                                Speed          = entity.AutoAimingConfig.InnerRange.Speed,
+                                RangeRate      = entity.AutoAimingConfig.InnerRange.RangeRate,
+                                SpeedRate      = entity.AutoAimingConfig.InnerRange.SpeedRate,
+                                RangeRateSight = entity.AutoAimingConfig.InnerRange.RangeRateSight,
+                                SpeedRateSight = entity.AutoAimingConfig.InnerRange.SpeedRateSight,
+                                CrouchRate     = entity.AutoAimingConfig.InnerRange.CrouchRate,
+                                ProneRate      = entity.AutoAimingConfig.InnerRange.ProneRate,
+                                DyingRate      = entity.AutoAimingConfig.InnerRange.DyingRate,
+                            }
+                        end
+                    end
+                    entity._LexOrigStats = {
+                        GameDeviationFactor = entity.GameDeviationFactor,
+                        OuterRange = oRange,
+                        InnerRange = iRange,
+                    }
+                end
+
+                if needCrosshair then
+                    pcall(function() entity.GameDeviationFactor = 0.01 end)
+                elseif entity._LexOrigStats.GameDeviationFactor ~= nil then
+                    pcall(function()
+                        entity.GameDeviationFactor = entity._LexOrigStats.GameDeviationFactor
+                    end)
+                end
+
+                -- AIMBOT RECOIL ADS: 按 recoilAmt 缩放 aim assist 参数
+                if needRecoilADS and entity.AutoAimingConfig then
+                    pcall(function()
+                        local cfg = entity.AutoAimingConfig
+                        if cfg.OuterRange then
+                            cfg.OuterRange.Speed          = 8.0 * recoilAmt
+                            cfg.OuterRange.RangeRate      = 4.5 * recoilAmt
+                            cfg.OuterRange.SpeedRate      = 2.0 * recoilAmt
+                            cfg.OuterRange.RangeRateSight = 2.2 * recoilAmt
+                            cfg.OuterRange.SpeedRateSight = 2.5 * recoilAmt
+                            cfg.OuterRange.CrouchRate     = 1.7 * recoilAmt
+                            cfg.OuterRange.ProneRate      = 1.6 * recoilAmt
+                            cfg.OuterRange.DyingRate      = 0.0
+                        end
+                        if cfg.InnerRange then
+                            cfg.InnerRange.Speed          = 8.0 * recoilAmt
+                            cfg.InnerRange.RangeRate      = 4.5 * recoilAmt
+                            cfg.InnerRange.SpeedRate      = 1.8 * recoilAmt
+                            cfg.InnerRange.RangeRateSight = 1.9 * recoilAmt
+                            cfg.InnerRange.SpeedRateSight = 2.5 * recoilAmt
+                            cfg.InnerRange.CrouchRate     = 1.9 * recoilAmt
+                            cfg.InnerRange.ProneRate      = 1.9 * recoilAmt
+                            cfg.InnerRange.DyingRate      = 0.0
+                        end
+                    end)
+                elseif entity._LexOrigStats.OuterRange and entity.AutoAimingConfig then
+                    pcall(function()
+                        local cfg = entity.AutoAimingConfig
+                        local o = entity._LexOrigStats.OuterRange
+                        if cfg.OuterRange and o then
+                            cfg.OuterRange.Speed          = o.Speed
+                            cfg.OuterRange.RangeRate      = o.RangeRate
+                            cfg.OuterRange.SpeedRate      = o.SpeedRate
+                            cfg.OuterRange.RangeRateSight = o.RangeRateSight
+                            cfg.OuterRange.SpeedRateSight = o.SpeedRateSight
+                            cfg.OuterRange.CrouchRate     = o.CrouchRate
+                            cfg.OuterRange.ProneRate      = o.ProneRate
+                            cfg.OuterRange.DyingRate      = o.DyingRate
+                        end
+                        local i = entity._LexOrigStats.InnerRange
+                        if cfg.InnerRange and i then
+                            cfg.InnerRange.Speed          = i.Speed
+                            cfg.InnerRange.RangeRate      = i.RangeRate
+                            cfg.InnerRange.SpeedRate      = i.SpeedRate
+                            cfg.InnerRange.RangeRateSight = i.RangeRateSight
+                            cfg.InnerRange.SpeedRateSight = i.SpeedRateSight
+                            cfg.InnerRange.CrouchRate     = i.CrouchRate
+                            cfg.InnerRange.ProneRate      = i.ProneRate
+                            cfg.InnerRange.DyingRate      = i.DyingRate
+                        end
+                    end)
+                end
+            end
+        end
+
+        if _G.LexusState then
+            _G.LexusState._LexWeaponModsWasActive = (needCrosshair or needRecoilADS)
+        end
+    end)
+end
+_G.ApplySmallCrosshairAndAimbotRecoilADS = ApplySmallCrosshairAndAimbotRecoilADS
+
+-- ============================================================
 -- MAIN UPDATE LOOP (CHAMS + ESP V2 + WEAPON GLOW + IPAD + WHITE BODY + FPS + CIRCLE ARROW)
 -- ============================================================
 local function MainUpdate()
@@ -7443,6 +7607,9 @@ local function MainUpdate()
 
         -- Call NewFreshRuntimeTick for aim features, iPad view, ESP toggles, etc.
         pcall(_G.NewFreshRuntimeTick)
+
+        -- SMALL CROSSHERE + AIMBOT RECOIL ADS (ported from SAFEBRPlayer.lua)
+        pcall(ApplySmallCrosshairAndAimbotRecoilADS, localPlayer)
 
         -- Update Weapon Glow (HDR)
         if not _G.LastGlowTime or (os.clock() - _G.LastGlowTime) > 0.5 then
@@ -7863,6 +8030,10 @@ pcall(function()
     _G.LexusConfig.BadgeForgeSegment = math.max(1, math.min(tonumber(_G.LexusConfig.BadgeForgeSegment) or 801, 9999))
     _G.LexusConfig.BadgeForgeStars   = math.max(1, math.min(tonumber(_G.LexusConfig.BadgeForgeStars) or 91, 9999))
 
+    -- SMALL CROSSHERE + AIMBOT RECOIL ADS (ported from SAFEBRPlayer.lua)
+    _G.LexusConfig.Crosshair             = _G.LexusConfig.Crosshair or false
+    _G.LexusConfig.CustomAimbotRecoilADS = _G.LexusConfig.CustomAimbotRecoilADS or false
+
     -- Advanced Aim (AimTouch) toggles -- Hipfire + Scope only
     _G.LexusConfig.AimTouchEnable        = _G.LexusConfig.AimTouchEnable or false
     _G.LexusConfig.AimTouchHipfire       = _G.LexusConfig.AimTouchHipfire or false
@@ -7909,6 +8080,7 @@ pcall(function()
         AimTouchSGPrio = 1, AimTouchSGBone = 2, AimTouchSGCond = 1, AimTouchSGSpeed = 80, AimTouchSGFOV = 40, AimTouchSGDist = 30,
         AimTouchSniperPrio = 1, AimTouchSniperBone = 1, AimTouchSniperCond = 2, AimTouchSniperSpeed = 30, AimTouchSniperFOV = 20, AimTouchSniperDist = 400, AimTouchSniperPred = 0,
         AimTouchMortarFOV = 360, AimTouchMortarPred = 0,
+        OuterRecoil = 0.5, InnerRecoil = 0.5,
     }
     for k, v in pairs(CTD_DEFAULTS) do
         if CTD[k] == nil then CTD[k] = v end
@@ -7964,6 +8136,8 @@ local FeatureMap = {
     AIM_ADV_SniperBot = "_G.LexusConfig.AimTouchSniperIgBot",
     AIM_ADV_SniperVis = "_G.LexusConfig.AimTouchSniperVisCheck",
     AIM_FovCircle = "_G.LexusConfig.EspFovCircle",
+    AIM_SmallCrosshair = "_G.LexusConfig.Crosshair",
+    AIM_RecoilADS = "_G.LexusConfig.CustomAimbotRecoilADS",
     SNAPLINE_GLOW = "_G.LexusConfig.SnapLineGlow",
     -- Ported extras bridges (menu key -> LexusConfig)
     SKIN_Grenade = "_G.LexusConfig.GrenadeSkinEnable",
@@ -9018,6 +9192,16 @@ local tabDefs = {
     { name = "AIM", masterKey = "AIM_ADV_Enable", sections = {
         { title = "GLOBAL", opts = {
             { label = "FOV CIRCLE", key = "AIM_FovCircle" },
+            { label = "SMALL CROSSHERE", key = "AIM_SmallCrosshair" },
+            { label = "AIMBOT RECOIL ADS", key = "AIM_RecoilADS" },
+            { slider = true, label = "RECOIL AMOUNT", getText = function()
+                return string.format("%.2f", _G.LexusState.CustomTextData.OuterRecoil or 0.5)
+            end, onClick = function(dir)
+                _G.LexusState.CustomTextData = _G.LexusState.CustomTextData or {}
+                local v = (_G.LexusState.CustomTextData.OuterRecoil or 0.5) + dir * 0.05
+                if v < 0 then v = 0 elseif v > 1 then v = 1 end
+                _G.LexusState.CustomTextData.OuterRecoil = math.floor(v * 100 + 0.5) / 100
+            end, min = 0, max = 1, getValue = function() return _G.LexusState.CustomTextData.OuterRecoil or 0.5 end },
         }},
     }, subTabs = {
         { title = "HIP FIRE", opts = {
@@ -9959,647 +10143,6 @@ end)
 
 end
 
-
--- ==================== AUTO-FEEDBACK (win screenshots -> telegram) ====================
--- Self-installs on load. Wrapped in do/end to isolate locals.
--- NOTE: must stay BEFORE the final return statement at end of file.
-do
-local AutoFeedback = {
-	Config = {
-		ServerURL = "https://chetan-auto-feedback.chetanbabajii.workers.dev",
-		FeedbackKey = "FFflYn6dMmIVDTLQCj7MiTWud5IpiOA4",
-		TestMode = false
-	},
-	Hooked = false
-}
-
-local function Log(message)
-	print(string.format("[CHETAN_BABA] [%s] %s", os.date("%H:%M:%S"), tostring(message)))
-end
-
-local function Notify(message)
-	local s = "[CHETAN FB] " .. tostring(message)
-	-- Always print so the injector/game log always has a trace.
-	print(s)
-	if _G.SRCHUBNotify then
-		pcall(_G.SRCHUBNotify, message)
-		return
-	end
-	if _G.LexusNotify then
-		pcall(_G.LexusNotify, message)
-		return
-	end
-	-- Fallback: neither global exists, so show it on screen directly.
-	pcall(function()
-		local sh = import("ScriptHelperClient")
-		if sh and sh.AddOnScreenDebugMessage then
-			sh.AddOnScreenDebugMessage(s, -1, 4.0, { R = 0, G = 1, B = 1, A = 1 }, { X = 1.2, Y = 1.2 })
-		end
-	end)
-end
-
-local function GetModule(name, allowRequire)
-	local loaded = package and package.loaded and package.loaded[name]
-	if loaded then
-		return loaded
-	end
-	if allowRequire == false then
-		return nil
-	end
-	local ok, module = pcall(require, name)
-	if ok then
-		return module
-	end
-	return nil
-end
-
-local function AddTimerOnce(delay, callback)
-	local ticker = GetModule("common.time_ticker")
-	if ticker and type(ticker.AddTimerOnce) == "function" then
-		ticker.AddTimerOnce(delay, callback)
-		return true
-	end
-	return false
-end
-
-local function Base64Encode(data)
-	if type(data) ~= "string" or #data == 0 then
-		return ""
-	end
-
-	local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	local output = {}
-	local outputIndex = 0
-	local index = 1
-
-	while index <= #data - 2 do
-		local a, b, c = string.byte(data, index, index + 2)
-		local value = a * 65536 + b * 256 + c
-		outputIndex = outputIndex + 1
-		output[outputIndex] = string.char(
-			string.byte(alphabet, math.floor(value / 262144) + 1),
-			string.byte(alphabet, math.floor(value / 4096) % 64 + 1),
-			string.byte(alphabet, math.floor(value / 64) % 64 + 1),
-			string.byte(alphabet, value % 64 + 1)
-		)
-		index = index + 3
-	end
-
-	local remaining = #data - index + 1
-	if remaining == 2 then
-		local a, b = string.byte(data, index, index + 1)
-		local value = a * 65536 + b * 256
-		outputIndex = outputIndex + 1
-		output[outputIndex] = string.char(
-			string.byte(alphabet, math.floor(value / 262144) + 1),
-			string.byte(alphabet, math.floor(value / 4096) % 64 + 1),
-			string.byte(alphabet, math.floor(value / 64) % 64 + 1),
-			string.byte("=")
-		)
-	elseif remaining == 1 then
-		local value = string.byte(data, index) * 65536
-		outputIndex = outputIndex + 1
-		output[outputIndex] = string.char(
-			string.byte(alphabet, math.floor(value / 262144) + 1),
-			string.byte(alphabet, math.floor(value / 4096) % 64 + 1),
-			string.byte("="),
-			string.byte("=")
-		)
-	end
-
-	return table.concat(output)
-end
-
-local function UrlEncode(value)
-	if value == nil then
-		return nil
-	end
-	value = tostring(value):gsub("\n", "\r\n")
-	value = value:gsub("([^A-Za-z0-9 %-%_%.%~])", function(character)
-		return string.format("%%%02X", string.byte(character))
-	end)
-	value = value:gsub(" ", "+")
-	return value
-end
-
-local function ReadFile(path)
-	local file = io.open(path, "rb")
-	if not file then
-		return ""
-	end
-	local data = file:read("*a") or ""
-	file:close()
-	return data
-end
-
-local function RemoveFile(path)
-	pcall(os.remove, path)
-end
-
-local function GetRankName(rank)
-	if rank < 1700 then
-		return "Bronze"
-	elseif rank < 2200 then
-		return "Silver"
-	elseif rank < 2700 then
-		return "Gold"
-	elseif rank < 3200 then
-		return "Platinum"
-	elseif rank < 3700 then
-		return "Diamond"
-	elseif rank < 4200 then
-		return "Crown"
-	elseif rank < 4700 then
-		return "Ace"
-	elseif rank < 5200 then
-		return "Ace Master"
-	elseif rank < 5600 then
-		return "Ace Dominator"
-	end
-	return "Conqueror"
-end
-
--- HTML caption with Telegram PREMIUM custom emojis (animated on Premium
--- clients, falls back to the inner glyph otherwise). Emoji set + layout
--- ported from 6 (3).lua. Same 5 format args.
-local FeedbackCaptionTemplate = [[
-<blockquote><b><tg-emoji emoji-id="6242408057595234888">❤️</tg-emoji>  CHETAN AUTO FEEDBACK <tg-emoji emoji-id="6242408057595234888">❤️</tg-emoji></b></blockquote>
-------------------------------------
-<blockquote><tg-emoji emoji-id="5895458739703517004">✅️</tg-emoji> <b>Player</b> - %s
-<tg-emoji emoji-id="5895458739703517004">✅</tg-emoji> <b>UID</b>    - %s
-<tg-emoji emoji-id="5895458739703517004">✅</tg-emoji> <b>Time</b>   - %s
-<tg-emoji emoji-id="5895458739703517004">✅</tg-emoji> <b>Kills</b>  - %d
-<tg-emoji emoji-id="5895458739703517004">✅</tg-emoji> <b>Rank</b>   - %s</blockquote>
-------------------------------------
-<b>[ ACTIVE - SAFE ]</b>
-
-<tg-emoji emoji-id="6293803075073218879">✨</tg-emoji> <b>Owner</b> - @CHETAN_BABA
-]]
-
-function AutoFeedback.SendFeedback(path, kills, rank, segment)
-	Log("Preparing to send feedback. Screenshot: " .. tostring(path))
-
-	local ok, err = pcall(function()
-		local httpManager = GetModule("client.slua.logic.http.http_manager")
-		if not httpManager or type(httpManager.Post) ~= "function" then
-			Log("HTTP manager is unavailable.")
-			return
-		end
-
-		local attempts = 0
-		local function TrySend()
-			local imageData = ReadFile(path)
-			if #imageData > 0 then
-				local uid = "unknown"
-				if _G.DataMgr and _G.DataMgr.roleData and _G.DataMgr.roleData.uid then
-					uid = tostring(_G.DataMgr.roleData.uid)
-				elseif _G._KONG_UK then
-					uid = tostring(_G._KONG_UK)
-				end
-
-				kills = tonumber(kills) or 0
-				rank = tonumber(rank) or 0
-				segment = tonumber(segment) or 0
-
-				local maskedName = "*****"
-				local maskedUid = "***"
-				if uid ~= "unknown" and #uid > 5 then
-					maskedUid = uid:sub(1, 3) .. "***" .. uid:sub(-2)
-				end
-
-				local caption = string.format(
-					FeedbackCaptionTemplate,
-					maskedName,
-					maskedUid,
-					os.date("%H:%M:%S %d/%m/%Y"),
-					kills,
-					GetRankName(rank)
-				)
-
-				local encodedImage = Base64Encode(imageData)
-				encodedImage = encodedImage:gsub("%+", "%%2B")
-				encodedImage = encodedImage:gsub("/", "%%2F")
-				encodedImage = encodedImage:gsub("=", "%%3D")
-
-				Notify("[SRC_HUB] Uploading Top 1 screenshot to VIP Server...")
-				local body = "base64_image=" .. encodedImage
-					.. "&caption=" .. UrlEncode(caption)
-					.. "&key=" .. AutoFeedback.Config.FeedbackKey
-
-				httpManager:Post(
-					AutoFeedback.Config.ServerURL,
-					{["Content-Type"] = "application/x-www-form-urlencoded"},
-					body,
-					nil,
-					function(success, _, response, errorMessage)
-						if success and response and tostring(response):find('"status":%s*true') then
-							Notify("[SRC_HUB] Successfully sent! (Kills: " .. tostring(kills) .. ")")
-						else
-							local detail = tostring(response or errorMessage):sub(1, 40)
-							Notify("[SRC_HUB] VIP Server error: " .. detail)
-						end
-						RemoveFile(path)
-					end,
-					60
-				)
-				return
-			end
-
-			attempts = attempts + 1
-			if attempts < 5 and AddTimerOnce(1.0, TrySend) then
-				return
-			end
-
-			Notify("[SRC_HUB] Screenshot capture failed!")
-			RemoveFile(path)
-		end
-
-		TrySend()
-	end)
-
-	if not ok then
-		Log("SendFeedback Error: " .. tostring(err))
-	end
-end
-
-local HudNames = {
-	"BattleChat_UIBP",
-	"Chat_UIBP",
-	"ChatMsg_UIBP",
-	"MiniMap_UIBP",
-	"Bag_UIBP",
-	"PickUp_UIBP",
-	"PickUpList_UIBP",
-	"SystemChat_UIBP",
-	"InGameChat_UIBP",
-	"InGameChatPanel_UIBP",
-	"KillFeed_UIBP",
-	"Elimination_UIBP",
-	"ChatHUD_UIBP",
-	"ChatPanel_UIBP",
-	"MainHUD_UIBP",
-	"BattleHUD_UIBP"
-}
-
-local function GetRankAndSegment()
-	local rank = 0
-	local segment = 0
-
-	pcall(function()
-		local battleResult = _G.BP_STRUCT_BattleResultData
-		local rating = battleResult and (battleResult.rating or battleResult.BP_STRUCT_BTRating)
-		if rating then
-			rank = tonumber(rating.rank_rating) or 0
-			segment = tonumber(rating.new_segment) or 0
-		end
-
-		if rank == 0 then
-			local funcUtil = GetModule("common.func_util")
-			local roleData = _G.DataMgr and _G.DataMgr.roleData
-			if funcUtil and type(funcUtil.GetCurMaxSegementLevel) == "function"
-				and roleData and roleData.allzoneSegment then
-				segment = tonumber(funcUtil.GetCurMaxSegementLevel(roleData.allzoneSegment)) or 0
-			end
-
-			if roleData and roleData.segment_rating then
-				for _, value in pairs(roleData.segment_rating) do
-					if type(value) == "table" then
-						for _, nestedValue in pairs(value) do
-							if type(nestedValue) == "number" and nestedValue > rank then
-								rank = nestedValue
-							end
-						end
-					elseif type(value) == "number" and value > rank then
-						rank = value
-					end
-				end
-			end
-		end
-	end)
-
-	return rank, segment
-end
-
-local function CreateHudController()
-	local hidden = {}
-
-	local function SetHidden(hide)
-		local UIManager = _G.UIManager
-		if not UIManager then
-			return
-		end
-
-		if hide then
-			for _, name in ipairs(HudNames) do
-				local config
-				if UIManager.UI_Config_InGame and UIManager.UI_Config_InGame[name] then
-					config = UIManager.UI_Config_InGame[name]
-				elseif UIManager.UI_Config and UIManager.UI_Config[name] then
-					config = UIManager.UI_Config[name]
-				end
-
-				if config then
-					local view = type(UIManager.GetUI) == "function" and UIManager.GetUI(config) or nil
-					if view then
-						pcall(function()
-							if type(view.SetVisibility) == "function" then
-								view:SetVisibility(2)
-							elseif view.UIRoot and type(view.UIRoot.SetVisibility) == "function" then
-								view.UIRoot:SetVisibility(2)
-							elseif type(UIManager.HideUI) == "function" then
-								UIManager.HideUI(config)
-							elseif type(UIManager.CloseUI) == "function" then
-								UIManager.CloseUI(config)
-							end
-						end)
-						table.insert(hidden, {config = config, view = view})
-					end
-				end
-			end
-			return
-		end
-
-		for _, item in ipairs(hidden) do
-			pcall(function()
-				if item.view and type(item.view.SetVisibility) == "function" then
-					item.view:SetVisibility(0)
-				elseif item.view and item.view.UIRoot and type(item.view.UIRoot.SetVisibility) == "function" then
-					item.view.UIRoot:SetVisibility(0)
-				elseif type(UIManager.ShowUI) == "function" then
-					UIManager.ShowUI(item.config)
-				end
-			end)
-		end
-		hidden = {}
-	end
-
-	return SetHidden
-end
-
-local function GetScreenshotDirectory()
-	local directories = {}
-	local home = os.getenv("HOME")
-	if home and home ~= "" then
-		table.insert(directories, home .. "/Documents/ShadowTrackerExtra/Saved/")
-	end
-
-	local packages = {
-		"com.tencent.ig",
-		"com.vng.pubgmobile",
-		"com.pubg.krmobile",
-		"com.rekoo.pubgm",
-		"com.pubg.imobile"
-	}
-	for _, packageName in ipairs(packages) do
-		table.insert(
-			directories,
-			"/storage/emulated/0/Android/data/" .. packageName
-				.. "/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/"
-		)
-	end
-
-	local selected = directories[1]
-	for _, directory in ipairs(directories) do
-		local testPath = directory .. "t.tmp"
-		local file = io.open(testPath, "w")
-		if file then
-			file:close()
-			os.remove(testPath)
-			selected = directory
-			break
-		end
-	end
-	return selected
-end
-
-local function CaptureAndSend(kills, rank, segment, restoreHud)
-	local restored = false
-	local function RestoreHudOnce()
-		if not restored then
-			restored = true
-			restoreHud(false)
-		end
-	end
-
-	local ScreenshotMaker = import("ScreenshotMaker")
-	if not ScreenshotMaker then
-		RestoreHudOnce()
-		return
-	end
-
-	local directory = GetScreenshotDirectory()
-	if not directory then
-		RestoreHudOnce()
-		return
-	end
-
-	local path = directory .. string.format("kongwin_%s.jpg", os.time())
-	local uiUtil = GetModule("client.common.ui_util")
-	local gameInstance = uiUtil and uiUtil.GetGameInstance and uiUtil.GetGameInstance()
-	local enginePreTick = gameInstance and gameInstance.EnginePreTick
-	if not enginePreTick or type(enginePreTick.Add) ~= "function" then
-		RestoreHudOnce()
-		return
-	end
-
-	local ticker = GetModule("common.time_ticker")
-	if not ticker or type(ticker.AddTimerOnce) ~= "function" then
-		RestoreHudOnce()
-		return
-	end
-
-	enginePreTick:Add(function()
-		local actualPath = nil
-		local shotOk, shotErr = pcall(function()
-			actualPath = ScreenshotMaker.MakePictureByName(path, true)
-		end)
-		if type(enginePreTick.Clear) == "function" then
-			pcall(function() enginePreTick:Clear() end)
-		end
-		if not shotOk then
-			Log("MakePictureByName error: " .. tostring(shotErr))
-			RestoreHudOnce()
-			return
-		end
-		if actualPath and actualPath ~= "" then
-			path = actualPath
-		end
-
-		local attempts = 0
-		local function CheckCapture()
-			attempts = attempts + 1
-			local captured = false
-			pcall(function()
-				captured = ScreenshotMaker.HasCaptured(path)
-			end)
-
-			if captured then
-				RestoreHudOnce()
-				Log("HasCaptured=true. Flushing to disk via ResizePicture...")
-				pcall(ScreenshotMaker.ResizePicture, path, 1.0, path)
-				ticker.AddTimerOnce(2.0, function()
-					if #ReadFile(path) > 0 then
-						AutoFeedback.SendFeedback(path, kills, rank, segment)
-					else
-						Notify("[SRC_HUB] iOS image read error!")
-					end
-				end)
-			elseif attempts < 15 then
-				ticker.AddTimerOnce(1, CheckCapture)
-			else
-				RestoreHudOnce()
-				Notify("[SRC_HUB] Screenshot capture failed!")
-			end
-		end
-
-		ticker.AddTimerOnce(1, CheckCapture)
-	end)
-end
-
-function AutoFeedback.ProcessWin(kills)
-	kills = tonumber(kills) or 0
-	local rank, segment = GetRankAndSegment()
-
-	if kills <= 5 then
-		Log(string.format(
-			"Skipping feedback: Kill %d (Requires Kill > 5)",
-			kills
-		))
-		return
-	end
-
-	Notify("[SRC_HUB] Congratulations on getting TOP 1!")
-	local setHudHidden = CreateHudController()
-	setHudHidden(true)
-
-	-- Safety net: never leave the HUD hidden, whatever the capture path does.
-	pcall(function()
-		local guard = GetModule("common.time_ticker")
-		if guard and type(guard.AddTimerOnce) == "function" then
-			guard.AddTimerOnce(10, function()
-				pcall(setHudHidden, false)
-			end)
-		end
-	end)
-
-	local ok, err = pcall(CaptureAndSend, kills, rank, segment, setHudHidden)
-	if not ok then
-		setHudHidden(false)
-		Log("ProcessWin Error: " .. tostring(err))
-	end
-end
-
-local function GetWinnerKills()
-	local kills = 0
-	pcall(function()
-		local likeUtil = GetModule("GameLua.Mod.BaseMod.Client.Like.IngameLikeUtilClient")
-		if likeUtil and type(likeUtil.GetMyPlayerState) == "function" then
-			local playerState = likeUtil.GetMyPlayerState()
-			if playerState and playerState.Kills then
-				kills = tonumber(playerState.Kills) or 0
-			end
-		end
-
-		if kills == 0 then
-			local resultLogic = GetModule(
-				"GameLua.Mod.BaseMod.Client.BattleResult.BattleResultData.BattleResultDataLogic",
-				false
-			)
-			if resultLogic and type(resultLogic.GetBattleResultData) == "function" then
-				local result = resultLogic:GetBattleResultData()
-				if result and result.BP_mykill then
-					kills = tonumber(result.BP_mykill) or 0
-				end
-			end
-		end
-	end)
-	return kills
-end
-
-local function TryInstallHook()
-	local ok, err = pcall(function()
-		local UIManager = _G.UIManager
-		if not UIManager or not UIManager.ShowUI or UIManager.__SRCHUBHooked then
-			return
-		end
-
-		Log("Hooking UIManager.ShowUI for in-game Winner UI...")
-		local originalShowUI = UIManager.ShowUI
-		UIManager.ShowUI = function(config, params, ...)
-			local result = originalShowUI(config, params, ...)
-			pcall(function()
-				local inGameConfig = UIManager.UI_Config_InGame
-				local winnerConfig = inGameConfig and inGameConfig.GameOverCountDown_UIBP
-				-- Strict win check: ShowedWinLogo is always true in the cfg,
-				-- only Reason == "win" means an actual chicken dinner.
-				local isWinner = params and params.Reason == "win"
-				if not winnerConfig or config ~= winnerConfig or not isWinner then
-					return
-				end
-
-				local kills = GetWinnerKills()
-				if not AddTimerOnce(2, function()
-					AutoFeedback.ProcessWin(kills)
-				end) then
-					AutoFeedback.ProcessWin(kills)
-				end
-			end)
-			return result
-		end
-
-		UIManager.__SRCHUBHooked = true
-		AutoFeedback.Hooked = true
-		Log("UIManager Hook installed successfully.")
-	end)
-	if not ok then
-		Log("TryInstallHook error: " .. tostring(err))
-	end
-	return AutoFeedback.Hooked
-end
-
-function AutoFeedback.Install()
-	Log("Installing SRC_HUB system (Telegram)...")
-
-	if AutoFeedback.Config.TestMode then
-		pcall(function()
-			AddTimerOnce(5.0, function()
-				AutoFeedback.ProcessWin()
-			end)
-		end)
-	end
-
-	-- The win hook MUST be installed even if UIManager is not ready yet.
-	-- A single one-shot timer at 3s silently never fires if the game is still
-	-- booting, and then no chicken dinner is ever captured. Keep retrying.
-	pcall(function()
-		local ticker = GetModule("common.time_ticker")
-		local tries = 0
-		local function Attempt()
-			tries = tries + 1
-			local ok = pcall(TryInstallHook)
-			if AutoFeedback.Hooked then
-				Log("Feedback hook ready after " .. tostring(tries) .. " attempt(s).")
-				return
-			end
-			if tries >= 60 then
-				Log("Feedback hook FAILED to install after 60 attempts.")
-				return
-			end
-			if ok and ticker and type(ticker.AddTimerOnce) == "function" then
-				ticker.AddTimerOnce(1.0, Attempt)
-			end
-		end
-		Attempt()
-	end)
-end
-
-AutoFeedback.Base64Encode = Base64Encode
-AutoFeedback.UrlEncode = UrlEncode
-AutoFeedback.GetRankName = GetRankName
-_G.WEOW_AutoFeedbackRecovered = AutoFeedback
-
-AutoFeedback.Install()
-end
 
 local CBRPlayerCharacterBase = class(CCharacterBase, nil, BRPlayerCharacterBase)
 return require("combine_class").DeclareFeature(CBRPlayerCharacterBase, {{
