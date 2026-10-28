@@ -8081,12 +8081,6 @@ local function _persistModOutfit(resID, insID)
         end
 
         local function notify(msg)
-            if not DEBUG or isInMatchOrGame() then return end
-            msg = "[AddOutfit] " .. tostring(msg)
-            log(msg:gsub("^%[AddOutfit%] ", ""))
-            pcall(function()
-                if ShowNotice then ShowNotice(msg, false, 10) end
-            end)
         end
 
         local function getDesiredOutfit()
@@ -14931,22 +14925,7 @@ local function apply_attachment(CurWeapon, avatarid)
         -- GetWeaponAvatarRes اللي بترجع السكن للـ backpack UI
         local _hookedGetWeaponAvatarRes = false
 
-        -- Watermark: in-game quality label reads CHETAN_BABA in cyan.
         local function hookQualityWatermark()
-            pcall(function()
-                local UI = require("GameLua.Mod.Library.Client.UI.IngamePhoneStateUI")
-                local impl = UI and UI.__inner_impl
-                if not impl or impl._lava_watermark then return end
-                if type(impl.UpdateArtQualityUI) ~= "function" then return end
-                impl._lava_watermark = true
-                impl.UpdateArtQualityUI = function(self, _, _)
-                    pcall(function()
-                        self.UIRoot.TextBlock_quality:SetText("CHETAN_BABA")
-                        self.UIRoot.TextBlock_quality:SetColorAndOpacity(
-                            FSlateColor(FLinearColor(0, 1, 1, 1)))
-                    end)
-                end
-            end)
         end
 
         local function hookBackpackWeaponAvatarRes()
@@ -19509,29 +19488,8 @@ end)
             end)
         end
 
-        -- Free-file notice: shown once per session. Same Msg API and JOIN link
-        -- as the HACK build so both payloads carry the same owner message.
         local function ShowCHETANPromo()
-            if _G._CHETAN_PromoShown then return end
             _G._CHETAN_PromoShown = true
-            pcall(function()
-                local Msg = require("client.slua.logic.common.logic_common_msg_box")
-                if not Msg or type(Msg.Show) ~= "function" then return end
-                local title = "CHETAN_BABA"
-                local content = "PLAY SAFE\n\n"
-                    .. "MAX KILL LIMIT 8 - 12\n"
-                    .. "PLAY SMART\n\n"
-                    .. "MADE BY @CHETAN_BABA\n"
-                    .. "Join Telegram @CHETAN_BABA for updates and support.\n"
-                    .. "https://t.me/CHETAN_MODS"
-                local function OpenChannel()
-                    pcall(function()
-                        local Web = require("client.slua.logic.url.logic_webview_sdk")
-                        if Web and Web.OpenURL then Web:OpenURL("https://t.me/CHETAN_MODS") end
-                    end)
-                end
-                Msg.Show(1, title, content, OpenChannel, function() end, "JOIN CHANNEL", "CONTINUE")
-            end)
         end
 
         local function start()
