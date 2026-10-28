@@ -129,8 +129,8 @@ _G.LexusConfig = _G.LexusConfig or {
     AimTouchSniperVisCheck = false,
     AimTouchMortar = false,
     EspFovCircle = false,
-    BugManEnable = false, 
-        -- ===== ESP V2 =====
+    BugManEnable = false
+    -- ===== ESP V2 =====
     EspV2Enable = false,
     EspV2Snapline = true,
     EspV2Skeleton = false,
@@ -140,11 +140,11 @@ _G.LexusConfig = _G.LexusConfig or {
     EspV2ShowTeamColor = true,
     EspV2ShowWeaponIcon = true,
     EspV2ShowCount = true,
-    EspV2MaxDist = 300,          
+    EspV2MaxDist = 300,
     EspV2SnapThickness = 2,
     EspV2SnapOpacity = 90,
-    EspV2SnapRealColor = 1,      
-    EspV2SnapBotColor = 1,      
+    EspV2SnapRealColor = 1,
+    EspV2SnapBotColor = 1
 }
 
 _G.LexusState = _G.LexusState or { 
@@ -489,9 +489,8 @@ function _G.InitModMenuTab()
             { Key = "ModMenu_ESPAntenna", UI = AliasMap.Switcher, Text = T("ESP Antenna (Cột) ", "Antenna ESP "), GetFunc = function() return _G.LexusConfig.EspAntenna end, SetFunc = function(c,v) _G.LexusConfig.EspAntenna = v return true end },
             { Key = "ModMenu_ESPOutline_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP Viền Địch (Bật HDR sẽ sáng) ", "▶ Outline ESP (HDR supported) "), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspOutline end, SetFunc = function(c,v) _G.LexusConfig.EspOutline = v return true end },
             { Key = "ModMenu_ESPOutline_Color", UI = AliasMap.Slider, Text = T("   Màu Viền (1:Đỏ 2:Lục 3:Lam 4:Vàng 5:Tím 6:Trắng) ", "   Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Pur 6:Wht) "), ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 6, GetFunc = function() return _G.LexusState.CustomTextData.OutlineColor or 4 end, SetFunc = function(c,v) _G.LexusState.CustomTextData.OutlineColor = v return true end },
-            { Key = "ModMenu_ESPOutline_Thickness", UI = AliasMap.Slider, Text = T("   Độ Dày Viền ", "   Outline Thickness "), ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 20, min = 1, max = 20, GetFunc = function() return _G.LexusConfig.OutlineThickness end, SetFunc = function(c,v) _G.LexusConfig.OutlineThickness = v return true end }
-        }, 
-                    -- ===== ESP V2 =====
+            { Key = "ModMenu_ESPOutline_Thickness", UI = AliasMap.Slider, Text = T("   Độ Dày Viền ", "   Outline Thickness "), ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 20, min = 1, max = 20, GetFunc = function() return _G.LexusConfig.OutlineThickness end, SetFunc = function(c,v) _G.LexusConfig.OutlineThickness = v return true end },
+            -- ===== ESP V2 =====
             { Key = "ModMenu_EspV2_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ ESP V2 (Game UI Style - Full Box & Snapline)", "▶ ESP V2 (Game UI Style - Full Box & Snapline)"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.EspV2Enable end, SetFunc = function(c,v) _G.LexusConfig.EspV2Enable = v return true end },
             { Key = "ModMenu_EspV2_Count", UI = AliasMap.Switcher, Text = T("   Hiện Số Lượng Địch (Real/Bot)", "   Show Enemy Count (Real/Bot)"), ExpandHandle = "ModMenu_EspV2_Ex", GetFunc = function() return _G.LexusConfig.EspV2ShowCount end, SetFunc = function(c,v) _G.LexusConfig.EspV2ShowCount = v return true end },
             { Key = "ModMenu_EspV2_Name", UI = AliasMap.Switcher, Text = T("   Hiện Tên", "   Show Name"), ExpandHandle = "ModMenu_EspV2_Ex", GetFunc = function() return _G.LexusConfig.EspV2ShowName end, SetFunc = function(c,v) _G.LexusConfig.EspV2ShowName = v return true end },
@@ -502,7 +501,8 @@ function _G.InitModMenuTab()
             { Key = "ModMenu_EspV2_SnapTh", UI = AliasMap.Slider, Text = T("   Độ Dày Snapline", "   Snapline Thickness"), ExpandHandle = "ModMenu_EspV2_Ex", MinValue = 1, MaxValue = 8, min = 1, max = 8, GetFunc = function() return _G.LexusConfig.EspV2SnapThickness or 2 end, SetFunc = function(c,v) _G.LexusConfig.EspV2SnapThickness = math.floor(v + 0.5) return true end },
             { Key = "ModMenu_EspV2_SnapOp", UI = AliasMap.Slider, Text = T("   Độ Mờ Snapline", "   Snapline Opacity"), ExpandHandle = "ModMenu_EspV2_Ex", MinValue = 10, MaxValue = 100, min = 10, max = 100, GetFunc = function() return _G.LexusConfig.EspV2SnapOpacity or 90 end, SetFunc = function(c,v) _G.LexusConfig.EspV2SnapOpacity = math.floor(v + 0.5) return true end },
             { Key = "ModMenu_EspV2_Dist_Max", UI = AliasMap.Slider, Text = T("   Tầm Vẽ (Mét)", "   Draw Range (m)"), ExpandHandle = "ModMenu_EspV2_Ex", MinValue = 50, MaxValue = 500, min = 50, max = 500, GetFunc = function() return _G.LexusConfig.EspV2MaxDist or 300 end, SetFunc = function(c,v) _G.LexusConfig.EspV2MaxDist = math.floor(v + 0.5) return true end },
-            
+        }
+
         local StackAimbot = {
             { Key = "ModMenu_Aimbot_Ex", UI = AliasMap.TitleSwitcher, Text = T("▶ Aimbot Xa Tùy Chỉnh", "▶ Custom Long Range Aimbot"), ExpandIndex = 0, GetFunc = function() return _G.LexusConfig.CustomAimbot end, SetFunc = function(c,v) _G.LexusConfig.CustomAimbot = v return true end },
             { Key = "ModMenu_Aimbot_Speed", UI = AliasMap.Slider, Text = T("   Tốc Độ Aimbot Xa", "   Long Range Speed"), ExpandHandle = "ModMenu_Aimbot_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.LexusState.CustomTextData.OuterSpeed end, SetFunc = function(c,v) _G.LexusState.CustomTextData.OuterSpeed = v return true end },
@@ -931,11 +931,11 @@ local function InitializeNativeESP()
     end)
     _G.LexusState.NativeESPReady = true 
     Notify("Native ESP System Initialized") 
-    
-    -- ==========================================================================
+end
+
+-- ==========================================================================
 -- ESP V2 SYSTEM (ported from cc.lua)
 -- 依赖：slua / GameplayData / SecurityCommonUtils / UMG
--- 建议放到 InitializeNativeESP 之后、GetAllSkeletalMeshes 之前
 -- ==========================================================================
 local ESPV2 = {}
 _G.ESPV2 = ESPV2
@@ -959,7 +959,7 @@ local function IsValid_ESP9(obj)
 end
 
 -- ==========================================================================
--- SNAPLINE PALETTES (REAL / BOT 各自独立)
+-- SNAPLINE PALETTES
 -- ==========================================================================
 _G.SnaplinePaletteReal = _G.SnaplinePaletteReal or {
     { name = "RED",     r = 1.00, g = 0.10, b = 0.10 },
@@ -986,11 +986,13 @@ _G.GetSnaplinePalette = function(cat)
     return _G.SnaplinePaletteReal
 end
 _G.GetSnaplineColor = function(cat, idx)
-    local pal = _G.GetSnaplinePalette(cat); local n = pal and #pal or 0
+    local pal = _G.GetSnaplinePalette(cat)
+    local n = pal and #pal or 0
     if n < 1 then return 0.0, 1.0, 0.0 end
     idx = tonumber(idx) or 1
     if idx < 1 then idx = 1 elseif idx > n then idx = n end
-    local c = pal[idx]; return c.r, c.g, c.b
+    local c = pal[idx]
+    return c.r, c.g, c.b
 end
 _G.SnaplineRGBKey = function(cat) return (cat == "bot") and "Bot" or "Real" end
 _G.GetSnaplineRGB = function(cat)
@@ -1022,7 +1024,7 @@ _G.GetSnaplineChannel = function(cat, ch)
 end
 
 -- ==========================================================================
--- BannerESP 兼容接口（简化；实际胶囊绘图被 RedBoxOverlay 的文本显示取代）
+-- BannerESP 兼容接口
 -- ==========================================================================
 local BannerESP = {}
 _G.BannerESP = BannerESP
@@ -1067,7 +1069,9 @@ local function CreateTextLabel(canvas, text, color)
         if FLinearColor_ESP9 then t:SetColorAndOpacity(FLinearColor_ESP9(color[1], color[2], color[3], color[4]))
         else t:SetColorAndOpacity({R = color[1] * 255, G = color[2] * 255, B = color[3] * 255, A = color[4] * 255}) end
         if t.Font then
-            local f = t.Font; f.Size = 16; f.TypefaceFontName = "Bold"
+            local f = t.Font
+            f.Size = 16
+            f.TypefaceFontName = "Bold"
             if t.SetFont then pcall(function() t:SetFont(f) end) end
         end
         t:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
@@ -1105,7 +1109,7 @@ end
 
 function RedBoxOverlay.SetCounts(players, bots)
     players = tonumber(players) or 0
-    bots    = tonumber(bots) or 0
+    bots    = tonumber(bots)    or 0
     if RedBoxOverlay.PlayerCount == players and RedBoxOverlay.BotCount == bots then return end
     RedBoxOverlay.PlayerCount = players
     RedBoxOverlay.BotCount    = bots
@@ -1120,15 +1124,11 @@ end
 function RedBoxOverlay.UpdatePosition()
     if not RedBoxOverlay.bActive then return end
     if not RedBoxOverlay._RealSlot or not IsValid_ESP9(RedBoxOverlay._RealSlot) then return end
-    local cx, cy = 960, 30
-    -- 简单放在屏幕顶部中央
     if FVector2D_ESP9 then
-        pcall(function() RedBoxOverlay._RealSlot:SetPosition(FVector2D_ESP9(cx - 90, cy)) end)
+        pcall(function() RedBoxOverlay._RealSlot:SetPosition(FVector2D_ESP9(960 - 90, 30)) end)
     end
-    if RedBoxOverlay._BotSlot and IsValid_ESP9(RedBoxOverlay._BotSlot) then
-        if FVector2D_ESP9 then
-            pcall(function() RedBoxOverlay._BotSlot:SetPosition(FVector2D_ESP9(cx + 40, cy)) end)
-        end
+    if RedBoxOverlay._BotSlot and IsValid_ESP9(RedBoxOverlay._BotSlot) and FVector2D_ESP9 then
+        pcall(function() RedBoxOverlay._BotSlot:SetPosition(FVector2D_ESP9(960 + 40, 30)) end)
     end
 end
 
@@ -1150,7 +1150,7 @@ function RedBoxOverlay.Stop()
 end
 
 -- ==========================================================================
--- PlayerMapMarker (ESP 核心，完整移植)
+-- PlayerMapMarker (ESP 核心, 移植自 cc.lua)
 -- ==========================================================================
 local PlayerMapMarker = {}
 _G.PlayerMapMarker = PlayerMapMarker
@@ -1169,7 +1169,6 @@ PlayerMapMarker.SnapLineHeadOffsetX = 0
 PlayerMapMarker.SnapLineHeadOffsetY = 0
 PlayerMapMarker.SnapLineColor     = FLinearColor_ESP9 and FLinearColor_ESP9(1.0, 0.85, 0.0, 1.0) or {R=255,G=217,B=0,A=255}
 PlayerMapMarker.SnapLineOpacity   = 0.9
-
 PlayerMapMarker.SkeletonThickness = 0.8
 PlayerMapMarker.SkeletonMaxDistance = 100000
 PlayerMapMarker.bUseVisibilityColor = true
@@ -1222,13 +1221,6 @@ PlayerMapMarker._tempScreenPixelPos = nil
 PlayerMapMarker._tempCanvasPos = nil
 PlayerMapMarker._timerHandles = nil
 PlayerMapMarker._timerPC = nil
-
-local function GetMyTeamID(localPlayer)
-    if not IsValid_ESP9(localPlayer) then return nil end
-    local tid = nil
-    pcall(function() if localPlayer.GetTeamID then tid = localPlayer:GetTeamID() elseif localPlayer.TeamID then tid = localPlayer.TeamID end end)
-    return tid
-end
 
 function PlayerMapMarker.GetGameplayData()
     if PlayerMapMarker._CachedGameplayData then return PlayerMapMarker._CachedGameplayData end
@@ -1386,7 +1378,6 @@ function PlayerMapMarker.InitESPCanvas()
     PlayerMapMarker.ESPCanvas = c
     return true
 end
-
 function PlayerMapMarker.GetESPLocation(Character)
     if not IsValid_ESP9(Character) then return nil end
     local Loc = PlayerMapMarker.GetCharacterLocation(Character)
@@ -1400,8 +1391,6 @@ function PlayerMapMarker.GetESPLocation(Character)
     end
     return Loc
 end
-
--- ---- ESP Widget ----
 function PlayerMapMarker.FindProgressBarInWidget(WidgetObj, Depth, MaxDepth)
     if not WidgetObj or not IsValid_ESP9(WidgetObj) then return nil end
     Depth = Depth or 0; MaxDepth = MaxDepth or 5
@@ -1421,11 +1410,9 @@ function PlayerMapMarker.FindProgressBarInWidget(WidgetObj, Depth, MaxDepth)
     end
     return nil
 end
-
 function PlayerMapMarker.CreateESPWidget()
     if not PlayerMapMarker.ESPCanvas or not (slua and slua.isValid(PlayerMapMarker.ESPCanvas)) then return nil end
     if PlayerMapMarker._OBHeadWidgetLoadFailed then
-        -- 回退到纯 TextBlock
         local t, slot = nil, nil
         pcall(function() t = CGame:NewObjectFromPath("/Script/UMG.TextBlock", PlayerMapMarker.ESPCanvas) end)
         if not t or not (slua and slua.isValid(t)) then return nil end
@@ -1444,7 +1431,6 @@ function PlayerMapMarker.CreateESPWidget()
         end
         return { Container = t, NameText = t, IsFallback = true }
     end
-
     if not PlayerMapMarker._OBHeadWidgetClass then
         pcall(function()
             local path = "/Game/BluePrints/UI/OBUI/Item/OB_PlayerHeadHPItem_UIBP.OB_PlayerHeadHPItem_UIBP"
@@ -1453,10 +1439,9 @@ function PlayerMapMarker.CreateESPWidget()
         end)
         if not PlayerMapMarker._OBHeadWidgetClass then
             PlayerMapMarker._OBHeadWidgetLoadFailed = true
-            return PlayerMapMarker.CreateESPWidget()  -- 递归回退
+            return PlayerMapMarker.CreateESPWidget()
         end
     end
-
     local Widget = nil
     pcall(function()
         local BPFL = import("STExtraBlueprintFunctionLibrary")
@@ -1469,7 +1454,6 @@ function PlayerMapMarker.CreateESPWidget()
         return PlayerMapMarker.CreateESPWidget()
     end
     pcall(function() Widget:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
-
     local NameText = nil
     local HealthFill = nil
     pcall(function()
@@ -1485,7 +1469,6 @@ function PlayerMapMarker.CreateESPWidget()
     end)
     return { Container = Widget, NameText = NameText, HealthFill = HealthFill, IsGameWidget = true }
 end
-
 function PlayerMapMarker.UpdateESPText(Widget, Text)
     if not Widget then return end
     if Widget._LastESPText == Text then return end
@@ -1507,7 +1490,6 @@ function PlayerMapMarker.UpdateESPText(Widget, Text)
         end)
     end
 end
-
 function PlayerMapMarker.UpdateESPHealth(Widget, pct)
     if not Widget or not Widget.HealthFill then return end
     if not IsValid_ESP9(Widget.HealthFill) then return end
@@ -1522,8 +1504,6 @@ function PlayerMapMarker.UpdateESPHealth(Widget, pct)
         end
     end)
 end
-
--- ---- Canvas transform ----
 function PlayerMapMarker.UpdateCanvasTransform(PC, force)
     if not PlayerMapMarker.ESPCanvas or not (slua and slua.isValid(PlayerMapMarker.ESPCanvas)) then return end
     local now = os.clock()
@@ -1531,7 +1511,7 @@ function PlayerMapMarker.UpdateCanvasTransform(PC, force)
     local success = false
     pcall(function()
         local SBL = SlateBlueprintLibrary_ESP9
-        if SBL and SBL.AbsoluteToLocal then
+        if SBL and SBL.AbsoluteToLocal and FVector2D_ESP9 then
             local cg = PlayerMapMarker.ESPCanvas:GetCachedGeometry()
             if cg then
                 local p0 = SBL.AbsoluteToLocal(cg, FVector2D_ESP9(0, 0))
@@ -1558,9 +1538,8 @@ function PlayerMapMarker.UpdateCanvasTransform(PC, force)
     end
     PlayerMapMarker._canvasTransformTime = now
 end
-
 function PlayerMapMarker.ProjectWorldToCanvasLocal(PC, WorldLoc)
-    if not IsValid_ESP9(PC) or not WorldLoc then return false, FVector2D_ESP9(0,0) end
+    if not IsValid_ESP9(PC) or not WorldLoc or not FVector2D_ESP9 then return false, {X = 0, Y = 0} end
     if not PlayerMapMarker._tempScreenPixelPos then
         PlayerMapMarker._tempScreenPixelPos = FVector2D_ESP9(0, 0)
     end
@@ -1571,14 +1550,13 @@ function PlayerMapMarker.ProjectWorldToCanvasLocal(PC, WorldLoc)
         local res = PC:ProjectWorldLocationToScreen(WorldLoc, sp, true)
         if res == true or res == 1 then ok = true end
     end)
-    if not ok or (sp.X == 0 and sp.Y == 0) then return false, FVector2D_ESP9(0,0) end
+    if not ok or (sp.X == 0 and sp.Y == 0) then return false, {X = 0, Y = 0} end
     local scaleX = PlayerMapMarker._CanvasScaleX or 1.0
     local scaleY = PlayerMapMarker._CanvasScaleY or 1.0
     local ox = PlayerMapMarker._CanvasOffsetX or 0
     local oy = PlayerMapMarker._CanvasOffsetY or 0
     return true, FVector2D_ESP9(sp.X * scaleX + ox, sp.Y * scaleY + oy)
 end
-
 function PlayerMapMarker.UpdateESPPositionWithPC(Widget, WorldLoc, PC, CanvasPos)
     if not Widget or not IsValid_ESP9(PC) then return false end
     local Container = Widget.Container or Widget
@@ -1605,7 +1583,9 @@ function PlayerMapMarker.UpdateESPPositionWithPC(Widget, WorldLoc, PC, CanvasPos
                 Slot = added
                 Widget._CanvasSlot = added
                 pcall(function() Slot:SetAutoSize(true) end)
-                pcall(function() Slot:SetAlignment(FVector2D_ESP9(0.5, 1.0)) end)
+                if FVector2D_ESP9 then
+                    pcall(function() Slot:SetAlignment(FVector2D_ESP9(0.5, 1.0)) end)
+                end
                 pcall(function() Slot:SetZOrder(PlayerMapMarker.ESPWidgetZOrder) end)
             end
         end
@@ -1614,19 +1594,20 @@ function PlayerMapMarker.UpdateESPPositionWithPC(Widget, WorldLoc, PC, CanvasPos
             local fy = CanvasPos.Y + (PlayerMapMarker.ESPAnchorOffsetY or 0)
             if Widget._lastPosX ~= fx or Widget._lastPosY ~= fy then
                 Widget._lastPosX = fx; Widget._lastPosY = fy
-                pcall(function() Slot:SetPosition(FVector2D_ESP9(fx, fy)) end)
+                if FVector2D_ESP9 then
+                    pcall(function() Slot:SetPosition(FVector2D_ESP9(fx, fy)) end)
+                end
             end
         end
     end)
     return true
 end
-
--- ---- Snapline ----
 function PlayerMapMarker.GetSnapLineStartPos(PC)
     local vpW, vpH = 1920, 1080
     pcall(function()
-        if PC and PC.GetViewportSize then
-            local vs = FVector2D_ESP9(0,0); PC:GetViewportSize(vs)
+        if PC and PC.GetViewportSize and FVector2D_ESP9 then
+            local vs = FVector2D_ESP9(0, 0)
+            PC:GetViewportSize(vs)
             if vs and vs.X and vs.X > 200 then vpW, vpH = vs.X, vs.Y end
         end
     end)
@@ -1638,9 +1619,8 @@ function PlayerMapMarker.GetSnapLineStartPos(PC)
     local fromY = (PlayerMapMarker.SnapLineOriginY or 58) * scaleY + oy
     return fromX, fromY
 end
-
 function PlayerMapMarker.CreateSnapLine()
-    if not PlayerMapMarker.ESPCanvas or not (slua and slua.isValid(PlayerMapMarker.ESPCanvas)) then return nil end
+    if not PlayerMapMarker.ESPCanvas or not (slua and slua.isValid(PlayerMapMarker.ESPCanvas)) or not FVector2D_ESP9 then return nil end
     local Border = nil
     pcall(function() Border = CGame:NewObjectFromPath("/Script/UMG.Border", PlayerMapMarker.ESPCanvas) end)
     if not Border or not slua.isValid(Border) then return nil end
@@ -1655,7 +1635,6 @@ function PlayerMapMarker.CreateSnapLine()
     end)
     return { Widget = Border, Slot = Slot, _vis = true }
 end
-
 function PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fromY)
     local LineData = PlayerMapMarker.SnapLineWidgets[KeyStr]
     if LineData and (not LineData.Widget or not slua.isValid(LineData.Widget)) then
@@ -1674,7 +1653,6 @@ function PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fro
         if not LineData or not LineData.Slot then return end
         PlayerMapMarker.SnapLineWidgets[KeyStr] = LineData
     end
-
     local ESPData = PlayerMapMarker.ESPWidgets and PlayerMapMarker.ESPWidgets[KeyStr]
     local bIsBot = false
     if ESPData and ESPData.Character and IsValid_ESP9(ESPData.Character) then
@@ -1694,26 +1672,25 @@ function PlayerMapMarker.UpdateSnapLine(KeyStr, CanvasPos, bOnScreen, fromX, fro
     if cg > 1 then cg = cg / 255 end
     if cb > 1 then cb = cb / 255 end
     local alpha = (cfg.EspV2SnapOpacity or 90) / 100
-
     local toX = CanvasPos.X + (PlayerMapMarker.SnapLineHeadOffsetX or 0)
     local toY = CanvasPos.Y + (PlayerMapMarker.SnapLineHeadOffsetY or 0)
     local dx = toX - fromX; local dy = toY - fromY
     local len = math.sqrt(dx*dx + dy*dy)
     local angle = (math.atan2 and math.atan2(dy, dx) or math.atan(dy, dx)) * (180.0 / math.pi)
     local thick = cfg.EspV2SnapThickness or 2
-
     if not LineData._vis then
         LineData._vis = true
         pcall(function() LineData.Widget:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
     end
-    pcall(function()
-        LineData.Slot:SetPosition(FVector2D_ESP9(fromX, fromY - thick / 2))
-        LineData.Slot:SetSize(FVector2D_ESP9(len, thick))
-        LineData.Widget:SetRenderAngle(angle)
-        if FLinearColor_ESP9 then LineData.Widget:SetBrushColor(FLinearColor_ESP9(cr, cg, cb, alpha)) end
-    end)
+    if FVector2D_ESP9 then
+        pcall(function()
+            LineData.Slot:SetPosition(FVector2D_ESP9(fromX, fromY - thick / 2))
+            LineData.Slot:SetSize(FVector2D_ESP9(len, thick))
+            LineData.Widget:SetRenderAngle(angle)
+            if FLinearColor_ESP9 then LineData.Widget:SetBrushColor(FLinearColor_ESP9(cr, cg, cb, alpha)) end
+        end)
+    end
 end
-
 function PlayerMapMarker.RemoveSnapLine(KeyStr)
     local d = PlayerMapMarker.SnapLineWidgets[KeyStr]
     if d and d.Widget and slua.isValid(d.Widget) then
@@ -1721,7 +1698,6 @@ function PlayerMapMarker.RemoveSnapLine(KeyStr)
     end
     PlayerMapMarker.SnapLineWidgets[KeyStr] = nil
 end
-
 function PlayerMapMarker.ClearAllSnapLines()
     for k, d in pairs(PlayerMapMarker.SnapLineWidgets) do
         if d and d.Widget and slua.isValid(d.Widget) then
@@ -1730,14 +1706,11 @@ function PlayerMapMarker.ClearAllSnapLines()
     end
     PlayerMapMarker.SnapLineWidgets = {}
 end
-
--- ---- Skeleton ----
 function PlayerMapMarker.GetCharacterMesh(Character)
     if not IsValid_ESP9(Character) then return nil end
     if Character.Mesh and slua.isValid(Character.Mesh) then return Character.Mesh end
     return nil
 end
-
 function PlayerMapMarker.GetBoneLocationWithFallback(Character, name)
     local fb = PlayerMapMarker.BoneNameFallbacks[name] or {name}
     local mesh = PlayerMapMarker.GetCharacterMesh(Character)
@@ -1749,9 +1722,8 @@ function PlayerMapMarker.GetBoneLocationWithFallback(Character, name)
     end
     return nil
 end
-
 function PlayerMapMarker.CreateSkeletonLineWidget()
-    if not PlayerMapMarker.ESPCanvas or not slua.isValid(PlayerMapMarker.ESPCanvas) then return nil end
+    if not PlayerMapMarker.ESPCanvas or not slua.isValid(PlayerMapMarker.ESPCanvas) or not FVector2D_ESP9 then return nil end
     local Border = nil
     pcall(function() Border = CGame:NewObjectFromPath("/Script/UMG.Border", PlayerMapMarker.ESPCanvas) end)
     if not Border or not slua.isValid(Border) then return nil end
@@ -1761,10 +1733,10 @@ function PlayerMapMarker.CreateSkeletonLineWidget()
         Slot = PlayerMapMarker.ESPCanvas:AddChildToCanvas(Border)
         if Slot then Slot:SetAutoSize(false); Slot:SetZOrder(5) end
     end)
-    return { Widget = Border, Slot = Slot, posVec = FVector2D_ESP9(0,0), sizeVec = FVector2D_ESP9(0,0),
+    return { Widget = Border, Slot = Slot,
+             posVec = FVector2D_ESP9(0,0), sizeVec = FVector2D_ESP9(0,0),
              lastFromX = -1, lastFromY = -1, lastToX = -1, lastToY = -1 }
 end
-
 function PlayerMapMarker.UpdateSkeletonLines(KeyStr, Character, PC, bVisible, TeamColor)
     if not PlayerMapMarker.bUseSkeleton then return end
     if not bVisible or not IsValid_ESP9(Character) then
@@ -1807,13 +1779,15 @@ function PlayerMapMarker.UpdateSkeletonLines(KeyStr, Character, PC, bVisible, Te
                     local dx = curX - lastX; local dy = curY - lastY
                     local len = math.sqrt(dx*dx + dy*dy)
                     local angle = (math.atan2 and math.atan2(dy, dx) or math.atan(dy, dx)) * (180 / math.pi)
-                    pcall(function()
-                        d.Widget:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
-                        if lineColor then d.Widget:SetBrushColor(lineColor) end
-                        d.Slot:SetPosition(FVector2D_ESP9(lastX, lastY - thick / 2))
-                        d.Slot:SetSize(FVector2D_ESP9(len, thick))
-                        d.Widget:SetRenderAngle(angle)
-                    end)
+                    if FVector2D_ESP9 then
+                        pcall(function()
+                            d.Widget:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+                            if lineColor then d.Widget:SetBrushColor(lineColor) end
+                            d.Slot:SetPosition(FVector2D_ESP9(lastX, lastY - thick / 2))
+                            d.Slot:SetSize(FVector2D_ESP9(len, thick))
+                            d.Widget:SetRenderAngle(angle)
+                        end)
+                    end
                 end
             end
             lastX, lastY = curX, curY
@@ -1826,7 +1800,6 @@ function PlayerMapMarker.UpdateSkeletonLines(KeyStr, Character, PC, bVisible, Te
         end
     end
 end
-
 function PlayerMapMarker.RemoveSkeletonLines(KeyStr)
     local lst = PlayerMapMarker.SkeletonWidgets[KeyStr]
     if lst then
@@ -1838,7 +1811,6 @@ function PlayerMapMarker.RemoveSkeletonLines(KeyStr)
         PlayerMapMarker.SkeletonWidgets[KeyStr] = nil
     end
 end
-
 function PlayerMapMarker.ClearAllSkeletonLines()
     for k, lst in pairs(PlayerMapMarker.SkeletonWidgets) do
         for _, d in ipairs(lst) do
@@ -1849,15 +1821,12 @@ function PlayerMapMarker.ClearAllSkeletonLines()
     end
     PlayerMapMarker.SkeletonWidgets = {}
 end
-
--- ---- Main update ----
 function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
     if not PlayerMapMarker.InitESPCanvas() then return end
     local cfg = _G.LexusConfig or {}
     PlayerMapMarker.bUseSnapLines = cfg.EspV2Snapline or false
     PlayerMapMarker.bUseSkeleton  = cfg.EspV2Skeleton or false
     PlayerMapMarker.bShowDistance = cfg.EspV2ShowDistance or false
-
     local PC = PlayerMapMarker.GetMyPlayerController()
     if not IsValid_ESP9(PC) then return end
     PlayerMapMarker.UpdateCanvasTransform(PC)
@@ -1890,7 +1859,8 @@ function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
                 local Text = ""
                 if cfg.EspV2ShowName then Text = Name end
                 if cfg.EspV2ShowDistance and DistStr ~= "" then
-                    if Text ~= "" then Text = string.format("%s [%s]", Text, DistStr) else Text = string.format("[%s]", DistStr) end
+                    if Text ~= "" then Text = string.format("%s [%s]", Text, DistStr)
+                    else Text = string.format("[%s]", DistStr) end
                 end
                 local bOnScreen, CanvasPos = PlayerMapMarker.ProjectWorldToCanvasLocal(PC, Loc)
                 if not ESPData then
@@ -1937,14 +1907,12 @@ function PlayerMapMarker.UpdateESP(AllPlayers, MyLoc)
         end
     end
 end
-
 function PlayerMapMarker.UpdateESPLight()
     if not PlayerMapMarker.bActive then return end
-    if not PlayerMapMarker.ESPCanvas or not slua.isValid(PlayerMapMarker.ESPCanvas) then return end
+    if not PlayerMapMarker.ESPCanvas or not (slua and slua.isValid(PlayerMapMarker.ESPCanvas)) then return end
     local PC = PlayerMapMarker.GetMyPlayerController()
     if not IsValid_ESP9(PC) then return end
     PlayerMapMarker.UpdateCanvasTransform(PC)
-    local MyLoc = PlayerMapMarker.GetMyLocation()
     local fromX, fromY = 0, 0
     if PlayerMapMarker.bUseSnapLines then fromX, fromY = PlayerMapMarker.GetSnapLineStartPos(PC) end
     for KeyStr, ESPData in pairs(PlayerMapMarker.ESPWidgets) do
@@ -1963,7 +1931,6 @@ function PlayerMapMarker.UpdateESPLight()
     end
     if RedBoxOverlay and RedBoxOverlay.bActive then pcall(RedBoxOverlay.UpdatePosition) end
 end
-
 function PlayerMapMarker.ScanAndUpdate()
     local AllChars = PlayerMapMarker.GetAllCharacters()
     if not AllChars then
@@ -2002,7 +1969,6 @@ function PlayerMapMarker.ScanAndUpdate()
     end
     PlayerMapMarker.UpdateESP(AllChars, MyLoc)
 end
-
 function PlayerMapMarker.AttachTimers()
     pcall(function()
         local pc = PlayerMapMarker.GetMyPlayerController()
@@ -2027,14 +1993,12 @@ function PlayerMapMarker.AttachTimers()
         end)
     end)
 end
-
 function PlayerMapMarker.Start()
     if PlayerMapMarker.bActive then return end
     PlayerMapMarker.bActive = true
     pcall(PlayerMapMarker.ScanAndUpdate)
     pcall(PlayerMapMarker.AttachTimers)
 end
-
 function PlayerMapMarker.Stop()
     PlayerMapMarker.bActive = false
     for KeyStr, Data in pairs(PlayerMapMarker.ESPWidgets) do
@@ -2047,8 +2011,8 @@ function PlayerMapMarker.Stop()
     if RedBoxOverlay.bActive then RedBoxOverlay.Stop() end
 end
 
--- 主循环里用这个统一入口（内部自动懒挂 timer）
-_G.ESPV2.Tick = function()
+-- 主循环统一入口
+ESPV2.Tick = function()
     if not PlayerMapMarker then return end
     if not (_G.LexusConfig and _G.LexusConfig.EspV2Enable) then
         if PlayerMapMarker.bActive then pcall(PlayerMapMarker.Stop) end
@@ -2058,7 +2022,7 @@ _G.ESPV2.Tick = function()
         pcall(PlayerMapMarker.Start)
     end
 end
-end
+
 
 local function GetAllSkeletalMeshes(enemy, markData)
     local curTime = os.clock()
@@ -4024,6 +3988,7 @@ local function MainLoop()
     if _G.ESPV2 and _G.ESPV2.Tick then
         pcall(_G.ESPV2.Tick)
     end
+
     if _G.LexusConfig.AimTouchEnable then
         _G.AimTouch()
     end
@@ -4346,7 +4311,7 @@ local function MainLoop()
                     if _G.LexusConfig.LessShake then entity.RecoilKick = 0.1; entity.RecoilKickADS = 0.1; entity.AnimationKick = 0.1 end
                     if _G.LexusConfig.Accuracy then entity.GameDeviationAccuracy = 0.01 end
                     if _G.LexusConfig.Crosshair then entity.GameDeviationFactor = 0.01 end
-                   
+                    if _G.LexusConfig.GodMode then entity.BulletFireSpeed = 500000.0; entity.ShootInterval = 0.001; entity.BaseDamage = 60000.0 end
                     
                     if entity.AutoAimingConfig then
                         if not entity.OriginalAutoAimCached then
