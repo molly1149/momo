@@ -1,4 +1,29 @@
-local M = {}
+local BRPlayerCharacterBase = {
+    ServerRPC = {},
+    ClientRPC = {},
+    MulticastRPC = {},
+    LuaEventContainer = {}
+}
+BRPlayerCharacterBase.ServerRPC.ServerRPC_NearDeathGiveupRescue = {
+    Reliable = true,
+    Params = {}
+}
+BRPlayerCharacterBase.ServerRPC.ServerRPC_CarryDeadBox = {
+    Reliable = true,
+    Params = {UEnums.EPropertyClass.Object}
+}
+BRPlayerCharacterBase.ServerRPC.RPC_Server_GmPlayAction = {
+    Reliable = true,
+    Params = {UEnums.EPropertyClass.Int}
+}
+BRPlayerCharacterBase.MulticastRPC.MulticastRPC_GmPlayAction = {
+    Reliable = true,
+    Params = {UEnums.EPropertyClass.Int}
+}
+BRPlayerCharacterBase.ClientRPC.RPC_Client_SetShouldCheckPassWall = {
+    Reliable = true,
+    Params = {UEnums.EPropertyClass.Bool}
+}
 local GameplayStatics=import("GameplayStatics")
 local GameplayData=require("GameLua.GameCore.Data.GameplayData")
 local function Notify(msg)
@@ -5343,6 +5368,6 @@ local function InitAllModSystems()
         end
     end)
 end
-function M.OnBeginPlay(self)
+function BRPlayerCharacterBase.OnBeginPlay(self)
 end
-return M
+return BRPlayerCharacterBase
