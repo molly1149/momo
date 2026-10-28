@@ -5976,6 +5976,7 @@ local function _persistModOutfit(resID, insID)
             return alive == true
         end
 
+        local _AO_HOOK_CTX
         local function initHooks()
         local function hookLobbySwipePersistence()
             pcall(function()
@@ -5984,13 +5985,13 @@ local function _persistModOutfit(resID, insID)
                 AC.GetWearDataFromRoleData = function(roleData)
                     local wearData = oGetWear(roleData)
                     if wearData and roleData and tonumber(roleData.uid) == tonumber(DataMgr.roleData.uid) then
-                        mergeInjectedIntoWearData(wearData)
+                        _AO_HOOK_CTX.mergeInjectedIntoWearData(wearData)
                     end
                     return wearData
                 end
                 local oUp = AC.UpdateAvatar
                 AC.UpdateAvatar = function(avatar, wearData, isShowWeapon, isShowHelmet, isShowBag)
-                    if isMyWearData(wearData) then mergeInjectedIntoWearData(wearData) end
+                    if _AO_HOOK_CTX.isMyWearData(wearData) then _AO_HOOK_CTX.mergeInjectedIntoWearData(wearData) end
                     return oUp(avatar, wearData, isShowWeapon, isShowHelmet, isShowBag)
                 end
             end)
@@ -5998,7 +5999,7 @@ local function _persistModOutfit(resID, insID)
                 if EventSystem and EventSystem.registEvent and EVENTTYPE_LOBBY and EVENTID_SWITCHTO_PAGE_END then
                     EventSystem:registEvent(EVENTTYPE_LOBBY, EVENTID_SWITCHTO_PAGE_END, function(_, _, _, toPage)
                         if ENUM_LobbyPageType and toPage == ENUM_LobbyPageType.Mid then
-                            socialDebounce(0.5, reapplyLobbyEquipped) -- زمن أطول لتجنب التكرار
+                            _AO_HOOK_CTX.socialDebounce(0.5, _AO_HOOK_CTX.reapplyLobbyEquipped) -- زمن أطول لتجنب التكرار
                         end
                     end)
                 end
@@ -6058,12 +6059,12 @@ local function _persistModOutfit(resID, insID)
                 CDataTable.GetTableData = function(tableName, resID, ...)
                     if tableName == "Item" then
                         resID = tonumber(resID)
-                        if resID and _C.cfg[resID] ~= nil then
-                            return _C.cfg[resID]
+                        if resID and _AO_HOOK_CTX._C.cfg[resID] ~= nil then
+                            return _AO_HOOK_CTX._C.cfg[resID]
                         end
                         local result = origGetTableData(tableName, resID, ...)
                         if resID then
-                            _C.cfg[resID] = result
+                            _AO_HOOK_CTX._C.cfg[resID] = result
                         end
                         return result
                     end
@@ -6114,8 +6115,8 @@ local function _persistModOutfit(resID, insID)
                 local orig = WDE.InitData
                 WDE.InitData = function(self, pkg)
                     orig(self, pkg)
-                    injectAll(self)
-                    refreshWardrobe()
+                    _AO_HOOK_CTX.injectAll(self)
+                    _AO_HOOK_CTX.refreshWardrobe()
                 end
             end)
         end
@@ -6141,10 +6142,10 @@ local function _persistModOutfit(resID, insID)
                             pcall(function()
                                 local nowT = 0
                                 pcall(function() nowT = os.clock() end)
-                                if (nowT - (_S._lastDepotPushReapply or 0)) < 5.0 then return end
-                                _S._lastDepotPushReapply = nowT
-                                flog("OUTFIT", "InitHallDepotData hook: server wardrobe pushed, reapplying equipped")
-                                reapplyLobbyEquipped()
+                                if (nowT - (_AO_HOOK_CTX._S._lastDepotPushReapply or 0)) < 5.0 then return end
+                                _AO_HOOK_CTX._S._lastDepotPushReapply = nowT
+                                _AO_HOOK_CTX.flog("OUTFIT", "InitHallDepotData hook: server wardrobe pushed, reapplying equipped")
+                                _AO_HOOK_CTX.reapplyLobbyEquipped()
                             end)
                         end
                     end
@@ -6154,8 +6155,8 @@ local function _persistModOutfit(resID, insID)
                     if not o then return end
                     wd[name] = function(self, insID, ...)
                         insID = tonumber(insID)
-                        if isInjectedIns(insID) then
-                            local e = getEntity()
+                        if _AO_HOOK_CTX.isInjectedIns(insID) then
+                            local e = _AO_HOOK_CTX.getEntity()
                             if e then return e:GetDataByInsID(insID) end
                         end
                         return o(self, insID, ...)
@@ -6167,7 +6168,7 @@ local function _persistModOutfit(resID, insID)
                     local o = wd[name]
                     if not o then return end
                     wd[name] = function(self, id, ...)
-                        if isInjectedRes(tonumber(id)) or isInjectedIns(tonumber(id)) then return true end
+                        if _AO_HOOK_CTX.isInjectedRes(tonumber(id)) or _AO_HOOK_CTX.isInjectedIns(tonumber(id)) then return true end
                         return o(self, id, ...)
                     end
                 end
@@ -6178,7 +6179,7 @@ local function _persistModOutfit(resID, insID)
                     wd._lava_global_equip = true
                     local origGetEquipped = wd.GetEquippedSkinIDByWeaponID
                     wd.GetEquippedSkinIDByWeaponID = function(self, weaponID)
-                        local w = cache().weapons[tonumber(weaponID)]
+                        local w = _AO_HOOK_CTX.cache().weapons[tonumber(weaponID)]
                         if w and w.resID and w.resID > 0 then return w.resID end
                         return origGetEquipped(self, weaponID)
                     end
@@ -6188,16 +6189,16 @@ local function _persistModOutfit(resID, insID)
                     if wd.GetEquippedSkinInsIDByWeaponID then
                         local origGetEquippedIns = wd.GetEquippedSkinInsIDByWeaponID
                         wd.GetEquippedSkinInsIDByWeaponID = function(self, weaponID)
-                            local w = cache().weapons[tonumber(weaponID)]
-                            if w and w.insID and w.insID > 0 and isInjectedIns(w.insID) then return w.insID end
+                            local w = _AO_HOOK_CTX.cache().weapons[tonumber(weaponID)]
+                            if w and w.insID and w.insID > 0 and _AO_HOOK_CTX.isInjectedIns(w.insID) then return w.insID end
                             return origGetEquippedIns(self, weaponID)
                         end
                     end
                     if wd.GetWeaponSkinInsID then
                         local origGetWSI = wd.GetWeaponSkinInsID
                         wd.GetWeaponSkinInsID = function(self, weaponID)
-                            local w = cache().weapons[tonumber(weaponID)]
-                            if w and w.insID and w.insID > 0 and isInjectedIns(w.insID) then return w.insID end
+                            local w = _AO_HOOK_CTX.cache().weapons[tonumber(weaponID)]
+                            if w and w.insID and w.insID > 0 and _AO_HOOK_CTX.isInjectedIns(w.insID) then return w.insID end
                             return origGetWSI(self, weaponID)
                         end
                     end
@@ -6222,7 +6223,7 @@ local function _persistModOutfit(resID, insID)
                     -- restores the SAME value the player just chose.
                     local st = tonumber(itemSubType)
                     local insID = tonumber(skin) or 0
-                    if st and _K.THROW_SUB and _K.THROW_SUB[st] then
+                    if st and _AO_HOOK_CTX._K.THROW_SUB and _AO_HOOK_CTX._K.THROW_SUB[st] then
                         local resID = (insID > 0 and R.insToRes[insID]) or nil
                         if not resID and insID > 0 then
                             -- Stock skin: resolve resID from wardrobe data.
@@ -6235,24 +6236,24 @@ local function _persistModOutfit(resID, insID)
                         if resID and resID > 0 then
                             _G._savedThrowObjects = _G._savedThrowObjects or {}
                             _G._savedThrowObjects[st] = { resID = resID, insID = insID }
-                            local cch2 = cache()
+                            local cch2 = _AO_HOOK_CTX.cache()
                             if cch2 then
                                 cch2.throwObjects = cch2.throwObjects or {}
                                 cch2.throwObjects[st] = { resID = resID, insID = insID }
                             end
-                            pcall(_AutoSaveOutfit)
-                            flog("OUTFIT", "SetThrowObjectSkin: st=" .. tostring(st)
+                            pcall(_AO_HOOK_CTX._AutoSaveOutfit)
+                            _AO_HOOK_CTX.flog("OUTFIT", "SetThrowObjectSkin: st=" .. tostring(st)
                                 .. " res=" .. tostring(resID) .. " ins=" .. tostring(insID) .. " saved")
                         elseif insID == 0 then
                             -- Unequip: clear saved slot.
                             if _G._savedThrowObjects then _G._savedThrowObjects[st] = nil end
-                            local cch2 = cache()
+                            local cch2 = _AO_HOOK_CTX.cache()
                             if cch2 and cch2.throwObjects then cch2.throwObjects[st] = nil end
-                            pcall(_AutoSaveOutfit)
+                            pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                         end
                     end
                 end
-                flog("OUTFIT", "SetThrowObjectSkin hooked (throwable revert fix)")
+                _AO_HOOK_CTX.flog("OUTFIT", "SetThrowObjectSkin hooked (throwable revert fix)")
             end)
             pcall(function()
                 local wl = require("client.slua.logic.wardrobe.logic_wardrobe_new")
@@ -6260,11 +6261,11 @@ local function _persistModOutfit(resID, insID)
                 if oPutDownReq then
                     wl.wardrobe_put_down_req = function(self, ins_id, unequip_by_server)
                         ins_id = tonumber(ins_id)
-                        if isInjectedIns(ins_id) then
+                        if _AO_HOOK_CTX.isInjectedIns(ins_id) then
                             local resID = R.insToRes[ins_id]
-                            takeOffItem(ins_id)
+                            _AO_HOOK_CTX.takeOffItem(ins_id)
                             pcall(function()
-                                self:on_putdown_rsp(_K.NET_OK, {
+                                self:on_putdown_rsp(_AO_HOOK_CTX._K.NET_OK, {
                                     instid = ins_id,
                                     res_id = resID or 0,
                                 }, nil)
@@ -6278,7 +6279,7 @@ local function _persistModOutfit(resID, insID)
                                     })
                                 end
                             end)
-                            refreshWardrobe()
+                            _AO_HOOK_CTX.refreshWardrobe()
                             return
                         end
                         return oPutDownReq(self, ins_id, unequip_by_server)
@@ -6301,17 +6302,17 @@ local function _persistModOutfit(resID, insID)
                     if not pageId or not subTabId then return allData end
                     local result = {}
                     for _, data in pairs(allData) do
-                        local resID = depotResID(data)
-                        if resID and isInjectedRes(resID) then
-                            local itemMain, itemSub = getInjectedItemTab(resID, data)
+                        local resID = _AO_HOOK_CTX.depotResID(data)
+                        if resID and _AO_HOOK_CTX.isInjectedRes(resID) then
+                            local itemMain, itemSub = _AO_HOOK_CTX.getInjectedItemTab(resID, data)
                             if itemMain == pageId then
-                                if pageId == _K.WARDROBE_PAGE_AVATAR then
-                                    if subTabId == _K.WARDROBE_TAB_SUIT or subTabId == _K.WARDROBE_TAB_CLOTHES then
+                                if pageId == _AO_HOOK_CTX._K.WARDROBE_PAGE_AVATAR then
+                                    if subTabId == _AO_HOOK_CTX._K.WARDROBE_TAB_SUIT or subTabId == _AO_HOOK_CTX._K.WARDROBE_TAB_CLOTHES then
                                         local st = data.itemSubType or subType(cfg(resID))
-                                        if st == _K.ST_TOP then
-                                            local full = isFullSuitRes(resID, data)
-                                            if (subTabId == _K.WARDROBE_TAB_SUIT and full) or
-                                            (subTabId == _K.WARDROBE_TAB_CLOTHES and not full) then
+                                        if st == _AO_HOOK_CTX._K.ST_TOP then
+                                            local full = _AO_HOOK_CTX.isFullSuitRes(resID, data)
+                                            if (subTabId == _AO_HOOK_CTX._K.WARDROBE_TAB_SUIT and full) or
+                                            (subTabId == _AO_HOOK_CTX._K.WARDROBE_TAB_CLOTHES and not full) then
                                                 result[#result + 1] = data
                                             end
                                         end
@@ -6333,22 +6334,22 @@ local function _persistModOutfit(resID, insID)
                 local wl = require("client.slua.logic.wardrobe.logic_wardrobe_new")
                 local o1 = wl.IsValidCurrentPageItem
                 wl.IsValidCurrentPageItem = function(self, mainTab, subTab, v, t)
-                    local resID = depotResID(v)
-                    if resID and isInjectedRes(resID) then
+                    local resID = _AO_HOOK_CTX.depotResID(v)
+                    if resID and _AO_HOOK_CTX.isInjectedRes(resID) then
                         local cacheKey = resID .. "_" .. mainTab .. "_" .. subTab
-                        if _C.pageMatch[cacheKey] ~= nil then
-                            return _C.pageMatch[cacheKey]
+                        if _AO_HOOK_CTX._C.pageMatch[cacheKey] ~= nil then
+                            return _AO_HOOK_CTX._C.pageMatch[cacheKey]
                         end
                         local result
                         if not (v.expireTS == 0 or not t or t < v.expireTS) then
                             result = false
                         else
-                            local equipOk = injectedEquipAllowed(resID, mainTab, subTab)
+                            local equipOk = _AO_HOOK_CTX.injectedEquipAllowed(resID, mainTab, subTab)
                             if equipOk ~= nil then
                                 result = equipOk
-                            elseif weaponIdFromSkin(resID) then
-                                result = mainTab == _K.WARDROBE_PAGE_WEAPON and subTab == _K.WARDROBE_TAB_GUN
-                            elseif mainTab == _K.WARDROBE_PAGE_VEHICLE then
+                            elseif _AO_HOOK_CTX.weaponIdFromSkin(resID) then
+                                result = mainTab == _AO_HOOK_CTX._K.WARDROBE_PAGE_WEAPON and subTab == _AO_HOOK_CTX._K.WARDROBE_TAB_GUN
+                            elseif mainTab == _AO_HOOK_CTX._K.WARDROBE_PAGE_VEHICLE then
                                 local c = cfg(resID)
                                 local wmTab = c and tonumber(c.WardrobeMainTab or c.wardrobeMainTab) or 0
                                 if wmTab ~= mainTab and v.mainTabType ~= mainTab then
@@ -6360,16 +6361,16 @@ local function _persistModOutfit(resID, insID)
                                     elseif vTab and vTab == subTab then result = true
                                     else result = o1(self, mainTab, subTab, v, t) end
                                 end
-                            elseif mainTab == _K.WARDROBE_PAGE_AVATAR then
+                            elseif mainTab == _AO_HOOK_CTX._K.WARDROBE_PAGE_AVATAR then
                                 local st = v.itemSubType or subType(cfg(resID))
-                                if st == _K.ST_TOP then
-                                    local full = isFullSuitRes(resID, v)
-                                    if subTab == _K.WARDROBE_TAB_SUIT and full then result = true
-                                    elseif subTab == _K.WARDROBE_TAB_CLOTHES and not full then result = true
+                                if st == _AO_HOOK_CTX._K.ST_TOP then
+                                    local full = _AO_HOOK_CTX.isFullSuitRes(resID, v)
+                                    if subTab == _AO_HOOK_CTX._K.WARDROBE_TAB_SUIT and full then result = true
+                                    elseif subTab == _AO_HOOK_CTX._K.WARDROBE_TAB_CLOTHES and not full then result = true
                                     else result = false end
-                                elseif st == _K.ST_PANTS and subTab == _K.WARDROBE_TAB_TROUSERS then
+                                elseif st == _AO_HOOK_CTX._K.ST_PANTS and subTab == _AO_HOOK_CTX._K.WARDROBE_TAB_TROUSERS then
                                     result = true
-                                elseif st == _K.ST_SHOES and subTab == _K.WARDROBE_TAB_SHOES then
+                                elseif st == _AO_HOOK_CTX._K.ST_SHOES and subTab == _AO_HOOK_CTX._K.WARDROBE_TAB_SHOES then
                                     result = true
                                 elseif v.subTabType == subTab then
                                     result = true
@@ -6380,20 +6381,20 @@ local function _persistModOutfit(resID, insID)
                                 result = o1(self, mainTab, subTab, v, t)
                             end
                         end
-                        _C.pageMatch[cacheKey] = result
+                        _AO_HOOK_CTX._C.pageMatch[cacheKey] = result
                         return result
                     end
                     return o1(self, mainTab, subTab, v, t)
                 end
                 local o2 = wl.IsCanUse
                 wl.IsCanUse = function(self, resId)
-                    if isInjectedRes(resId) then return true end
+                    if _AO_HOOK_CTX.isInjectedRes(resId) then return true end
                     return o2(self, resId)
                 end
                 local o4 = wl.GetWardrobeInsIdByResId
                 wl.GetWardrobeInsIdByResId = function(self, resid)
                     resid = tonumber(resid)
-                    if isInjectedRes(resid) then return R.resToIns[resid] end
+                    if _AO_HOOK_CTX.isInjectedRes(resid) then return R.resToIns[resid] end
                     return o4(self, resid)
                 end
             end)
@@ -6407,7 +6408,7 @@ local function _persistModOutfit(resID, insID)
                     Arm._lava_global_own = true
                     local origIsOwn = Arm.IsSkinOwn
                     Arm.IsSkinOwn = function(weaponID, skinID)
-                        if isInjectedRes(skinID) then return 1 end
+                        if _AO_HOOK_CTX.isInjectedRes(skinID) then return 1 end
                         return origIsOwn(weaponID, skinID)
                     end
                 end
@@ -6416,8 +6417,8 @@ local function _persistModOutfit(resID, insID)
                     if Arm.get_install_skin then
                         local origGetInstall = Arm.get_install_skin
                         Arm.get_install_skin = function(weaponID)
-                            local w = cache().weapons[tonumber(weaponID)]
-                            if w and w.insID and w.insID > 0 and isInjectedIns(w.insID) then
+                            local w = _AO_HOOK_CTX.cache().weapons[tonumber(weaponID)]
+                            if w and w.insID and w.insID > 0 and _AO_HOOK_CTX.isInjectedIns(w.insID) then
                                 return { skin_id = w.insID }
                             end
                             return origGetInstall(weaponID)
@@ -6426,8 +6427,8 @@ local function _persistModOutfit(resID, insID)
                     if Arm.GetInstallSkinInsID then
                         local origGetInstall2 = Arm.GetInstallSkinInsID
                         Arm.GetInstallSkinInsID = function(weaponID)
-                            local w = cache().weapons[tonumber(weaponID)]
-                            if w and w.insID and w.insID > 0 and isInjectedIns(w.insID) then
+                            local w = _AO_HOOK_CTX.cache().weapons[tonumber(weaponID)]
+                            if w and w.insID and w.insID > 0 and _AO_HOOK_CTX.isInjectedIns(w.insID) then
                                 return w.insID
                             end
                             return origGetInstall2(weaponID)
@@ -6437,9 +6438,9 @@ local function _persistModOutfit(resID, insID)
                 local oi = Arm.install_weapon_skin
                 Arm.install_weapon_skin = function(cd, wid, ins)
                     ins = tonumber(ins)
-                    if isInjectedIns(ins) then
-                        wid = tonumber(weaponIdFromSkin(R.insToRes[ins]) or wid)
-                        equipWeaponSkin(wid, ins)
+                    if _AO_HOOK_CTX.isInjectedIns(ins) then
+                        wid = tonumber(_AO_HOOK_CTX.weaponIdFromSkin(R.insToRes[ins]) or wid)
+                        _AO_HOOK_CTX.equipWeaponSkin(wid, ins)
                         return
                     end
                     return oi(cd, wid, ins)
@@ -6450,19 +6451,19 @@ local function _persistModOutfit(resID, insID)
                     Arm[fnName] = function(cd, wid, ins, ...)
                         ins = tonumber(ins)
                         wid = tonumber(wid)
-                        if ins and isInjectedIns(ins) then
+                        if ins and _AO_HOOK_CTX.isInjectedIns(ins) then
                             local resID = R.insToRes[ins]
-                            wid = weaponIdFromSkin(resID) or wid
-                            if takeOffItem(ins) then
-                                refreshWardrobe()
+                            wid = _AO_HOOK_CTX.weaponIdFromSkin(resID) or wid
+                            if _AO_HOOK_CTX.takeOffItem(ins) then
+                                _AO_HOOK_CTX.refreshWardrobe()
                                 return
                             end
                         elseif wid and wid > 0 then
-                            local cch = cache()
+                            local cch = _AO_HOOK_CTX.cache()
                             local w = cch.weapons[wid]
-                            if w and w.insID and isInjectedIns(w.insID) then
-                                if takeOffItem(w.insID) then
-                                    refreshWardrobe()
+                            if w and w.insID and _AO_HOOK_CTX.isInjectedIns(w.insID) then
+                                if _AO_HOOK_CTX.takeOffItem(w.insID) then
+                                    _AO_HOOK_CTX.refreshWardrobe()
                                     return
                                 end
                             end
@@ -6476,7 +6477,7 @@ local function _persistModOutfit(resID, insID)
             -- A bare pcall here used to swallow any error and abandon every
             -- hook after the failure point, which presented as "gun skins never
             -- equip" with nothing in the log. Report it instead.
-            if not okA then flog("OUTFIT", "hookArmory aborted", tostring(errA)) end
+            if not okA then _AO_HOOK_CTX.flog("OUTFIT", "hookArmory aborted", tostring(errA)) end
         end
 
         local function hookLobbyTheme()
@@ -6487,8 +6488,8 @@ local function _persistModOutfit(resID, insID)
                 local origPutOn = wl.wardrobe_puton_req
                 wl.wardrobe_puton_req = function(self, insID, extra)
                     insID = tonumber(insID)
-                    if insID and isInjectedIns(insID) and isHallThemeRes(R.insToRes[insID]) then
-                        requestHallThemeVisual(insID)
+                    if insID and _AO_HOOK_CTX.isInjectedIns(insID) and _AO_HOOK_CTX.isHallThemeRes(R.insToRes[insID]) then
+                        _AO_HOOK_CTX.requestHallThemeVisual(insID)
                         return
                     end
                     return origPutOn(self, insID, extra)
@@ -6513,7 +6514,7 @@ local function _persistModOutfit(resID, insID)
                         TH.send_update_car_main_page_slot_req = function(slot_id, item_inst_id)
                             local slot = tonumber(slot_id)
                             local ins = tonumber(item_inst_id)
-                            if slot and ins and isInjectedIns(ins) then
+                            if slot and ins and _AO_HOOK_CTX.isInjectedIns(ins) then
                                 local resID = R.insToRes[ins]
                                 if resID then
                                     pcall(function()
@@ -6559,7 +6560,7 @@ local function _persistModOutfit(resID, insID)
                                             if HT.ShowThemeVehicle then HT.ShowThemeVehicle() end
                                         end
                                     end)
-                                    pcall(_AutoSaveOutfit)
+                                    pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                                     pcall(function()
                                         if _G.AddOutfitThemeLog then
                                             _G.AddOutfitThemeLog("garage slot=" .. tostring(slot)
@@ -6584,7 +6585,7 @@ local function _persistModOutfit(resID, insID)
                             local hasInjected = false
                             pcall(function()
                                 for _, v in pairs(instid_list) do
-                                    if isInjectedIns(tonumber(v)) then
+                                    if _AO_HOOK_CTX.isInjectedIns(tonumber(v)) then
                                         hasInjected = true
                                         break
                                     end
@@ -6597,7 +6598,7 @@ local function _persistModOutfit(resID, insID)
                                     ModuleManager.LobbyModuleConfig.GarageThemeSystem)
                                 for slot_id, item_inst_id in pairs(instid_list) do
                                     local slot, ins = tonumber(slot_id), tonumber(item_inst_id)
-                                    if slot and ins and isInjectedIns(ins)
+                                    if slot and ins and _AO_HOOK_CTX.isInjectedIns(ins)
                                         and R.insToRes[ins] and GTS then
                                         GTS.GarageVehicleInfo = GTS.GarageVehicleInfo or {}
                                         GTS.GarageVehicleInfo[slot] =
@@ -6612,7 +6613,7 @@ local function _persistModOutfit(resID, insID)
                                     EventSystem:postEvent(EVENTTYPE_LOBBY_THEME,
                                         EVENTID_GARAGE_VEHICLE_DATA_CHANGE)
                                 end
-                                pcall(_AutoSaveOutfit)
+                                pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                             end)
                             return r
                         end
@@ -6634,7 +6635,7 @@ local function _persistModOutfit(resID, insID)
                             local ins = tonumber(putOnItem.instid)
                             if ins and ins > 0 then
                                 _G._savedVstSkin = ins
-                                pcall(_AutoSaveOutfit)
+                                pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                             end
                         end
                     end)
@@ -6655,7 +6656,7 @@ local function _persistModOutfit(resID, insID)
                         if ins and ins > 0 then
                             _G._savedVstSkin = ins
                             DataMgr.vst_skin = ins
-                            pcall(_AutoSaveOutfit)
+                            pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                             pcall(function()
                                 local HT = require("client.logic.lobby.hall_theme_utils")
                                 if HT then
@@ -6688,7 +6689,7 @@ local function _persistModOutfit(resID, insID)
                     pcall(function()
                         if not isInLobby() then return end
                         local want = tonumber(_G._savedVstSkin) or 0
-                        if want <= 0 or not isInjectedIns(want) then return end
+                        if want <= 0 or not _AO_HOOK_CTX.isInjectedIns(want) then return end
                         if tonumber(DataMgr.vst_skin) ~= want then
                             DataMgr.vst_skin = want
                         end
@@ -6725,8 +6726,8 @@ local function _persistModOutfit(resID, insID)
                         pcall(function()
                             for _, v in pairs(instid_list) do
                                 local n = tonumber(v)
-                                if n and isInjectedIns(n) and R.insToRes[n]
-                                    and isHallThemeRes(R.insToRes[n]) then
+                                if n and _AO_HOOK_CTX.isInjectedIns(n) and R.insToRes[n]
+                                    and _AO_HOOK_CTX.isHallThemeRes(R.insToRes[n]) then
                                     themeIns = n
                                     sawTheme = true
                                 else
@@ -6742,7 +6743,7 @@ local function _persistModOutfit(resID, insID)
                                 end
                             end)
                             if themeIns then
-                                pcall(function() requestHallThemeVisual(themeIns) end)
+                                pcall(function() _AO_HOOK_CTX.requestHallThemeVisual(themeIns) end)
                             end
                             if #filtered == 0 then return end
                             return oBatch(self, filtered, putOnExtra, additionalParts)
@@ -6759,28 +6760,28 @@ local function _persistModOutfit(resID, insID)
                 local o = WRH.send_depot_put_on_req
                 WRH.send_depot_put_on_req = function(insID, extra)
                     insID = tonumber(insID)
-                    if isInjectedIns(insID) then
+                    if _AO_HOOK_CTX.isInjectedIns(insID) then
                         local resID = R.insToRes[insID]
                         local c = cfg(resID)
                         local st = subType(c)
-                        if st == _K.ST_FACE or st == _K.ST_HAT or st == _K.ST_MASK
-                            or st == _K.ST_BEARD or st == _K.ST_GLASSES or st == _K.ST_GLOVES then
-                            flog("PUTON", tostring(resID) .. " st=" .. tostring(st))
+                        if st == _AO_HOOK_CTX._K.ST_FACE or st == _AO_HOOK_CTX._K.ST_HAT or st == _AO_HOOK_CTX._K.ST_MASK
+                            or st == _AO_HOOK_CTX._K.ST_BEARD or st == _AO_HOOK_CTX._K.ST_GLASSES or st == _AO_HOOK_CTX._K.ST_GLOVES then
+                            _AO_HOOK_CTX.flog("PUTON", tostring(resID) .. " st=" .. tostring(st))
                         end
-                        if getEquipSkinSlot(resID) then
-                            putOnEquipSkin(insID)
+                        if _AO_HOOK_CTX.getEquipSkinSlot(resID) then
+                            _AO_HOOK_CTX.putOnEquipSkin(insID)
                             return
                         end
-                        if getClothKind(resID) then
-                            putOnCloth(insID)
+                        if _AO_HOOK_CTX.getClothKind(resID) then
+                            _AO_HOOK_CTX.putOnCloth(insID)
                             return
                         end
-                        if weaponIdFromSkin(resID) then
-                            equipWeaponSkin(weaponIdFromSkin(resID), insID)
+                        if _AO_HOOK_CTX.weaponIdFromSkin(resID) then
+                            _AO_HOOK_CTX.equipWeaponSkin(_AO_HOOK_CTX.weaponIdFromSkin(resID), insID)
                             return
                         end
-                        if _K.GUN_SUB[st] then
-                            local wid = weaponIdFromSkin(resID)
+                        if _AO_HOOK_CTX._K.GUN_SUB[st] then
+                            local wid = _AO_HOOK_CTX.weaponIdFromSkin(resID)
                             if not wid then
                                 pcall(function()
                                     local wgl = require("client.slua.logic.wardrobe.logic_wardrobe_gun")
@@ -6790,66 +6791,66 @@ local function _persistModOutfit(resID, insID)
                                     end
                                 end)
                             end
-                            if wid then equipWeaponSkin(wid, insID) end
+                            if wid then _AO_HOOK_CTX.equipWeaponSkin(wid, insID) end
                             return
                         end
-                        if st == _K.MELEE_ID then
-                            equipWeaponSkin(_K.MELEE_ID, insID)
+                        if st == _AO_HOOK_CTX._K.MELEE_ID then
+                            _AO_HOOK_CTX.equipWeaponSkin(_AO_HOOK_CTX._K.MELEE_ID, insID)
                             return
                         end
-                        if isHallThemeRes(resID) then
-                            requestHallThemeVisual(insID)
+                        if _AO_HOOK_CTX.isHallThemeRes(resID) then
+                            _AO_HOOK_CTX.requestHallThemeVisual(insID)
                             return
                         end
-                        if isThrowObjectRes(resID) then
-                            local st = isThrowObjectRes(resID)
-                            local cch = cache()
+                        if _AO_HOOK_CTX.isThrowObjectRes(resID) then
+                            local st = _AO_HOOK_CTX.isThrowObjectRes(resID)
+                            local cch = _AO_HOOK_CTX.cache()
                             local oldThrow = cch.throwObjects and cch.throwObjects[st]
                             local oldInsID = oldThrow and oldThrow.insID or 0
                             local oldResID = oldThrow and oldThrow.resID or 0
-                            putOnThrowObject(insID)
+                            _AO_HOOK_CTX.putOnThrowObject(insID)
                             local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
                             local bagIndex = fbd:GetFashionBagUseIndex()
                             local olditem
                             if oldInsID and oldInsID ~= insID and oldInsID ~= 0 then
                                 olditem = { res_id = oldResID, count = 1, instid = oldInsID }
                             end
-                            WRH.on_depot_put_on_rsp(_K.NET_OK, { res_id = resID, count = 1, instid = insID }, olditem, bagIndex, insID, oldInsID, extra)
+                            WRH.on_depot_put_on_rsp(_AO_HOOK_CTX._K.NET_OK, { res_id = resID, count = 1, instid = insID }, olditem, bagIndex, insID, oldInsID, extra)
                             return
                         end
-                        local mainTab = wardrobeMainTab(resID)
-                        if mainTab == _K.WARDROBE_PAGE_VEHICLE then
+                        local mainTab = _AO_HOOK_CTX.wardrobeMainTab(resID)
+                        if mainTab == _AO_HOOK_CTX._K.WARDROBE_PAGE_VEHICLE then
                             local item = { res_id = resID, count = 1, instid = insID }
-                            WRH.on_depot_put_on_rsp(_K.NET_OK, item, nil, 1, insID, 0, extra)
+                            WRH.on_depot_put_on_rsp(_AO_HOOK_CTX._K.NET_OK, item, nil, 1, insID, 0, extra)
                             return
                         end
                         local wd = require("client.slua.logic.wardrobe.wardrobe_data")
                         if wd:GetHallDepotItemDataByInsID(insID) then
-                            flog("PUTON", "generic-accessory resID=" .. tostring(resID))
+                            _AO_HOOK_CTX.flog("PUTON", "generic-accessory resID=" .. tostring(resID))
                             -- إكسسوار (ماسك/نظارة/طاقية): اخلع القديم بنفس النوع أولاً
                             -- كي لا تظهر أكثر من علامة صح على عناصر نفس الخانة
                             local itemSt = st or subType(cfg(resID))
                             local oldIns, oldRes
                             if itemSt then
-                                oldIns, oldRes = findWornInsBySubType(itemSt)
+                                oldIns, oldRes = _AO_HOOK_CTX.findWornInsBySubType(itemSt)
                                 if oldIns == insID then oldIns, oldRes = nil, nil end
-                                removeRoleWearBySubTypes({ [itemSt] = true })
+                                _AO_HOOK_CTX.removeRoleWearBySubTypes({ [itemSt] = true })
                             end
-                            saveClothPiece(resID)
+                            _AO_HOOK_CTX.saveClothPiece(resID)
                             local olditem
                             if oldIns then
                                 olditem = { res_id = oldRes or R.insToRes[oldIns], count = 1, instid = oldIns }
                             end
-                            WRH.on_depot_put_on_rsp(_K.NET_OK, { res_id = resID, count = 1, instid = insID }, olditem, 1, insID, oldIns or 0, extra)
+                            WRH.on_depot_put_on_rsp(_AO_HOOK_CTX._K.NET_OK, { res_id = resID, count = 1, instid = insID }, olditem, 1, insID, oldIns or 0, extra)
                             pcall(function()
                                 local av = require("client.slua.logic.wardrobe.logic_wardrobe_avatar")
                                 if oldIns and itemSt then av:SetCurrentWearPreview(itemSt, nil) end
                                 if itemSt then av:AddToWearInfo(itemSt, insID, resID, 0, 0) end
                                 av:AvatarChange(resID, true, 0, 0)
                                 av:ProcessTakeOff()
-                                syncFashionBagRolewear()
+                                _AO_HOOK_CTX.syncFashionBagRolewear()
                             end)
-                            pcall(_AutoSaveOutfit)
+                            pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                         end
                         return
                     end
@@ -6862,13 +6863,13 @@ local function _persistModOutfit(resID, insID)
                 local oPutDown = WRH.send_depot_put_down_req
                 WRH.send_depot_put_down_req = function(insID, extra)
                     insID = tonumber(insID)
-                    if isInjectedIns(insID) then
+                    if _AO_HOOK_CTX.isInjectedIns(insID) then
                         local resID = R.insToRes[insID]
-                        local removed = takeOffItem(insID)
+                        local removed = _AO_HOOK_CTX.takeOffItem(insID)
                         if removed then
                             local wl = require("client.slua.logic.wardrobe.logic_wardrobe_new")
                             pcall(function()
-                                wl:on_putdown_rsp(_K.NET_OK, {
+                                wl:on_putdown_rsp(_AO_HOOK_CTX._K.NET_OK, {
                                     res_id = resID or 0,
                                     instid = insID,
                                     count  = 1,
@@ -6883,7 +6884,7 @@ local function _persistModOutfit(resID, insID)
                                     })
                                 end
                             end)
-                            refreshWardrobe()
+                            _AO_HOOK_CTX.refreshWardrobe()
                             return
                         end
                     end
@@ -6897,11 +6898,11 @@ local function _persistModOutfit(resID, insID)
                 if oPutDownReq then
                     wl.wardrobe_put_down_req = function(self, ins_id, unequip_by_server)
                         ins_id = tonumber(ins_id)
-                        if isInjectedIns(ins_id) then
+                        if _AO_HOOK_CTX.isInjectedIns(ins_id) then
                             local resID = R.insToRes[ins_id]
-                            takeOffItem(ins_id)
+                            _AO_HOOK_CTX.takeOffItem(ins_id)
                             pcall(function()
-                                self:on_putdown_rsp(_K.NET_OK, {
+                                self:on_putdown_rsp(_AO_HOOK_CTX._K.NET_OK, {
                                     instid = ins_id,
                                     res_id = resID or 0,
                                 }, nil)
@@ -6915,7 +6916,7 @@ local function _persistModOutfit(resID, insID)
                                     })
                                 end
                             end)
-                            refreshWardrobe()
+                            _AO_HOOK_CTX.refreshWardrobe()
                             return
                         end
                         return oPutDownReq(self, ins_id, unequip_by_server)
@@ -6930,7 +6931,7 @@ local function _persistModOutfit(resID, insID)
                     wl._lava_hooked_equip_slot_vehicle = true
                     wl.EquipSlotVehicle = function(self, resid, dragVehicleInsID, Index)
                         dragVehicleInsID = tonumber(dragVehicleInsID)
-                        if dragVehicleInsID and isInjectedIns(dragVehicleInsID) then
+                        if dragVehicleInsID and _AO_HOOK_CTX.isInjectedIns(dragVehicleInsID) then
                             local resID = R.insToRes[dragVehicleInsID]
                             local c = cfg(resID)
                             local itemSubType = c and tonumber(c.ItemSubType or c.itemSubType) or 0
@@ -6959,7 +6960,7 @@ local function _persistModOutfit(resID, insID)
                                 else
                                     _G._savedVehicleSlotList[itemSubType] = nil
                                 end
-                                pcall(_AutoSaveOutfit)
+                                pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                                 if DataMgr.vehicleSkinInsIDTable then
                                     DataMgr.vehicleSkinInsIDTable[resID] = DataMgr.vehicleSkinInsIDTable[resID] or dragVehicleInsID
                                 end
@@ -6988,7 +6989,7 @@ local function _persistModOutfit(resID, insID)
                     local oEquip = GarageThemeSystem.EquipVehicle
                     GarageThemeSystem.EquipVehicle = function(self, Position, InsID)
                         InsID = tonumber(InsID)
-                        if InsID and isInjectedIns(InsID) then
+                        if InsID and _AO_HOOK_CTX.isInjectedIns(InsID) then
                             self:OnEquipVehicle(Position, InsID)
                             return
                         end
@@ -7000,7 +7001,7 @@ local function _persistModOutfit(resID, insID)
                             local hasInjected = false
                             local filtered = {}
                             for slot, ins in pairs(InsIDList) do
-                                if isInjectedIns(tonumber(ins)) then
+                                if _AO_HOOK_CTX.isInjectedIns(tonumber(ins)) then
                                     hasInjected = true
                                     self:OnEquipVehicle(slot, tonumber(ins))
                                 else
@@ -7020,7 +7021,7 @@ local function _persistModOutfit(resID, insID)
                         local injectedSlots = {}
                         if self.GarageVehicleInfo then
                             for slot, info in pairs(self.GarageVehicleInfo) do
-                                if info and info.inst_id and isInjectedIns(tonumber(info.inst_id)) then
+                                if info and info.inst_id and _AO_HOOK_CTX.isInjectedIns(tonumber(info.inst_id)) then
                                     injectedSlots[slot] = info
                                 end
                             end
@@ -7045,8 +7046,8 @@ local function _persistModOutfit(resID, insID)
                     if oGetShowList then
                         GarageThemeSystem.GetGarageShowCarInsIDList = function(self, VehicleType)
                             local List = oGetShowList(self, VehicleType) or {}
-                            for _, resID in ipairs(_C.vehicleItems) do
-                                if isInjectedRes(resID) and #List < self:GetMaxPositionNum() then
+                            for _, resID in ipairs(_AO_HOOK_CTX._C.vehicleItems) do
+                                if _AO_HOOK_CTX.isInjectedRes(resID) and #List < self:GetMaxPositionNum() then
                                     local c = cfg(resID)
                                     if c then
                                         local itemSubType = tonumber(c.ItemSubType or c.itemSubType) or 0
@@ -7091,7 +7092,7 @@ local function _persistModOutfit(resID, insID)
                             pcall(function()
                                 local saved = _G._savedMotionList
                                 if not saved or #saved == 0 then return end
-                                DataMgr.MotionSlotList = mergedMotionSlotList()
+                                DataMgr.MotionSlotList = _AO_HOOK_CTX.mergedMotionSlotList()
                                 if EventSystem and EVENTTYPE_MOTION and EVENTID_MOTION_UPDATE_SLOT_LIST then
                                     EventSystem:postEvent(EVENTTYPE_MOTION, EVENTID_MOTION_UPDATE_SLOT_LIST)
                                 end
@@ -7107,7 +7108,7 @@ local function _persistModOutfit(resID, insID)
                 local origEquip = wl.EquipMotion
                 wl.EquipMotion = function(self, instid, dst_slot)
                     instid = tonumber(instid)
-                    if instid and isInjectedIns(instid) then
+                    if instid and _AO_HOOK_CTX.isInjectedIns(instid) then
                         local insSlot = 0
                         for i, v in ipairs(DataMgr.MotionSlotList) do
                             if v == instid then insSlot = i; break end
@@ -7126,11 +7127,11 @@ local function _persistModOutfit(resID, insID)
                         -- Mirror + force write so the emote lands in
                         -- CHETAN_AddOutfit_Save_default.txt immediately, before
                         -- any server push can wipe the live list.
-                        pcall(syncMotionMirror)
+                        pcall(_AO_HOOK_CTX.syncMotionMirror)
                         if EventSystem and EVENTTYPE_MOTION and EVENTID_MOTION_UPDATE_SLOT_LIST then
                             EventSystem:postEvent(EVENTTYPE_MOTION, EVENTID_MOTION_UPDATE_SLOT_LIST)
                         end
-                        pcall(_AutoSaveOutfit, true)
+                        pcall(_AO_HOOK_CTX._AutoSaveOutfit, true)
                         return
                     end
                     return origEquip(self, instid, dst_slot)
@@ -7139,18 +7140,18 @@ local function _persistModOutfit(resID, insID)
                 local origUnequip = wl.unequip_motion_req
                 wl.unequip_motion_req = function(self, instid, slot)
                     instid = tonumber(instid)
-                    if instid and isInjectedIns(instid) then
+                    if instid and _AO_HOOK_CTX.isInjectedIns(instid) then
                         for i, v in ipairs(DataMgr.MotionSlotList) do
                             if v == instid then
                                 table.remove(DataMgr.MotionSlotList, i)
                                 break
                             end
                         end
-                        pcall(syncMotionMirror)
+                        pcall(_AO_HOOK_CTX.syncMotionMirror)
                         if EventSystem and EVENTTYPE_MOTION and EVENTID_MOTION_UPDATE_SLOT_LIST then
                             EventSystem:postEvent(EVENTTYPE_MOTION, EVENTID_MOTION_UPDATE_SLOT_LIST)
                         end
-                        pcall(_AutoSaveOutfit, true)
+                        pcall(_AO_HOOK_CTX._AutoSaveOutfit, true)
                         return
                     end
                     return origUnequip(self, instid, slot)
@@ -7160,7 +7161,7 @@ local function _persistModOutfit(resID, insID)
 
         -- V2 in-match unlock list. Stored on the shared state table rather than
         -- as another closure local because this loader is near Lua's local cap.
-        _S.extraEmotes = {
+        _AO_HOOK_CTX._S.extraEmotes = {
             12201301, 12216101, 12212201, 12219207, 12209001,
             12219561, 12210001, 12219022, 12208801, 12210801,
             12200701, 12219242, 12206001, 12205401, 12205201,
@@ -7170,7 +7171,7 @@ local function _persistModOutfit(resID, insID)
             12213201, 12215529, 12219053, 12204601, 12215701,
             12219003, 12219004, 12219009, 12219216,
         }
-        _S.inGameEmoteMenuList = _S.inGameEmoteMenuList or {}
+        _AO_HOOK_CTX._S.inGameEmoteMenuList = _AO_HOOK_CTX._S.inGameEmoteMenuList or {}
 
         local _emoteSlotKey = nil
         local _emoteSlotCache = {}
@@ -7182,7 +7183,7 @@ local function _persistModOutfit(resID, insID)
             _emoteSlotCache = {}
             for _, insID in ipairs(slotList) do
                 insID = tonumber(insID)
-                if insID and insID > 0 and isInjectedIns(insID) then
+                if insID and insID > 0 and _AO_HOOK_CTX.isInjectedIns(insID) then
                     local resID = R.insToRes[insID]
                     if resID then
                         local c = cfg(resID)
@@ -7231,7 +7232,7 @@ local function _persistModOutfit(resID, insID)
                         end
                     end
                     -- The in-match decal panel refreshes from this same list.
-                    _S.inGameEmoteMenuList = tShowEmoteList
+                    _AO_HOOK_CTX._S.inGameEmoteMenuList = tShowEmoteList
                     return tShowEmoteList, nWeaponEmoteId
                 end
             end)
@@ -7260,14 +7261,14 @@ local function _persistModOutfit(resID, insID)
 
                 local origExist = le.IsEmoteExist
                 le.IsEmoteExist = function(EmoteID)
-                    if isInjectedRes(tonumber(EmoteID)) then return true end
+                    if _AO_HOOK_CTX.isInjectedRes(tonumber(EmoteID)) then return true end
                     return origExist(EmoteID)
                 end
 
                 local origDownloaded = le.CheckEmoteDownloaded
                 if origDownloaded then
                     le.CheckEmoteDownloaded = function(EmoteID, bUseCache, bLobby, bForeceLobby)
-                        if isInjectedRes(tonumber(EmoteID)) then return true end
+                        if _AO_HOOK_CTX.isInjectedRes(tonumber(EmoteID)) then return true end
                         return origDownloaded(EmoteID, bUseCache, bLobby, bForeceLobby)
                     end
                 end
@@ -7278,11 +7279,11 @@ local function _persistModOutfit(resID, insID)
             pcall(function()
                 if not (EventSystem and EventSystem.registEvent) then return end
                 if EVENTTYPE_INGAME == nil or EVENTID_INGAME_QUICK_EXPRESSION_DECAL_CLICK == nil then return end
-                if _S.emoteMenuHooked then return end
-                _S.emoteMenuHooked = true
+                if _AO_HOOK_CTX._S.emoteMenuHooked then return end
+                _AO_HOOK_CTX._S.emoteMenuHooked = true
                 EventSystem:registEvent(EVENTTYPE_INGAME, EVENTID_INGAME_QUICK_EXPRESSION_DECAL_CLICK, function()
                     pcall(function()
-                        local emoteList = _S.inGameEmoteMenuList
+                        local emoteList = _AO_HOOK_CTX._S.inGameEmoteMenuList
                         if not emoteList or #emoteList == 0 then return end
 
                         local UIManager = require("client.slua_ui_framework.manager")
@@ -7737,7 +7738,7 @@ local function _persistModOutfit(resID, insID)
                         self.wheelData = t
                         mirrorWheel(t)
                         persist()
-                        pcall(_AutoSaveOutfit, true)
+                        pcall(_AO_HOOK_CTX._AutoSaveOutfit, true)
                         postWheel()
 
                         local R = _G.AddOutfit_R
@@ -7842,17 +7843,17 @@ local function _persistModOutfit(resID, insID)
                 fbd._lava_hooked_bag = true
                 local function onFashionBagSkinChanged(skin, slot)
                     skin = tonumber(skin)
-                    if _S.equipSkinApplying or not skin or skin <= 0 or not isInjectedIns(skin) then return end
+                    if _AO_HOOK_CTX._S.equipSkinApplying or not skin or skin <= 0 or not _AO_HOOK_CTX.isInjectedIns(skin) then return end
                     local rid = R.insToRes[skin]
-                    if not rid or not isInjectedRes(rid) then return end
-                    local cch = cache()
+                    if not rid or not _AO_HOOK_CTX.isInjectedRes(rid) then return end
+                    local cch = _AO_HOOK_CTX.cache()
                     local oldRes = cch.equip[slot]
                     if oldRes and oldRes > 0 and oldRes ~= rid then
-                        softRemoveEquipVisual(oldRes, slot)
+                        _AO_HOOK_CTX.softRemoveEquipVisual(oldRes, slot)
                     end
-                    saveEquipSkin(rid, skin)
+                    _AO_HOOK_CTX.saveEquipSkin(rid, skin)
                     if slot ~= "parachute" and slot ~= "glider" then
-                        applyEquipVisual(rid, skin, slot)
+                        _AO_HOOK_CTX.applyEquipVisual(rid, skin, slot)
                     end
                 end
                 local origBag = fbd.SetBagSkin
@@ -7869,7 +7870,7 @@ local function _persistModOutfit(resID, insID)
                 end
                 local function reInjectThrowObjects(bagIndex)
                     pcall(function()
-                        local cch = cache()
+                        local cch = _AO_HOOK_CTX.cache()
                         if not cch.throwObjects then return end
                         local bags = fbd.GetFashionBags and fbd:GetFashionBags()
                         if not bags or not bags.bags then return end
@@ -7877,7 +7878,7 @@ local function _persistModOutfit(resID, insID)
                         if not bag then return end
                         bag.throw_object_list = bag.throw_object_list or {}
                         for st, info in pairs(cch.throwObjects) do
-                            if info.insID and info.insID > 0 and _K.THROW_SUB[st] then
+                            if info.insID and info.insID > 0 and _AO_HOOK_CTX._K.THROW_SUB[st] then
                                 bag.throw_object_list[st] = info.insID
                             end
                         end
@@ -7908,20 +7909,20 @@ local function _persistModOutfit(resID, insID)
                 local orig = DataMgr.UpdateEquipmentSkin
                 DataMgr.UpdateEquipmentSkin = function(itemSubType, putOnId)
                     putOnId = tonumber(putOnId)
-                    if putOnId and putOnId > 0 and isInjectedIns(putOnId) and not _S.equipSkinApplying then
-                        putOnEquipSkin(putOnId)
+                    if putOnId and putOnId > 0 and _AO_HOOK_CTX.isInjectedIns(putOnId) and not _AO_HOOK_CTX._S.equipSkinApplying then
+                        _AO_HOOK_CTX.putOnEquipSkin(putOnId)
                     elseif putOnId == 0 then
                         local slot = (itemSubType == ENUM_ITEM_SUBTYPE.Backpack) and "bag"
                             or (itemSubType == ENUM_ITEM_SUBTYPE.Helmet_NoLevel) and "helmet" or nil
                         if slot then
-                            local cch = cache()
-                            takeOffEquipSkinVisual(slot, cch.equip[slot], cch.equip[slot .. "Ins"])
+                            local cch = _AO_HOOK_CTX.cache()
+                            _AO_HOOK_CTX.takeOffEquipSkinVisual(slot, cch.equip[slot], cch.equip[slot .. "Ins"])
                             cch.equip[slot]          = nil
                             cch.equip[slot .. "Ins"] = nil
-                            if MATCH_CONFIG.equip then MATCH_CONFIG.equip[slot] = 0 end
-                            _S.matchApplied = false
-                            invalidateSocialWearCache()
-                            pcall(_AutoSaveOutfit)
+                            if _AO_HOOK_CTX.MATCH_CONFIG.equip then _AO_HOOK_CTX.MATCH_CONFIG.equip[slot] = 0 end
+                            _AO_HOOK_CTX._S.matchApplied = false
+                            _AO_HOOK_CTX.invalidateSocialWearCache()
+                            pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                         end
                     end
                     return orig(itemSubType, putOnId)
@@ -7938,7 +7939,7 @@ local function _persistModOutfit(resID, insID)
                     local orig = BU.GetBPIDByResID
                     BU.GetBPIDByResID = function(resID)
                         resID = tonumber(resID)
-                        if resID and isInjectedRes(resID) then
+                        if resID and _AO_HOOK_CTX.isInjectedRes(resID) then
                             local bp = orig(resID)
                             if bp and bp > 0 then return bp end
                             return resID
@@ -7953,7 +7954,7 @@ local function _persistModOutfit(resID, insID)
                     local orig = AU.GetBPIDByResID
                     AU.GetBPIDByResID = function(resID, ...)
                         resID = tonumber(resID)
-                        if resID and isInjectedRes(resID) then
+                        if resID and _AO_HOOK_CTX.isInjectedRes(resID) then
                             local bp = orig(resID, ...)
                             if bp and bp > 0 then return bp end
                             return resID
@@ -7971,7 +7972,7 @@ local function _persistModOutfit(resID, insID)
                     CAC._lava_hooked_check_valid = true
                     local orig = CAC.CheckItemValid
                     CAC.CheckItemValid = function(self, resID)
-                        if isInjectedRes(resID) then return true end
+                        if _AO_HOOK_CTX.isInjectedRes(resID) then return true end
                         return orig(self, resID)
                     end
                 end
@@ -7984,7 +7985,7 @@ local function _persistModOutfit(resID, insID)
                             return origPutOn(self, resID, CustomData)
                         end
                         resID = tonumber(resID)
-                        if resID and isInjectedRes(resID) then
+                        if resID and _AO_HOOK_CTX.isInjectedRes(resID) then
                             -- Extra-type items (parachute/glider/throwables,
                             -- ItemType 4) go through the STOCK path untouched:
                             -- stock builds the define with hardcoded 4 and V2
@@ -8080,19 +8081,19 @@ local function _persistModOutfit(resID, insID)
         end
 
         local function notify(msg)
-            if not DEBUG or isInMatchOrGame() then return end
+            if not _AO_HOOK_CTX.DEBUG or _AO_HOOK_CTX.isInMatchOrGame() then return end
             msg = "[AddOutfit] " .. tostring(msg)
-            log(msg:gsub("^%[AddOutfit%] ", ""))
+            _AO_HOOK_CTX.log(msg:gsub("^%[AddOutfit%] ", ""))
             pcall(function()
                 if ShowNotice then ShowNotice(msg, false, 10) end
             end)
         end
 
         local function getDesiredOutfit()
-            if MATCH_CONFIG.outfitRes and tonumber(MATCH_CONFIG.outfitRes) > 0 then
-                return tonumber(MATCH_CONFIG.outfitRes)
+            if _AO_HOOK_CTX.MATCH_CONFIG.outfitRes and tonumber(_AO_HOOK_CTX.MATCH_CONFIG.outfitRes) > 0 then
+                return tonumber(_AO_HOOK_CTX.MATCH_CONFIG.outfitRes)
             end
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             if tonumber(cch.outfitRes) and cch.outfitRes > 0 then return cch.outfitRes end
             if tonumber(_G.AddOutfitLastLobbyOutfitRes) and _G.AddOutfitLastLobbyOutfitRes > 0 then
                 return tonumber(_G.AddOutfitLastLobbyOutfitRes)
@@ -8114,8 +8115,8 @@ local function _persistModOutfit(resID, insID)
             if st == 407 then return 6 end
             if st == 400 or st == 408 then return 9 end
             if st == 409 or st == 410 then return 10 end
-            if getEquipSkinSlot(resID) then return nil end
-            if weaponIdFromSkin(resID) then return nil end
+            if _AO_HOOK_CTX.getEquipSkinSlot(resID) then return nil end
+            if _AO_HOOK_CTX.weaponIdFromSkin(resID) then return nil end
             return 3
         end
 
@@ -8157,7 +8158,7 @@ local function _persistModOutfit(resID, insID)
             -- head-subtype (400) ID is written there.
             pcall(function()
                 local ap = _G._savedAppearance or {}
-                local hn = (_S and _S._hairSlotNum) or 2
+                local hn = (_AO_HOOK_CTX._S and _AO_HOOK_CTX._S._hairSlotNum) or 2
                 local hid = tonumber(ap.avatarHair) or 0
                 if hid > 0 and not t[hn] then t[hn] = hid end
                 local bid = tonumber(ap.avatarBeard) or 0
@@ -8171,8 +8172,8 @@ local function _persistModOutfit(resID, insID)
                     end)
                     if headOk then t[1] = hdid end
                 end
-                if (hid > 0 or bid > 0 or hdid > 0) and not _S._hairTargetLogged then
-                    _S._hairTargetLogged = true
+                if (hid > 0 or bid > 0 or hdid > 0) and not _AO_HOOK_CTX._S._hairTargetLogged then
+                    _AO_HOOK_CTX._S._hairTargetLogged = true
                     if _G.AddOutfitFaceLog then
                         _G.AddOutfitFaceLog("match hairslot target hair=" .. hid
                             .. " beard=" .. bid .. " head=" .. hdid
@@ -8299,10 +8300,10 @@ local function _persistModOutfit(resID, insID)
             end)
             if not _G.NetPatchLogged[key] then
                 _G.NetPatchLogged[key] = true
-                flog("MATCH", "acc-net " .. tostring(slotName) .. "=" .. tostring(resID) .. " " .. tostring(dbg))
-                flog_flush()
+                _AO_HOOK_CTX.flog("MATCH", "acc-net " .. tostring(slotName) .. "=" .. tostring(resID) .. " " .. tostring(dbg))
+                _AO_HOOK_CTX.flog_flush()
             elseif dbg:find("sync%-write") or dbg:find("%+puton") then
-                flog("MATCH", "acc-net " .. tostring(slotName) .. "=" .. tostring(resID) .. " " .. tostring(dbg))
+                _AO_HOOK_CTX.flog("MATCH", "acc-net " .. tostring(slotName) .. "=" .. tostring(resID) .. " " .. tostring(dbg))
             end
             return ok, changed
         end
@@ -8322,7 +8323,7 @@ local function _persistModOutfit(resID, insID)
         end
 
         local function applyItemToMatchAvatar(comp, resID)
-            if not slua.isValid(comp) or not resID or not isInjectedRes(resID) then return false end
+            if not slua.isValid(comp) or not resID or not _AO_HOOK_CTX.isInjectedRes(resID) then return false end
             resID = tonumber(resID)
             local applied = false
             pcall(function()
@@ -8479,13 +8480,13 @@ local function _persistModOutfit(resID, insID)
                     end
                 end)
             end
-            if formed ~= _S.inHeroForm then
-                _S.inHeroForm = formed
+            if formed ~= _AO_HOOK_CTX._S.inHeroForm then
+                _AO_HOOK_CTX._S.inHeroForm = formed
                 if not formed then
                     -- form ended -> re-assert our outfit immediately
                     stabReset()
-                    _S.matchOutfitDone = false
-                    _S.matchApplied = false
+                    _AO_HOOK_CTX._S.matchOutfitDone = false
+                    _AO_HOOK_CTX._S.matchApplied = false
                 end
             end
             return formed
@@ -8511,16 +8512,16 @@ local function _persistModOutfit(resID, insID)
             local cch
             local outfitRes
             local clothResIDs
-            if _S.matchOutfitLocked and _S.matchOutfitSnapshotClothes then
-                outfitRes = _S.matchOutfitSnapshotRes
-                clothResIDs = _S.matchOutfitSnapshotClothes
+            if _AO_HOOK_CTX._S.matchOutfitLocked and _AO_HOOK_CTX._S.matchOutfitSnapshotClothes then
+                outfitRes = _AO_HOOK_CTX._S.matchOutfitSnapshotRes
+                clothResIDs = _AO_HOOK_CTX._S.matchOutfitSnapshotClothes
             else
-                syncWeaponCacheFromLobby()
-                syncClothesCacheFromLobby()
+                _AO_HOOK_CTX.syncWeaponCacheFromLobby()
+                _AO_HOOK_CTX.syncClothesCacheFromLobby()
                 outfitRes = getDesiredOutfit()
-                clothResIDs = collectAllClothResIDs()
+                clothResIDs = _AO_HOOK_CTX.collectAllClothResIDs()
             end
-            cch = cache()
+            cch = _AO_HOOK_CTX.cache()
 
             -- X-suit kill message/effect reads _G.SuitSkin (never written
             -- anywhere -> CauserClothAvatarID was always 0). Feed it here.
@@ -8536,12 +8537,12 @@ local function _persistModOutfit(resID, insID)
             -- One-time wiring of the hair sync slot: resolve its numeric ID
             -- from the live enum (expected 2) so accTargets keys match
             -- engine SlotIDs even if the enum ever shifts.
-            if not _S._hairSlotWired then
-                _S._hairSlotWired = true
+            if not _AO_HOOK_CTX._S._hairSlotWired then
+                _AO_HOOK_CTX._S._hairSlotWired = true
                 pcall(function()
                     local E = import("EAvatarSlotType")
                     local hn = E and tonumber(E.EAvatarSlotType_HairEquipemtSlot) or 2
-                    _S._hairSlotNum = hn
+                    _AO_HOOK_CTX._S._hairSlotNum = hn
                     accSlotNames[hn] = "EAvatarSlotType_HairEquipemtSlot"
                     if _G.AddOutfitFaceLog then
                         _G.AddOutfitFaceLog("match hairslot wired num=" .. tostring(hn))
@@ -8578,16 +8579,16 @@ local function _persistModOutfit(resID, insID)
                 if not slua.isValid(applyData) then return end
                 local ref = false
                 -- One-time dump: which SlotIDs actually exist in the array?
-                if not _S.syncSlotsLogged1 then
-                    _S.syncSlotsLogged1 = true
+                if not _AO_HOOK_CTX._S.syncSlotsLogged1 then
+                    _AO_HOOK_CTX._S.syncSlotsLogged1 = true
                     pcall(function()
                         local parts = {}
                         for j = 0, applyData:Num() - 1 do
                             local e2 = applyData:Get(j)
                             if e2 then parts[#parts + 1] = tostring(e2.SlotID) .. ":" .. tostring(e2.ItemId) end
                         end
-                        flog("MATCH", "slots1: " .. table.concat(parts, ","))
-                        flog_flush()
+                        _AO_HOOK_CTX.flog("MATCH", "slots1: " .. table.concat(parts, ","))
+                        _AO_HOOK_CTX.flog_flush()
                     end)
                 end
                 -- PERF: every write in this loop is gated on doAcc already, so while the
@@ -8611,7 +8612,7 @@ local function _persistModOutfit(resID, insID)
                             ref = true
                             applied = true
                             didWrite = true
-                            flog("MATCH", "sync slot=" .. tostring(eq.SlotID) .. " resID=" .. tostring(accTarget))
+                            _AO_HOOK_CTX.flog("MATCH", "sync slot=" .. tostring(eq.SlotID) .. " resID=" .. tostring(accTarget))
                         end
                     end
                     -- Body slots (suit/bag/helmet) are the heaviest writes:
@@ -8629,10 +8630,10 @@ local function _persistModOutfit(resID, insID)
                             -- Level comes from the REAL item via the shared
                             -- resolver, so this path cannot disagree with the
                             -- InitialEquipmentAvatar path any more.
-                            local level = wornLevelFromRealItem(tonumber(eq.AdditionalItemID) or 0, false)
-                            if (not level) then level = resolveWornEquipLevel(char, 8, false) end
+                            local level = _AO_HOOK_CTX.wornLevelFromRealItem(tonumber(eq.AdditionalItemID) or 0, false)
+                            if (not level) then level = _AO_HOOK_CTX.resolveWornEquipLevel(char, 8, false) end
                             if level then
-                                target = mapEquipSkinRes(cch.equip.bag, level)
+                                target = _AO_HOOK_CTX.mapEquipSkinRes(cch.equip.bag, level)
                             end
                             -- No arithmetic fallback on purpose. The old
                             -- `bagBase + (level-1)*1000` is wrong in this ID
@@ -8644,10 +8645,10 @@ local function _persistModOutfit(resID, insID)
                             -- level change, so if we cannot resolve we leave the
                             -- slot untouched instead.
                         elseif eq.SlotID == 9 and cch.equip.helmet and cch.equip.helmet ~= 502001 then
-                            local level = wornLevelFromRealItem(tonumber(eq.AdditionalItemID) or 0, true)
-                            if (not level) then level = resolveWornEquipLevel(char, 9, true) end
+                            local level = _AO_HOOK_CTX.wornLevelFromRealItem(tonumber(eq.AdditionalItemID) or 0, true)
+                            if (not level) then level = _AO_HOOK_CTX.resolveWornEquipLevel(char, 9, true) end
                             if level then
-                                target = mapEquipSkinRes(cch.equip.helmet, level)
+                                target = _AO_HOOK_CTX.mapEquipSkinRes(cch.equip.helmet, level)
                             end
                         end
                         if target ~= 0 and eq.ItemId ~= target then
@@ -8688,7 +8689,7 @@ for slotID, resID in pairs(accTargets) do
                             ref = true
                             applied = true
                             didWrite = true
-                            flog("MATCH", "sync-add slot=" .. tostring(slotID) .. " resID=" .. tostring(resID))
+                            _AO_HOOK_CTX.flog("MATCH", "sync-add slot=" .. tostring(slotID) .. " resID=" .. tostring(resID))
                         end)
                     end
                 end
@@ -8746,12 +8747,12 @@ for slotID, resID in pairs(accTargets) do
             }
             do
                 -- Log once per match (retries continue silently below).
-                if not _S.extraLogged then
-                    _S.extraLogged = true
+                if not _AO_HOOK_CTX._S.extraLogged then
+                    _AO_HOOK_CTX._S.extraLogged = true
                     local parts = {}
                     for st, id in pairs(extraBySt) do parts[#parts + 1] = tostring(st) .. "=" .. tostring(id) end
-                    flog("MATCH", "extraBySt: " .. table.concat(parts, ","))
-                    flog_flush()
+                    _AO_HOOK_CTX.flog("MATCH", "extraBySt: " .. table.concat(parts, ","))
+                    _AO_HOOK_CTX.flog_flush()
                 end
             end
             end
@@ -8880,13 +8881,13 @@ for slotID, resID in pairs(accTargets) do
         local _lastPatchTime = 0
         local function patchPlayerInfoForMatch(PlayerInfo)
             if not PlayerInfo then return end
-            flog("MATCH", "patchPI enter")
+            _AO_HOOK_CTX.flog("MATCH", "patchPI enter")
             local now = 0
             pcall(function() now = os.clock() end)
             if (now - _lastPatchTime) < 1.0 then return end  -- throttle: max once per second
             _lastPatchTime = now
-            snapshotLobbyWear()
-            local cch = cache()
+            _AO_HOOK_CTX.snapshotLobbyWear()
+            local cch = _AO_HOOK_CTX.cache()
             if cch.equip.bag then PlayerInfo.bag_skin = cch.equip.bag end
             if cch.equip.helmet then PlayerInfo.helmet_skin = cch.equip.helmet end
             if cch.equip.armor then PlayerInfo.armor_skin = cch.equip.armor end
@@ -8897,15 +8898,15 @@ for slotID, resID in pairs(accTargets) do
             PlayerInfo.all_knapsack_ext_info[idx] = PlayerInfo.all_knapsack_ext_info[idx] or {}
             local ext = PlayerInfo.all_knapsack_ext_info[idx]
             if cch.equip.bag then
-                local catalogBag = normalizeEquipCatalogRes(cch.equip.bag)
-                local bagLists = buildEquipSkinLists(catalogBag)
+                local catalogBag = _AO_HOOK_CTX.normalizeEquipCatalogRes(cch.equip.bag)
+                local bagLists = _AO_HOOK_CTX.buildEquipSkinLists(catalogBag)
                 ext.bag_skin = catalogBag
                 ext.bag_skin_list = bagLists
                 PlayerInfo.bag_skin = catalogBag
             end
             if cch.equip.helmet then
-                local catalogHelm = normalizeEquipCatalogRes(cch.equip.helmet)
-                local helmLists = buildEquipSkinLists(catalogHelm)
+                local catalogHelm = _AO_HOOK_CTX.normalizeEquipCatalogRes(cch.equip.helmet)
+                local helmLists = _AO_HOOK_CTX.buildEquipSkinLists(catalogHelm)
                 ext.helmet_skin = catalogHelm
                 ext.helmet_skin_list = helmLists
                 PlayerInfo.helmet_skin = catalogHelm
@@ -8999,8 +9000,8 @@ for slotID, resID in pairs(accTargets) do
                         bAircraft = not MDH.IsGlideSmoke(tonumber(cfg(gliderRes).ItemSubType))
                     end)
                 end
-                if not _S.airborneLogged then
-                    _S.airborneLogged = true
+                if not _AO_HOOK_CTX._S.airborneLogged then
+                    _AO_HOOK_CTX._S.airborneLogged = true
                     pcall(function()
                         if _G.AddOutfitAirLog then
                             _G.AddOutfitAirLog("AIR", "payload paraRes=" .. tostring(paraRes)
@@ -9009,10 +9010,10 @@ for slotID, resID in pairs(accTargets) do
                                 .. " use_rolewear=" .. tostring(PlayerInfo.use_rolewear))
                         end
                     end)
-                    flog("MATCH", "airborne-payload paraRes=" .. tostring(paraRes)
+                    _AO_HOOK_CTX.flog("MATCH", "airborne-payload paraRes=" .. tostring(paraRes)
                         .. " gliderRes=" .. tostring(gliderRes)
                         .. " aircraft=" .. tostring(bAircraft))
-                    flog_flush()
+                    _AO_HOOK_CTX.flog_flush()
                 end
             end
 
@@ -9020,7 +9021,7 @@ for slotID, resID in pairs(accTargets) do
                 if cch.throwObjects then
                     local throwList = {}
                     for st, info in pairs(cch.throwObjects) do
-                        if info.resID and info.resID > 0 and _K.THROW_SUB[st] then
+                        if info.resID and info.resID > 0 and _AO_HOOK_CTX._K.THROW_SUB[st] then
                             throwList[st] = info.resID
                         end
                     end
@@ -9042,7 +9043,7 @@ for slotID, resID in pairs(accTargets) do
                         for i, kext in pairs(PlayerInfo.all_knapsack_ext_info) do
                             applyThrowList(kext)
                         end
-                        log("patchPlayerInfoForMatch: throw_object_list injected into all knapsack entries")
+                        _AO_HOOK_CTX.log("patchPlayerInfoForMatch: throw_object_list injected into all knapsack entries")
                     end
                 end
             end)
@@ -9057,7 +9058,7 @@ for slotID, resID in pairs(accTargets) do
                                 insID = tonumber(insID)
                                 if insID and insID > 0 then
                                     local resID
-                                    if isInjectedIns(insID) then
+                                    if _AO_HOOK_CTX.isInjectedIns(insID) then
                                         resID = R.insToRes[insID]
                                     else
                                         local wd = require("client.slua.logic.wardrobe.wardrobe_data")
@@ -9078,7 +9079,7 @@ for slotID, resID in pairs(accTargets) do
                         local skinIns = tonumber(DataMgr.vst_skin)
                         if skinIns and skinIns > 0 then
                             local skinRes
-                            if isInjectedIns(skinIns) then
+                            if _AO_HOOK_CTX.isInjectedIns(skinIns) then
                                 skinRes = R.insToRes[skinIns]
                             else
                                 local wd = require("client.slua.logic.wardrobe.wardrobe_data")
@@ -9103,10 +9104,10 @@ for slotID, resID in pairs(accTargets) do
             -- Pure data, no comp API (unlike the reverted net worker).
             pcall(function()
                 local wear = PlayerInfo.wear_ext
-                if type(wear) ~= "table" then flog("MATCH", "wear_ext not a table: " .. type(wear)); return end
+                if type(wear) ~= "table" then _AO_HOOK_CTX.flog("MATCH", "wear_ext not a table: " .. type(wear)); return end
                 local AvatarData = require("client.logic.data.AvatarData")
-                if not AvatarData.CreateEnumFormatAvatarCustom then flog("MATCH", "wear_ext no CreateEnum"); return end
-                local cchW = cache()
+                if not AvatarData.CreateEnumFormatAvatarCustom then _AO_HOOK_CTX.flog("MATCH", "wear_ext no CreateEnum"); return end
+                local cchW = _AO_HOOK_CTX.cache()
                 local want = {}
                 local function wantRes(st, resID)
                     resID = tonumber(resID)
@@ -9167,7 +9168,7 @@ for slotID, resID in pairs(accTargets) do
                                 end
                             end
                             if not replaced then wear[#wear + 1] = item end
-                            flog("MATCH", "wear_ext st=" .. tostring(st) .. " resID=" .. tostring(resID) .. (replaced and " replaced" or " appended"))
+                            _AO_HOOK_CTX.flog("MATCH", "wear_ext st=" .. tostring(st) .. " resID=" .. tostring(resID) .. (replaced and " replaced" or " appended"))
                         end
                     end
                 end
@@ -9182,7 +9183,7 @@ for slotID, resID in pairs(accTargets) do
             _lastApplyEquipToController = now
             local pc = getPlayerController()
             if not pc or not slua.isValid(pc) then return false end
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             if not cch.equip.bag and not cch.equip.helmet and not cch.equip.armor and not cch.equip.parachute and not cch.equip.glider then return false end
 
             local char = getLocalChar()
@@ -9190,16 +9191,16 @@ for slotID, resID in pairs(accTargets) do
 
             -- طبّق سكن الشنطة فقط لو اللاعب لابس شنطة فعلاً
             if cch.equip.bag and cch.equip.bag > 0 and isWearingEquip(char, "bag") then
-                local catalogBag = normalizeEquipCatalogRes(cch.equip.bag)
-                local bagLists = buildEquipSkinLists(catalogBag)
+                local catalogBag = _AO_HOOK_CTX.normalizeEquipCatalogRes(cch.equip.bag)
+                local bagLists = _AO_HOOK_CTX.buildEquipSkinLists(catalogBag)
                 eq.BagAvatar = catalogBag
                 eq.BagAvatarList = bagLists
                 -- Shared resolver: level from the REAL worn item. This used to
                 -- read getCharEquipLevel(char, 8), which returns the cosmetic
                 -- ItemId this same mod writes -- so it derived a level from its
                 -- own output and fought the SlotSyncData path every tick.
-                local bagLevel = resolveWornEquipLevel(char, 8, false)
-                local bagDisplay = bagLevel and mapEquipSkinRes(catalogBag, bagLevel) or 0
+                local bagLevel = _AO_HOOK_CTX.resolveWornEquipLevel(char, 8, false)
+                local bagDisplay = bagLevel and _AO_HOOK_CTX.mapEquipSkinRes(catalogBag, bagLevel) or 0
                 if bagDisplay > 0 then eq.BagAvatar = bagDisplay end
             else
                 eq.BagAvatar = 0
@@ -9207,12 +9208,12 @@ for slotID, resID in pairs(accTargets) do
             end
             -- طبّق سكن الخوذة فقط لو اللاعب لابس خوذة فعلاً
             if cch.equip.helmet and cch.equip.helmet > 0 and isWearingEquip(char, "helmet") then
-                local catalogHelm = normalizeEquipCatalogRes(cch.equip.helmet)
-                local helmLists = buildEquipSkinLists(catalogHelm)
+                local catalogHelm = _AO_HOOK_CTX.normalizeEquipCatalogRes(cch.equip.helmet)
+                local helmLists = _AO_HOOK_CTX.buildEquipSkinLists(catalogHelm)
                 eq.HelmetAvatar = catalogHelm
                 eq.HelmetAvatarList = helmLists
-                local helmLevel = resolveWornEquipLevel(char, 9, true)
-                local helmDisplay = helmLevel and mapEquipSkinRes(catalogHelm, helmLevel) or 0
+                local helmLevel = _AO_HOOK_CTX.resolveWornEquipLevel(char, 9, true)
+                local helmDisplay = helmLevel and _AO_HOOK_CTX.mapEquipSkinRes(catalogHelm, helmLevel) or 0
                 if helmDisplay > 0 then eq.HelmetAvatar = helmDisplay end
             else
                 eq.HelmetAvatar = 0
@@ -9256,8 +9257,8 @@ for slotID, resID in pairs(accTargets) do
                     local sig = tostring(eq.BagAvatar) .. "|" .. tostring(eq.HelmetAvatar)
                         .. "|" .. tostring(eq.ArmorAvatar) .. "|" .. tostring(eq.ParachuteAvatar)
                         .. "|" .. tostring(eq.GliderAvatar)
-                    if sig ~= _S.lastEquipAvatarSig then
-                        _S.lastEquipAvatarSig = sig
+                    if sig ~= _AO_HOOK_CTX._S.lastEquipAvatarSig then
+                        _AO_HOOK_CTX._S.lastEquipAvatarSig = sig
                         pc.OnEquipmentAvatarChange:Broadcast()
                     end
                 end
@@ -9273,14 +9274,14 @@ for slotID, resID in pairs(accTargets) do
                     local orig = DataMgr.GetEquipmentItemIDByResID
                     DataMgr.GetEquipmentItemIDByResID = function(level, itemResID)
                         level, itemResID = tonumber(level) or 3, tonumber(itemResID)
-                        local catalogRes = normalizeEquipCatalogRes(itemResID)
+                        local catalogRes = _AO_HOOK_CTX.normalizeEquipCatalogRes(itemResID)
                         local r = orig(level, catalogRes)
                         if r and r > 0 then return r end
-                        if isInjectedIns(itemResID) then
-                            return mapEquipSkinRes(normalizeEquipCatalogRes(R.insToRes[itemResID]), level)
+                        if _AO_HOOK_CTX.isInjectedIns(itemResID) then
+                            return _AO_HOOK_CTX.mapEquipSkinRes(_AO_HOOK_CTX.normalizeEquipCatalogRes(R.insToRes[itemResID]), level)
                         end
-                        if isInjectedRes(itemResID) then
-                            return mapEquipSkinRes(catalogRes, level)
+                        if _AO_HOOK_CTX.isInjectedRes(itemResID) then
+                            return _AO_HOOK_CTX.mapEquipSkinRes(catalogRes, level)
                         end
                         return r or 0
                     end
@@ -9296,14 +9297,14 @@ for slotID, resID in pairs(accTargets) do
                     local r = orig2(self, itemSubType, itemInsID)
                     if r and r > 0 then return r end
                     itemInsID = tonumber(itemInsID)
-                    if isInjectedIns(itemInsID) then
-                        return mapEquipSkinRes(normalizeEquipCatalogRes(R.insToRes[itemInsID]), level)
+                    if _AO_HOOK_CTX.isInjectedIns(itemInsID) then
+                        return _AO_HOOK_CTX.mapEquipSkinRes(_AO_HOOK_CTX.normalizeEquipCatalogRes(R.insToRes[itemInsID]), level)
                     end
                     pcall(function()
                         local wd = require("client.slua.logic.wardrobe.wardrobe_data")
                         local d = wd:GetHallDepotItemDataByInsID(itemInsID)
-                        if d and isInjectedRes(d.resID) then
-                            return mapEquipSkinRes(normalizeEquipCatalogRes(d.resID), level)
+                        if d and _AO_HOOK_CTX.isInjectedRes(d.resID) then
+                            return _AO_HOOK_CTX.mapEquipSkinRes(_AO_HOOK_CTX.normalizeEquipCatalogRes(d.resID), level)
                         end
                     end)
                     return r
@@ -9319,26 +9320,26 @@ for slotID, resID in pairs(accTargets) do
                     if self.IsSelf and not self:IsSelf() then
                         return orig3(self, InItemID)
                     end
-                    local cch = cache()
+                    local cch = _AO_HOOK_CTX.cache()
                     InItemID = tonumber(InItemID) or 0
 
                     local function tryGetSkin(catalogRes)
                         if not catalogRes or catalogRes <= 0 then return 0 end
-                        catalogRes = normalizeEquipCatalogRes(catalogRes)
-                        local skin = resolveMatchEquipSkin(catalogRes, InItemID)
+                        catalogRes = _AO_HOOK_CTX.normalizeEquipCatalogRes(catalogRes)
+                        local skin = _AO_HOOK_CTX.resolveMatchEquipSkin(catalogRes, InItemID)
                         if skin > 0 then return skin end
                         for lvl = 1, 3 do
-                            local s = mapEquipSkinRes(catalogRes, lvl)
+                            local s = _AO_HOOK_CTX.mapEquipSkinRes(catalogRes, lvl)
                             if s > 0 then return s end
                         end
                         return 0
                     end
 
-                    if InItemID > 0 and isBaseEquipItemId(InItemID) then
-                        local isHelmetBase = GAME_HELMET_LEVEL[InItemID] ~= nil
+                    if InItemID > 0 and _AO_HOOK_CTX.isBaseEquipItemId(InItemID) then
+                        local isHelmetBase = _AO_HOOK_CTX.GAME_HELMET_LEVEL[InItemID] ~= nil
                             or (InItemID >= 1505000001 and InItemID <= 1505000100)
                             or (InItemID >= 502001 and InItemID <= 502999)
-                        local isBagBase = GAME_BAG_LEVEL[InItemID] ~= nil
+                        local isBagBase = _AO_HOOK_CTX.GAME_BAG_LEVEL[InItemID] ~= nil
                             or (InItemID >= 501001 and InItemID <= 501999)
                             or (InItemID >= 1501000000 and InItemID < 1502000000)
 
@@ -9363,8 +9364,8 @@ for slotID, resID in pairs(accTargets) do
                     end
 
                     -- fallback مع تحقق isWearingEquip
-                    local isHelmetQuery = GAME_HELMET_LEVEL[InItemID] ~= nil or (InItemID >= 502001 and InItemID <= 502999)
-                    local isBagQuery = GAME_BAG_LEVEL[InItemID] ~= nil or (InItemID >= 501001 and InItemID <= 501999)
+                    local isHelmetQuery = _AO_HOOK_CTX.GAME_HELMET_LEVEL[InItemID] ~= nil or (InItemID >= 502001 and InItemID <= 502999)
+                    local isBagQuery = _AO_HOOK_CTX.GAME_BAG_LEVEL[InItemID] ~= nil or (InItemID >= 501001 and InItemID <= 501999)
                     local char = getLocalChar()
 
                     if isHelmetQuery and cch.equip.helmet and cch.equip.helmet > 0 then
@@ -9390,7 +9391,7 @@ for slotID, resID in pairs(accTargets) do
                     pcall(function()
                         if self.IsLobbyActor and self:IsLobbyActor() then return end
                         local EAvatarSlotType = import("EAvatarSlotType")
-                        local cch = cache()
+                        local cch = _AO_HOOK_CTX.cache()
                         local isHelmet = slotType == EAvatarSlotType.EAvatarSlotType_HelmetEquipemtSlot
                         local isBag = slotType == EAvatarSlotType.EAvatarSlotType_BackpackEquipemtSlot
                         if (isHelmet and cch.equip.helmet and cch.equip.helmet > 0)
@@ -9435,7 +9436,7 @@ for slotID, resID in pairs(accTargets) do
         end
 
         local function equipAlreadyApplied(comp, catalogResID, level, skinId)
-            local slotName = getEquipSkinSlot(catalogResID)
+            local slotName = _AO_HOOK_CTX.getEquipSkinSlot(catalogResID)
             local slotID = slotName and EQUIP_SLOT_ID[slotName] or nil
             if not slotID then return false end
             local live = getCompEquipItemID(comp, slotID)
@@ -9443,16 +9444,16 @@ for slotID, resID in pairs(accTargets) do
             -- The slot can legitimately hold the skin id, the catalog id, or the
             -- level resID depending on how the server resolved it.
             if live == skinId or live == catalogResID then return true end
-            local set = getEquipLevelSet(catalogResID)
-            if set and (live == mapEquipLevelSet(set, level)) then return true end
+            local set = _AO_HOOK_CTX.getEquipLevelSet(catalogResID)
+            if set and (live == _AO_HOOK_CTX.mapEquipLevelSet(set, level)) then return true end
             return false
         end
 
         local function applyMatchEquipSkinAtLevel(comp, catalogResID, level)
             if not slua.isValid(comp) or not catalogResID or catalogResID <= 0 then return false end
-            catalogResID = normalizeEquipCatalogRes(catalogResID)
+            catalogResID = _AO_HOOK_CTX.normalizeEquipCatalogRes(catalogResID)
             level = tonumber(level) or 3
-            local skinId = mapEquipSkinRes(catalogResID, level)
+            local skinId = _AO_HOOK_CTX.mapEquipSkinRes(catalogResID, level)
             if not skinId or skinId <= 0 then skinId = catalogResID end
 
             local now = 0
@@ -9615,7 +9616,7 @@ for slotID, resID in pairs(accTargets) do
             if not force and (now - AIR.lastSync) < 2.0 then return end
             AIR.lastSync = now
 
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             local paraRes = tonumber(cch.equip.parachute) or 0
             local gliderRes = tonumber(cch.equip.glider) or 0
             if paraRes <= 0 and gliderRes <= 0 then return end
@@ -9729,7 +9730,7 @@ for slotID, resID in pairs(accTargets) do
             pcall(function()
                 local parts = {}
                 parts[#parts + 1] = "diag res=" .. tostring(resID) .. " slot=" .. tostring(slotID)
-                parts[#parts + 1] = "injected=" .. tostring(isInjectedRes(resID))
+                parts[#parts + 1] = "injected=" .. tostring(_AO_HOOK_CTX.isInjectedRes(resID))
                 local mappedIns = R and R.resToIns and R.resToIns[resID]
                 parts[#parts + 1] = "mappedIns=" .. tostring(mappedIns)
                 local it, st = nil, nil
@@ -9871,14 +9872,14 @@ for slotID, resID in pairs(accTargets) do
                     .. " result=" .. tostring(result)
                     .. " equippedBefore=" .. tostring(equippedBefore)
                     .. " equippedAfter=" .. tostring(equippedAfter))
-                flog("MATCH", "air-puton slot=" .. tostring(slotID)
+                _AO_HOOK_CTX.flog("MATCH", "air-puton slot=" .. tostring(slotID)
                     .. " res=" .. tostring(resID)
                     .. " air=" .. tostring(inAir)
                     .. " result=" .. tostring(result))
                 if equippedAfter == resID then
                     AIR.log("AIR", "verified slot=" .. tostring(slotID)
                         .. " res=" .. tostring(resID))
-                    flog("MATCH", "air-verified slot=" .. tostring(slotID)
+                    _AO_HOOK_CTX.flog("MATCH", "air-verified slot=" .. tostring(slotID)
                         .. " res=" .. tostring(resID))
                     return true, changed
                 end
@@ -9890,7 +9891,7 @@ for slotID, resID in pairs(accTargets) do
             if not comp or not slua.isValid(comp) then return false, false end
             pcall(AIR.syncDataMgr)
             local inAir = forceInAir == true or AIR.airborne(char)
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             local appliedAny, changedAny = false, false
             local paraRes = tonumber(cch.equip.parachute) or 0
             local gliderRes = tonumber(cch.equip.glider) or 0
@@ -9925,7 +9926,7 @@ for slotID, resID in pairs(accTargets) do
             pcall(function() now = os.clock() end)
             if (now - _lastMatchApplyEquip) < 0.5 then return false end  -- throttle: max 2x/sec
             _lastMatchApplyEquip = now
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             local accTargets = accTargetsFromClothes(cch.clothes, getDesiredOutfit())
             if not cch.equip.bag and not cch.equip.helmet and not cch.equip.parachute and not cch.equip.glider
                 and not next(accTargets) then return false end
@@ -9936,22 +9937,22 @@ for slotID, resID in pairs(accTargets) do
 
             if cch.equip.helmet and cch.equip.helmet > 0 then
                 if isWearingEquip(char, "helmet") then
-                    local catalogHelm = normalizeEquipCatalogRes(cch.equip.helmet)
-                    local helmLevel = resolveWornEquipLevel(char, 9, true)
+                    local catalogHelm = _AO_HOOK_CTX.normalizeEquipCatalogRes(cch.equip.helmet)
+                    local helmLevel = _AO_HOOK_CTX.resolveWornEquipLevel(char, 9, true)
                     if helmLevel and applyMatchEquipSkinAtLevel(comp, catalogHelm, helmLevel) then
                         ok = true
-                        notify("خوذة ماتش OK " .. mapEquipSkinRes(catalogHelm, helmLevel))
+                        notify("خوذة ماتش OK " .. _AO_HOOK_CTX.mapEquipSkinRes(catalogHelm, helmLevel))
                     end
                 end
             end
 
             if cch.equip.bag and cch.equip.bag > 0 then
                 if isWearingEquip(char, "bag") then
-                    local catalogBag = normalizeEquipCatalogRes(cch.equip.bag)
-                    local bagLevel = resolveWornEquipLevel(char, 8, false)
+                    local catalogBag = _AO_HOOK_CTX.normalizeEquipCatalogRes(cch.equip.bag)
+                    local bagLevel = _AO_HOOK_CTX.resolveWornEquipLevel(char, 8, false)
                     if bagLevel and applyMatchEquipSkinAtLevel(comp, catalogBag, bagLevel) then
                         ok = true
-                        notify("شنطة ماتش OK " .. mapEquipSkinRes(catalogBag, bagLevel))
+                        notify("شنطة ماتش OK " .. _AO_HOOK_CTX.mapEquipSkinRes(catalogBag, bagLevel))
                     end
                 end
             end
@@ -9976,15 +9977,15 @@ for slotID, resID in pairs(accTargets) do
                 if not TempSlotSyncData then return end
 
                 -- One-time dump: which SlotIDs actually exist here?
-                if not _S.syncSlotsLogged2 then
-                    _S.syncSlotsLogged2 = true
+                if not _AO_HOOK_CTX._S.syncSlotsLogged2 then
+                    _AO_HOOK_CTX._S.syncSlotsLogged2 = true
                     pcall(function()
                         local parts = {}
                         for Index2, e2 in pairs(TempSlotSyncData) do
                             if e2 then parts[#parts + 1] = tostring(e2.SlotID) .. ":" .. tostring(e2.ItemID) end
                         end
-                        flog("MATCH", "slots2: " .. table.concat(parts, ","))
-                        flog_flush()
+                        _AO_HOOK_CTX.flog("MATCH", "slots2: " .. table.concat(parts, ","))
+                        _AO_HOOK_CTX.flog_flush()
                     end)
                 end
 
@@ -10003,17 +10004,17 @@ for slotID, resID in pairs(accTargets) do
                         slua.IndexReference(NetAvatarData, "SlotSyncData"):Set(Index, AvatarSynData)
                         ok = true
                         changed = true
-                        flog("MATCH", "equip-sync slot=" .. tostring(slotID) .. " resID=" .. tostring(accT))
+                        _AO_HOOK_CTX.flog("MATCH", "equip-sync slot=" .. tostring(slotID) .. " resID=" .. tostring(accT))
                     end
 
                     if slotID == 8 and NDRid ~= 0 and cch.equip.bag and cch.equip.bag > 0 then
-                        local catalogBag = normalizeEquipCatalogRes(cch.equip.bag)
+                        local catalogBag = _AO_HOOK_CTX.normalizeEquipCatalogRes(cch.equip.bag)
                         -- NDRid is AvatarSynData.ItemID, i.e. the cosmetic id this
                         -- mod writes. Deriving the level from it was the feedback
                         -- loop. Use the REAL item on the same entry instead.
-                        local bagLevel = wornLevelFromRealItem(tonumber(AvatarSynData.AdditionalItemID) or 0, false)
-                        if (not bagLevel) then bagLevel = resolveWornEquipLevel(char, 8, false) end
-                        local skinId = bagLevel and mapEquipSkinRes(catalogBag, bagLevel) or 0
+                        local bagLevel = _AO_HOOK_CTX.wornLevelFromRealItem(tonumber(AvatarSynData.AdditionalItemID) or 0, false)
+                        if (not bagLevel) then bagLevel = _AO_HOOK_CTX.resolveWornEquipLevel(char, 8, false) end
+                        local skinId = bagLevel and _AO_HOOK_CTX.mapEquipSkinRes(catalogBag, bagLevel) or 0
                         -- The old `if skinId <= 0 then skinId = mapEquipSkinRes(catalogBag, 3)`
                         -- forced level 3 whenever resolution failed, while the
                         -- SlotSyncData writer resolved level 1 or 2 -- so they
@@ -10028,10 +10029,10 @@ for slotID, resID in pairs(accTargets) do
                     end
 
                     if slotID == 9 and NDRid ~= 0 and cch.equip.helmet and cch.equip.helmet > 0 then
-                        local catalogHelm = normalizeEquipCatalogRes(cch.equip.helmet)
-                        local helmLevel = wornLevelFromRealItem(tonumber(AvatarSynData.AdditionalItemID) or 0, true)
-                        if (not helmLevel) then helmLevel = resolveWornEquipLevel(char, 9, true) end
-                        local skinId = helmLevel and mapEquipSkinRes(catalogHelm, helmLevel) or 0
+                        local catalogHelm = _AO_HOOK_CTX.normalizeEquipCatalogRes(cch.equip.helmet)
+                        local helmLevel = _AO_HOOK_CTX.wornLevelFromRealItem(tonumber(AvatarSynData.AdditionalItemID) or 0, true)
+                        if (not helmLevel) then helmLevel = _AO_HOOK_CTX.resolveWornEquipLevel(char, 9, true) end
+                        local skinId = helmLevel and _AO_HOOK_CTX.mapEquipSkinRes(catalogHelm, helmLevel) or 0
                         if skinId > 0 and NDRid ~= skinId then
                             AvatarSynData.ItemID = skinId
                             slua.IndexReference(NetAvatarData, "SlotSyncData"):Set(Index, AvatarSynData)
@@ -10164,7 +10165,7 @@ for slotID, resID in pairs(accTargets) do
         -- avatarBeard, avatarBeardColor, avatarHairColor, avatarHead,
         -- avatarGender), persisted by _saveNeatModSave / _loadEquippedCache.
         -- All entry points hang off _S (loader-local budget is near the cap).
-        _S.persistAppearanceEquip = function(appearanceType, avatarData)
+        _AO_HOOK_CTX._S.persistAppearanceEquip = function(appearanceType, avatarData)
             pcall(function()
                 appearanceType = tonumber(appearanceType)
                 if not appearanceType or type(avatarData) ~= "table" then return end
@@ -10226,7 +10227,7 @@ for slotID, resID in pairs(accTargets) do
                             .. " sex=" .. tostring(ap.avatarGender))
                     end
                 end)
-                pcall(_AutoSaveOutfit)
+                pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                 pcall(function()
                     if EventSystem and EVENTTYPE_ROLEINFO and EVENTID_ROLEINFO_AVATAR_DATA_CHANGE then
                         EventSystem:postEvent(EVENTTYPE_ROLEINFO, EVENTID_ROLEINFO_AVATAR_DATA_CHANGE)
@@ -10238,7 +10239,7 @@ for slotID, resID in pairs(accTargets) do
         -- Lobby-truth safety net: fills EMPTY saved slots from live lobby
         -- AvatarData. Never overwrites a saved custom. Caller must be in
         -- lobby (in-match AvatarData is a server snapshot).
-        _S.syncAppearanceFromAvatarData = function()
+        _AO_HOOK_CTX._S.syncAppearanceFromAvatarData = function()
             pcall(function()
                 if not isInLobby() then return end
                 local okA, AvatarData = pcall(require, "client.logic.data.AvatarData")
@@ -10277,7 +10278,7 @@ for slotID, resID in pairs(accTargets) do
                 take("avatarBeardColor", AvatarData.GetBeardColorID)
                 take("avatarHead", AvatarData.GetHeadID)
                 take("avatarGender", AvatarData.GetGameGender)
-                if changed then pcall(_AutoSaveOutfit) end
+                if changed then pcall(_AO_HOOK_CTX._AutoSaveOutfit) end
                 if force and _G.AddOutfitFaceLog then
                     pcall(function()
                         _G.AddOutfitFaceLog("lobby sync-overwrite hair=" .. tostring(ap.avatarHair)
@@ -10298,11 +10299,11 @@ for slotID, resID in pairs(accTargets) do
         -- Deferred via later() at boot; each attempt skips once a previous
         -- one visibly applied (done flag), so an early wardrobe try-on is
         -- never clobbered by a late retry.
-        _S.applySavedAppearance = function()
+        _AO_HOOK_CTX._S.applySavedAppearance = function()
             pcall(function()
                 local saved = _G._savedAppearance
                 if type(saved) ~= "table" then return end
-                if _S.appearanceLobbyDone then return end
+                if _AO_HOOK_CTX._S.appearanceLobbyDone then return end
                 local any = false
                 local verify = {}
                 local AD = nil
@@ -10429,7 +10430,7 @@ for slotID, resID in pairs(accTargets) do
                                 .. " put=" .. tostring(verify.teamPut) .. ")")
                         end
                     end)
-                    if meshOk then _S.appearanceLobbyDone = true end
+                    if meshOk then _AO_HOOK_CTX._S.appearanceLobbyDone = true end
                 end
             end)
         end
@@ -10438,7 +10439,7 @@ for slotID, resID in pairs(accTargets) do
         -- Head/Hair/Beard items unlocked), PutAvatar applies locally and skips
         -- the server request for unowned items (avoids the Royal Pass toast),
         -- ModifyAvatar persists every non-preview change.
-        _S.hookWardrobeAppearance = function()
+        _AO_HOOK_CTX._S.hookWardrobeAppearance = function()
             pcall(function()
                 local okW, WAL = pcall(require, "client.slua.logic.wardrobe.logic_wardrobe_appearance")
                 if not okW or not WAL then return end
@@ -10469,8 +10470,8 @@ for slotID, resID in pairs(accTargets) do
                                     WAL:ModifyAvatar(appearanceType, ad, false)
                                     localDone = true
                                 end
-                                if _S.persistAppearanceEquip then
-                                    _S.persistAppearanceEquip(appearanceType, ad or {})
+                                if _AO_HOOK_CTX._S.persistAppearanceEquip then
+                                    _AO_HOOK_CTX._S.persistAppearanceEquip(appearanceType, ad or {})
                                 end
                                 if _G.AddOutfitFaceLog then
                                     _G.AddOutfitFaceLog("lobby pick type=" .. tostring(appearanceType)
@@ -10492,7 +10493,7 @@ for slotID, resID in pairs(accTargets) do
                                         _G._savedAppearance.avatarBeardColor = nil
                                     end
                                     _G._appearanceDirty = true
-                                    pcall(_AutoSaveOutfit)
+                                    pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                                 end
                             end
                         end)
@@ -10540,14 +10541,14 @@ for slotID, resID in pairs(accTargets) do
                                 local a = argList[i]
                                 if type(a) == "boolean" then isTry = a break end
                             end
-                            if at and at > 0 and not isTry and _S.persistAppearanceEquip then
-                                _S.persistAppearanceEquip(at, ad or {})
+                            if at and at > 0 and not isTry and _AO_HOOK_CTX._S.persistAppearanceEquip then
+                                _AO_HOOK_CTX._S.persistAppearanceEquip(at, ad or {})
                             end
                         end)
                         return table.unpack(vals, 1, n)
                     end
                 end
-                flog("OUTFIT", "hookWardrobeAppearance: face/hair/beard unlock installed")
+                _AO_HOOK_CTX.flog("OUTFIT", "hookWardrobeAppearance: face/hair/beard unlock installed")
             end)
         end
 
@@ -10556,9 +10557,9 @@ for slotID, resID in pairs(accTargets) do
         -- a server snapshot that would otherwise revert the custom look.
         -- Change-gated + live-verified backstop so a settled head costs no
         -- mesh rebuilds (InitDefaultAvatarByResID every tick = flicker).
-        _S._appearanceMatchKey = nil
-        _S._appearanceMatchAt = 0
-        _S.matchApplyAppearanceInGame = function(char)
+        _AO_HOOK_CTX._S._appearanceMatchKey = nil
+        _AO_HOOK_CTX._S._appearanceMatchAt = 0
+        _AO_HOOK_CTX._S.matchApplyAppearanceInGame = function(char)
             char = char or getLocalChar()
             if not (char and slua.isValid(char)) then return false end
             local okA, AvatarData = pcall(require, "client.logic.data.AvatarData")
@@ -10568,7 +10569,7 @@ for slotID, resID in pairs(accTargets) do
             -- lobby showed, and a stale file can no longer force the match
             -- somewhere the lobby never was.
             local ap = _G._savedAppearance or {}
-            local seen = _S._appearanceLobbySeen or {}
+            local seen = _AO_HOOK_CTX._S._appearanceLobbySeen or {}
             local hairId, beardId, beardColor, headId, dataSex = 0, 0, 0, 0, 0
             pcall(function()
                 local function pick(k)
@@ -10593,9 +10594,9 @@ for slotID, resID in pairs(accTargets) do
             -- NOTE: live AvatarData is NOT a valid "already applied" check --
             -- in-match it holds the lobby-restored values even when the mesh
             -- never got them, so it must not gate retries.
-            local applyCount = _S._appearanceApplyCount or 0
-            local keySettled = (_S._appearanceMatchKey == key)
-            local sinceApply = nowA - (_S._appearanceMatchAt or 0)
+            local applyCount = _AO_HOOK_CTX._S._appearanceApplyCount or 0
+            local keySettled = (_AO_HOOK_CTX._S._appearanceMatchKey == key)
+            local sinceApply = nowA - (_AO_HOOK_CTX._S._appearanceMatchAt or 0)
             if keySettled and applyCount >= 5 and sinceApply < 30.0 then
                 return true
             end
@@ -10607,16 +10608,16 @@ for slotID, resID in pairs(accTargets) do
             -- ladder. They mark that a retry window opened; forcing the
             -- timestamp back lets exactly one apply happen now (from this
             -- tick) instead of four separate heavy applies.
-            if _S._appearanceRetryPending and _S._appearanceRetryPending > 0 then
-                _S._appearanceRetryPending = 0
-                _S._appearanceMatchAt = 0
+            if _AO_HOOK_CTX._S._appearanceRetryPending and _AO_HOOK_CTX._S._appearanceRetryPending > 0 then
+                _AO_HOOK_CTX._S._appearanceRetryPending = 0
+                _AO_HOOK_CTX._S._appearanceMatchAt = 0
             end
             if keySettled and applyCount >= 5 then
                 -- 30s backstop tick: refresh timestamp, fall through to apply.
-                _S._appearanceMatchAt = nowA
+                _AO_HOOK_CTX._S._appearanceMatchAt = nowA
             end
-            if not _S._appearanceLoggedKey or _S._appearanceLoggedKey ~= key then
-                _S._appearanceLoggedKey = key
+            if not _AO_HOOK_CTX._S._appearanceLoggedKey or _AO_HOOK_CTX._S._appearanceLoggedKey ~= key then
+                _AO_HOOK_CTX._S._appearanceLoggedKey = key
                 pcall(function()
                     if _G.AddOutfitFaceLog then
                         _G.AddOutfitFaceLog("match want hair=" .. hairId .. " beard=" .. beardId
@@ -10660,8 +10661,8 @@ for slotID, resID in pairs(accTargets) do
             if not comp or not slua.isValid(comp) then comp = char.CharacterAvatarComp2_BP end
             if not (comp and slua.isValid(comp)) then
                 pcall(function()
-                    if _G.AddOutfitFaceLog and not _S._appearanceNoCompLogged then
-                        _S._appearanceNoCompLogged = true
+                    if _G.AddOutfitFaceLog and not _AO_HOOK_CTX._S._appearanceNoCompLogged then
+                        _AO_HOOK_CTX._S._appearanceNoCompLogged = true
                         _G.AddOutfitFaceLog("match NO COMP (avatar comp missing)")
                     end
                 end)
@@ -10687,8 +10688,8 @@ for slotID, resID in pairs(accTargets) do
             end)
             -- Capability probe (logged once per key): tells exactly which
             -- engine APIs exist on this build.
-            if _S._appearanceLoggedKey == key and not _S._appearanceProbeLogged then
-                _S._appearanceProbeLogged = true
+            if _AO_HOOK_CTX._S._appearanceLoggedKey == key and not _AO_HOOK_CTX._S._appearanceProbeLogged then
+                _AO_HOOK_CTX._S._appearanceProbeLogged = true
                 pcall(function()
                     if _G.AddOutfitFaceLog then
                         local bits = {}
@@ -10717,7 +10718,7 @@ for slotID, resID in pairs(accTargets) do
             -- Without entries, local-only PutOns are wiped on every rebuild.
             local applied = false
             local stepRes = {}
-            local hairNum = (_S and _S._hairSlotNum) or 2
+            local hairNum = (_AO_HOOK_CTX._S and _AO_HOOK_CTX._S._hairSlotNum) or 2
             pcall(function()
                 local E = import("EAvatarSlotType")
                 local ESO = import("ESyncOperation")
@@ -10777,7 +10778,7 @@ for slotID, resID in pairs(accTargets) do
                 else
                     stepRes["EAvatarSlotType_HeadEquipemtSlotSync"] = "skipped"
                 end
-                _S._appearanceHeadSlotId = headSlotId
+                _AO_HOOK_CTX._S._appearanceHeadSlotId = headSlotId
             end)
             -- Fast path: sync already carries hair+beard (per-slot net path
             -- persists them) -> skip the heavy mesh ops entirely.
@@ -10795,17 +10796,17 @@ for slotID, resID in pairs(accTargets) do
                     or (slotCur("EAvatarSlotType_HairEquipemtSlot") == hairId)
                 local beardOk = (beardId <= 0)
                     or (slotCur("EAvatarSlotType_BeardEquipemtSlot") == beardId)
-                local wantHead = tonumber(_S._appearanceHeadSlotId) or 0
+                local wantHead = tonumber(_AO_HOOK_CTX._S._appearanceHeadSlotId) or 0
                 local headOk = (wantHead <= 0)
                     or (slotCur("EAvatarSlotType_HeadEquipemtSlot") == wantHead)
                 if hairOk and beardOk and headOk then
-                    _S._appearanceMatchKey = key
-                    _S._appearanceMatchAt = nowA
-                    if (_S._appearanceApplyCount or 0) < 5 then
-                        _S._appearanceApplyCount = 5
+                    _AO_HOOK_CTX._S._appearanceMatchKey = key
+                    _AO_HOOK_CTX._S._appearanceMatchAt = nowA
+                    if (_AO_HOOK_CTX._S._appearanceApplyCount or 0) < 5 then
+                        _AO_HOOK_CTX._S._appearanceApplyCount = 5
                     end
-                    if _G.AddOutfitFaceLog and not _S._appearanceSettledLogged then
-                        _S._appearanceSettledLogged = true
+                    if _G.AddOutfitFaceLog and not _AO_HOOK_CTX._S._appearanceSettledLogged then
+                        _AO_HOOK_CTX._S._appearanceSettledLogged = true
                         _G.AddOutfitFaceLog("match appearance sync-settled, mesh ops skipped")
                     end
                 end
@@ -10818,14 +10819,14 @@ for slotID, resID in pairs(accTargets) do
             -- once: a single attempt wins the race only sometimes. Mid-match
             -- base resets are skipped (see tryInit gate + revert check).
             local justInited = false
-            if not _S._appearanceInitDone and cppSex ~= nil
+            if not _AO_HOOK_CTX._S._appearanceInitDone and cppSex ~= nil
                 and ((tonumber(dataSex) or 0) > 0 or (tonumber(headId) or 0) > 0) then
                 justInited = true
-                if not _S._appearanceRetrySched then
-                    _S._appearanceRetrySched = true
+                if not _AO_HOOK_CTX._S._appearanceRetrySched then
+                    _AO_HOOK_CTX._S._appearanceRetrySched = true
                     for _, d in ipairs({ 2.5, 5.0, 8.0, 12.0 }) do
-                        later(d, function()
-                            pcall(function() _S._appearanceInitDone = false end)
+                        _AO_HOOK_CTX.later(d, function()
+                            pcall(function() _AO_HOOK_CTX._S._appearanceInitDone = false end)
                         end)
                     end
                 end
@@ -10870,7 +10871,7 @@ for slotID, resID in pairs(accTargets) do
                         sw2(char)
                     end
                 end)
-                _S._appearanceInitDone = true
+                _AO_HOOK_CTX._S._appearanceInitDone = true
                 pcall(function()
                     if _G.AddOutfitFaceLog then
                         -- Decisive state read: engine-side gender + live
@@ -10960,8 +10961,8 @@ for slotID, resID in pairs(accTargets) do
                     end
                 end)
             end
-            if _S._appearanceMatchKey == key and (_S._appearanceApplyCount or 0) >= 5
-                and (nowA - (_S._appearanceMatchAt or 0)) < 30.0 then
+            if _AO_HOOK_CTX._S._appearanceMatchKey == key and (_AO_HOOK_CTX._S._appearanceApplyCount or 0) >= 5
+                and (nowA - (_AO_HOOK_CTX._S._appearanceMatchAt or 0)) < 30.0 then
                 return true
             end
             pcall(function()
@@ -10969,7 +10970,7 @@ for slotID, resID in pairs(accTargets) do
                     -- Base-mesh resets are spawn-window-only (once-block +
                     -- scheduled retries). Mid-match repeats are the visible
                     -- head flicker ("glitched"), so the steady path skips.
-                    if _S._appearanceInitDone then stepRes[tag] = "done-skip" return end
+                    if _AO_HOOK_CTX._S._appearanceInitDone then stepRes[tag] = "done-skip" return end
                     if not (obj and slua.isValid(obj) and obj.InitDefaultAvatarByResID) then
                         stepRes[tag] = "noapi"
                         return
@@ -10998,7 +10999,7 @@ for slotID, resID in pairs(accTargets) do
                 local avatarObj = nil
                 pcall(function() if comp.GetModel then avatarObj = comp:GetModel() end end)
                 local function trySwitch(tag, obj)
-                    if _S._appearanceInitDone then stepRes[tag] = "done-skip" return end
+                    if _AO_HOOK_CTX._S._appearanceInitDone then stepRes[tag] = "done-skip" return end
                     if not (obj and slua.isValid(obj) and obj.SwitchSexAndHeadAndHair) then
                         stepRes[tag] = "noapi"
                         return
@@ -11175,13 +11176,13 @@ for slotID, resID in pairs(accTargets) do
             -- the once-block just ran (async settle would false-positive).
             pcall(function()
                 if justInited then return end
-                if (_S._appearanceApplyCount or 0) < 5 then return end
-                if not _S._appearanceInitDone then return end
+                if (_AO_HOOK_CTX._S._appearanceApplyCount or 0) < 5 then return end
+                if not _AO_HOOK_CTX._S._appearanceInitDone then return end
                 if cppSex == nil or not comp or not slua.isValid(comp) then return end
                 local g = nil
                 pcall(function() g = tonumber(comp.gender) end)
                 if g ~= nil and g ~= cppSex then
-                    _S._appearanceInitDone = false
+                    _AO_HOOK_CTX._S._appearanceInitDone = false
                     if _G.AddOutfitFaceLog then
                         _G.AddOutfitFaceLog("match base revert gender=" .. tostring(g)
                             .. " want=" .. tostring(cppSex) .. ", re-init scheduled")
@@ -11189,9 +11190,9 @@ for slotID, resID in pairs(accTargets) do
                 end
             end)
             if applied then
-                _S._appearanceMatchKey = key
-                _S._appearanceMatchAt = nowA
-                _S._appearanceApplyCount = (_S._appearanceApplyCount or 0) + 1
+                _AO_HOOK_CTX._S._appearanceMatchKey = key
+                _AO_HOOK_CTX._S._appearanceMatchAt = nowA
+                _AO_HOOK_CTX._S._appearanceApplyCount = (_AO_HOOK_CTX._S._appearanceApplyCount or 0) + 1
                 pcall(function()
                     if _G.AddOutfitFaceLog then
                         local bits = {}
@@ -11205,14 +11206,14 @@ for slotID, resID in pairs(accTargets) do
                             bits[#bits + 1] = k .. "=" .. tostring(stepRes[k])
                         end
                         _G.AddOutfitFaceLog("match applied #" ..
-                            tostring(_S._appearanceApplyCount) .. " " ..
+                            tostring(_AO_HOOK_CTX._S._appearanceApplyCount) .. " " ..
                             table.concat(bits, " "))
                     end
                 end)
             else
                 pcall(function()
-                    if _G.AddOutfitFaceLog and not _S._appearanceFailLogged then
-                        _S._appearanceFailLogged = true
+                    if _G.AddOutfitFaceLog and not _AO_HOOK_CTX._S._appearanceFailLogged then
+                        _AO_HOOK_CTX._S._appearanceFailLogged = true
                         local bits = {}
                         for _, k in ipairs({ "initComp", "initChar", "swModel",
                             "swComp", "swChar", "putEqHair", "charPutHair",
@@ -11235,7 +11236,7 @@ for slotID, resID in pairs(accTargets) do
         -- avatars (lobby / battle-result / spawn). Overrides server sex/head
         -- with local custom and pushes hair/beard customs flat into the avatar
         -- list (nested {AvatarCustom=} is silently ignored by the sorter).
-        _S.hookMatchHairAvatar = function()
+        _AO_HOOK_CTX._S.hookMatchHairAvatar = function()
             if _G._lava_match_hair_hooked then return end
             pcall(function()
                 local okB, BAS = pcall(require, "client.slua.logic.avatar.BattleAvatarSystem")
@@ -11328,8 +11329,8 @@ for slotID, resID in pairs(accTargets) do
                             pushCustom(localBeard, localBeardColor)
                         end)
                     end
-                    if isSelf and not _S._putOnAvatarLogged then
-                        _S._putOnAvatarLogged = true
+                    if isSelf and not _AO_HOOK_CTX._S._putOnAvatarLogged then
+                        _AO_HOOK_CTX._S._putOnAvatarLogged = true
                         pcall(function()
                             if _G.AddOutfitFaceLog then
                                 _G.AddOutfitFaceLog("spawn inject sex=" .. tostring(sex)
@@ -11342,7 +11343,7 @@ for slotID, resID in pairs(accTargets) do
                     local ret = origPutOn(self, avatarEntity, sex, headId, avatarList)
                     return ret
                 end
-                flog("OUTFIT", "hookMatchHairAvatar: BattleAvatarSystem._PutOnAvatar hooked")
+                _AO_HOOK_CTX.flog("OUTFIT", "hookMatchHairAvatar: BattleAvatarSystem._PutOnAvatar hooked")
             end)
         end
 
@@ -11350,7 +11351,7 @@ for slotID, resID in pairs(accTargets) do
         -- hair/beard/head into PlayerInfo (wear_ext + InitialItemList), and
         -- OnSyncPlayerInfo overwrites the server snapshot for self. Outer
         -- wraps are safe: each layer calls through to the previous hook.
-        _S.hookAppearanceServerData = function()
+        _AO_HOOK_CTX._S.hookAppearanceServerData = function()
             pcall(function()
                 local okA, ADU = pcall(require, "GameLua.Mod.Library.GamePlay.Avatar.AvatarDataUtil")
                 pcall(function()
@@ -11518,12 +11519,12 @@ for slotID, resID in pairs(accTargets) do
         end
 
         local function hookClassMethod(classModule, methodName, hookTag, newFunc)
-            if not classModule then log("hookClassMethod: nil classModule for", methodName) return false end
+            if not classModule then _AO_HOOK_CTX.log("hookClassMethod: nil classModule for", methodName) return false end
             local impl = classModule.__inner_impl
-            if not impl then log("hookClassMethod: no __inner_impl for", methodName) return false end
-            if impl[hookTag] then log("hookClassMethod: already hooked", methodName) return false end
+            if not impl then _AO_HOOK_CTX.log("hookClassMethod: no __inner_impl for", methodName) return false end
+            if impl[hookTag] then _AO_HOOK_CTX.log("hookClassMethod: already hooked", methodName) return false end
             local orig = impl[methodName]
-            if not orig then log("hookClassMethod: no orig method", methodName) return false end
+            if not orig then _AO_HOOK_CTX.log("hookClassMethod: no orig method", methodName) return false end
             impl[hookTag] = true
             impl[methodName] = function(...)
                 return newFunc(orig, ...)
@@ -11544,10 +11545,10 @@ for slotID, resID in pairs(accTargets) do
                     if not localPC or self ~= localPC then return end
                     if ReInitial then
                         pcall(function()
-                            local cch = cache()
+                            local cch = _AO_HOOK_CTX.cache()
                             if cch.throwObjects and self.AddToGrenadeAvatarItemList then
                                 for st, info in pairs(cch.throwObjects) do
-                                    if info.resID and info.resID > 0 and _K.THROW_SUB[st] then
+                                    if info.resID and info.resID > 0 and _AO_HOOK_CTX._K.THROW_SUB[st] then
                                         self:AddToGrenadeAvatarItemList(info.resID)
                                     end
                                 end
@@ -11561,7 +11562,7 @@ for slotID, resID in pairs(accTargets) do
         local function applyGrenadeSkinsToController()
             local pc = getPlayerController()
             if not pc or not slua.isValid(pc) then return false end
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             if not cch.throwObjects then return false end
             local hasThrow = false
             for _, info in pairs(cch.throwObjects) do
@@ -11575,7 +11576,7 @@ for slotID, resID in pairs(accTargets) do
             -- 20s backstop so a late server revert still self-heals.
             local sig = {}
             for st, info in pairs(cch.throwObjects) do
-                if info.resID and info.resID > 0 and _K.THROW_SUB[st] then
+                if info.resID and info.resID > 0 and _AO_HOOK_CTX._K.THROW_SUB[st] then
                     sig[#sig + 1] = tostring(st) .. "=" .. tostring(info.resID)
                 end
             end
@@ -11591,7 +11592,7 @@ for slotID, resID in pairs(accTargets) do
             pcall(function()
                 if pc.AddToGrenadeAvatarItemList then
                     for st, info in pairs(cch.throwObjects) do
-                        if info.resID and info.resID > 0 and _K.THROW_SUB[st] then
+                        if info.resID and info.resID > 0 and _AO_HOOK_CTX._K.THROW_SUB[st] then
                             pc:AddToGrenadeAvatarItemList(info.resID)
                         end
                     end
@@ -11606,7 +11607,7 @@ for slotID, resID in pairs(accTargets) do
                         local wid = 0
                         pcall(function() wid = curWeapon:GetWeaponID() end)
                         if wid >= 602001 and wid <= 602004 then
-                            log("applyGrenadeSkinsToController: held grenade wid=", wid)
+                            _AO_HOOK_CTX.log("applyGrenadeSkinsToController: held grenade wid=", wid)
                             if curWeapon.DelayHandleAvatarMeshChanged then
                                 curWeapon:DelayHandleAvatarMeshChanged()
                             end
@@ -11622,7 +11623,7 @@ for slotID, resID in pairs(accTargets) do
                             if info and info.resID and info.resID > 0 then
                                 if slua.isValid(curWeapon.GrenadeAvatarComponent_BP) then
                                     curWeapon.GrenadeAvatarComponent_BP:ChangeItemAvatar(info.resID, false)
-                                    log("applyGrenadeSkinsToController: ChangeItemAvatar on held weapon", info.resID)
+                                    _AO_HOOK_CTX.log("applyGrenadeSkinsToController: ChangeItemAvatar on held weapon", info.resID)
                                 end
                                 if curWeapon.AddGameTimer then
                                     curWeapon:AddGameTimer(0.1, false, function()
@@ -11842,7 +11843,7 @@ for slotID, resID in pairs(accTargets) do
                 if comp.GetCurGrenadeAvatarID then sid = tonumber(comp:GetCurGrenadeAvatarID()) end
             end)
             if not sid or sid <= 0 then return nil end
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             if not cch.throwObjects then return end
             for _, info in pairs(cch.throwObjects) do
                 if tonumber(info.resID) == sid then return sid end
@@ -11966,10 +11967,10 @@ for slotID, resID in pairs(accTargets) do
                 local esid = nil
                 pcall(function() esid = grenadeFXOurSkinIDMoved(comp) end)
                 _G.AddOutfitGrenadeLog("sound ENTRY sid=" .. tostring(esid)
-                    .. " feat=" .. tostring(featOn("grenade_snd"))
+                    .. " feat=" .. tostring(_AO_HOOK_CTX.featOn("grenade_snd"))
                     .. " compValid=" .. tostring(comp and slua.isValid(comp)))
             end
-            if not featOn("grenade_snd") then
+            if not _AO_HOOK_CTX.featOn("grenade_snd") then
                 grenadeDiagMoved("sound: disabled by featOn(grenade_snd)")
                 return false
             end
@@ -12096,7 +12097,7 @@ for slotID, resID in pairs(accTargets) do
         -- the sound cfg is a DIFFERENT table from the FX cfg.
         local _gfxSndEnumerated = {}
         local function grenadeSoundEnumerateAll()
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             if not cch or not cch.throwObjects then return end
             for _, info in pairs(cch.throwObjects) do
                 local sid = tonumber(info and info.resID)
@@ -12244,7 +12245,7 @@ for slotID, resID in pairs(accTargets) do
                     if type(k) == "string" and type(v) == "string" and v ~= "" then t[k] = v end
                 end
                 _G._GrenadeFX.seq = t
-                pcall(_AutoSaveOutfit)
+                pcall(_AO_HOOK_CTX._AutoSaveOutfit)
             end)
         end
 
@@ -12257,7 +12258,7 @@ for slotID, resID in pairs(accTargets) do
                 if comp.GetCurGrenadeAvatarID then sid = tonumber(comp:GetCurGrenadeAvatarID()) end
             end)
             if not sid or sid <= 0 then return nil end
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             if not cch.throwObjects then return nil end
             for _, info in pairs(cch.throwObjects) do
                 if tonumber(info.resID) == sid then return sid end
@@ -12553,7 +12554,7 @@ for slotID, resID in pairs(accTargets) do
             local replayUsed = false
             if (not seq or seq == "") then
                 pcall(function()
-                    local st = isThrowObjectRes(sid)
+                    local st = _AO_HOOK_CTX.isThrowObjectRes(sid)
                     local rep = grenadeFXSeqFor(st) or grenadeFXSeqFor(nil)
                     if rep and rep ~= "" then
                         seq, replayUsed = rep, true
@@ -12810,7 +12811,7 @@ for slotID, resID in pairs(accTargets) do
         local _gfxLastSrc, _gfxLastName = "none", ""
         local function applyThrowSkinToProjectile(self, tag)
             if self == nil then return false end
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             if not cch.throwObjects then return false end
             -- Stamp the throw moment so the blast log can show the fuse delay.
             -- Without it, "did BeginInEffect actually fire at detonation?" is
@@ -12989,8 +12990,8 @@ for slotID, resID in pairs(accTargets) do
         end
 
         InstallGrenadeFX = function()
-            if not featOn("grenade_fx") then return false end
-            if _S.grenadeFXInstalled then return true end
+            if not _AO_HOOK_CTX.featOn("grenade_fx") then return false end
+            if _AO_HOOK_CTX._S.grenadeFXInstalled then return true end
             local any = false
 
             -- Projectile skin: UpdateGrenadeAvatar (non-authority replication),
@@ -13072,7 +13073,7 @@ for slotID, resID in pairs(accTargets) do
                         -- ExplodeParticleSystem, which SetExplodeParticle() skips
                         -- precisely when IsGrenadeHasAvatar() is true.
                         pcall(function()
-                            if not featOn("grenade_fx") then return end
+                            if not _AO_HOOK_CTX.featOn("grenade_fx") then return end
                             local c2 = self.GrenadeAvatarComponent_BP
                             if not slua.isValid(c2) then return end
                             local sid = grenadeFXOurSkinIDMoved(c2)
@@ -13097,7 +13098,7 @@ for slotID, resID in pairs(accTargets) do
                         -- then set the native sound index for THIS blast.
                         pcall(function()
                             if not (comp and slua.isValid(comp)) then return end
-                            if not featOn("grenade_snd") then return end
+                            if not _AO_HOOK_CTX.featOn("grenade_snd") then return end
                             local sidB = grenadeFXOurSkinIDMoved(comp)
                             if not sidB then return end
                             local _, _, fxB = grenadeFXResolveFromConfigMoved(sidB)
@@ -13109,8 +13110,8 @@ for slotID, resID in pairs(accTargets) do
                                 local giB = GACB and (GACB.__inner_impl or GACB)
                                 hookedB = giB and giB._lava_hooked_overridefx == true
                             end)
-                            if not hookedB and _S.installNadeOverrideFx then
-                                pcall(_S.installNadeOverrideFx)
+                            if not hookedB and _AO_HOOK_CTX._S.installNadeOverrideFx then
+                                pcall(_AO_HOOK_CTX._S.installNadeOverrideFx)
                                 if _G.AddOutfitGrenadeLog then
                                     _G.AddOutfitGrenadeLog("blast override-hook self-heal attempted")
                                 end
@@ -13132,8 +13133,8 @@ for slotID, resID in pairs(accTargets) do
                             if comp.AsyncLoadOverrideSoundData then
                                 pcall(function() comp:AsyncLoadOverrideSoundData(fxB) end)
                             end
-                            if _G.AddOutfitGrenadeLog and not _S._nadeBlastSndLogged then
-                                _S._nadeBlastSndLogged = true
+                            if _G.AddOutfitGrenadeLog and not _AO_HOOK_CTX._S._nadeBlastSndLogged then
+                                _AO_HOOK_CTX._S._nadeBlastSndLogged = true
                                 local idxA, hasS = nil, nil
                                 pcall(function() idxA = comp.OverrideSoundIndex end)
                                 pcall(function()
@@ -13194,7 +13195,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                             end)
                             if not mseq then
                                 pcall(function()
-                                    local st = isThrowObjectRes(msid)
+                                    local st = _AO_HOOK_CTX.isThrowObjectRes(msid)
                                     mseq = grenadeFXSeqFor(st) or grenadeFXSeqFor(nil)
                                 end)
                             end
@@ -13466,7 +13467,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             -- Lives on _S (not inline) so the blast wrapper can self-heal it:
             -- boot install may predate the module, but the module surely
             -- exists by first blast.
-            _S.installNadeOverrideFx = function()
+            _AO_HOOK_CTX._S.installNadeOverrideFx = function()
                 local function ovLog(msg)
                     if _G.AddOutfitGrenadeLog then
                         _G.AddOutfitGrenadeLog("override-install " .. tostring(msg))
@@ -13541,8 +13542,8 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                     end
 
                     -- Any other grenade: leave the stock behaviour completely alone.
-                    if _G.AddOutfitGrenadeLog and not _S._nadeOverrideFallthroughLogged then
-                        _S._nadeOverrideFallthroughLogged = true
+                    if _G.AddOutfitGrenadeLog and not _AO_HOOK_CTX._S._nadeOverrideFallthroughLogged then
+                        _AO_HOOK_CTX._S._nadeOverrideFallthroughLogged = true
                         _G.AddOutfitGrenadeLog("override hook FIRING (fallthrough sid="
                             .. tostring(sid) .. ")")
                     end
@@ -13555,7 +13556,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                     _G.AddOutfitGrenadeLog("install CheckHasOverrideFx hooked")
                 end
             end
-            pcall(_S.installNadeOverrideFx)
+            pcall(_AO_HOOK_CTX._S.installNadeOverrideFx)
 
             -- Sequence capture & replay. GetSequencePath returns the
             -- server-populated path; capture it from any grenade that HAS one and
@@ -13617,7 +13618,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                         st = c and tonumber(c.ItemSubType or c.itemSubType)
                     end)
                     if not st then
-                        local cch = cache()
+                        local cch = _AO_HOOK_CTX.cache()
                         if cch.throwObjects then
                             for tst, info in pairs(cch.throwObjects) do
                                 if tonumber(info.resID) == sid then st = tonumber(tst) break end
@@ -13629,7 +13630,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
 
                 gimpl.GetSequencePath = function(self, Location)
                     local seq = oGetSeq(self, Location)
-                    if not featOn("grenade_fx") then return seq end
+                    if not _AO_HOOK_CTX.featOn("grenade_fx") then return seq end
                     pcall(function()
                         local sid = grenadeFXOurSkinIDMoved(self)
                         local ours = (sid ~= nil)
@@ -13686,9 +13687,9 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             -- demand by TryPlayBankAudio, but doing it here means the first
             -- grenade of a session is not silent while the pak downloads.
             pcall(function()
-                if not featOn("grenade_snd") then return end
+                if not _AO_HOOK_CTX.featOn("grenade_snd") then return end
                 local sids = {}
-                local cch = cache()
+                local cch = _AO_HOOK_CTX.cache()
                 if cch and cch.throwObjects then
                     for _, info in pairs(cch.throwObjects) do
                         local sid = tonumber(info and info.resID)
@@ -13697,7 +13698,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                 end
                 -- Also cover every grenade subtype we know about, so a skin
                 -- equipped AFTER install still gets a warmed bank at throw time.
-                for st in pairs(_K and _K.THROW_SUB or {}) do
+                for st in pairs(_AO_HOOK_CTX._K and _AO_HOOK_CTX._K.THROW_SUB or {}) do
                     local info = cch and cch.throwObjects and cch.throwObjects[st]
                     local sid = (info and tonumber(info.resID)) or tonumber(st)
                     if sid and sid > 0 then sids[#sids + 1] = sid end
@@ -13747,7 +13748,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             -- the modules loaded, which hooks took, and whether the two config
             -- tables are readable at all.
             grenadeDiagMoved("=== INSTALL any=" .. tostring(any),
-                "feat=" .. tostring(featOn("grenade_fx")),
+                "feat=" .. tostring(_AO_HOOK_CTX.featOn("grenade_fx")),
                 "seqReplay=" .. tostring(grenadeFXSeqFor(nil)))
             grenadeDiagMoved("PROBE helpers muteC=" .. tostring(grenadeFXMuteStockClass),
                 "preload=" .. tostring(grenadeFXPreloadParticle),
@@ -13755,7 +13756,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                 "muteToggle=" .. tostring(_gfxEnableMuteStock))
             grenadeDiagMoved("PROBE sound sndPlay=" .. tostring(grenadeSoundPlay),
                 "sndResolve=" .. tostring(grenadeSoundResolve),
-                "feat=" .. tostring(featOn("grenade_snd")))
+                "feat=" .. tostring(_AO_HOOK_CTX.featOn("grenade_snd")))
             pcall(function()
                 local PB = require("GameLua.Mod.BaseMod.GamePlay.Actor.Projectile.ProjectileBase")
                 local pi = PB and PB.__inner_impl
@@ -13800,13 +13801,13 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                 local gi = GAC and (GAC.__inner_impl or GAC)
                 if not (gi and gi._lava_hooked_overridefx) then
                     any = false
-                    if _G.AddOutfitGrenadeLog and not _S._nadeOverrideRetryLogged then
-                        _S._nadeOverrideRetryLogged = true
+                    if _G.AddOutfitGrenadeLog and not _AO_HOOK_CTX._S._nadeOverrideRetryLogged then
+                        _AO_HOOK_CTX._S._nadeOverrideRetryLogged = true
                         _G.AddOutfitGrenadeLog("install overrideFx MISSING, will retry")
                     end
                 end
             end)
-            _S.grenadeFXInstalled = any
+            _AO_HOOK_CTX._S.grenadeFXInstalled = any
             return any
         end
         _G.AddOutfitInstallGrenadeFX = InstallGrenadeFX
@@ -13822,7 +13823,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                     local origTry = AvatarDataUtil.TryGetGrenadeAvatarID
                     if origTry then
                         AvatarDataUtil.TryGetGrenadeAvatarID = function(uPlayerController, ItemID)
-                            local cch = cache()
+                            local cch = _AO_HOOK_CTX.cache()
                             if cch.throwObjects then
                                 if ItemID == 602001 and cch.throwObjects[614] and cch.throwObjects[614].resID and cch.throwObjects[614].resID > 0 then
                                     return cch.throwObjects[614].resID
@@ -13854,7 +13855,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
         local function applyMatchWeaponSkinsToController()
             local pc = getPlayerController()
             if not pc or not slua.isValid(pc) then return false end
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             -- Deterministic signature (sorted) so we only enter the replication
             -- path when the skin set actually changed. InitWeaponSkinList +
             -- InitWeaponAvatarItems + OnWeaponAvatarUpdate are OnRep/network
@@ -13928,15 +13929,15 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             -- re-asserts on a 20s backstop regardless.
             if (now - _lastBuildSkinMappings) < 2.0 then return end
             _lastBuildSkinMappings = now
-            syncWeaponCacheFromLobby()
+            _AO_HOOK_CTX.syncWeaponCacheFromLobby()
             local m = _G.AddOutfitSkinIdMappings
             for k in pairs(m) do m[k] = nil end
-            for wid, w in pairs(cache().weapons) do
+            for wid, w in pairs(_AO_HOOK_CTX.cache().weapons) do
                 wid = tonumber(wid)
                 if wid and w.resID and w.resID > 0 then m[wid] = { tonumber(w.resID) } end
             end
-            if MATCH_CONFIG.weaponSkins then
-                for weaponKey, skinRes in pairs(MATCH_CONFIG.weaponSkins) do
+            if _AO_HOOK_CTX.MATCH_CONFIG.weaponSkins then
+                for weaponKey, skinRes in pairs(_AO_HOOK_CTX.MATCH_CONFIG.weaponSkins) do
                     weaponKey, skinRes = tonumber(weaponKey), tonumber(skinRes)
                     if weaponKey and skinRes and skinRes > 0 and not m[weaponKey] then
                         m[weaponKey] = { skinRes }
@@ -13951,7 +13952,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             currentGunId, maxIt = tonumber(currentGunId) or 0, tonumber(maxIt) or 0
             if currentGunId <= 0 and maxIt <= 0 then return 0 end
             -- Fast path: prefer using weapon cache directly
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             local wid = maxIt > 0 and maxIt or currentGunId
             local w = cch.weapons[wid]
             if w and w.resID and w.resID > 0 then return w.resID end
@@ -13962,7 +13963,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                 if w2 and w2.resID and w2.resID > 0 then return w2.resID end
             end
             -- Cache with short TTL
-            local nowTick = _S.globalFrame or 0
+            local nowTick = _AO_HOOK_CTX._S.globalFrame or 0
             if (nowTick - _skinIdCacheTick) < 60 then
                 local cached = _skinIdCache[wid]
                 if cached then return cached end
@@ -14227,7 +14228,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             local nSkins, nAttach = 0, 0
             for _ in pairs(_attachMaps.skinAttachments) do nSkins = nSkins + 1 end
             for _ in pairs(_attachMaps.attachToSkin) do nAttach = nAttach + 1 end
-            flog("ATTACH", "Attachment maps: " .. nSkins .. " skins, " .. nAttach .. " attachments")
+            _AO_HOOK_CTX.flog("ATTACH", "Attachment maps: " .. nSkins .. " skins, " .. nAttach .. " attachments")
 
             return _attachMaps
         end
@@ -14251,7 +14252,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             -- part-skins found on attachment slots back to their base IDs.
             if not attachments or #attachments == 0 then
                 for slotIdx = 0, numSlots - 1 do
-                    if slotIdx ~= _K.GUN_MASTER_SYN_SLOT then
+                    if slotIdx ~= _AO_HOOK_CTX._K.GUN_MASTER_SYN_SLOT then
                         local slotData = AttachmentArray:Get(slotIdx)
                         if slotData then
                             local curID = 0
@@ -14289,7 +14290,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             -- Normal case: for each attachment slot, find the matching
             -- attachment skin by baseId and swap to the selected skin's version.
             for slotIdx = 0, numSlots - 1 do
-                if slotIdx ~= _K.GUN_MASTER_SYN_SLOT then
+                if slotIdx ~= _AO_HOOK_CTX._K.GUN_MASTER_SYN_SLOT then
                     local slotData = AttachmentArray:Get(slotIdx)
                     if slotData then
                         local curID = 0
@@ -14334,7 +14335,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                                         newID = getSlotSkinFromRawMap(selectedSkinID, baseId)
                                     end
                                     if newID ~= 0 and newID ~= curID then
-                                        flog("ATTACH", "  slot "..slotIdx.." itemid="..curID.." newid="..newID)
+                                        _AO_HOOK_CTX.flog("ATTACH", "  slot "..slotIdx.." itemid="..curID.." newid="..newID)
                                         pcall(function()
                                             local defRef = slua.IndexReference(slotData, "defineID")
                                             defRef.TypeSpecificID = newID
@@ -14481,19 +14482,19 @@ local function apply_attachment(CurWeapon, avatarid)
     avatarid = tonumber(avatarid) or 0
     if avatarid <= 0 then return end
             local array = CurWeapon.synData
-            if not array then flog("ATTACH","no synData avatarid="..avatarid) return end
+            if not array then _AO_HOOK_CTX.flog("ATTACH","no synData avatarid="..avatarid) return end
             -- ATTACHMENT SKINS off: still drive the mesh refresh, just do not
             -- touch the attachment slots. The periodic DelayHandleAvatarMeshChanged
             -- is what makes the MASTER gun skin render, so skipping it entirely
             -- took the full gun skin down with the attachments.
-            if not featOn("attachments") then
+            if not _AO_HOOK_CTX.featOn("attachments") then
                 pcall(function() CurWeapon:DelayHandleAvatarMeshChanged() end)
                 return
             end
-            flog("ATTACH","apply_attachment avatarid="..avatarid)
+            _AO_HOOK_CTX.flog("ATTACH","apply_attachment avatarid="..avatarid)
             local ok, err = pcall(applyAttachmentSkins, array, avatarid)
             if not ok then
-                flog("ATTACH","  ERR: "..tostring(err))
+                _AO_HOOK_CTX.flog("ATTACH","  ERR: "..tostring(err))
             elseif ok == true then
                 pcall(function() CurWeapon:DelayHandleAvatarMeshChanged() end)
             end
@@ -14588,15 +14589,15 @@ local function apply_attachment(CurWeapon, avatarid)
             end)
             weaponID = tonumber(weaponID) or 0
             if weaponID <= 0 then
-                flog("GUN", "applyWeaponSkinDirect: weaponID=0, skip")
+                _AO_HOOK_CTX.flog("GUN", "applyWeaponSkinDirect: weaponID=0, skip")
                 return false
             end
 
             local targetID = get_skin_id(weaponID, weaponID)
             targetID = tonumber(targetID) or 0
-            flog("GUN", "applyWeaponSkinDirect weaponID=" .. weaponID .. " targetID=" .. targetID)
+            _AO_HOOK_CTX.flog("GUN", "applyWeaponSkinDirect weaponID=" .. weaponID .. " targetID=" .. targetID)
             if targetID <= 0 or targetID == weaponID then
-                flog("GUN", "  -> no skin mapped for weaponID=" .. weaponID)
+                _AO_HOOK_CTX.flog("GUN", "  -> no skin mapped for weaponID=" .. weaponID)
                 return false
             end
             -- PERF/correctness: a weapon-avatar rebuild mid-montage cuts the
@@ -14606,7 +14607,7 @@ local function apply_attachment(CurWeapon, avatarid)
             -- Ensure skin asset is downloaded
             if not _G.SkinLoadedCache[targetID] then
                 local ok2, e2 = pcall(_G.download_item, targetID)
-                flog("GUN", "  download_item(" .. targetID .. ") ok=" .. tostring(ok2) .. " err=" .. tostring(e2))
+                _AO_HOOK_CTX.flog("GUN", "  download_item(" .. targetID .. ") ok=" .. tostring(ok2) .. " err=" .. tostring(e2))
                 _G.SkinLoadedCache[targetID] = true
             end
 
@@ -14615,14 +14616,14 @@ local function apply_attachment(CurWeapon, avatarid)
             local curAvatarID = nil
             pcall(function()
                 local sd = wpn.synData
-                if not sd then flog("GUN", "  synData nil") return end
+                if not sd then _AO_HOOK_CTX.flog("GUN", "  synData nil") return end
                 local data = sd:Get(7)
-                if not data then flog("GUN", "  sd:Get(7) nil") return end
+                if not data then _AO_HOOK_CTX.flog("GUN", "  sd:Get(7) nil") return end
                 local ref = slua.IndexReference(data, "defineID")
-                if not ref then flog("GUN", "  IndexReference nil") return end
+                if not ref then _AO_HOOK_CTX.flog("GUN", "  IndexReference nil") return end
                 local cur = ref.TypeSpecificID
                 curAvatarID = tonumber(cur) or 0
-                flog("GUN", "  slot7 cur=" .. tostring(cur) .. " -> " .. targetID)
+                _AO_HOOK_CTX.flog("GUN", "  slot7 cur=" .. tostring(cur) .. " -> " .. targetID)
                 if curAvatarID ~= targetID then
                     ref.TypeSpecificID = targetID
                     sd:Set(7, data)
@@ -14662,16 +14663,16 @@ local function apply_attachment(CurWeapon, avatarid)
                     if wpn.SetWeaponAvatarID then
                         wpn:SetWeaponAvatarID(targetID)
                         _weaponAvatarReassert[wpn] = _nowW
-                        flog("GUN", "  SetWeaponAvatarID(" .. targetID .. ") ok cur=" ..
+                        _AO_HOOK_CTX.flog("GUN", "  SetWeaponAvatarID(" .. targetID .. ") ok cur=" ..
                             tostring(curAvatarID) .. " reassert=" .. tostring(dueReassert))
                     else
-                        flog("GUN", "  SetWeaponAvatarID missing")
+                        _AO_HOOK_CTX.flog("GUN", "  SetWeaponAvatarID missing")
                     end
                 end)
             end
             -- Apply attachment skins every call
             local aok, aerr = pcall(apply_attachment, wpn, targetID)
-            if not aok then flog("GUN", "  apply_attachment err=" .. tostring(aerr)) end
+            if not aok then _AO_HOOK_CTX.flog("GUN", "  apply_attachment err=" .. tostring(aerr)) end
             -- no flog_flush(): this runs per weapon across the whole inventory
             return true
         end
@@ -14689,21 +14690,21 @@ local function apply_attachment(CurWeapon, avatarid)
             InjectWeaponLogicHooks(uCharacter)
             local wm = uCharacter:GetWeaponManager()
             if not slua.isValid(wm) then
-                flog("GUN", "equip_weapon_avatar: no WeaponManager")
+                _AO_HOOK_CTX.flog("GUN", "equip_weapon_avatar: no WeaponManager")
                 return false
             end
             local appliedAny = false
-            flog("GUN", "equip_weapon_avatar: scanning slots 1-3")
+            _AO_HOOK_CTX.flog("GUN", "equip_weapon_avatar: scanning slots 1-3")
             for i = 1, 3 do
                 local wpn = wm:GetInventoryWeaponByPropSlot(i)
                 if slua.isValid(wpn) then
-                    flog("GUN", "  slot " .. i .. " has weapon")
+                    _AO_HOOK_CTX.flog("GUN", "  slot " .. i .. " has weapon")
                     -- PERF: applyWeaponSkinDirect already applies this weapon's
                     -- attachments internally; the extra apply_attachment here
                     -- was a duplicate pass per weapon per call.
                     if applyWeaponSkinDirect(wpn) then appliedAny = true end
                 else
-                    flog("GUN", "  slot " .. i .. " empty")
+                    _AO_HOOK_CTX.flog("GUN", "  slot " .. i .. " empty")
                 end
             end
             -- DUNG-style fallback: currently-held weapon + full inventory list
@@ -14728,9 +14729,9 @@ local function apply_attachment(CurWeapon, avatarid)
                     -- the prop-slot loop above).
                     if applyWeaponSkinDirect(wpn) then appliedAny = true end
                 end
-                if #extra > 0 then flog("GUN", "  extra weapons covered=" .. #extra) end
+                if #extra > 0 then _AO_HOOK_CTX.flog("GUN", "  extra weapons covered=" .. #extra) end
             end)
-            flog("GUN", "equip_weapon_avatar appliedAny=" .. tostring(appliedAny))
+            _AO_HOOK_CTX.flog("GUN", "equip_weapon_avatar appliedAny=" .. tostring(appliedAny))
             return appliedAny
         end
 
@@ -14740,15 +14741,15 @@ local function apply_attachment(CurWeapon, avatarid)
         end
 
         local function getDesiredWeaponSkins()
-            syncWeaponCacheFromLobby()
+            _AO_HOOK_CTX.syncWeaponCacheFromLobby()
             local out, seen = {}, {}
             local function add(res)
                 res = tonumber(res)
                 if res and res > 0 and not seen[res] then seen[res] = true; out[#out + 1] = res end
             end
-            for _, w in pairs(cache().weapons) do add(w.resID) end
-            if MATCH_CONFIG.weaponSkins then
-                for _, res in pairs(MATCH_CONFIG.weaponSkins) do add(res) end
+            for _, w in pairs(_AO_HOOK_CTX.cache().weapons) do add(w.resID) end
+            if _AO_HOOK_CTX.MATCH_CONFIG.weaponSkins then
+                for _, res in pairs(_AO_HOOK_CTX.MATCH_CONFIG.weaponSkins) do add(res) end
             end
             return out
         end
@@ -14793,26 +14794,26 @@ local function apply_attachment(CurWeapon, avatarid)
             if not char or not slua.isValid(char) then return false end
             buildSkinMappings()
             -- One-time diagnostic: dump weapon cache so we know what skins are loaded
-            if not _S._gunDiagLogged then
-                _S._gunDiagLogged = true
-                local cch = cache()
+            if not _AO_HOOK_CTX._S._gunDiagLogged then
+                _AO_HOOK_CTX._S._gunDiagLogged = true
+                local cch = _AO_HOOK_CTX.cache()
                 local wcount = 0
                 for wid, w in pairs(cch.weapons) do
                     wcount = wcount + 1
-                    flog("GUN", "cache weapon wid=" .. tostring(wid) .. " resID=" .. tostring(w.resID) .. " insID=" .. tostring(w.insID))
+                    _AO_HOOK_CTX.flog("GUN", "cache weapon wid=" .. tostring(wid) .. " resID=" .. tostring(w.resID) .. " insID=" .. tostring(w.insID))
                 end
-                flog("GUN", "weapon cache total=" .. wcount)
+                _AO_HOOK_CTX.flog("GUN", "weapon cache total=" .. wcount)
                 -- Also check AddOutfitSkinIdMappings
                 local mcount = 0
                 for k, v in pairs(_G.AddOutfitSkinIdMappings or {}) do
                     mcount = mcount + 1
-                    if mcount <= 5 then flog("GUN", "SkinIdMap k=" .. tostring(k) .. " v=" .. tostring(v and v[1])) end
+                    if mcount <= 5 then _AO_HOOK_CTX.flog("GUN", "SkinIdMap k=" .. tostring(k) .. " v=" .. tostring(v and v[1])) end
                 end
-                flog("GUN", "SkinIdMappings total=" .. mcount)
+                _AO_HOOK_CTX.flog("GUN", "SkinIdMappings total=" .. mcount)
             end
             applyMatchWeaponSkinsToController()
-            if not _S.avatarItemsRegistered then
-                _S.avatarItemsRegistered = registerWeaponAvatarItems(char)
+            if not _AO_HOOK_CTX._S.avatarItemsRegistered then
+                _AO_HOOK_CTX._S.avatarItemsRegistered = registerWeaponAvatarItems(char)
             end
             -- Apply to all 3 inventory slots (1.lua ForceSyncWeaponSkins style)
             return _G.equip_weapon_avatar(char)
@@ -14821,9 +14822,9 @@ local function apply_attachment(CurWeapon, avatarid)
         local function applyMatchThrowObjects()
             local pc = getPlayerController()
             if not pc or not slua.isValid(pc) then return false end
-            local cch = cache()
+            local cch = _AO_HOOK_CTX.cache()
             if not cch.throwObjects then
-                log("applyMatchThrowObjects: no throwObjects in cache")
+                _AO_HOOK_CTX.log("applyMatchThrowObjects: no throwObjects in cache")
                 return false
             end
             -- PERF (stutter fix): same story as the grenade path - this ran
@@ -14849,7 +14850,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 if info.resID and info.resID > 0 then hasThrow = true end
             end
             if not hasThrow then
-                log("applyMatchThrowObjects: throwObjects cache empty")
+                _AO_HOOK_CTX.log("applyMatchThrowObjects: throwObjects cache empty")
                 return false
             end
             local applied = false
@@ -14857,7 +14858,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 -- Try setting InitialConsumableAvatar fields (works if Lua table reference)
                 if pc.InitialConsumableAvatar then
                     for st, info in pairs(cch.throwObjects) do
-                        local key = _K.THROW_AVATAR_KEY[_K.THROW_SUB[st]]
+                        local key = _AO_HOOK_CTX._K.THROW_AVATAR_KEY[_AO_HOOK_CTX._K.THROW_SUB[st]]
                         if key and info.resID and info.resID > 0 then
                             pc.InitialConsumableAvatar[key] = info.resID
                             -- log suppressed
@@ -14871,7 +14872,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 -- Fallback: directly add to GrenadeAvatarItemList (overwrites server entries)
                 if pc.AddToGrenadeAvatarItemList then
                     for st, info in pairs(cch.throwObjects) do
-                        if info.resID and info.resID > 0 and _K.THROW_SUB[st] then
+                        if info.resID and info.resID > 0 and _AO_HOOK_CTX._K.THROW_SUB[st] then
                             pc:AddToGrenadeAvatarItemList(info.resID)
                             applied = true
                         end
@@ -14886,17 +14887,17 @@ local function apply_attachment(CurWeapon, avatarid)
             -- Every step pcall-isolated: one failing applier must not kill
             -- the rest (a matchApplyOutfit error here used to abort the
             -- whole bootstrap apply, including face/hair, with no log).
-            if not _S.matchOutfitDone then
+            if not _AO_HOOK_CTX._S.matchOutfitDone then
                 pcall(function()
-                    _S.matchOutfitDone = matchApplyOutfit(char)
-                    ok = _S.matchOutfitDone or ok
+                    _AO_HOOK_CTX._S.matchOutfitDone = matchApplyOutfit(char)
+                    ok = _AO_HOOK_CTX._S.matchOutfitDone or ok
                 end)
             end
             pcall(function()
                 if applyMatchEquipAvatarToController() then ok = true end
             end)
             pcall(function()
-                if matchApplyEquipSkins(char) then ok = true; _S.matchApplied = true end
+                if matchApplyEquipSkins(char) then ok = true; _AO_HOOK_CTX._S.matchApplied = true end
             end)
             pcall(function()
                 if matchApplyWeaponSkin(char) then ok = true end
@@ -14907,13 +14908,13 @@ local function apply_attachment(CurWeapon, avatarid)
             -- Face/hair/beard/head re-assert (change-gated + 10s live-verified
             -- backstop inside; settled head costs nothing here).
             pcall(function()
-                if _S.matchApplyAppearanceInGame and _S.matchApplyAppearanceInGame(char) then
+                if _AO_HOOK_CTX._S.matchApplyAppearanceInGame and _AO_HOOK_CTX._S.matchApplyAppearanceInGame(char) then
                     ok = true
                 end
             end)
             -- Cheap idempotent guard: the FragGrenade class often loads after
             -- the mod, so retry the FX hook from here until it takes.
-            if not _S.grenadeFXInstalled then pcall(InstallGrenadeFX) end
+            if not _AO_HOOK_CTX._S.grenadeFXInstalled then pcall(InstallGrenadeFX) end
             return ok
         end
 
@@ -14922,7 +14923,7 @@ local function apply_attachment(CurWeapon, avatarid)
             -- Legacy stub: the 0.5s PC timer below now drives all in-match application.
             -- bootstrapMatch() already calls matchApplyAll() immediately on entry,
             -- and the repeating timer handles subsequent ticks — no separate watcher needed.
-            _S.matchTimer = true  -- mark as "started" so bootstrapMatch guard works
+            _AO_HOOK_CTX._S.matchTimer = true  -- mark as "started" so bootstrapMatch guard works
         end
 
         -- ========== حقن سكنات الأسلحة في واجهة الشنطة داخل الجيم ==========
@@ -14965,13 +14966,13 @@ local function apply_attachment(CurWeapon, avatarid)
                         -- Cache with invalidation every ~5 seconds via frame count
                         local cached = _bpAvatarResCache[WeaponID]
                         local age = _bpResCacheAge
-                        local nowTick = _S.globalFrame or 0
+                        local nowTick = _AO_HOOK_CTX._S.globalFrame or 0
                         if cached and (nowTick - (_bpAvatarResTicks[WeaponID] or 0)) < 150 then
                             return cached, ""
                         end
                         local targetSkinID = 0
                         -- 1) map directly from cache weapons
-                        local cch = cache()
+                        local cch = _AO_HOOK_CTX.cache()
                         local typeId = resolveWeaponTypeID(WeaponID)
                         local w = cch.weapons[typeId] or cch.weapons[WeaponID]
                         if w and w.resID and w.resID > 0 then
@@ -14995,7 +14996,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         _bpAvatarResTicks[WeaponID] = nowTick
                         return origGetRes(WeaponID, AdditionalDataArray)
                     end
-                    log("[AddOutfit] hookBackpackWeaponAvatarRes: تم")
+                    _AO_HOOK_CTX.log("[AddOutfit] hookBackpackWeaponAvatarRes: تم")
                 end
             end)
         end
@@ -15066,7 +15067,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         local skinInsID = tonumber(slotList[i])
                         if skinInsID and skinInsID > 0 then
                             local skinResID = 0
-                            if isInjectedIns(skinInsID) then
+                            if _AO_HOOK_CTX.isInjectedIns(skinInsID) then
                                 skinResID = R.insToRes[skinInsID] or 0
                             else
                                 pcall(function()
@@ -15121,7 +15122,7 @@ local function apply_attachment(CurWeapon, avatarid)
                             local skinInsID = tonumber(insList[i])
                             if skinInsID and skinInsID > 0 then
                                 local rid = 0
-                                if isInjectedIns(skinInsID) then
+                                if _AO_HOOK_CTX.isInjectedIns(skinInsID) then
                                     rid = R.insToRes[skinInsID] or 0
                                 else
                                     pcall(function()
@@ -15433,7 +15434,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 VPLU._lava_debutUnlock = true
                 local origUnlock = VPLU.CheckHasUnLockFeature
                 VPLU.CheckHasUnLockFeature = function(ft, uid, itemId)
-                    if featOn("xsuit_summon") then
+                    if _AO_HOOK_CTX.featOn("xsuit_summon") then
                         local t = tonumber(ft)
                         if t == 2 or t == 4 then return true end
                     end
@@ -15649,7 +15650,7 @@ local function apply_attachment(CurWeapon, avatarid)
         local function insToResID(insID)
             insID = tonumber(insID)
             if not insID or insID <= 0 then return 0 end
-            if isInjectedIns(insID) then return R.insToRes[insID] or 0 end
+            if _AO_HOOK_CTX.isInjectedIns(insID) then return R.insToRes[insID] or 0 end
             -- Cached module handle: this ran a require() per selected insID on
             -- every vehicle sync pass.
             if _wdMod == nil then
@@ -15822,19 +15823,19 @@ local function apply_attachment(CurWeapon, avatarid)
 
         local function stopMatchWatcher()
             -- The 0.5s PC timer runs for the life of the PC; just reset state flags.
-            _S.matchTimer = nil
-            _S.matchOutfitDone = false
-            _S.avatarItemsRegistered = false
-            _S.weaponApplied = false
-            _S.weaponDiagDone = false
-            _S.lastAppliedWeaponID = 0
-            _S.lastAppliedSkinID = 0
-            _S.matchApplied = false
-            _S.bootstrapped = false
+            _AO_HOOK_CTX._S.matchTimer = nil
+            _AO_HOOK_CTX._S.matchOutfitDone = false
+            _AO_HOOK_CTX._S.avatarItemsRegistered = false
+            _AO_HOOK_CTX._S.weaponApplied = false
+            _AO_HOOK_CTX._S.weaponDiagDone = false
+            _AO_HOOK_CTX._S.lastAppliedWeaponID = 0
+            _AO_HOOK_CTX._S.lastAppliedSkinID = 0
+            _AO_HOOK_CTX._S.matchApplied = false
+            _AO_HOOK_CTX._S.bootstrapped = false
             -- Release the match outfit lock so the cache can be re-read in lobby
-            _S.matchOutfitLocked = false
-            _S.matchOutfitSnapshotRes = nil
-            _S.matchOutfitSnapshotClothes = nil
+            _AO_HOOK_CTX._S.matchOutfitLocked = false
+            _AO_HOOK_CTX._S.matchOutfitSnapshotRes = nil
+            _AO_HOOK_CTX._S.matchOutfitSnapshotClothes = nil
             -- Drop the adaptive backoff so the next match re-applies at 0.5s
             -- immediately instead of inheriting the settled 2s cadence.
             stabReset()
@@ -15955,7 +15956,7 @@ local function apply_attachment(CurWeapon, avatarid)
         end
 
         PET.applyLobbyPet = function()
-            if not featOn("pet_companion") then
+            if not _AO_HOOK_CTX.featOn("pet_companion") then
                 PET.removeLobbyPet()
                 return false
             end
@@ -16000,7 +16001,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         lp.MyPetInfo.equip_pet_ins_id = petID
                     end
                 end)
-                flog("PET", "companion spawn pet=" .. tostring(petID) .. " dress=" .. tostring(dressID or 0))
+                _AO_HOOK_CTX.flog("PET", "companion spawn pet=" .. tostring(petID) .. " dress=" .. tostring(dressID or 0))
                 _G.AddOutfitPetLog("companion spawn pet=" .. tostring(petID) .. " dress=" .. tostring(dressID or 0))
             end
             return ok
@@ -16035,8 +16036,8 @@ local function apply_attachment(CurWeapon, avatarid)
         --     menu states, action panel and client-gated emote checks pass),
         --     never send the doomed server packet. Real pets pass through.
         PET.injectFakeRecord = function()
-            if not _S.petRealIDs then
-                _S.petFakeID = nil
+            if not _AO_HOOK_CTX._S.petRealIDs then
+                _AO_HOOK_CTX._S.petFakeID = nil
                 return false
             end
             local lp = PET.getLogicPet()
@@ -16072,7 +16073,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 if not lp.MyPetInfo then return end
                 lp.MyPetInfo.pets = lp.MyPetInfo.pets or {}
                 for _, pid in ipairs(ids) do
-                    if not _S.petRealIDs[pid] and levelRowOK(pid) then
+                    if not _AO_HOOK_CTX._S.petRealIDs[pid] and levelRowOK(pid) then
                         local dressID = nil
                         if dressMap then
                             for did, dp in pairs(dressMap) do
@@ -16096,7 +16097,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 end
             end)
             local petID = PET.resolveDesired()
-            _S.petFakeID = (petID and not _S.petRealIDs[petID]) and petID or nil
+            _AO_HOOK_CTX._S.petFakeID = (petID and not _AO_HOOK_CTX._S.petRealIDs[petID]) and petID or nil
             return faked > 0
         end
 
@@ -16109,9 +16110,9 @@ local function apply_attachment(CurWeapon, avatarid)
                     local origSync = lp.sync_pet_data
                     lp.sync_pet_data = function(self, data)
                         pcall(function()
-                            _S.petRealIDs = {}
+                            _AO_HOOK_CTX._S.petRealIDs = {}
                             if data and data.pets then
-                                for pid in pairs(data.pets) do _S.petRealIDs[tonumber(pid)] = true end
+                                for pid in pairs(data.pets) do _AO_HOOK_CTX._S.petRealIDs[tonumber(pid)] = true end
                             end
                             -- Stash our fakes before orig runs: the expiry
                             -- diff (MyPetInfo vs server data) would otherwise
@@ -16120,7 +16121,7 @@ local function apply_attachment(CurWeapon, avatarid)
                             -- Real-pet expiry still works (they stay put).
                             if self.MyPetInfo and self.MyPetInfo.pets then
                                 for pid in pairs(self.MyPetInfo.pets) do
-                                    if not _S.petRealIDs[tonumber(pid)] then
+                                    if not _AO_HOOK_CTX._S.petRealIDs[tonumber(pid)] then
                                         self.MyPetInfo.pets[pid] = nil
                                     end
                                 end
@@ -16136,7 +16137,7 @@ local function apply_attachment(CurWeapon, avatarid)
                             if not wantPet and PET.lastKey and PET.lastKey ~= "real" then
                                 wantPet = tonumber(tostring(PET.lastKey):match("^(%d+)"))
                             end
-                            if wantPet and _S.petRealIDs and not _S.petRealIDs[wantPet] then
+                            if wantPet and _AO_HOOK_CTX._S.petRealIDs and not _AO_HOOK_CTX._S.petRealIDs[wantPet] then
                                 local lp2 = PET.getLogicPet()
                                 if lp2 and lp2.MyPetInfo then
                                     local insID = wantPet
@@ -16162,7 +16163,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 if origEquip then
                     PH.send_equip_pet_req = function(pet_id, source)
                         pet_id = tonumber(pet_id)
-                        if pet_id and _S.petRealIDs and not _S.petRealIDs[pet_id] then
+                        if pet_id and _AO_HOOK_CTX._S.petRealIDs and not _AO_HOOK_CTX._S.petRealIDs[pet_id] then
                             -- Not server-granted: equip locally, set the local
                             -- equip marker (menu states, action panel and
                             -- client-gated emote checks read it), spawn, save.
@@ -16184,7 +16185,7 @@ local function apply_attachment(CurWeapon, avatarid)
                             PET.lastKey = nil
                             PET.matchKey = nil
                             pcall(PET.applyLobbyPet)
-                            pcall(_AutoSaveOutfit)
+                            pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                             _G.AddOutfitPetLog("menu equip intercepted pet=" .. tostring(pet_id))
                             return
                         end
@@ -16195,7 +16196,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 if origDress then
                     PH.send_pet_used_dress_req = function(pet_id, item_id, source)
                         pet_id, item_id = tonumber(pet_id), tonumber(item_id)
-                        if pet_id and item_id and _S.petRealIDs and not _S.petRealIDs[pet_id] then
+                        if pet_id and item_id and _AO_HOOK_CTX._S.petRealIDs and not _AO_HOOK_CTX._S.petRealIDs[pet_id] then
                             local okMap = false
                             pcall(function()
                                 local lpp = PET.getLogicPet()
@@ -16221,7 +16222,7 @@ local function apply_attachment(CurWeapon, avatarid)
                                 PET.lastKey = nil
                                 PET.matchKey = nil
                                 pcall(PET.applyLobbyPet)
-                                pcall(_AutoSaveOutfit)
+                                pcall(_AO_HOOK_CTX._AutoSaveOutfit)
                                 _G.AddOutfitPetLog("menu dress intercepted pet=" .. pet_id .. " dress=" .. item_id)
                                 return
                             end
@@ -16236,41 +16237,41 @@ local function apply_attachment(CurWeapon, avatarid)
 
 
         local function bootstrapMatch(char)
-            if _S.bootstrapped then return true end
+            if _AO_HOOK_CTX._S.bootstrapped then return true end
             char = char or getLocalChar()
             if not char or not slua.isValid(char) then return false end
-            flog("MATCH", "bootstrapMatch: starting")
+            _AO_HOOK_CTX.flog("MATCH", "bootstrapMatch: starting")
             -- (in-match pet removed: no pet spawns on match entry)
             -- Snapshot lobby wear ONCE before entering match, then lock it.
-            snapshotLobbyWear()
-            local cch = cache()
-            flog("MATCH", "outfitRes=" .. tostring(cch.outfitRes) .. " outfitIns=" .. tostring(cch.outfitIns))
-            _S.matchOutfitSnapshotRes = cch.outfitRes
-            _S.matchOutfitSnapshotClothes = {}
-            for k, v in pairs(cch.clothes) do _S.matchOutfitSnapshotClothes[k] = v end
-            _S.matchOutfitLocked = true
-            _S.weaponApplied = false
-            _S.weaponDiagDone = false
-            _S.matchOutfitDone = false
-            _S.syncSlotsLogged1 = false
-            _S.syncSlotsLogged2 = false
-            _S.probesDone = false
-            _S.extraLogged = false
+            _AO_HOOK_CTX.snapshotLobbyWear()
+            local cch = _AO_HOOK_CTX.cache()
+            _AO_HOOK_CTX.flog("MATCH", "outfitRes=" .. tostring(cch.outfitRes) .. " outfitIns=" .. tostring(cch.outfitIns))
+            _AO_HOOK_CTX._S.matchOutfitSnapshotRes = cch.outfitRes
+            _AO_HOOK_CTX._S.matchOutfitSnapshotClothes = {}
+            for k, v in pairs(cch.clothes) do _AO_HOOK_CTX._S.matchOutfitSnapshotClothes[k] = v end
+            _AO_HOOK_CTX._S.matchOutfitLocked = true
+            _AO_HOOK_CTX._S.weaponApplied = false
+            _AO_HOOK_CTX._S.weaponDiagDone = false
+            _AO_HOOK_CTX._S.matchOutfitDone = false
+            _AO_HOOK_CTX._S.syncSlotsLogged1 = false
+            _AO_HOOK_CTX._S.syncSlotsLogged2 = false
+            _AO_HOOK_CTX._S.probesDone = false
+            _AO_HOOK_CTX._S.extraLogged = false
             -- Appearance: force a fresh face/hair apply on every match entry
             -- (mesh isn't ready on the first ticks; a settled key from a
             -- previous match would otherwise block all retries).
-            _S._appearanceMatchKey = nil
-            _S._appearanceMatchAt = 0
-            _S._appearanceApplyCount = 0
-            _S._appearanceLoggedKey = nil
-            _S._appearanceProbeLogged = false
-            _S._appearanceNoCompLogged = false
-            _S._appearanceFailLogged = false
-            _S._appearanceSettledLogged = false
-            _S._hairTargetLogged = false
-            _S._appearanceInitDone = false
-            _S._appearanceRetrySched = false
-            _S._putOnAvatarLogged = false
+            _AO_HOOK_CTX._S._appearanceMatchKey = nil
+            _AO_HOOK_CTX._S._appearanceMatchAt = 0
+            _AO_HOOK_CTX._S._appearanceApplyCount = 0
+            _AO_HOOK_CTX._S._appearanceLoggedKey = nil
+            _AO_HOOK_CTX._S._appearanceProbeLogged = false
+            _AO_HOOK_CTX._S._appearanceNoCompLogged = false
+            _AO_HOOK_CTX._S._appearanceFailLogged = false
+            _AO_HOOK_CTX._S._appearanceSettledLogged = false
+            _AO_HOOK_CTX._S._hairTargetLogged = false
+            _AO_HOOK_CTX._S._appearanceInitDone = false
+            _AO_HOOK_CTX._S._appearanceRetrySched = false
+            _AO_HOOK_CTX._S._putOnAvatarLogged = false
             pcall(function()
                 if _G.AddOutfitFaceLog then
                     local ap = _G._savedAppearance or {}
@@ -16288,44 +16289,44 @@ local function apply_attachment(CurWeapon, avatarid)
             -- from entry instead of lazily from the first tick. The once-
             -- block's own scheduler stays as fallback (shared guard).
             pcall(function()
-                if _S.matchApplyAppearanceInGame and later
-                    and not _S._appearanceRetrySched then
-                    _S._appearanceRetrySched = true
+                if _AO_HOOK_CTX._S.matchApplyAppearanceInGame and _AO_HOOK_CTX.later
+                    and not _AO_HOOK_CTX._S._appearanceRetrySched then
+                    _AO_HOOK_CTX._S._appearanceRetrySched = true
                     for _, d in ipairs({ 2.5, 5.0, 8.0, 12.0 }) do
-                        later(d, function()
+                        _AO_HOOK_CTX.later(d, function()
                             -- PERF: these four retries each ran the FULL
                             -- appearance block (~20 mesh-rebuilding calls) on top
                             -- of what the 0.5s tick was already doing, causing
                             -- the match-entry hitch/flicker. Now they just raise
                             -- a pending flag that the tick consumes once.
-                            _S._appearanceRetryPending = (_S._appearanceRetryPending or 0) + 1
-                            _S._appearanceInitDone = false
+                            _AO_HOOK_CTX._S._appearanceRetryPending = (_AO_HOOK_CTX._S._appearanceRetryPending or 0) + 1
+                            _AO_HOOK_CTX._S._appearanceInitDone = false
                         end)
                     end
                 end
             end)
-            if not _S.bootstrapNotified then
-                _S.bootstrapNotified = true
+            if not _AO_HOOK_CTX._S.bootstrapNotified then
+                _AO_HOOK_CTX._S.bootstrapNotified = true
                 notify("اكتشفت شخصيتك في الماتش")
             end
             startMatchWatcher(char)
             hookPlayerWearingDone()
             -- Re-sweep summon platforms on match entry (spawn-island actors
             -- are fresh objects; boot-time patches predate them).
-            pcall(function() if _S.hookXSuitSummon then _S.hookXSuitSummon() end end)
+            pcall(function() if _AO_HOOK_CTX._S.hookXSuitSummon then _AO_HOOK_CTX._S.hookXSuitSummon() end end)
             -- Set bootstrapped BEFORE matchApplyAll so guard holds even if apply errors
-            _S.bootstrapped = true
-            flog("MATCH", "bootstrapMatch: done, calling matchApplyAll")
-            flog_flush()
+            _AO_HOOK_CTX._S.bootstrapped = true
+            _AO_HOOK_CTX.flog("MATCH", "bootstrapMatch: done, calling matchApplyAll")
+            _AO_HOOK_CTX.flog_flush()
             -- Direct pre-spawn patch: avatar-generation hooks may not have
             -- fired (or were taken by another payload), so inject wear_ext
             -- here as well before the first apply.
             pcall(function()
                 local ADU = require("GameLua.Mod.Library.GamePlay.Avatar.AvatarDataUtil")
-                flog("MATCH", "bootstrap PI lookup ADU=" .. tostring(ADU ~= nil))
+                _AO_HOOK_CTX.flog("MATCH", "bootstrap PI lookup ADU=" .. tostring(ADU ~= nil))
                 if ADU.GetPlayerInfo then
                     local pi = ADU.GetPlayerInfo(getPlayerController())
-                    flog("MATCH", "bootstrap PI lookup pi=" .. tostring(pi ~= nil))
+                    _AO_HOOK_CTX.flog("MATCH", "bootstrap PI lookup pi=" .. tostring(pi ~= nil))
                     if pi then patchPlayerInfoForMatch(pi) end
                 end
             end)
@@ -16335,8 +16336,8 @@ local function apply_attachment(CurWeapon, avatarid)
             -- (2) does the worn top hide the face slot? (HandleFaceHidden
             --     zeroes FakeID when the hide-slot setting is on.)
             pcall(function()
-                if _S.probesDone then return end
-                _S.probesDone = true
+                if _AO_HOOK_CTX._S.probesDone then return end
+                _AO_HOOK_CTX._S.probesDone = true
                 local comp = nil
                 pcall(function() if char.getAvatarComponent2 then comp = char:getAvatarComponent2() end end)
                 if not comp or not slua.isValid(comp) then comp = char.CharacterAvatarComp2_BP end
@@ -16355,7 +16356,7 @@ local function apply_attachment(CurWeapon, avatarid)
                                 local okB, exists = pcall(function()
                                     return comp:IsItemBlueprintExist(slot, FItemDefineID(4, resID), false)
                                 end)
-                                flog("MATCH", "probe blueprint resID=" .. tostring(resID)
+                                _AO_HOOK_CTX.flog("MATCH", "probe blueprint resID=" .. tostring(resID)
                                     .. " ok=" .. tostring(okB) .. " exists=" .. tostring(exists))
                             end
                         end
@@ -16378,17 +16379,17 @@ local function apply_attachment(CurWeapon, avatarid)
                         local LBDM = ModuleManager.GetModule(ModuleManager.CommonModuleConfig.LogicUserBattleDataManager)
                         local hc = LBDM and LBDM:GetHideSlotConfig(topRes)
                         if hc then
-                            flog("MATCH", "probe hidecfg top=" .. tostring(topRes)
+                            _AO_HOOK_CTX.flog("MATCH", "probe hidecfg top=" .. tostring(topRes)
                                 .. " group=" .. tostring(hc.GroupID) .. " slot=" .. tostring(hc.SlotID)
                                 .. " setting=" .. tostring(LBDM:GetHideSlotSetting(hc.GroupID)))
                         else
-                            flog("MATCH", "probe hidecfg top=" .. tostring(topRes) .. " none")
+                            _AO_HOOK_CTX.flog("MATCH", "probe hidecfg top=" .. tostring(topRes) .. " none")
                         end
                     end)
                 end
-                flog_flush()
+                _AO_HOOK_CTX.flog_flush()
             end)
-            pcall(flog_flush)
+            pcall(_AO_HOOK_CTX.flog_flush)
             pcall(matchApplyAll, char)
             return true
         end
@@ -16423,8 +16424,8 @@ local function apply_attachment(CurWeapon, avatarid)
                         o(self)
                         pcall(function()
                             if self.IsLobbyActor and self:IsLobbyActor() then
-                                flog("OUTFIT", "OnAvatarAllMeshLoadedLua: Lobby actor mesh loaded, reapplying")
-                                reapplyLobbyEquipped()
+                                _AO_HOOK_CTX.flog("OUTFIT", "OnAvatarAllMeshLoadedLua: Lobby actor mesh loaded, reapplying")
+                                _AO_HOOK_CTX.reapplyLobbyEquipped()
                                 return
                             end
                             if not (self.IsSelf and self:IsSelf()) then return end
@@ -16436,11 +16437,11 @@ local function apply_attachment(CurWeapon, avatarid)
                             -- the next tick (key may be settled from an
                             -- earlier, pre-mesh apply). Clear initDone too so
                             -- the sex/head base re-inits onto the fresh mesh.
-                            _S._appearanceMatchKey = nil
-                            _S._appearanceInitDone = false
+                            _AO_HOOK_CTX._S._appearanceMatchKey = nil
+                            _AO_HOOK_CTX._S._appearanceInitDone = false
                             pcall(function()
-                                if _S.matchApplyAppearanceInGame then
-                                    _S.matchApplyAppearanceInGame(char)
+                                if _AO_HOOK_CTX._S.matchApplyAppearanceInGame then
+                                    _AO_HOOK_CTX._S.matchApplyAppearanceInGame(char)
                                 end
                             end)
                             -- One short retry for avatar mesh that finishes loading after this event
@@ -16451,10 +16452,10 @@ local function apply_attachment(CurWeapon, avatarid)
                                 char:AddGameTimer(1.5, false, function()
                                     pcall(function()
                                         local c2 = getLocalChar()
-                                        if c2 and _S.matchApplyAppearanceInGame then
-                                            _S._appearanceMatchKey = nil
-                                            _S._appearanceInitDone = false
-                                            _S.matchApplyAppearanceInGame(c2)
+                                        if c2 and _AO_HOOK_CTX._S.matchApplyAppearanceInGame then
+                                            _AO_HOOK_CTX._S._appearanceMatchKey = nil
+                                            _AO_HOOK_CTX._S._appearanceInitDone = false
+                                            _AO_HOOK_CTX._S.matchApplyAppearanceInGame(c2)
                                         end
                                     end)
                                 end)
@@ -16471,12 +16472,12 @@ local function apply_attachment(CurWeapon, avatarid)
                     pcall(function()
                         if self.IsLobbyActor and self:IsLobbyActor() then return end
                         if not isSelfAvatarComp(self) then return end
-                        if _S.globalFrame < _S.weaponHookGuardUntil then return end
+                        if _AO_HOOK_CTX._S.globalFrame < _AO_HOOK_CTX._S.weaponHookGuardUntil then return end
                         local char = getLocalChar()
                         if not char then return end
                         bootstrapMatch(char)
                         -- Apply weapon skin immediately, then one short retry
-                        _S.weaponApplied = false
+                        _AO_HOOK_CTX._S.weaponApplied = false
                         pcall(matchApplyWeaponSkin, char)
                         if char.AddGameTimer then
                             char:AddGameTimer(0.3, false, function()
@@ -16496,11 +16497,11 @@ local function apply_attachment(CurWeapon, avatarid)
             local owner = nil
             pcall(function() if weapon.GetOwnerPawn then owner = weapon:GetOwnerPawn() end end)
             if not slua.isValid(owner) or owner ~= char then return end
-            if _S.globalFrame < _S.weaponHookGuardUntil then return end
+            if _AO_HOOK_CTX._S.globalFrame < _AO_HOOK_CTX._S.weaponHookGuardUntil then return end
             -- Apply immediately (mirrors 1.lua behaviour — no delay on weapon spawn)
             pcall(function()
                 applySkinToWeaponRef(weapon)
-                _S.weaponApplied = false
+                _AO_HOOK_CTX._S.weaponApplied = false
             end)
             -- One short-delayed pass to catch attachment skin updates after mesh load
             pcall(function()
@@ -16515,12 +16516,12 @@ local function apply_attachment(CurWeapon, avatarid)
         end
 
         local function hookWeaponSpawn()
-            if _S.weaponSpawnHooked then return end
+            if _AO_HOOK_CTX._S.weaponSpawnHooked then return end
             pcall(function()
                 if EventSystem and EventSystem.registEvent
                     and EVENTTYPE_PLAYEREVENT_WEAPON and EVENTID_PLAYEREVENT_WEAPON_LUA_INIT then
                     EventSystem:registEvent(EVENTTYPE_PLAYEREVENT_WEAPON, EVENTID_PLAYEREVENT_WEAPON_LUA_INIT, onWeaponLuaInit)
-                    _S.weaponSpawnHooked = true
+                    _AO_HOOK_CTX._S.weaponSpawnHooked = true
                 end
             end)
         end
@@ -16531,8 +16532,8 @@ local function apply_attachment(CurWeapon, avatarid)
                 local oRsp = Arm.install_weapon_skin_rsp
                 Arm.install_weapon_skin_rsp = function(client_data, errorCode, weapon_id, instanceID)
                     oRsp(client_data, errorCode, weapon_id, instanceID)
-                    if errorCode == 0 or errorCode == _K.NET_OK then
-                        cacheWeaponSkinFromIns(weapon_id, instanceID)
+                    if errorCode == 0 or errorCode == _AO_HOOK_CTX._K.NET_OK then
+                        _AO_HOOK_CTX.cacheWeaponSkinFromIns(weapon_id, instanceID)
                     end
                 end
             end)
@@ -16541,21 +16542,21 @@ local function apply_attachment(CurWeapon, avatarid)
                 local o = wl.on_puton_rsp
                 wl.on_puton_rsp = function(self, res, item, olditem, index, extra)
                     o(self, res, item, olditem, index, extra)
-                    if item and item.instid and (res == 0 or res == _K.NET_OK) then
+                    if item and item.instid and (res == 0 or res == _AO_HOOK_CTX._K.NET_OK) then
                         local resID, insID = tonumber(item.res_id), tonumber(item.instid)
-                        local slot = getEquipSkinSlot(resID)
-                        if isInjectedIns(insID) and slot and not _S.equipSkinApplying then
-                            saveEquipSkin(resID, insID)
+                        local slot = _AO_HOOK_CTX.getEquipSkinSlot(resID)
+                        if _AO_HOOK_CTX.isInjectedIns(insID) and slot and not _AO_HOOK_CTX._S.equipSkinApplying then
+                            _AO_HOOK_CTX.saveEquipSkin(resID, insID)
                             if slot ~= "parachute" and slot ~= "glider" then
-                                applyEquipVisual(resID, insID, slot)
+                                _AO_HOOK_CTX.applyEquipVisual(resID, insID, slot)
                             end
-                        elseif isInjectedIns(insID) then
-                            local mt = wardrobeMainTab(resID)
-                            if mt ~= _K.WARDROBE_PAGE_VEHICLE then
-                                if isThrowObjectRes(resID) then
-                                    saveThrowObject(resID, insID)
+                        elseif _AO_HOOK_CTX.isInjectedIns(insID) then
+                            local mt = _AO_HOOK_CTX.wardrobeMainTab(resID)
+                            if mt ~= _AO_HOOK_CTX._K.WARDROBE_PAGE_VEHICLE then
+                                if _AO_HOOK_CTX.isThrowObjectRes(resID) then
+                                    _AO_HOOK_CTX.saveThrowObject(resID, insID)
                                 else
-                                    saveEquip(resID, insID)
+                                    _AO_HOOK_CTX.saveEquip(resID, insID)
                                 end
                             end
                         end
@@ -16576,8 +16577,8 @@ local function apply_attachment(CurWeapon, avatarid)
                     weaponID = tonumber(weaponID)
                     if not weaponID then return origSetGunID(self, weaponID, ...) end
 
-                    local w = cache().weapons[weaponID]
-                    local injected = w and w.insID and w.insID > 0 and isInjectedIns(w.insID)
+                    local w = _AO_HOOK_CTX.cache().weapons[weaponID]
+                    local injected = w and w.insID and w.insID > 0 and _AO_HOOK_CTX.isInjectedIns(w.insID)
                     -- تحقق مما إذا كان السكن الحالي مطابقاً للمطلوب
                     local currentSkin = wgl.GetCurrentEquippedSkinInsID and wgl:GetCurrentEquippedSkinInsID(weaponID) or 0
                     if injected and currentSkin == w.insID then
@@ -16621,7 +16622,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     local result = origSetGunID(self, weaponID, ...)
 
                     if injected then
-                        later(0.05, function()
+                        _AO_HOOK_CTX.later(0.05, function()
                             pcall(function()
                                 local wgl2 = require("client.slua.logic.wardrobe.logic_wardrobe_gun")
                                 wgl2:UpdateCurrentGunAvatar(weaponID, w.insID)
@@ -16642,7 +16643,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         -- log("إعادة تطبيق سكن بعد تبديل سلاح", weaponID, w.resID)
                     else
                         -- تحديث الواجهة لإزالة السكن
-                        later(0.05, function()
+                        _AO_HOOK_CTX.later(0.05, function()
                             pcall(function()
                                 local wgl2 = require("client.slua.logic.wardrobe.logic_wardrobe_gun")
                                 wgl2:UpdateCurrentGunAvatar(weaponID, 0)
@@ -16654,7 +16655,7 @@ local function apply_attachment(CurWeapon, avatarid)
                                 end
                             end)
                         end)
-                        log("إزالة سكن السلاح", weaponID)
+                        _AO_HOOK_CTX.log("إزالة سكن السلاح", weaponID)
                     end
                     
                     return result
@@ -16665,10 +16666,10 @@ local function apply_attachment(CurWeapon, avatarid)
                     weaponID = tonumber(weaponID)
                     insID = tonumber(insID)
                     if weaponID and (not insID or insID <= 0) then
-                        local w = cache().weapons[weaponID]
-                        if w and w.insID and w.insID > 0 and isInjectedIns(w.insID) then
+                        local w = _AO_HOOK_CTX.cache().weapons[weaponID]
+                        if w and w.insID and w.insID > 0 and _AO_HOOK_CTX.isInjectedIns(w.insID) then
                             insID = w.insID
-                            log("UpdateCurrentGunAvatar: استخدام سكن محفوظ", weaponID, insID)
+                            _AO_HOOK_CTX.log("UpdateCurrentGunAvatar: استخدام سكن محفوظ", weaponID, insID)
                         else
                             insID = 0
                         end
@@ -16681,8 +16682,8 @@ local function apply_attachment(CurWeapon, avatarid)
                     wgl.GetCurrentEquippedSkinInsID = function(self, weaponID, ...)
                         weaponID = tonumber(weaponID)
                         if weaponID then
-                            local w = cache().weapons[weaponID]
-                            if w and w.insID and w.insID > 0 and isInjectedIns(w.insID) then
+                            local w = _AO_HOOK_CTX.cache().weapons[weaponID]
+                            if w and w.insID and w.insID > 0 and _AO_HOOK_CTX.isInjectedIns(w.insID) then
                                 return w.insID
                             end
                         end
@@ -16695,8 +16696,8 @@ local function apply_attachment(CurWeapon, avatarid)
                     wgl.GetGunSkinInsID = function(self, weaponID, ...)
                         weaponID = tonumber(weaponID)
                         if weaponID then
-                            local w = cache().weapons[weaponID]
-                            if w and w.insID and w.insID > 0 and isInjectedIns(w.insID) then
+                            local w = _AO_HOOK_CTX.cache().weapons[weaponID]
+                            if w and w.insID and w.insID > 0 and _AO_HOOK_CTX.isInjectedIns(w.insID) then
                                 return w.insID
                             end
                         end
@@ -16714,8 +16715,8 @@ local function apply_attachment(CurWeapon, avatarid)
                     wgl.GetSkinIdByWeaponID = function(self, WeaponID, ...)
                         local wid = tonumber(WeaponID)
                         if wid then
-                            local w = cache().weapons[wid]
-                            if w and w.insID and w.insID > 0 and isInjectedIns(w.insID) then
+                            local w = _AO_HOOK_CTX.cache().weapons[wid]
+                            if w and w.insID and w.insID > 0 and _AO_HOOK_CTX.isInjectedIns(w.insID) then
                                 -- Confirmation point for the "already wearing
                                 -- this" guard: only now, when the game's own
                                 -- reader agrees, is it safe to record the mark.
@@ -16741,8 +16742,8 @@ local function apply_attachment(CurWeapon, avatarid)
                     local function isOurWornIns(instId)
                         local n = tonumber(instId)
                         if not n or n <= 0 then return false end
-                        for _, w in pairs(cache().weapons) do
-                            if w and tonumber(w.insID) == n and isInjectedIns(w.insID) then
+                        for _, w in pairs(_AO_HOOK_CTX.cache().weapons) do
+                            if w and tonumber(w.insID) == n and _AO_HOOK_CTX.isInjectedIns(w.insID) then
                                 return true
                             end
                         end
@@ -16764,7 +16765,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     end
                 end
 
-                log("hookGunWardrobe: تم")
+                _AO_HOOK_CTX.log("hookGunWardrobe: تم")
             end)
         end
 
@@ -16845,7 +16846,7 @@ local function apply_attachment(CurWeapon, avatarid)
         end
 
         local function hookEliminationKingEffect()
-            if not featOn("killmsg_xsuit") then return end
+            if not _AO_HOOK_CTX.featOn("killmsg_xsuit") then return end
             if _G._lava_hooked_elim_king then return end
             _G._lava_hooked_elim_king = true
 
@@ -16865,7 +16866,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     end
                     return origGetAttr(self, UID, attr)
                 end
-                log("hookEliminationKingEffect: CommerAvatarDataUtil hooked")
+                _AO_HOOK_CTX.log("hookEliminationKingEffect: CommerAvatarDataUtil hooked")
             end)
 
             pcall(function()
@@ -16886,14 +16887,14 @@ local function apply_attachment(CurWeapon, avatarid)
                                     local info = KingEliminationInfo.NewKingEliminationInfo
                                     if tonumber(info.PlayerKey) == localKey then
                                         info.EffectID = ELIMINATION_KING_EFFECT_ID
-                                        log("hookEliminationKingEffect: injected EffectID into NewKingEliminationInfo")
+                                        _AO_HOOK_CTX.log("hookEliminationKingEffect: injected EffectID into NewKingEliminationInfo")
                                     end
                                 end
                                 if KingEliminationInfo.DeadKingEliminationInfo then
                                     local info = KingEliminationInfo.DeadKingEliminationInfo
                                     if tonumber(info.KillerPlayerKey) == localKey then
                                         info.EffectID = ELIMINATION_KING_EFFECT_ID
-                                        log("hookEliminationKingEffect: injected EffectID into DeadKingEliminationInfo")
+                                        _AO_HOOK_CTX.log("hookEliminationKingEffect: injected EffectID into DeadKingEliminationInfo")
                                     end
                                 end
                             end
@@ -16901,7 +16902,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     end
                     return origShow(self, DamageRecordData)
                 end
-                log("hookEliminationKingEffect: KillInfo.ShowKingEliminationInfo hooked")
+                _AO_HOOK_CTX.log("hookEliminationKingEffect: KillInfo.ShowKingEliminationInfo hooked")
             end)
 
             pcall(function()
@@ -16929,7 +16930,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     end
                     return origUpdate(self, DamageRecordData, KingEliminationInfo)
                 end
-                log("hookEliminationKingEffect: KingEliminationInfoItem hooked")
+                _AO_HOOK_CTX.log("hookEliminationKingEffect: KingEliminationInfoItem hooked")
             end)
 
             pcall(function()
@@ -16948,7 +16949,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         end
                     end)
                 end
-                log("hookEliminationKingEffect: PlayerStateBase hooked")
+                _AO_HOOK_CTX.log("hookEliminationKingEffect: PlayerStateBase hooked")
             end)
 
             -- ---------------------------------------------------------------
@@ -16981,7 +16982,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 forceLocalEffect(cls)
                 forceLocalEffect(inst)
                 forceLocalEffect(cls.__inner_impl)
-                log("hookEliminationKingEffect: LogicEliminationKingEffect forced " ..
+                _AO_HOOK_CTX.log("hookEliminationKingEffect: LogicEliminationKingEffect forced " ..
                     tostring(ELIMINATION_KING_EFFECT_ID))
             end)
 
@@ -17008,7 +17009,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 XSuit.SetEliminationKingClothOverrideEnabled = function(...)
                     return nil
                 end
-                log("hookEliminationKingEffect: LogicXSuit king gates forced open")
+                _AO_HOOK_CTX.log("hookEliminationKingEffect: LogicXSuit king gates forced open")
             end)
 
             -- Best-effort asset warm-up: without the KillEffect path on disk
@@ -17019,7 +17020,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 local LogicKillInfo = require("client.slua.logic.kill_info.logic_killinfo")
                 local list = LogicKillInfo.GetXSuitKillInfoAssetList(ELIMINATION_KING_EFFECT_ID)
                 if list and #list > 0 then
-                    log("hookEliminationKingEffect: KillEffect resolved: " .. tostring(list[1]))
+                    _AO_HOOK_CTX.log("hookEliminationKingEffect: KillEffect resolved: " .. tostring(list[1]))
                     for _, path in ipairs(list) do
                         pcall(function()
                             local PM = require("client.slua.logic.download.puffer.puffer_manager")
@@ -17029,13 +17030,13 @@ local function apply_attachment(CurWeapon, avatarid)
                         pcall(function() _G.download_item(path) end)
                     end
                 else
-                    log("hookEliminationKingEffect: KillEffect EMPTY (no GoldClothBattleEffect row with KillEffect)")
+                    _AO_HOOK_CTX.log("hookEliminationKingEffect: KillEffect EMPTY (no GoldClothBattleEffect row with KillEffect)")
                 end
             end)
         end
 
         local function tickEliminationKingEffect()
-            if not featOn("killmsg_xsuit") then return end
+            if not _AO_HOOK_CTX.featOn("killmsg_xsuit") then return end
             -- Re-assert the effect id. The server owns
             -- elimi_king_data.equip_effect and will happily write nil back over
             -- it, which silently disables the X-suit kill message again.
@@ -17070,9 +17071,9 @@ local function apply_attachment(CurWeapon, avatarid)
         -- DeActiveAll gates) so repeated summons keep working.
         -- Gated by featOn("xsuit_summon") (mod menu toggle, default ON).
         -- Hangs off _S (loader-local budget is near the cap).
-        _S._xsuitSummonTries = 0
-        _S.hookXSuitSummon = function()
-            if not featOn("xsuit_summon") then return end
+        _AO_HOOK_CTX._S._xsuitSummonTries = 0
+        _AO_HOOK_CTX._S.hookXSuitSummon = function()
+            if not _AO_HOOK_CTX.featOn("xsuit_summon") then return end
             pcall(function()
                 local okU, XSuitUtil = pcall(require,
                     "GameLua.Activity.Commercialize.GamePlay.XSuit.XSuitUtil")
@@ -17081,7 +17082,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     local oUnlocked = XSuitUtil.IsUnlockedFeature
                     if type(oUnlocked) == "function" then
                         XSuitUtil.IsUnlockedFeature = function(self, period, branchId, featureType)
-                            if not featOn("xsuit_summon") then
+                            if not _AO_HOOK_CTX.featOn("xsuit_summon") then
                                 return oUnlocked(self, period, branchId, featureType)
                             end
                             local okc, r1, r2, r3 = pcall(oUnlocked, self, period, branchId, featureType)
@@ -17092,7 +17093,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     local oValid = XSuitUtil.IsValidXSuitEffect
                     if type(oValid) == "function" then
                         XSuitUtil.IsValidXSuitEffect = function(self, itemId, effectType, unlockLevel)
-                            if not featOn("xsuit_summon") then
+                            if not _AO_HOOK_CTX.featOn("xsuit_summon") then
                                 return oValid(self, itemId, effectType, unlockLevel)
                             end
                             local okc, v = pcall(oValid, self, itemId, effectType, unlockLevel)
@@ -17107,7 +17108,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     local oGetLv = XSuitUtil.GetUnLockLevelByFeature
                     if type(oGetLv) == "function" then
                         XSuitUtil.GetUnLockLevelByFeature = function(self, itemId, period, unlockLevelList)
-                            if not featOn("xsuit_summon") then
+                            if not _AO_HOOK_CTX.featOn("xsuit_summon") then
                                 return oGetLv(self, itemId, period, unlockLevelList)
                             end
                             local okc, lvl = pcall(oGetLv, self, itemId, period, unlockLevelList)
@@ -17124,7 +17125,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     local oHas = LogicXSuit.HasUnlockFeature
                     if type(oHas) == "function" then
                         LogicXSuit.HasUnlockFeature = function(period, branchId, level, index)
-                            if not featOn("xsuit_summon") then
+                            if not _AO_HOOK_CTX.featOn("xsuit_summon") then
                                 return oHas(period, branchId, level, index)
                             end
                             local okc, v = pcall(oHas, period, branchId, level, index)
@@ -17148,7 +17149,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     local oCheck = LogicXSuit.CheckUnlockState
                     if type(oCheck) == "function" then
                         LogicXSuit.CheckUnlockState = function(period, state, source)
-                            if not featOn("xsuit_summon") then
+                            if not _AO_HOOK_CTX.featOn("xsuit_summon") then
                                 return oCheck(period, state, source)
                             end
                             local okc, v = pcall(oCheck, period, state, source)
@@ -17191,7 +17192,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     tbl[marker] = true
                     local o = tbl[fname]
                     tbl[fname] = function(...)
-                        if featOn("xsuit_summon") and anyBlocked(...) then
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") and anyBlocked(...) then
                             if _G.AddOutfitSummonLog then
                                 local ids = {}
                                 local argList, argN = { ... }, select("#", ...)
@@ -17310,28 +17311,28 @@ local function apply_attachment(CurWeapon, avatarid)
                 if type(t.Wearing7StarXSuit) == "function" then
                     local o = t.Wearing7StarXSuit
                     t.Wearing7StarXSuit = function(self, Character)
-                        if featOn("xsuit_summon") then return true end
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then return true end
                         return o(self, Character)
                     end
                 end
                 if type(t.IsGameStateBan) == "function" then
                     local o = t.IsGameStateBan
                     t.IsGameStateBan = function(self, ...)
-                        if featOn("xsuit_summon") then return false end
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then return false end
                         return o(self, ...)
                     end
                 end
                 if type(t.IsCharacterInCD) == "function" then
                     local o = t.IsCharacterInCD
                     t.IsCharacterInCD = function(self, Character)
-                        if featOn("xsuit_summon") then return false end
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then return false end
                         return o(self, Character)
                     end
                 end
                 if type(t.TrySetCurrentCaller) == "function" then
                     local o = t.TrySetCurrentCaller
                     t.TrySetCurrentCaller = function(self, Character)
-                        if featOn("xsuit_summon") then
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then
                             pcall(function() self.CanChange = true end)
                             pcall(function() self.DeActiveAll = false end)
                         end
@@ -17341,7 +17342,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 if type(t.OnAllowToInteract) == "function" then
                     local o = t.OnAllowToInteract
                     t.OnAllowToInteract = function(self, Character)
-                        if featOn("xsuit_summon") then
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then
                             pcall(function() self.CanChange = true end)
                             return true
                         end
@@ -17352,7 +17353,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     t._lava_origGetWear = t.GetWearingXSuitID
                     t.GetWearingXSuitID = function(self, Character)
                         local real = t._lava_origGetWear(self, Character)
-                        if featOn("xsuit_summon") then
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then
                             local id7 = resolveSuitId(self, Character, t)
                             if id7 and id7 > 0 then return id7 end
                         end
@@ -17366,7 +17367,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     t._lava_origGetStatue = t.GetStatue
                     t.GetStatue = function(self, SuitID)
                         local r = t._lava_origGetStatue(self, SuitID)
-                        if (not r or r == "") and featOn("xsuit_summon") then
+                        if (not r or r == "") and _AO_HOOK_CTX.featOn("xsuit_summon") then
                             local fb = realStatuePath()
                             if fb then
                                 if _G.AddOutfitSummonLog and not _G._lava_statueFbLogged then
@@ -17385,7 +17386,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         t._lava_origClientClick = t.OnClientClickInteractiveButton
                     end
                     t.OnClientClickInteractiveButton = function(self, Character, Component)
-                        if featOn("xsuit_summon") then
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then
                             pcall(function() self.CanChange = true end)
                             pcall(function() self.DeActiveAll = false end)
                             -- Local summon: play on the actor, block the
@@ -17406,7 +17407,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         t._lava_origMustCheck = t.MustCheckResultAfterServerClick
                     end
                     t.MustCheckResultAfterServerClick = function(self, Character, Ret, Component, Flag, Reason)
-                        if featOn("xsuit_summon") then
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then
                             local played = playLocalSummon(self, Character, t)
                             if _G.AddOutfitSummonLog then
                                 _G.AddOutfitSummonLog("mustcheck ret=" .. tostring(Ret)
@@ -17420,7 +17421,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 if type(t.DeactiveXSuitPlatform) == "function" then
                     local o = t.DeactiveXSuitPlatform
                     t.DeactiveXSuitPlatform = function(self, ...)
-                        if featOn("xsuit_summon") then
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then
                             pcall(function() self.DeActiveAll = false end)
                         end
                         return o(self, ...)
@@ -17429,7 +17430,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 if type(t.OnRep_DeActiveAll) == "function" then
                     local o = t.OnRep_DeActiveAll
                     t.OnRep_DeActiveAll = function(self, old)
-                        if featOn("xsuit_summon") then
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then
                             pcall(function() self.DeActiveAll = false end)
                         end
                         return o(self, old)
@@ -17441,7 +17442,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     end
                     local o = t._lava_origCallStatue
                     t.CallStatue = function(self, ...)
-                        if featOn("xsuit_summon") then
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then
                             pcall(function() self.DeActiveAll = false end)
                         end
                         return o(self, ...)
@@ -17551,7 +17552,7 @@ local function apply_attachment(CurWeapon, avatarid)
             -- row, so the original check fails them ("no statue"). Reuse the
             -- first real statue path found so local CallStatue can animate.
             local function realStatuePath()
-                if _S._xsuitRealStatue ~= nil then return _S._xsuitRealStatue end
+                if _AO_HOOK_CTX._S._xsuitRealStatue ~= nil then return _AO_HOOK_CTX._S._xsuitRealStatue end
                 pcall(function()
                     local tbl = CDataTable.GetTable("GoldClothBattleEffect")
                     if type(tbl) == "table" then
@@ -17562,14 +17563,14 @@ local function apply_attachment(CurWeapon, avatarid)
                                 end
                             end)
                             if ok and p then
-                                _S._xsuitRealStatue = p
+                                _AO_HOOK_CTX._S._xsuitRealStatue = p
                                 break
                             end
                         end
                     end
                 end)
-                if _S._xsuitRealStatue == nil then _S._xsuitRealStatue = false end
-                return _S._xsuitRealStatue or nil
+                if _AO_HOOK_CTX._S._xsuitRealStatue == nil then _AO_HOOK_CTX._S._xsuitRealStatue = false end
+                return _AO_HOOK_CTX._S._xsuitRealStatue or nil
             end
             -- Delegate to the full patchPlatform so live actors get the
             -- SAME method set as modules (Click, Wear7, GetID, Statue,
@@ -17613,19 +17614,19 @@ local function apply_attachment(CurWeapon, avatarid)
                 end
             end)
             -- Retry chain: platform classes load late; re-scan until found.
-            _S._xsuitSummonTries = (_S._xsuitSummonTries or 0) + 1
+            _AO_HOOK_CTX._S._xsuitSummonTries = (_AO_HOOK_CTX._S._xsuitSummonTries or 0) + 1
             if not foundPlatform and not _G.ChetanSummonInstalled
-                and (_S._xsuitSummonTries or 0) < 30
-                and featOn("xsuit_summon") then
-                later(10.0, function()
+                and (_AO_HOOK_CTX._S._xsuitSummonTries or 0) < 30
+                and _AO_HOOK_CTX.featOn("xsuit_summon") then
+                _AO_HOOK_CTX.later(10.0, function()
                     pcall(function()
-                        if _S.hookXSuitSummon then _S.hookXSuitSummon() end
+                        if _AO_HOOK_CTX._S.hookXSuitSummon then _AO_HOOK_CTX._S.hookXSuitSummon() end
                     end)
                 end)
             end
             if foundPlatform then
-                flog("OUTFIT", "hookXSuitSummon: platform patched (try " ..
-                    tostring(_S._xsuitSummonTries) .. ")")
+                _AO_HOOK_CTX.flog("OUTFIT", "hookXSuitSummon: platform patched (try " ..
+                    tostring(_AO_HOOK_CTX._S._xsuitSummonTries) .. ")")
             end
             -- Live actors: patch platform actors already in the world
             -- (per-instance caches bypass class tables).
@@ -17647,7 +17648,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 _G._lava_xsuitActorLoop = true
                 local function sweep()
                     pcall(function()
-                        if featOn("xsuit_summon") then
+                        if _AO_HOOK_CTX.featOn("xsuit_summon") then
                             -- Vehicle Grand Debut wraps platform impls; they
                             -- are required long after install, so re-wrap.
                             pcall(function()
@@ -17660,9 +17661,9 @@ local function apply_attachment(CurWeapon, avatarid)
                             end
                         end
                     end)
-                    later(30.0, sweep)
+                    _AO_HOOK_CTX.later(30.0, sweep)
                 end
-                later(30.0, sweep)
+                _AO_HOOK_CTX.later(30.0, sweep)
             end)
             -- Proximity auto-summon: taps demonstrably never reach ANY
             -- patched table (module, impl, or instance), so stop depending
@@ -17675,7 +17676,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 _G._lava_summonPlayedActors = _G._lava_summonPlayedActors or {}
                 local function proxTick()
                     pcall(function()
-                        if not featOn("xsuit_summon") then return end
+                        if not _AO_HOOK_CTX.featOn("xsuit_summon") then return end
                         local char = getLocalChar()
                         if not (char and slua.isValid(char)) then return end
                         local cx, cy, cz = nil, nil, nil
@@ -17772,9 +17773,9 @@ local function apply_attachment(CurWeapon, avatarid)
                             end
                         end)
                     end)
-                    later(5.0, proxTick)
+                    _AO_HOOK_CTX.later(5.0, proxTick)
                 end
-                later(5.0, proxTick)
+                _AO_HOOK_CTX.later(5.0, proxTick)
             end)
         end
 
@@ -18025,7 +18026,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     local o = impl.__VD8_Click
                     impl.OnClientClickInteractiveButton = function(self, Character, Component)
                         pcall(function()
-                            if featOn("xsuit_summon") and VD.isLocalChar(Character) then
+                            if _AO_HOOK_CTX.featOn("xsuit_summon") and VD.isLocalChar(Character) then
                                 VD.maybeStage(self)
                             end
                         end)
@@ -18038,7 +18039,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     local o = impl.__VD8_Must
                     impl.MustCheckResultAfterServerClick = function(self, Character, ...)
                         pcall(function()
-                            if featOn("xsuit_summon") and VD.isLocalChar(Character) then
+                            if _AO_HOOK_CTX.featOn("xsuit_summon") and VD.isLocalChar(Character) then
                                 VD.maybeStage(self)
                             end
                         end)
@@ -18291,7 +18292,7 @@ local function apply_attachment(CurWeapon, avatarid)
                             end
                         end)
                         VD.log("OPEN step")
-                        later(VD.CAR_DELAY, carStep)
+                        _AO_HOOK_CTX.later(VD.CAR_DELAY, carStep)
                     end
                     local fallStep
                     fallStep = function()
@@ -18332,9 +18333,9 @@ local function apply_attachment(CurWeapon, avatarid)
                             startReveal()
                             return
                         end
-                        later(0.05, fallStep)
+                        _AO_HOOK_CTX.later(0.05, fallStep)
                     end
-                    later(0.1, fallStep)
+                    _AO_HOOK_CTX.later(0.1, fallStep)
 
                     -- T+CAR_DELAY: reveal the car inside the container.
                     carStep = function()
@@ -18551,7 +18552,7 @@ local function apply_attachment(CurWeapon, avatarid)
             end
 
             _G.VehicleGrandDebut_Play = function()
-                if not featOn("xsuit_summon") then return false end
+                if not _AO_HOOK_CTX.featOn("xsuit_summon") then return false end
                 SH.done = false
                 SH.tries = 0
                 pcall(VD.hookPlatforms)
@@ -18597,7 +18598,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 pcall(function() print("[SummonDiag] " .. tostring(s)) end)
             end
             pcall(function()
-                line("featOn=" .. tostring(featOn("xsuit_summon")))
+                line("featOn=" .. tostring(_AO_HOOK_CTX.featOn("xsuit_summon")))
             end)
             line("INSTALLED=" .. tostring(rawget(_G, "ChetanSummonInstalled")))
             line("FLS=" .. tostring(_G.KuttaCheatTG_FreeLobbyShop ~= nil))
@@ -18749,7 +18750,7 @@ local function apply_attachment(CurWeapon, avatarid)
         end
 
         local function hookFinalKillEffect()
-            if not featOn("killmsg_gun") then return end
+            if not _AO_HOOK_CTX.featOn("killmsg_gun") then return end
             if _G._lava_hooked_final_kill then return end
             _G._lava_hooked_final_kill = true
 
@@ -18766,7 +18767,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         if self.ItemId == FINAL_KILL_EFFECT_ID then
                             local Config = CDataTable.GetTableData("FinalKillEffectCfg", self.ItemId)
                             if not Config or not Config.Sequence or Config.Sequence == "" then
-                                log("hookFinalKillEffect: no sequence for 61950002, calling OnPlay directly")
+                                _AO_HOOK_CTX.log("hookFinalKillEffect: no sequence for 61950002, calling OnPlay directly")
                                 if self.Callback and self.Callback.OnPlay then
                                     self.Callback.OnPlay()
                                 end
@@ -18775,7 +18776,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         end
                         return origBeginPlay(self)
                     end
-                    log("hookFinalKillEffect: FinalKillEffectLevelSequenceActor hooked")
+                    _AO_HOOK_CTX.log("hookFinalKillEffect: FinalKillEffectLevelSequenceActor hooked")
                 end
             end)
 
@@ -18788,7 +18789,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 local origTriggerParticle = Feature.TriggerParticleEffect
                 if origTriggerParticle then
                     Feature.TriggerParticleEffect = function(self, ItemId, Location, Rotator, TeamMemberNames)
-                        log("hookFinalKillEffect: TriggerParticleEffect called, ItemId=" .. tostring(ItemId) .. " forcing to " .. tostring(FINAL_KILL_EFFECT_ID))
+                        _AO_HOOK_CTX.log("hookFinalKillEffect: TriggerParticleEffect called, ItemId=" .. tostring(ItemId) .. " forcing to " .. tostring(FINAL_KILL_EFFECT_ID))
                         return origTriggerParticle(self, FINAL_KILL_EFFECT_ID, Location, Rotator, TeamMemberNames)
                     end
                 end
@@ -18796,20 +18797,20 @@ local function apply_attachment(CurWeapon, avatarid)
                 local origPrepareItem = Feature.PrepareItem
                 if origPrepareItem then
                     Feature.PrepareItem = function(self, ItemId)
-                        log("hookFinalKillEffect: PrepareItem called, ItemId=" .. tostring(ItemId) .. " forcing to " .. tostring(FINAL_KILL_EFFECT_ID))
+                        _AO_HOOK_CTX.log("hookFinalKillEffect: PrepareItem called, ItemId=" .. tostring(ItemId) .. " forcing to " .. tostring(FINAL_KILL_EFFECT_ID))
                         return origPrepareItem(self, FINAL_KILL_EFFECT_ID)
                     end
                 end
-                log("hookFinalKillEffect: PlayerCharacterFinalKillEffectFeature hooked")
+                _AO_HOOK_CTX.log("hookFinalKillEffect: PlayerCharacterFinalKillEffectFeature hooked")
             end)
 
             -- 3. Direct client-side trigger when game ends
             local function triggerFinalKillEffect()
-            if not featOn("killmsg_gun") then return end
+            if not _AO_HOOK_CTX.featOn("killmsg_gun") then return end
                 pcall(function()
                     local char = getLocalChar()
                     if not char or not slua.isValid(char) then
-                        log("hookFinalKillEffect: char not valid")
+                        _AO_HOOK_CTX.log("hookFinalKillEffect: char not valid")
                         return
                     end
 
@@ -18818,7 +18819,7 @@ local function apply_attachment(CurWeapon, avatarid)
 
                     char:EnsureDynamicFeature("FinalKillEffect")
                     if not char.FinalKillEffect then
-                        log("hookFinalKillEffect: FinalKillEffect feature not available")
+                        _AO_HOOK_CTX.log("hookFinalKillEffect: FinalKillEffect feature not available")
                         return
                     end
 
@@ -18826,7 +18827,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     local Rotator = FRotator(0, 0, 0)
                     local Names = char.PlayerName or ""
 
-                    log("hookFinalKillEffect: triggering effect 61950002")
+                    _AO_HOOK_CTX.log("hookFinalKillEffect: triggering effect 61950002")
                     char.FinalKillEffect:TriggerParticleEffect(FINAL_KILL_EFFECT_ID, Location, Rotator, Names)
                 end)
             end
@@ -18837,11 +18838,11 @@ local function apply_attachment(CurWeapon, avatarid)
                     BattleResult._lava_hooked_fke = true
                     local origOnGameResult = BattleResult.on_game_result
                     BattleResult.on_game_result = function(battle_result, result)
-                        log("hookFinalKillEffect: BattleResult.on_game_result triggered")
+                        _AO_HOOK_CTX.log("hookFinalKillEffect: BattleResult.on_game_result triggered")
                         triggerFinalKillEffect()
                         return origOnGameResult(battle_result, result)
                     end
-                    log("hookFinalKillEffect: BattleResult.on_game_result hooked")
+                    _AO_HOOK_CTX.log("hookFinalKillEffect: BattleResult.on_game_result hooked")
                 end
             end)
 
@@ -18851,11 +18852,11 @@ local function apply_attachment(CurWeapon, avatarid)
                     BattleResult._lava_hooked_fke_over = true
                     local origOnGameOver = BattleResult.on_game_over
                     BattleResult.on_game_over = function(game_id)
-                        log("hookFinalKillEffect: BattleResult.on_game_over triggered")
+                        _AO_HOOK_CTX.log("hookFinalKillEffect: BattleResult.on_game_over triggered")
                         triggerFinalKillEffect()
                         return origOnGameOver(game_id)
                     end
-                    log("hookFinalKillEffect: BattleResult.on_game_over hooked")
+                    _AO_HOOK_CTX.log("hookFinalKillEffect: BattleResult.on_game_over hooked")
                 end
             end)
 
@@ -18866,11 +18867,11 @@ local function apply_attachment(CurWeapon, avatarid)
                     and not _G._lava_fke_event_registered then
                     _G._lava_fke_event_registered = true
                     EventSystem:registEvent(EVENTTYPE_STATE, EVENTID_GAMESTATE_ON_PRE_BATTLE_RESULT, triggerFinalKillEffect)
-                    log("hookFinalKillEffect: registered for EVENTID_GAMESTATE_ON_PRE_BATTLE_RESULT")
+                    _AO_HOOK_CTX.log("hookFinalKillEffect: registered for EVENTID_GAMESTATE_ON_PRE_BATTLE_RESULT")
                 end
             end)
 
-            log("hookFinalKillEffect: done")
+            _AO_HOOK_CTX.log("hookFinalKillEffect: done")
         end
 
         -- ========== تشغيل ==========
@@ -18963,9 +18964,9 @@ local function apply_attachment(CurWeapon, avatarid)
 -- without HACK.lua present they stay nil and the kill feed + deadbox
 -- skins silently skip, looking like "guns/killmsg depend on HACK".
 if _G.LexusConfig then
-    _G.LexusConfig.KillCountUI = featOn("killcounter")
-    if _G.LexusConfig.KillMessage == nil then _G.LexusConfig.KillMessage = featOn("killmsg_gun") end
-    if _G.LexusConfig.SkinDeadBox == nil then _G.LexusConfig.SkinDeadBox = featOn("deadbox") end
+    _G.LexusConfig.KillCountUI = _AO_HOOK_CTX.featOn("killcounter")
+    if _G.LexusConfig.KillMessage == nil then _G.LexusConfig.KillMessage = _AO_HOOK_CTX.featOn("killmsg_gun") end
+    if _G.LexusConfig.SkinDeadBox == nil then _G.LexusConfig.SkinDeadBox = _AO_HOOK_CTX.featOn("deadbox") end
 end
 
 -- Initialize Kill Count system
@@ -19094,7 +19095,7 @@ pcall(function()
     local UIManager = require("client.slua_ui_framework.manager")
     local ModuleManager = require("client.module_framework.ModuleManager")
 
-    if MyKillCountSubSystem and MyKillCountSubSystem.__inner_impl and featOn("killcounter") then
+    if MyKillCountSubSystem and MyKillCountSubSystem.__inner_impl and _AO_HOOK_CTX.featOn("killcounter") then
         _G.OurkillCountSystem = MyKillCountSubSystem.__inner_impl
         
         local o_OnRefreshUI = MyMainKillCounter.__inner_impl.OnRefreshUI
@@ -19185,7 +19186,7 @@ local _lastKCWeaponID = 0
 local _lastKCSkinID = 0
 
 _G.GameAvatarHandlerkillcounter = function()
-            if not featOn("killcounter") then return end
+            if not _AO_HOOK_CTX.featOn("killcounter") then return end
     local UIManager = require("client.slua_ui_framework.manager")
     
     if not _G.LexusConfig.KillCountUI then
@@ -19271,7 +19272,7 @@ end)
                         local did = slua.IndexReference(sd:Get(7), "defineID")
                         if did and slua.isValid(did) then
                             local rid = tonumber(did.TypeSpecificID) or 0
-                            if rid > 0 and weaponIdFromSkin(rid) then
+                            if rid > 0 and _AO_HOOK_CTX.weaponIdFromSkin(rid) then
                                 credit, src = rid, "current-weapon"
                             end
                         end
@@ -19280,7 +19281,7 @@ end)
             end)
             if not credit then
                 pcall(function()
-                    local cch = cache()
+                    local cch = _AO_HOOK_CTX.cache()
                     if cch and cch.weapons then
                         for wid, w in pairs(cch.weapons) do
                             local rid = tonumber(w and w.resID) or 0
@@ -19302,7 +19303,7 @@ end)
             -- Install if EITHER toggle is on: this hook carries both the gun
             -- skin credit and the grenade skin credit, so gating it on
             -- killmsg_gun alone disabled killmsg_grenade whenever gun was off.
-            if not (featOn("killmsg_gun") or featOn("killmsg_grenade")) then return end
+            if not (_AO_HOOK_CTX.featOn("killmsg_gun") or _AO_HOOK_CTX.featOn("killmsg_grenade")) then return end
             if _teamBroadcastHooked then return end
             -- Chain marker (not a hard block): another payload may have set
             -- the global flag with its own wrapper lacking grenade credit.
@@ -19339,16 +19340,16 @@ end)
                                         end
                                     end
                                     pcall(function()
-                                        local outfitRes = resolveLobbyOutfitRes()
+                                        local outfitRes = _AO_HOOK_CTX.resolveLobbyOutfitRes()
                                         if outfitRes and outfitRes > 0 then
                                             expand_data.CauserClothAvatarID = outfitRes
                                         end
                                     end)
-                                    if isClassic and featOn("killcounter") then
+                                    if isClassic and _AO_HOOK_CTX.featOn("killcounter") then
                                         expand_data.KillCounterItemId = weapon_id
                                         expand_data.KillCounterNum = _G.getKills and _G.getKills(weapon_id) or 0
                                     end
-                                    msgData.bShowKillNum = featOn("killcounter")
+                                    msgData.bShowKillNum = _AO_HOOK_CTX.featOn("killcounter")
                                     msgData.ExpandDataContent = slua.LuaArchiverEncode(_G.LuaStateWrapper, expand_data)
                                 end
                             end
@@ -19361,7 +19362,7 @@ end)
                     -- killmsg_grenade only, not killmsg_gun, so the grenade toggle
                     -- works on its own.
                     pcall(function()
-                        if not featOn("killmsg_grenade") then
+                        if not _AO_HOOK_CTX.featOn("killmsg_grenade") then
                             if _G.AddOutfitGrenadeLog then
                                 _G.AddOutfitGrenadeLog("killmsg_nade SKIP feat off")
                             end
@@ -19434,7 +19435,7 @@ end)
         -- vehicle-damage branch. Separate guard flag so both coexist.
         local _teamBroadcastClassHooked = false
         local function hookTeamBroadcastClass()
-            if not (featOn("killmsg_gun") or featOn("killmsg_grenade")) then return end
+            if not (_AO_HOOK_CTX.featOn("killmsg_gun") or _AO_HOOK_CTX.featOn("killmsg_grenade")) then return end
             if _teamBroadcastClassHooked then return end
             pcall(function()
                 local Sub = require("GameLua.Mod.BaseMod.Client.BattleKillBroadcast.BattleKillBroadcastSubSystem")
@@ -19468,7 +19469,7 @@ end)
                                         local ExpandData = slua.LuaArchiverDecode(_G.LuaStateWrapper, msgData.ExpandDataContent) or {}
                                         ExpandData.CauserWeaponAvatarID = weaponDefineID.TypeSpecificID
                                         pcall(function()
-                                            local outfitRes = resolveLobbyOutfitRes()
+                                            local outfitRes = _AO_HOOK_CTX.resolveLobbyOutfitRes()
                                             if outfitRes and outfitRes > 0 then
                                                 ExpandData.CauserClothAvatarID = outfitRes
                                             end
@@ -19481,7 +19482,7 @@ end)
                         -- Same grenade credit as the inner-impl hook above, for
                         -- calls routed straight through the subsystem table.
                         pcall(function()
-                            if not featOn("killmsg_grenade") then return end
+                            if not _AO_HOOK_CTX.featOn("killmsg_grenade") then return end
                             local gb = _G._lava_lastGrenadeBlast
                             local grid = gb and tonumber(gb.resID or 0) or 0
                             local dtc = tonumber(msgData.DamageType)
@@ -19534,21 +19535,21 @@ end)
         end
 
         local function start()
-            log("AddOutfit Merged start")
+            _AO_HOOK_CTX.log("AddOutfit Merged start")
             -- Security bypass first
             pcall(hookSecurityBypass)
             -- Kill counter system
-            if featOn("killcounter") then pcall(function() if _G.ForceEnableKillCounterUI then _G.ForceEnableKillCounterUI() end end) end
+            if _AO_HOOK_CTX.featOn("killcounter") then pcall(function() if _G.ForceEnableKillCounterUI then _G.ForceEnableKillCounterUI() end end) end
             -- Team broadcast kill messages (v1.1)
             pcall(hookTeamBroadcast)
             pcall(hookTeamBroadcastClass)
             buildSkinMappings()
-            pcall(restorePersistedVehicles)
-            pcall(restorePersistedMotions)
-            pcall(restorePersistedEquipIns)
-            pcall(restorePersistedThrowObjects)
-            pcall(restorePersistedHallTheme)
-            pcall(syncMatchConfigFromCache)
+            pcall(_AO_HOOK_CTX.restorePersistedVehicles)
+            pcall(_AO_HOOK_CTX.restorePersistedMotions)
+            pcall(_AO_HOOK_CTX.restorePersistedEquipIns)
+            pcall(_AO_HOOK_CTX.restorePersistedThrowObjects)
+            pcall(_AO_HOOK_CTX.restorePersistedHallTheme)
+            pcall(_AO_HOOK_CTX.syncMatchConfigFromCache)
             hookCDataTableCache()
             hookDepotInit()
             hookWardrobeData()
@@ -19556,7 +19557,7 @@ end)
             hookArmory()
             hookPutOn()
             hookLobbyTheme()
-            hookHallThemeProc()
+            _AO_HOOK_CTX.hookHallThemeProc()
             hookGarageSlotReq()
             hookBatchThemeGuard()
             hookLobbySkinLoadedReseat()
@@ -19574,9 +19575,9 @@ end)
             hookLobbySwipePersistence()
             hookMatchAvatar()
             hookMatchAvatarData()
-            pcall(function() if _S.hookWardrobeAppearance then _S.hookWardrobeAppearance() end end)
-            pcall(function() if _S.hookMatchHairAvatar then _S.hookMatchHairAvatar() end end)
-            pcall(function() if _S.hookAppearanceServerData then _S.hookAppearanceServerData() end end)
+            pcall(function() if _AO_HOOK_CTX._S.hookWardrobeAppearance then _AO_HOOK_CTX._S.hookWardrobeAppearance() end end)
+            pcall(function() if _AO_HOOK_CTX._S.hookMatchHairAvatar then _AO_HOOK_CTX._S.hookMatchHairAvatar() end end)
+            pcall(function() if _AO_HOOK_CTX._S.hookAppearanceServerData then _AO_HOOK_CTX._S.hookAppearanceServerData() end end)
             hookGrenadeAvatarInit()
             hookGrenadeAvatarLookup()
             hookWeaponSpawn()
@@ -19586,38 +19587,38 @@ end)
             hookQualityWatermark()
             hookEliminationKingEffect()
             hookFinalKillEffect()
-            pcall(function() if _S.hookXSuitSummon then _S.hookXSuitSummon() end end)
+            pcall(function() if _AO_HOOK_CTX._S.hookXSuitSummon then _AO_HOOK_CTX._S.hookXSuitSummon() end end)
             pcall(InstallGrenadeFX)
             for _, d in ipairs({ 3.0, 8.0, 20.0, 60.0 }) do
-                later(d, function()
-                    pcall(function() if _S.hookXSuitSummon then _S.hookXSuitSummon() end end)
+                _AO_HOOK_CTX.later(d, function()
+                    pcall(function() if _AO_HOOK_CTX._S.hookXSuitSummon then _AO_HOOK_CTX._S.hookXSuitSummon() end end)
                 end)
             end
 
-            if injectAllSources() then
-                refreshWardrobe()
+            if _AO_HOOK_CTX.injectAllSources() then
+                _AO_HOOK_CTX.refreshWardrobe()
                 -- If m.lua is loaded, fire its restore so wardrobe_data patches
                 -- re-call on_depot_put_on_rsp and populate the R registry before
                 -- reapplyLobbyEquipped runs.
                 if type(_G._RestoreWornFakeItems) == "function" then
                     pcall(_G._RestoreWornFakeItems)
                 end
-                later(1.0, reapplyLobbyEquipped)
+                _AO_HOOK_CTX.later(1.0, _AO_HOOK_CTX.reapplyLobbyEquipped)
             else
                 local tries = 0
                 local function retry()
                     tries = tries + 1
-                    if injectAllSources() then
-                        refreshWardrobe()
+                    if _AO_HOOK_CTX.injectAllSources() then
+                        _AO_HOOK_CTX.refreshWardrobe()
                         if type(_G._RestoreWornFakeItems) == "function" then
                             pcall(_G._RestoreWornFakeItems)
                         end
-                        later(1.0, reapplyLobbyEquipped)
+                        _AO_HOOK_CTX.later(1.0, _AO_HOOK_CTX.reapplyLobbyEquipped)
                         return
                     end
-                    if tries < 40 then later(1.5, retry) end
+                    if tries < 40 then _AO_HOOK_CTX.later(1.5, retry) end
                 end
-                later(1.5, retry)
+                _AO_HOOK_CTX.later(1.5, retry)
             end
 
             pcall(function()
@@ -19625,16 +19626,16 @@ end)
                     local char = getLocalChar()
                     if char then bootstrapMatch(char) end
                 elseif isInLobby() then
-                    snapshotLobbyWear()
-                    if _S.syncAppearanceFromAvatarData then
-                        pcall(_S.syncAppearanceFromAvatarData)
+                    _AO_HOOK_CTX.snapshotLobbyWear()
+                    if _AO_HOOK_CTX._S.syncAppearanceFromAvatarData then
+                        pcall(_AO_HOOK_CTX._S.syncAppearanceFromAvatarData)
                     end
-                    if _S.applySavedAppearance then
+                    if _AO_HOOK_CTX._S.applySavedAppearance then
                         -- Ladder: the team avatar may not exist at 2s; each
                         -- attempt self-skips once one visibly applied.
-                        later(2.0, _S.applySavedAppearance)
-                        later(8.0, _S.applySavedAppearance)
-                        later(15.0, _S.applySavedAppearance)
+                        _AO_HOOK_CTX.later(2.0, _AO_HOOK_CTX._S.applySavedAppearance)
+                        _AO_HOOK_CTX.later(8.0, _AO_HOOK_CTX._S.applySavedAppearance)
+                        _AO_HOOK_CTX.later(15.0, _AO_HOOK_CTX._S.applySavedAppearance)
                     end
                 end
             end)
@@ -19646,9 +19647,9 @@ end)
         hookEquipMapping()
         hookMatchAvatar()
         hookMatchAvatarData()
-        pcall(function() if _S.hookWardrobeAppearance then _S.hookWardrobeAppearance() end end)
-        pcall(function() if _S.hookMatchHairAvatar then _S.hookMatchHairAvatar() end end)
-        pcall(function() if _S.hookAppearanceServerData then _S.hookAppearanceServerData() end end)
+        pcall(function() if _AO_HOOK_CTX._S.hookWardrobeAppearance then _AO_HOOK_CTX._S.hookWardrobeAppearance() end end)
+        pcall(function() if _AO_HOOK_CTX._S.hookMatchHairAvatar then _AO_HOOK_CTX._S.hookMatchHairAvatar() end end)
+        pcall(function() if _AO_HOOK_CTX._S.hookAppearanceServerData then _AO_HOOK_CTX._S.hookAppearanceServerData() end end)
         hookGrenadeAvatarInit()
         hookGrenadeAvatarLookup()
         hookWeaponSpawn()
@@ -19656,24 +19657,24 @@ end)
         hookQualityWatermark()
         hookEliminationKingEffect()
         hookFinalKillEffect()
-        pcall(function() if _S.hookXSuitSummon then _S.hookXSuitSummon() end end)
+        pcall(function() if _AO_HOOK_CTX._S.hookXSuitSummon then _AO_HOOK_CTX._S.hookXSuitSummon() end end)
         pcall(InstallGrenadeFX)
-        pcall(_loadEquippedCache)
+        pcall(_AO_HOOK_CTX._loadEquippedCache)
         start()
         pcall(hookVehicleSkinAndMusicPanel)
         -- Appearance restore (face/hair): deferred so AvatarData + lobby
         -- avatar exist; sync fills empty slots from live lobby truth.
         -- Ladder with self-skip once the team avatar visibly applied.
         pcall(function()
-            if _S.applySavedAppearance and isInLobby() then
-                later(2.0, _S.applySavedAppearance)
-                later(8.0, _S.applySavedAppearance)
-                later(15.0, _S.applySavedAppearance)
+            if _AO_HOOK_CTX._S.applySavedAppearance and isInLobby() then
+                _AO_HOOK_CTX.later(2.0, _AO_HOOK_CTX._S.applySavedAppearance)
+                _AO_HOOK_CTX.later(8.0, _AO_HOOK_CTX._S.applySavedAppearance)
+                _AO_HOOK_CTX.later(15.0, _AO_HOOK_CTX._S.applySavedAppearance)
             end
         end)
         pcall(function()
-            if _S.syncAppearanceFromAvatarData and isInLobby() then
-                later(3.0, _S.syncAppearanceFromAvatarData)
+            if _AO_HOOK_CTX._S.syncAppearanceFromAvatarData and isInLobby() then
+                _AO_HOOK_CTX.later(3.0, _AO_HOOK_CTX._S.syncAppearanceFromAvatarData)
             end
         end)
 
@@ -19840,7 +19841,7 @@ end)
         local _deadboxCachePurgedTick = 0
 
         local function applyDeadBoxSkin()
-            if not featOn("deadbox") then return end
+            if not _AO_HOOK_CTX.featOn("deadbox") then return end
             -- PERF: removed early return; we still need to scan actors
             -- and populate DeadBoxSkins on first pass.
             local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
@@ -19976,19 +19977,19 @@ end)
                 pc:AddGameTimer(0.5, true, function()
                     pcall(function()
                         _timeCount = _timeCount + 1
-                        _S.globalFrame = _timeCount
+                        _AO_HOOK_CTX._S.globalFrame = _timeCount
 
                         -- Kill counter tick removed (ForceEnableKillCounterUI called once at start)
 
                         if isInGamePlay() then
                             local char = getLocalChar()
                             if not (char and slua.isValid(char)) then return end
-                            _S.petWasLobby = false
+                            _AO_HOOK_CTX._S.petWasLobby = false
                             -- (match pet removed; HOOK_PET.txt owns in-match pets now)
                             -- Log first 3 ticks so we know the timer is running
                             if _timeCount <= 3 then
-                                flog("TIMER", "tick=" .. _timeCount .. " inGamePlay=true char=ok")
-                                flog_flush()
+                                _AO_HOOK_CTX.flog("TIMER", "tick=" .. _timeCount .. " inGamePlay=true char=ok")
+                                _AO_HOOK_CTX.flog_flush()
                             end
                             -- Bootstrap once per match entry
                             bootstrapMatch(char)
@@ -20002,7 +20003,7 @@ end)
                             -- calls in the weapon/attachment paths were removed
                             -- because they blocked the game loop; this keeps the
                             -- log file current without per-tick I/O.
-                            if _timeCount % 40 == 0 then pcall(flog_flush) end
+                            if _timeCount % 40 == 0 then pcall(_AO_HOOK_CTX.flog_flush) end
                             -- Equipment skins (every 4 ticks = ~2s). PERF: the grenades/throwables/vehicle
 -- appliers were fired in the SAME tick as the equipment pass, so four
                             -- replication + avatar-rebuild kicks landed together every
@@ -20016,8 +20017,8 @@ end)
                                 -- bootstrap-only call applied once pre-mesh
                                 -- and never retried.
                                 pcall(function()
-                                    if _S.matchApplyAppearanceInGame then
-                                        _S.matchApplyAppearanceInGame(char)
+                                    if _AO_HOOK_CTX._S.matchApplyAppearanceInGame then
+                                        _AO_HOOK_CTX._S.matchApplyAppearanceInGame(char)
                                     end
                                 end)
                             end
@@ -20062,8 +20063,8 @@ end)
                         local inLobby = isInLobby()
                         if inLobby then
                             -- Snapshot + save flush on lobby (every 10 ticks = ~5s)
-                            if _timeCount % 10 == 0 and not _S.matchOutfitLocked then
-                                pcall(snapshotLobbyWear)
+                            if _timeCount % 10 == 0 and not _AO_HOOK_CTX._S.matchOutfitLocked then
+                                pcall(_AO_HOOK_CTX.snapshotLobbyWear)
                             end
                             -- Pet companion: key-gated spawn; 60s forced
                             -- re-assert heals missed spawns (early ticks can
@@ -20090,8 +20091,8 @@ end)
                                 end)
                             end
                             -- Instant re-spawn on lobby return.
-                            if not _S.petWasLobby then
-                                _S.petWasLobby = true
+                            if not _AO_HOOK_CTX._S.petWasLobby then
+                                _AO_HOOK_CTX._S.petWasLobby = true
                                 PET.lastKey = nil
                                 pcall(PET.applyLobbyPet)
                                 -- Match exit wipes the lobby weapon preview: the
@@ -20100,15 +20101,15 @@ end)
                                 -- is why opening it "fixes" the skin). Republish
                                 -- the list and re-seat the last lobby gun here.
                                 pcall(function()
-                                    publishLobbyWeaponSkinList()
+                                    _AO_HOOK_CTX.publishLobbyWeaponSkinList()
                                     local lw = _LAST_LOBBY_WEAPON
                                     if lw and lw.wid and lw.resID then
                                         local ins = R.resToIns[lw.resID]
-                                        if ins and isInjectedIns(ins) then
-                                            equipWeaponSkin(lw.wid, ins, true)
+                                        if ins and _AO_HOOK_CTX.isInjectedIns(ins) then
+                                            _AO_HOOK_CTX.equipWeaponSkin(lw.wid, ins, true)
                                         end
                                     end
-                                    refreshWardrobe()
+                                    _AO_HOOK_CTX.refreshWardrobe()
                                 end)
                             end
                             if _timeCount % 10 == 0 then
@@ -20119,8 +20120,8 @@ end)
                             -- running InjectModMenu every 5s during a match was
                             -- pure waste.
                             if _timeCount % 10 == 0 then
-                                pcall(_S.SetupLocHook)
-                                pcall(_S.InjectModMenu)
+                                pcall(_AO_HOOK_CTX._S.SetupLocHook)
+                                pcall(_AO_HOOK_CTX._S.InjectModMenu)
                             end
                         end
                     end)
@@ -20130,7 +20131,7 @@ end)
 
         -- Try immediately; retry via _ticker until PC is ready (mirrors 1.lua)
         -- tickerSetupLoop stored on _S to stay under Lua 200-local limit.
-        _S.tickerSetupLoop = function()
+        _AO_HOOK_CTX._S.tickerSetupLoop = function()
             setupSkinTimer()
             -- MUST keep re-arming: the 0.5s skin timer is installed ON the
             -- PlayerController, and a match transition can hand us a NEW one.
@@ -20142,18 +20143,18 @@ end)
             pcall(function()
                 if _skinTimerPC then delay = 5.0 end
             end)
-            if _ticker and _ticker.AddTimerOnce then
-                _ticker.AddTimerOnce(delay, _S.tickerSetupLoop)
+            if _AO_HOOK_CTX._ticker and _AO_HOOK_CTX._ticker.AddTimerOnce then
+                _AO_HOOK_CTX._ticker.AddTimerOnce(delay, _AO_HOOK_CTX._S.tickerSetupLoop)
             end
         end
-        if _ticker and _ticker.AddTimerOnce then
-            _ticker.AddTimerOnce(0.5, _S.tickerSetupLoop)
+        if _AO_HOOK_CTX._ticker and _AO_HOOK_CTX._ticker.AddTimerOnce then
+            _AO_HOOK_CTX._ticker.AddTimerOnce(0.5, _AO_HOOK_CTX._S.tickerSetupLoop)
         end
 
         -- =========================================================================
         -- MOD MENU INJECTION (Settings Tab)
         -- =========================================================================
-        _S.CUSTOM_TEXTS = {
+        _AO_HOOK_CTX._S.CUSTOM_TEXTS = {
             [99001] = "MOD SKIN",
             [99002] = "INVENTORY CONFIGURATION",
             [99003] = "USE LIMITED SKINS ONLY ? ( RESTART THE GAME AFTER CHANGING) ",
@@ -20174,12 +20175,12 @@ end)
             [99023] = "UC + SPIN ENGINE",
         }
 
-        _S.SetupLocHook = function()
+        _AO_HOOK_CTX._S.SetupLocHook = function()
             if not (LocUtil and LocUtil.GetLocalizeResStr) then return false end
             if LocUtil.__modMenuHooked then return true end
             local origLoc = LocUtil.GetLocalizeResStr
             LocUtil.GetLocalizeResStr = function(id)
-                if _S.CUSTOM_TEXTS[id] then return _S.CUSTOM_TEXTS[id] end
+                if _AO_HOOK_CTX._S.CUSTOM_TEXTS[id] then return _AO_HOOK_CTX._S.CUSTOM_TEXTS[id] end
                 return origLoc(id)
             end
             LocUtil.__modMenuHooked = true
@@ -20189,9 +20190,9 @@ end)
         -- Feature switches: persist, then push the change into the live game so
         -- flipping the toggle takes effect immediately instead of needing a
         -- restart.
-        _S.SetFeatFlag = function(key, val)
+        _AO_HOOK_CTX._S.SetFeatFlag = function(key, val)
             _G.AddOutfitFeat[key] = val
-            saveSettings()
+            _AO_HOOK_CTX.saveSettings()
             if key == "attachments" then
                 -- No re-inject needed: apply_attachment already re-reads the
                 -- flag, and the 0.5s tick keeps the mesh refresh running, so
@@ -20212,8 +20213,8 @@ end)
                     end)
                 end
             elseif key == "deadbox" or key == "killmsg_gun" then
-                _G.LexusConfig.SkinDeadBox = featOn("deadbox")
-                _G.LexusConfig.KillMessage = featOn("killmsg_gun")
+                _G.LexusConfig.SkinDeadBox = _AO_HOOK_CTX.featOn("deadbox")
+                _G.LexusConfig.KillMessage = _AO_HOOK_CTX.featOn("killmsg_gun")
             elseif key == "grenade_fx" or key == "grenade_snd" then
                 -- Installing is cheap and idempotent; removal only flips the
                 -- guard, so the next explosion reverts to the stock effect
@@ -20223,7 +20224,7 @@ end)
                 -- Hooks are idempotent and read the flag live; install on
                 -- enable so late-loaded platform classes get patched.
                 pcall(function()
-                    if val and _S.hookXSuitSummon then _S.hookXSuitSummon() end
+                    if val and _AO_HOOK_CTX._S.hookXSuitSummon then _AO_HOOK_CTX._S.hookXSuitSummon() end
                 end)
             elseif key == "xp_level_100" or key == "collection_level_100" then
                 -- Both apply paths re-run from the lobby tick / Reload, so
@@ -20236,7 +20237,7 @@ end)
             -- new value applies on the next elimination without re-hooking.
         end
 
-        _S.FeatSwitcher = function(AliasMap, key, textID)
+        _AO_HOOK_CTX._S.FeatSwitcher = function(AliasMap, key, textID)
             return {
                 Key = "Feat_" .. key,
                 UI = AliasMap.Switcher,
@@ -20246,14 +20247,14 @@ end)
                 GetFunc = function() return _G.AddOutfitFeat[key] ~= false end,
                 SetFunc = function(_, val)
                     if (_G.AddOutfitFeat[key] ~= false) ~= val then
-                        _S.SetFeatFlag(key, val)
+                        _AO_HOOK_CTX._S.SetFeatFlag(key, val)
                     end
                     return true
                 end,
             }
         end
 
-        _S.BuildModMenuStack = function()
+        _AO_HOOK_CTX._S.BuildModMenuStack = function()
             local ok, AliasMap = pcall(require, "client.slua.umg.NewSetting.Item.AliasMap")
             if not ok or not AliasMap or not AliasMap.Switcher then
                 return nil
@@ -20270,29 +20271,29 @@ end)
                     SetFunc = function(_, val)
                         if _G.menu_modskin_only ~= val then
                             _G.menu_modskin_only = val
-                            saveSettings()
-                            resetInjectedItems()
+                            _AO_HOOK_CTX.saveSettings()
+                            _AO_HOOK_CTX.resetInjectedItems()
                             pcall(function()
                                 local char = getLocalChar()
                                 if char then
-                                    injectAll(char)
+                                    _AO_HOOK_CTX.injectAll(char)
                                 else
-                                    injectAll(nil)
+                                    _AO_HOOK_CTX.injectAll(nil)
                                 end
-                                refreshWardrobe()
+                                _AO_HOOK_CTX.refreshWardrobe()
                             end)
                         end
                         return true
                     end,
                 },
-                _S.FeatSwitcher(AliasMap, "attachments", 99011),
-                _S.FeatSwitcher(AliasMap, "deadbox", 99012),
-                _S.FeatSwitcher(AliasMap, "killmsg_gun", 99013),
-                _S.FeatSwitcher(AliasMap, "killmsg_xsuit", 99014),
-                _S.FeatSwitcher(AliasMap, "killcounter", 99015),
-                _S.FeatSwitcher(AliasMap, "xp_level_100", 99021),
-                _S.FeatSwitcher(AliasMap, "collection_level_100", 99022),
-                _S.FeatSwitcher(AliasMap, "uc_spend", 99023),
+                _AO_HOOK_CTX._S.FeatSwitcher(AliasMap, "attachments", 99011),
+                _AO_HOOK_CTX._S.FeatSwitcher(AliasMap, "deadbox", 99012),
+                _AO_HOOK_CTX._S.FeatSwitcher(AliasMap, "killmsg_gun", 99013),
+                _AO_HOOK_CTX._S.FeatSwitcher(AliasMap, "killmsg_xsuit", 99014),
+                _AO_HOOK_CTX._S.FeatSwitcher(AliasMap, "killcounter", 99015),
+                _AO_HOOK_CTX._S.FeatSwitcher(AliasMap, "xp_level_100", 99021),
+                _AO_HOOK_CTX._S.FeatSwitcher(AliasMap, "collection_level_100", 99022),
+                _AO_HOOK_CTX._S.FeatSwitcher(AliasMap, "uc_spend", 99023),
                 -- Momentary "INJECT AGAIN" action. AliasMap has no Button
                 -- widget, so this is a Switcher that always reads OFF: every
                 -- tap flips it ON and fires, and the next menu bind shows OFF
@@ -20311,11 +20312,11 @@ end)
                     SetFunc = function(_, val)
                         if val then
                             pcall(function()
-                                log("InjectModMenu: manual INJECT AGAIN pressed")
+                                _AO_HOOK_CTX.log("InjectModMenu: manual INJECT AGAIN pressed")
                                 if type(_G.ChetanFullReinject) == "function" then
                                     _G.ChetanFullReinject("modmenu")
                                 else
-                                    reapplyLobbyEquipped()
+                                    _AO_HOOK_CTX.reapplyLobbyEquipped()
                                 end
                             end)
                         end
@@ -20325,11 +20326,11 @@ end)
             }
         end
 
-        _S.InjectModMenu = function()
+        _AO_HOOK_CTX._S.InjectModMenu = function()
             if not pcall(require, "client.slua.umg.NewSetting.Item.AliasMap") then return false end
-            local okStack, stack = pcall(_S.BuildModMenuStack)
+            local okStack, stack = pcall(_AO_HOOK_CTX._S.BuildModMenuStack)
             if not okStack then
-                log("InjectModMenu: BuildModMenuStack failed: " .. tostring(stack))
+                _AO_HOOK_CTX.log("InjectModMenu: BuildModMenuStack failed: " .. tostring(stack))
                 return false
             end
             if not stack then return false end
@@ -20360,15 +20361,15 @@ end)
             return true
         end
 
-        _S.hookModSettingsMenu = function()
+        _AO_HOOK_CTX._S.hookModSettingsMenu = function()
             pcall(function()
                 local gpt = require("GameLua.Mod.Library.GamePlay.GamePlayTools")
                 if gpt and gpt.GetCurrentConfig and not gpt._modMenuHooked then
                     local orig = gpt.GetCurrentConfig
                     gpt.GetCurrentConfig = function(key, ...)
                         if key == "SettingCatalog" then
-                            pcall(_S.SetupLocHook)
-                            pcall(_S.InjectModMenu)
+                            pcall(_AO_HOOK_CTX._S.SetupLocHook)
+                            pcall(_AO_HOOK_CTX._S.InjectModMenu)
                         end
                         return orig(key, ...)
                     end
@@ -20378,30 +20379,30 @@ end)
         end
 
         -- Initialize settings hook immediately
-        pcall(_S.SetupLocHook)
-        pcall(_S.InjectModMenu)
-        pcall(_S.hookModSettingsMenu)
+        pcall(_AO_HOOK_CTX._S.SetupLocHook)
+        pcall(_AO_HOOK_CTX._S.InjectModMenu)
+        pcall(_AO_HOOK_CTX._S.hookModSettingsMenu)
 
 
         -- Game status change detection via polling (cheaper than hooking events)
-        _S._lastGameStatus = ""
-        _S.statusPollLoop = function()
+        _AO_HOOK_CTX._S._lastGameStatus = ""
+        _AO_HOOK_CTX._S.statusPollLoop = function()
             local currentStatus = ""
             if isInLobby() then currentStatus = "lobby"
             elseif isInGamePlay() then currentStatus = "gameplay"
             else currentStatus = "other" end
 
-            if currentStatus ~= _S._lastGameStatus then
-                _S._lastGameStatus = currentStatus
+            if currentStatus ~= _AO_HOOK_CTX._S._lastGameStatus then
+                _AO_HOOK_CTX._S._lastGameStatus = currentStatus
                 -- Status changed, run post-switch logic
                 stopMatchWatcher()
-                _S.bootstrapNotified = false
-                _S.matchOutfitDone = false
-                _S.lobbyApplied = false
+                _AO_HOOK_CTX._S.bootstrapNotified = false
+                _AO_HOOK_CTX._S.matchOutfitDone = false
+                _AO_HOOK_CTX._S.lobbyApplied = false
                 _G._lava_fke_triggered = nil
                 pcall(function()
                     if isInLobby() then
-                        later(2.0, reapplyLobbyEquipped)
+                        _AO_HOOK_CTX.later(2.0, _AO_HOOK_CTX.reapplyLobbyEquipped)
                     end
                 end)
                 pcall(function()
@@ -20415,19 +20416,19 @@ end)
                 -- Debounced: the periodic flush still guarantees persistence.
                 local nowT = 0
                 pcall(function() nowT = os.clock() end)
-                if (nowT - (_S._lastStatusSaveAt or 0)) > 20.0 then
-                    _S._lastStatusSaveAt = nowT
-                    pcall(_AutoSaveOutfit, true)
+                if (nowT - (_AO_HOOK_CTX._S._lastStatusSaveAt or 0)) > 20.0 then
+                    _AO_HOOK_CTX._S._lastStatusSaveAt = nowT
+                    pcall(_AO_HOOK_CTX._AutoSaveOutfit, true)
                 end
             end
 
-            if _ticker and _ticker.AddTimerOnce then
-                _ticker.AddTimerOnce(3.0, _S.statusPollLoop)
+            if _AO_HOOK_CTX._ticker and _AO_HOOK_CTX._ticker.AddTimerOnce then
+                _AO_HOOK_CTX._ticker.AddTimerOnce(3.0, _AO_HOOK_CTX._S.statusPollLoop)
             end
         end
 
-        if _ticker and _ticker.AddTimerOnce then
-            _ticker.AddTimerOnce(1.0, _S.statusPollLoop)
+        if _AO_HOOK_CTX._ticker and _AO_HOOK_CTX._ticker.AddTimerOnce then
+            _AO_HOOK_CTX._ticker.AddTimerOnce(1.0, _AO_HOOK_CTX._S.statusPollLoop)
         end
 
 
@@ -20468,6 +20469,89 @@ end)
         end
 
         prewarmModules()
+        _AO_HOOK_CTX = {
+            DEBUG = DEBUG,
+            GAME_BAG_LEVEL = GAME_BAG_LEVEL,
+            GAME_HELMET_LEVEL = GAME_HELMET_LEVEL,
+            MATCH_CONFIG = MATCH_CONFIG,
+            _AutoSaveOutfit = _AutoSaveOutfit,
+            _C = _C,
+            _K = _K,
+            _S = _S,
+            _loadEquippedCache = _loadEquippedCache,
+            _ticker = _ticker,
+            applyEquipVisual = applyEquipVisual,
+            buildEquipSkinLists = buildEquipSkinLists,
+            cache = cache,
+            cacheWeaponSkinFromIns = cacheWeaponSkinFromIns,
+            collectAllClothResIDs = collectAllClothResIDs,
+            depotResID = depotResID,
+            equipWeaponSkin = equipWeaponSkin,
+            featOn = featOn,
+            findWornInsBySubType = findWornInsBySubType,
+            flog = flog,
+            flog_flush = flog_flush,
+            getClothKind = getClothKind,
+            getEntity = getEntity,
+            getEquipLevelSet = getEquipLevelSet,
+            getEquipSkinSlot = getEquipSkinSlot,
+            getInjectedItemTab = getInjectedItemTab,
+            hookHallThemeProc = hookHallThemeProc,
+            injectAll = injectAll,
+            injectAllSources = injectAllSources,
+            injectedEquipAllowed = injectedEquipAllowed,
+            invalidateSocialWearCache = invalidateSocialWearCache,
+            isBaseEquipItemId = isBaseEquipItemId,
+            isFullSuitRes = isFullSuitRes,
+            isHallThemeRes = isHallThemeRes,
+            isInMatchOrGame = isInMatchOrGame,
+            isInjectedIns = isInjectedIns,
+            isInjectedRes = isInjectedRes,
+            isMyWearData = isMyWearData,
+            isThrowObjectRes = isThrowObjectRes,
+            later = later,
+            log = log,
+            mapEquipLevelSet = mapEquipLevelSet,
+            mapEquipSkinRes = mapEquipSkinRes,
+            mergeInjectedIntoWearData = mergeInjectedIntoWearData,
+            mergedMotionSlotList = mergedMotionSlotList,
+            normalizeEquipCatalogRes = normalizeEquipCatalogRes,
+            publishLobbyWeaponSkinList = publishLobbyWeaponSkinList,
+            putOnCloth = putOnCloth,
+            putOnEquipSkin = putOnEquipSkin,
+            putOnThrowObject = putOnThrowObject,
+            reapplyLobbyEquipped = reapplyLobbyEquipped,
+            refreshWardrobe = refreshWardrobe,
+            removeRoleWearBySubTypes = removeRoleWearBySubTypes,
+            requestHallThemeVisual = requestHallThemeVisual,
+            resetInjectedItems = resetInjectedItems,
+            resolveLobbyOutfitRes = resolveLobbyOutfitRes,
+            resolveMatchEquipSkin = resolveMatchEquipSkin,
+            resolveWornEquipLevel = resolveWornEquipLevel,
+            restorePersistedEquipIns = restorePersistedEquipIns,
+            restorePersistedHallTheme = restorePersistedHallTheme,
+            restorePersistedMotions = restorePersistedMotions,
+            restorePersistedThrowObjects = restorePersistedThrowObjects,
+            restorePersistedVehicles = restorePersistedVehicles,
+            saveClothPiece = saveClothPiece,
+            saveEquip = saveEquip,
+            saveEquipSkin = saveEquipSkin,
+            saveSettings = saveSettings,
+            saveThrowObject = saveThrowObject,
+            snapshotLobbyWear = snapshotLobbyWear,
+            socialDebounce = socialDebounce,
+            softRemoveEquipVisual = softRemoveEquipVisual,
+            syncClothesCacheFromLobby = syncClothesCacheFromLobby,
+            syncFashionBagRolewear = syncFashionBagRolewear,
+            syncMatchConfigFromCache = syncMatchConfigFromCache,
+            syncMotionMirror = syncMotionMirror,
+            syncWeaponCacheFromLobby = syncWeaponCacheFromLobby,
+            takeOffEquipSkinVisual = takeOffEquipSkinVisual,
+            takeOffItem = takeOffItem,
+            wardrobeMainTab = wardrobeMainTab,
+            weaponIdFromSkin = weaponIdFromSkin,
+            wornLevelFromRealItem = wornLevelFromRealItem,
+        }
         initHooks()
 
         -- INIT AT LOAD TIME (mirrors 1.lua): install kill-counter hooks now;
