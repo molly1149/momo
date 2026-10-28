@@ -1,4 +1,13 @@
 -- Sets _G.MODSKIN_IDS (set) and _G.MODSKIN_LIST (ordered list)
+-- Temporary loader probe: remove this copy after diagnosis.
+_G._BB_LOAD_DIAG_STAGE = "file-entered"
+_G._BBLoadDiagNotice = function(text)
+    pcall(function() print(text) end)
+    pcall(function()
+        if type(_G.ShowNotice) == "function" then _G.ShowNotice(text, false, 10) end
+    end)
+end
+_G._BBLoadDiagNotice("[BB-DIAG] FILE ENTERED")
 if not _G.MODSKIN_LIST then
 _G.MODSKIN_IDS = _G.MODSKIN_IDS or {}
 _G.MODSKIN_LIST = {
@@ -2135,6 +2144,7 @@ local function _persistModOutfit(resID, insID)
     end)
 
     local _ao_ok, _ao_err = pcall(function()
+        _G._BB_LOAD_DIAG_STAGE = "core-entry"
         -- Per-match guard using match counter (handles controller reuse across matches)
         do
             local curMatchID = ""
@@ -2151,12 +2161,15 @@ local function _persistModOutfit(resID, insID)
             if curMatchID == "" then
                 _G._AO_MATCH_ID = nil
             elseif _G._AO_MATCH_ID == curMatchID then
+                _G._BB_LOAD_DIAG_STAGE = "already-loaded"
                 return  -- Already loaded for this match
             else
                 _G._AO_MATCH_ID = curMatchID
             end
         end
+        _G._BB_LOAD_DIAG_STAGE = "require-game_frontend_hud"
         local game_frontend_hud = require("game_frontend_hud")
+        _G._BB_LOAD_DIAG_STAGE = "game_frontend_hud-loaded"
 
         local DEBUG = true
         local function isInMatchOrGame()
@@ -20448,7 +20461,9 @@ end)
             end
         end
 
+        _G._BB_LOAD_DIAG_STAGE = "prewarm-modules"
         prewarmModules()
+        _G._BB_LOAD_DIAG_STAGE = "modules-prewarmed"
         _AO_HOOK_CTX = {
             DEBUG = DEBUG,
             GAME_BAG_LEVEL = GAME_BAG_LEVEL,
@@ -20532,7 +20547,9 @@ end)
             weaponIdFromSkin = weaponIdFromSkin,
             wornLevelFromRealItem = wornLevelFromRealItem,
         }
+        _G._BB_LOAD_DIAG_STAGE = "install-hooks"
         initHooks()
+        _G._BB_LOAD_DIAG_STAGE = "hooks-installed"
 
         -- INIT AT LOAD TIME (mirrors 1.lua): install kill-counter hooks now;
         -- the 0.5s timer retries until modules exist, then refreshes every tick.
@@ -20540,9 +20557,17 @@ end)
 
         log("AddOutfit Merged loaded")
         notify("السكربت جاهز")
+        _G._BB_LOAD_DIAG_STAGE = "core-ready"
     end)
     if not _ao_ok then
+        _G._BB_LOAD_DIAG_RESULT = "CORE_ERROR @ " .. tostring(_G._BB_LOAD_DIAG_STAGE)
+        _G._BB_LOAD_DIAG_ERROR = tostring(_ao_err)
         print("[AddOutfit] LOAD ERROR:", tostring(_ao_err))
+        _G._BBLoadDiagNotice("[BB-DIAG] " .. _G._BB_LOAD_DIAG_RESULT .. ": " .. _G._BB_LOAD_DIAG_ERROR)
+    elseif _G._BB_LOAD_DIAG_STAGE == "already-loaded" then
+        _G._BB_LOAD_DIAG_RESULT = "ALREADY_LOADED"
+    else
+        _G._BB_LOAD_DIAG_RESULT = "CORE_OK"
     end
 
 -- =========================================================================
@@ -26294,3 +26319,8 @@ end)
 print("[ChetanSocial] name tag + frame + cover persist installed")
 end)
 
+_G._BB_LOAD_DIAG_STAGE = _G._BB_LOAD_DIAG_STAGE or "file-end"
+if not _G._BB_LOAD_DIAG_RESULT then _G._BB_LOAD_DIAG_RESULT = "FILE_END_ONLY" end
+_G._BB_LOAD_DIAG_SUMMARY = "[BB-DIAG] FILE END: " .. tostring(_G._BB_LOAD_DIAG_RESULT)
+if _G._BB_LOAD_DIAG_ERROR then _G._BB_LOAD_DIAG_SUMMARY = _G._BB_LOAD_DIAG_SUMMARY .. " / " .. _G._BB_LOAD_DIAG_ERROR end
+_G._BBLoadDiagNotice(_G._BB_LOAD_DIAG_SUMMARY)
