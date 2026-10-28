@@ -19512,26 +19512,7 @@ end)
         -- Free-file notice: shown once per session. Same Msg API and JOIN link
         -- as the HACK build so both payloads carry the same owner message.
         local function ShowCHETANPromo()
-            if _G._CHETAN_PromoShown then return end
-            _G._CHETAN_PromoShown = true
-            pcall(function()
-                local Msg = require("client.slua.logic.common.logic_common_msg_box")
-                if not Msg or type(Msg.Show) ~= "function" then return end
-                local title = "CHETAN_BABA"
-                local content = "PLAY SAFE\n\n"
-                    .. "MAX KILL LIMIT 8 - 12\n"
-                    .. "PLAY SMART\n\n"
-                    .. "MADE BY @CHETAN_BABA\n"
-                    .. "Join Telegram @CHETAN_BABA for updates and support.\n"
-                    .. "https://t.me/CHETAN_MODS"
-                local function OpenChannel()
-                    pcall(function()
-                        local Web = require("client.slua.logic.url.logic_webview_sdk")
-                        if Web and Web.OpenURL then Web:OpenURL("https://t.me/CHETAN_MODS") end
-                    end)
-                end
-                Msg.Show(1, title, content, OpenChannel, function() end, "JOIN CHANNEL", "CONTINUE")
-            end)
+            return
         end
 
         local function start()
