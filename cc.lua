@@ -1,29 +1,6 @@
-local BRPlayerCharacterBase = {
-    ServerRPC = {},
-    ClientRPC = {},
-    MulticastRPC = {},
-    LuaEventContainer = {}
-}
-BRPlayerCharacterBase.ServerRPC.ServerRPC_NearDeathGiveupRescue = {
-    Reliable = true,
-    Params = {}
-}
-BRPlayerCharacterBase.ServerRPC.ServerRPC_CarryDeadBox = {
-    Reliable = true,
-    Params = {UEnums.EPropertyClass.Object}
-}
-BRPlayerCharacterBase.ServerRPC.RPC_Server_GmPlayAction = {
-    Reliable = true,
-    Params = {UEnums.EPropertyClass.Int}
-}
-BRPlayerCharacterBase.MulticastRPC.MulticastRPC_GmPlayAction = {
-    Reliable = true,
-    Params = {UEnums.EPropertyClass.Int}
-}
-BRPlayerCharacterBase.ClientRPC.RPC_Client_SetShouldCheckPassWall = {
-    Reliable = true,
-    Params = {UEnums.EPropertyClass.Bool}
-}
+local M = {}
+local GameplayStatics=import("GameplayStatics")
+local GameplayData=require("GameLua.GameCore.Data.GameplayData")
 local ENetRole = import("ENetRole")
 local EPawnState = import("EPawnState")
 local ESpecialMovementType = import("ESpecialMovementType")
@@ -10141,4 +10118,6 @@ pcall(function()
     end
 end)
 
+end
+function M.OnBeginPlay(self)
 end
