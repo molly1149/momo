@@ -129,7 +129,7 @@ _G.LexusConfig = _G.LexusConfig or {
     AimTouchSniperVisCheck = false,
     AimTouchMortar = false,
     EspFovCircle = false,
-    BugManEnable = false
+    BugManEnable = false, 
     -- ===== ESP V2 =====
     EspV2Enable = false,
     EspV2Snapline = true,
@@ -5345,3 +5345,4 @@ local function InitAllModSystems()
 end
 function M.OnBeginPlay(self)
 end
+return M
