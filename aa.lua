@@ -15042,8 +15042,11 @@ local function apply_attachment(CurWeapon, avatarid)
 
         -- ========== تطبيق سكن السيارة داخل الجيم ==========
         -- مكافئ Lua لكود C++ الذي يطبق سكن السيارة عند ركوب نوع السيارة المطابق
-        -- Menu skin lists are synchronized on demand, not during vehicle entry.
         local _lastVehicleSkinKey = ""
+        -- Timestamp + key of the last vehicle-list sync, so the rebuild only
+        -- runs when the vehicle/avatar changed or a 5s backstop expires.
+        local _lastVehSyncAt = 0
+        local _lastVehSyncKey = nil
 
         local function applyVehicleSkinInGame()
             local char = getLocalChar()
@@ -15052,6 +15055,8 @@ local function apply_attachment(CurWeapon, avatarid)
             local vehicle = char.GetCurrentVehicle and char:GetCurrentVehicle()
             if not vehicle or not slua.isValid(vehicle) then
                 _lastVehicleSkinKey = ""
+                _lastVehSyncAt = 0
+                _lastVehSyncKey = nil
                 return
             end
 
@@ -15067,6 +15072,20 @@ local function apply_attachment(CurWeapon, avatarid)
             local cacheKey = tostring(vehicle) .. "_" .. tostring(defaultAvatarID) .. "_" .. tostring(currentAvatarID)
             local vehicleChanged = (cacheKey ~= _lastVehicleSkinKey)
             if vehicleChanged then _lastVehicleSkinKey = cacheKey end
+
+            -- The list rebuild used to sit ABOVE this early-out, so it ran on
+            -- every 2s pass even when nothing about the vehicle had changed.
+            -- It now runs when the vehicle/avatar actually changed, plus a 5s
+            -- backstop so a skin selection change or a late injection is still
+            -- picked up while parked in the same vehicle.
+            local nowV = 0
+            pcall(function() nowV = os.clock() end)
+            if vehicleChanged or _lastVehSyncKey ~= cacheKey
+                or _lastVehSyncAt == nil or (nowV - _lastVehSyncAt) >= 5.0 then
+                _lastVehSyncAt = nowV
+                _lastVehSyncKey = cacheKey
+                pcall(syncVehicleAvatarSkinList)
+            end
 
             if not vehicleChanged then return end
 
@@ -15501,6 +15520,8 @@ local function apply_attachment(CurWeapon, avatarid)
                                 avatarComp:ChangeItemAvatar(resID, true)
                                 avatarComp.CanChangeAvatar = true
                                   _lastVehicleSkinKey = ""
+                                  _lastVehSyncAt = 0
+                                  _lastVehSyncKey = nil
                                   print("[AddOutfit] Vehicle skin changed locally to " .. tostring(resID))
                                 pcall(applyVehicleChassisLight)
                             end
@@ -15552,6 +15573,8 @@ local function apply_attachment(CurWeapon, avatarid)
                                 _G._chetanVehInMatchOverride[vst > 0 and vst or 0] = tonumber(self.resID)
                             end)
                               _lastVehicleSkinKey = ""
+                              _lastVehSyncAt = 0
+                              _lastVehSyncKey = nil
                               print("[AddOutfit] VehicleSkinItem applied skin locally " .. tostring(self.resID))
                             pcall(applyVehicleChassisLight)
                         end)
@@ -15595,7 +15618,6 @@ local function apply_attachment(CurWeapon, avatarid)
             impl.OnClickSkinButton = handler
         end
 
-        local syncVehicleAvatarSkinList
         local function hookVehicleSkinAndMusicPanel()
             local ok, VSP = pcall(require, "GameLua.Mod.BaseMod.Client.InGameUI.VehicleControl.VehicleSkinAndMusicPanel")
             if not ok or not VSP then return end
@@ -15606,9 +15628,6 @@ local function apply_attachment(CurWeapon, avatarid)
             local orig = impl.InitSkinList
             impl.InitSkinList = function(self)
                 hookVehicleSkinItem()
-                pcall(function()
-                    if syncVehicleAvatarSkinList then syncVehicleAvatarSkinList() end
-                end)
                 return orig(self)
             end
         end
@@ -15749,9 +15768,10 @@ local function apply_attachment(CurWeapon, avatarid)
         -- Live :Add() on top of the init list. VehicleAvatarList and
         -- VehicleAvatarSkinList are append-only, so this cannot reorder what the
         -- game already built -- ordering comes from InitialVehicleAvatarSkinList
-        -- below. Its job is to make sure selected skins are present if the game
-        -- rebuilt its lists. It runs when the vehicle skin panel opens, not on
-        -- every vehicle-entry tick.
+        -- below. Its job is to make sure the selected skins are present at all if
+        -- the game rebuilt its lists after init. Guarded by a key because this
+        -- runs on a ~5s tick and re-adding every skin each time would grow the
+        -- lists without bound.
         local function injectSelectedVehicleSkins(pc, selected, cacheKey)
             if _G._chetanVehListInjectedKey == cacheKey then return end
             local UAvatarUtils = import("AvatarUtils")
@@ -15773,7 +15793,7 @@ local function apply_attachment(CurWeapon, avatarid)
 
         local _vehListCache = nil
 
-        syncVehicleAvatarSkinList = function()
+        local function syncVehicleAvatarSkinList()
             local pc = getPlayerController()
             if not pc or not slua.isValid(pc) then return end
             hookServerChangeVehicleAvatar(pc)
@@ -19586,7 +19606,6 @@ end)
             hookWeaponSpawn()
             hookVehicleLicenseComponentBase()
             hookVehiclePlateLicenseUtil()
-            pcall(hookVehicleSkinAndMusicPanel)
             hookBackpackWeaponAvatarRes()
             hookQualityWatermark()
             hookEliminationKingEffect()
@@ -19657,7 +19676,6 @@ end)
         hookGrenadeAvatarInit()
         hookGrenadeAvatarLookup()
         hookWeaponSpawn()
-        pcall(hookVehicleSkinAndMusicPanel)
         hookBackpackWeaponAvatarRes()
         hookQualityWatermark()
         hookEliminationKingEffect()
@@ -20057,6 +20075,16 @@ end)
                             if _timeCount % 10 == 0 then
                                 pcall(tickEliminationKingEffect)
                                 pcall(applyVehicleChassisLight)
+                                -- Only worth doing when actually driving: this used
+                                -- to run on foot too, where the whole vehicle
+                                -- skin-list rebuild was pure waste every 5s.
+                                pcall(function()
+                                    local vch = getLocalChar()
+                                    local veh = vch and vch.GetCurrentVehicle and vch:GetCurrentVehicle()
+                                    if veh and slua.isValid(veh) then
+                                        syncVehicleAvatarSkinList()
+                                    end
+                                end)
                             end
                             -- Weapon inspect: unlock the current skin's emote + suspend avatar writes
                             -- while the montage plays. Cheap (two early-outs).
