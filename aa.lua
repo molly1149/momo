@@ -5446,86 +5446,148 @@ end
 -- ============================================================================
 -- WIDGET COUNTER MUSUH + PERINGATAN AIM
 -- ============================================================================
-local PortBtnBP = "/Game/UMG/UI_BP/Common/BaseComponent/CommonBaseComponent_TextButton_UIBP.CommonBaseComponent_TextButton_UIBP"
+local PortBanners = {}
+
+local function PortDropBanner(w)
+    if w and slua.isValid(w) then
+        pcall(function() w:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed) end)
+        pcall(function() w:RemoveFromParent() end)
+    end
+end
+
+-- deteksi widget yang malah memenuhi layar (layout gagal)
+local function PortBannerTooBig(btn)
+    local broken = false
+    pcall(function()
+        local g = btn:GetCachedGeometry()
+        local sz = nil
+        if g then
+            if g.LocalSize then sz = g.LocalSize
+            elseif type(g.GetLocalSize) == "function" then sz = g:GetLocalSize() end
+        end
+        local w = sz and (sz.X ~= nil and sz.X or sz.x)
+        if w and w > 0 then
+            local sw = 1920
+            pcall(function()
+                local vp = import("WidgetLayoutLibrary").GetViewportSize(btn)
+                if vp and vp.X and vp.X > 0 then sw = vp.X end
+            end)
+            if w > sw * 0.5 then broken = true end
+        end
+    end)
+    return broken
+end
+
+local function PortBannerLayout(btn, y, w, h)
+    local ok = false
+    pcall(function()
+        local WLL = import("WidgetLayoutLibrary")
+        local slot = WLL and WLL.SlotAsCanvasSlot and WLL.SlotAsCanvasSlot(btn)
+        if slot then
+            slot:SetAnchors({Minimum={X=0.5,Y=0}, Maximum={X=0.5,Y=0}})
+            slot:SetAlignment({X=0.5,Y=0})
+            slot:SetPosition({X=0,Y=y})
+            slot:SetSize({X=w,Y=h})
+            ok = true
+        end
+    end)
+    if not ok then
+        pcall(function()
+            local sw = 1920
+            pcall(function()
+                local vp = import("WidgetLayoutLibrary").GetViewportSize(btn)
+                if vp and vp.X and vp.X > 0 then sw = vp.X end
+            end)
+            btn:SetAlignmentInViewport({X=0.5,Y=0})
+            btn:SetDesiredSizeInViewport({X=w,Y=h})
+            btn:SetPositionInViewport({X=sw/2 - w/2, Y=y}, false)
+            ok = true
+        end)
+    end
+    return ok
+end
+
+local function PortBannerCreate(key, text, y, w, h, fontSize, z)
+    local cached = PE[key]
+    if cached then
+        if slua.isValid(cached) then return cached end
+        PE[key] = nil
+    end
+    local brokeAt = PE[key .. "Broken"]
+    if brokeAt and (os.clock() - brokeAt) < 5 then return nil end
+
+    local btn = nil
+    pcall(function() btn = slua.loadUI(PortBtnBP) end)
+    if not btn or not slua.isValid(btn) then return nil end
+
+    -- simpan referensi DULU: kalau langkah berikutnya gagal, tidak bikin widget baru tiap tick
+    PE[key] = btn
+    table.insert(PortBanners, btn)
+
+    pcall(function() require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, z) end)
+    pcall(function()
+        if btn.RichText_Content then
+            btn.RichText_Content:SetText(text)
+            local fontInfo = btn.RichText_Content.Font
+            if fontInfo then fontInfo.Size = fontSize; btn.RichText_Content:SetFont(fontInfo) end
+        end
+    end)
+
+    local laid = PortBannerLayout(btn, y, w, h)
+    if not laid or PortBannerTooBig(btn) then PortBannerLayout(btn, y, w, h) end
+
+    -- kalau tetap full-screen: buang, jangan tinggalkan banner kuning nutup layar
+    if not laid or PortBannerTooBig(btn) then
+        for i = #PortBanners, 1, -1 do
+            if PortBanners[i] == btn then table.remove(PortBanners, i) end
+        end
+        PE[key] = nil
+        PE[key .. "Broken"] = os.clock()
+        PortDropBanner(btn)
+        return nil
+    end
+
+    pcall(function() btn:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed) end)
+    return btn
+end
 
 local function PortCounterCreate()
-    if PE.CounterWidget then
-        if slua.isValid(PE.CounterWidget) then return PE.CounterWidget end
-        PE.CounterWidget = nil
-    end
-    pcall(function()
-        local btn = slua.loadUI(PortBtnBP)
-        if not btn or not slua.isValid(btn) then return end
-        require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10500)
-        if btn.RichText_Content then
-            btn.RichText_Content:SetText("Musuh: 0  |  Terdekat: 0m")
-            local fontInfo = btn.RichText_Content.Font
-            if fontInfo then fontInfo.Size = 16; btn.RichText_Content:SetFont(fontInfo) end
-        end
-        local WidgetLayoutLibrary = import("WidgetLayoutLibrary")
-        local slot = WidgetLayoutLibrary.SlotAsCanvasSlot(btn)
-        if slot then
-            slot:SetAnchors(FAnchors(0.5, 0, 0.5, 0))
-            slot:SetAlignment(FVector2D(0.5, 0))
-            slot:SetPosition(FVector2D(0, 30))
-            slot:SetSize(FVector2D(240, 36))
-        end
-        btn:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
-        PE.CounterWidget = btn
-    end)
-    return PE.CounterWidget
+    return PortBannerCreate("CounterWidget", "Musuh: 0  |  Terdekat: 0m", 30, 240, 36, 16, 10500)
 end
 
 local function PortWarningCreate()
-    if PE.WarningWidget then
-        if slua.isValid(PE.WarningWidget) then return PE.WarningWidget end
-        PE.WarningWidget = nil
-    end
-    pcall(function()
-        local btn = slua.loadUI(PortBtnBP)
-        if not btn or not slua.isValid(btn) then return end
-        require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10501)
-        if btn.RichText_Content then
-            btn.RichText_Content:SetText("MUSUH MENGARAHKAN BIDIKAN")
-            local fontInfo = btn.RichText_Content.Font
-            if fontInfo then fontInfo.Size = 18; btn.RichText_Content:SetFont(fontInfo) end
-        end
-        local WidgetLayoutLibrary = import("WidgetLayoutLibrary")
-        local slot = WidgetLayoutLibrary.SlotAsCanvasSlot(btn)
-        if slot then
-            slot:SetAnchors(FAnchors(0.5, 0, 0.5, 0))
-            slot:SetAlignment(FVector2D(0.5, 0))
-            slot:SetPosition(FVector2D(0, 75))
-            slot:SetSize(FVector2D(260, 36))
-        end
-        btn:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
-        PE.WarningWidget = btn
-    end)
-    return PE.WarningWidget
+    return PortBannerCreate("WarningWidget", "MUSUH MENGARAHKAN BIDIKAN", 75, 260, 36, 18, 10501)
 end
 
 local function PortHideCounter()
-    if PE.CounterWidget and slua.isValid(PE.CounterWidget) then
-        PE.CounterWidget:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+    if PE.CounterWidget then
+        PortDropBanner(PE.CounterWidget)
+        PE.CounterWidget = nil
     end
-    if PE.WarningWidget and slua.isValid(PE.WarningWidget) then
-        PE.WarningWidget:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+    if PE.WarningWidget then
+        PortDropBanner(PE.WarningWidget)
+        PE.WarningWidget = nil
     end
 end
 
+
 local function PortCounterTick(lp)
     local C = PortCfg()
-    if not (C.EspLoai7 and C.Esp7_SoLuong) and not C.EspAimWarning then
-        PortHideCounter()
-        return
-    end
+    local wantCount = (C.EspLoai7 and C.Esp7_SoLuong) and not (C.EspEnemyCount or C.EspEnemyCountV2)
+    local wantWarn = C.EspAimWarning
+    if not wantCount and not wantWarn then PortHideCounter() return end
     if not slua.isValid(lp) then PortHideCounter() return end
 
-    local widgetCounter = PortCounterCreate()
-    local widgetWarning = PortWarningCreate()
+    local widgetCounter = wantCount and PortCounterCreate() or nil
+    if not wantCount and PE.CounterWidget then PortDropBanner(PE.CounterWidget); PE.CounterWidget = nil end
+
+    local widgetWarning = wantWarn and PortWarningCreate() or nil
+    if not wantWarn and PE.WarningWidget then PortDropBanner(PE.WarningWidget); PE.WarningWidget = nil end
+
     if widgetCounter and slua.isValid(widgetCounter) then
-        widgetCounter:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+        pcall(function() widgetCounter:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible) end)
     end
+
 
     local curTime = os.clock()
     if (curTime - PE.LastCounter) <= 0.5 then return end
@@ -5594,16 +5656,21 @@ local function PortCounterTick(lp)
     end
 
     if widgetCounter and widgetCounter.RichText_Content then
-        widgetCounter.RichText_Content:SetText(string.format("Musuh: %d  |  Terdekat: %dm", count, count > 0 and nearest or 0))
+        pcall(function()
+            widgetCounter.RichText_Content:SetText(string.format("Musuh: %d  |  Terdekat: %dm", count, count > 0 and nearest or 0))
+        end)
     end
 
     if widgetWarning and slua.isValid(widgetWarning) then
-        if C.EspAimWarning and isBeingTargeted then
-            widgetWarning:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
-        else
-            widgetWarning:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
-        end
+        pcall(function()
+            if C.EspAimWarning and isBeingTargeted then
+                widgetWarning:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+            else
+                widgetWarning:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+            end
+        end)
     end
+
 end
 
 
@@ -5632,10 +5699,16 @@ local function PortClearAll()
         end
         S.EnemyMarks = {}
         S.TrackedMarks = {}
-        if PE.CounterWidget and slua.isValid(PE.CounterWidget) then PE.CounterWidget:RemoveFromParent() end
+        for i = #PortBanners, 1, -1 do
+            PortDropBanner(PortBanners[i])
+            PortBanners[i] = nil
+        end
+        PortBanners = {}
         PE.CounterWidget = nil
-        if PE.WarningWidget and slua.isValid(PE.WarningWidget) then PE.WarningWidget:RemoveFromParent() end
         PE.WarningWidget = nil
+        PE.CounterWidgetBroken = nil
+        PE.WarningWidgetBroken = nil
+
     end)
     PE.ItemCache = {}
     PE.VehicleCache = {}
