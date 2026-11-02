@@ -7472,23 +7472,21 @@ local function FastAimbotTick()
 end
 
 
-FastTick()
+
 _G.X3.XthrlenState.AimbotLoopToken = (_G.X3.XthrlenState.AimbotLoopToken or 0) + 1
 aimbotToken = _G.X3.XthrlenState.AimbotLoopToken
 local okTicker, ticker = pcall(require, "common.time_ticker")
 if okTicker and ticker and ticker.AddTimerOnce then
     ticker.AddTimerOnce(0.1, FastAimbotTick) -- mulai dengan jeda kecil
 end
-Notify("SELAMAT MENGGUNAKAN MOD VIP SRCHUBID!")
+FastTick()
 
 -- SYSTEM HOOKS DARI BYPASS BARU
 local function InitAllModSystems()
     pcall(function()
         if _G.X3.StartBypass_VIP_v3 then _G.X3.StartBypass_VIP_v3() end
         if _G.X3.InitializeAutoHeadHooks then _G.X3.InitializeAutoHeadHooks() end
-
     end)
-
     local GameplayData = package.loaded["GameLua.GameCore.Data.GameplayData"] or require("GameLua.GameCore.Data.GameplayData")
     if not GameplayData then return end
 
@@ -9349,9 +9347,6 @@ _G.X3.ExtraTick = function(lp)
     if now - (st.acshk or 0) >= 10.0 * ts then st.acshk = now; if _G.X3._ACShieldHookTry then pcall(_G.X3._ACShieldHookTry) end; if _G.X3._ACMemberMaskTry then pcall(_G.X3._ACMemberMaskTry) end; if _G.X3._ACTssShieldTry then pcall(_G.X3._ACTssShieldTry) end; if _G.X3._ACLogShieldTry then pcall(_G.X3._ACLogShieldTry) end; if _G.X3._ACHiggsShieldTry then pcall(_G.X3._ACHiggsShieldTry) end; if _G.X3._ACPacketFilterTry then pcall(_G.X3._ACPacketFilterTry) end end
 end
 
-end
-
--- SKIN ACAK TERBARU + ANTI-SPAM TIP
 do
 -- PERISAI ANTI-BAN / ANTI-BAN SHIELD (auto ON, realtime, ringan)
 do
