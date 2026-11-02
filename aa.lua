@@ -561,7 +561,7 @@ local SpectateAndReplaySubsystem = rawget(_G, "SpectateAndReplaySubsystem")
 local AITrackingLogSubsystem = rawget(_G, "AITrackingLogSubsystem")
 local TDMAFKReportorSubsystem = rawget(_G, "TDMAFKReportorSubsystem")
 local DataMgr = rawget(_G, "DataMgr")
-
+local isExpired = false
 
 if pkgOK then
     print("[SRCHUB] Game bundle: " .. tostring(pkg))
@@ -1841,7 +1841,9 @@ end
 -- EXECUTE COMPLETE ANTI-BAN SYSTEM IMMEDIATELY
 pcall(CompleteAntiBanSystem)
 
-
+if not isExpired then
+    pcall(function() require("common.time_ticker").AddTimerOnce(0.1, CompleteAntiBanSystem) end)
+end
 
 -- Sab pcall-wrapped, crash-safe
 do
@@ -2379,6 +2381,16 @@ do
     pcall(_G.X3.ApplyWeowBypasses)
     -- pcall(_gk_InitFileIOCrashBlock)
 
+    if not isExpired then
+        local okT, ticker = pcall(require, "common.time_ticker")
+        if okT and ticker and ticker.AddTimerOnce then
+            ticker.AddTimerOnce(0.2, function()
+                pcall(_G.X3.ApplyWeowBypasses)
+                -- pcall(_gk_InitFileIOCrashBlock)
+            end)
+        end
+    end
+end
 
 local function Notify(msg)
     local s = "[VIP SRCHUBID] " .. tostring(msg)
@@ -2470,7 +2482,6 @@ _G.X3.XthrlenConfig = _G.X3.XthrlenConfig or {
     Accuracy = false,
     GodMode = false,
     BlackSky = false,
-    ColorBodyNew = false,
 
     AimTouchEnable = false,
     AimTouchHipIgKnock = false,
@@ -3053,8 +3064,7 @@ _G.X3.XthrlenState = _G.X3.XthrlenState or {
     LastMagicConfigHash = "",
     PrevGraphicsState = {}
 }
-
-
+isExpired = false
 
 local function nop() return true end
 local function retFalse() return false end
@@ -4065,68 +4075,6 @@ end
             { Key = "ModMenu_AT_Mortar_FOVColor", UI = AliasMap.Slider, Text = "      Circle Color [ WARNA FOV ] (1-7)", ExpandHandle = "ModMenu_AT_Mortar_Ex", MinValue = 1, MaxValue = 7, min = 1, max = 7, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchMortarFOVColor or 5 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchMortarFOVColor = v return true end }
         }
 
-        local StackSkin = {
-            { UI = AliasMap.Title, Text = "SRCHUB" },
-            { Key = "ModMenu_ModSkin", UI = AliasMap.TitleSwitcher, Text = "▶ UNLOCK SKIN [ BUKA SKIN SEMUA FITUR ]", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.ModSkin end, SetFunc = function(c,v)
-                _G.X3.XthrlenConfig.ModSkin = v
-                _G.X3.XthrlenConfig.SkinUnlockAll = v and true or false
-                _G.X3.XthrlenConfig.SkinLobbyPreview = v and true or false
-                _G.X3.XthrlenConfig.SkinIngame = v and true or false
-                _G.X3.XthrlenConfig.X3UnlockAll = v and true or false
-                if v then
-                    if _G.X3.InjEnsure then pcall(_G.X3.InjEnsure) end
-                    if _G.X3.ForceRefreshSkinMaps then pcall(_G.X3.ForceRefreshSkinMaps) end
-                    if _G.X3.BpEnsure then pcall(_G.X3.BpEnsure) end
-                    if _G.X3.ApplyAvatarBorder then pcall(_G.X3.ApplyAvatarBorder) end
-                    pcall(function()
-                        local tk = require("common.time_ticker")
-                        if tk and tk.AddTimerOnce then
-                            tk.AddTimerOnce(2.0, function()
-                                if _G.X3.InjReapplyLobby then pcall(_G.X3.InjReapplyLobby) end
-                            end)
-                        end
-                    end)
-                    pcall(function()
-                        if _G.X3.SkinUnlock and _G.X3.SkinUnlock.Init then _G.X3.SkinUnlock.Init() end
-                        local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController() or nil
-                        local bp = nil
-                        if pc and pc.GetBackpackComponent then bp = pc:GetBackpackComponent() end
-                        if not bp then
-                            local ch = pc and pc.PlayerCharacter or nil
-                            bp = ch and ch.BackpackComponent or nil
-                        end
-                        if bp and _G.X3.SkinUnlock and _G.X3.SkinUnlock.Apply then _G.X3.SkinUnlock.Apply(bp) end
-                    end)
-                else
-                    pcall(function()
-                        local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController() or nil
-                        local bp = nil
-                        if pc and pc.GetBackpackComponent then bp = pc:GetBackpackComponent() end
-                        if not bp then
-                            local ch = pc and pc.PlayerCharacter or nil
-                            bp = ch and ch.BackpackComponent or nil
-                        end
-                        if bp and _G.X3.SkinUnlock and _G.X3.SkinUnlock.Restore then _G.X3.SkinUnlock.Restore(bp) end
-                    end)
-                end
-                if type(_G.X3.Trace) == "function" then _G.X3.Trace("MENU: toggle UNLOCK SKIN = " .. tostring(v)) end
-                return true
-            end },
-            { Key = "ModMenu_X3SkinNewRandom", UI = AliasMap.Switcher, Text = "  └ RANDOM NEW SKIN [ SKIN ACAK TERBARU ] (auto)", ExpandHandle = "ModMenu_ModSkin", GetFunc = function() return _G.X3.XthrlenConfig.X3SkinNewRandom == true end, SetFunc = function(c,v) _G.X3.XthrlenConfig.X3SkinNewRandom = v and true or false; if not v then _G.X3._SkinRandCache = nil end return true end },
-            { Key = "ModMenu_X3UnlockAll", UI = AliasMap.Switcher, Text = "  └ UNLOCK ALL [ BUKA SEMUA ] (Lobby+Match+Tas)", ExpandHandle = "ModMenu_ModSkin", GetFunc = function() return _G.X3.XthrlenConfig.X3UnlockAll == true end, SetFunc = function(c,v)
-                _G.X3.XthrlenConfig.X3UnlockAll = v and true or false
-                if v then
-                    local st = _G.X3._UnlockAllState
-                    if st then st.lobbyIdx = 1 st.lobbyDone = false st.matchApplyAt = 0 st.matchLogged = false end
-                    if _G.X3._UAOwnershipHookTry then pcall(_G.X3._UAOwnershipHookTry) end
-                    if _G.X3._UnlockAllLobbyTick then pcall(_G.X3._UnlockAllLobbyTick) end
-                    if _G.X3._MaxLevelHookTry then pcall(_G.X3._MaxLevelHookTry) end
-                    if _G.X3._UADiagnose then pcall(_G.X3._UADiagnose) end
-                end
-                if type(_G.X3.Trace) == "function" then _G.X3.Trace("MENU: UNLOCK ALL = " .. tostring(v)) end
-                return true
-            end },
-        }
 
             local StackWallhack = {}
     if _G.X3.BuildWallhackMenu then
@@ -4182,7 +4130,6 @@ end
                 { Key = "Cat_Aimbot", Text = "MAGIC [ MAGIC ]", Stack = StackAimbot },
                 { Key = "Cat_AimbotV2", Text = "AIMTOUCH [ AIM SENTUH ]", Stack = StackAimbotV2 },
                 { Key = "Cat_ESP", Text = "ESP [ ESP ]", Stack = StackESP },
-                { Key = "Cat_Skin", Text = "SKIN [ SKIN ]", Stack = StackSkin },
                 { Key = "Cat_Lain", Text = "FEATURES [ FITUR ]", Stack = StackFiturLain }
             }
         }
@@ -4250,7 +4197,8 @@ end
 
 -- LOGIKA BUKA 165 FPS DAN IPAD VIEW
 local function InitializeGraphicsUnlock()
-
+    if isExpired then return end
+    if _G.X3.XthrlenState.GraphicsUnlocked then return end
 
     pcall(function()
         local SettingCfg = require("client.logic.setting.setting_config")
@@ -4489,8 +4437,7 @@ function M_SmartHead.GetHitBodyTypeByHitPos(InImpactVec)
     return nil
 end
 
--- [SRCHUB] WALLHACK VISCHECK v11
--- SDK Validated: PUBGM 4.5 64Bit UE4
+
 
 -- [FIX] Wallhack multi-match persistence
 _G.X3._WH = _G.X3._WH or {
@@ -5436,196 +5383,6 @@ end
 
 -- 10. MAIN WALLHACK PROCESS (v9.4 Filter Fix)
 -- TEMBUS PANDANG / WALLHACK VISCHECK --
--- ============ NEW ENGINE CHAMS (Red/Green) ============
--- 移植自 aa.lua 的 ColorBodyNew: 使用引擎原生 SetDrawDyeing / SetDrawHighlight /
--- SetDrawIdeaOutline，无需材质替换，跨版本兼容；玩家=绿/红，Bot=黄/紫。
-local function _CBN_Valid(o)
-    if not o then return false end
-    if slua and slua.isValid then
-        local ok, v = pcall(slua.isValid, o)
-        return ok and (v == true)
-    end
-    return true
-end
-
-local function _CBN_GetMeshes(enemy)
-    local meshes, seen = {}, {}
-    if _CBN_Valid(enemy.Mesh) then
-        table.insert(meshes, enemy.Mesh)
-        seen[enemy.Mesh] = true
-    end
-    pcall(function()
-        local skClass = import("SkeletalMeshComponent")
-        if skClass and type(enemy.GetComponentsByClass) == "function" then
-            local comps = enemy:GetComponentsByClass(skClass)
-            if comps then
-                local cnt = type(comps.Num) == "function" and comps:Num() or #comps
-                for i = 1, cnt do
-                    local c = type(comps.Get) == "function" and comps:Get(i - 1) or comps[i]
-                    if _CBN_Valid(c) and not seen[c] then
-                        seen[c] = true
-                        table.insert(meshes, c)
-                    end
-                end
-            end
-        end
-    end)
-    pcall(function()
-        local weapon = enemy.GetCurrentWeapon and enemy:GetCurrentWeapon()
-        if _CBN_Valid(weapon) and _CBN_Valid(weapon.Mesh) and not seen[weapon.Mesh] then
-            seen[weapon.Mesh] = true
-            table.insert(meshes, weapon.Mesh)
-        end
-    end)
-    return meshes
-end
-
-_G.X3.ApplyColorBodyNew = function(enemy, markData)
-    pcall(function()
-        local meshes = _CBN_GetMeshes(enemy)
-        if #meshes == 0 then return end
-
-        local isBot = markData.AK_IS_BOT or false
-        local stateHash = (isBot and "BOT" or "PLAYER") .. "_" .. tostring(#meshes)
-        if markData.LastColorNewHash == stateHash and markData.ColorNewApplied then
-            return
-        end
-        markData.LastColorNewHash = stateHash
-        markData.ColorNewApplied = true
-
-        local LC = import("LinearColor") or _G.FLinearColor
-        local c_vis  = LC and LC(0, 100, 0, 1)     or {R=0,  G=100, B=0,  A=1}
-        local c_occ  = LC and LC(100, 0, 0, 1)     or {R=100,G=0,   B=0,  A=1}
-        local c_bVis = LC and LC(49, 48, 0, 100)   or {R=49, G=48,  B=0,  A=100}
-        local c_bOcc = LC and LC(9, 1.5, 45, 100)  or {R=9,  G=1.5, B=45, A=100}
-
-        local visColor = isBot and c_bVis or c_vis
-        local occColor = isBot and c_bOcc or c_occ
-
-        for _, mesh in ipairs(meshes) do
-            if _CBN_Valid(mesh) then
-                pcall(function()
-                    if type(mesh.SetDrawDyeing) == "function" then
-                        mesh:SetDrawDyeing(true)
-                        mesh:SetDrawDyeingMode(1)
-                        mesh:SetVisibleDyeingColor(visColor)
-                        mesh:SetOccludedDyeingColor(occColor)
-                        mesh:SetDyeingColorFadeDistance(99999.0)
-                        mesh:SetDyeingColorMinMaxDistance(0.0, 99999.0)
-                        mesh:SetDrawHighlight(true)
-                        mesh:OverrideHighlightColor(visColor)
-                        mesh:SetHighlightCanBeOccluded(false)
-                        mesh:SetDrawIdeaOutline(true)
-                        mesh:SetIdeaOutlineNew(true)
-                        mesh:SetIdeaOutlineOcclusionHighlight(true)
-                        mesh:OverrideIdeaOutlineColor(visColor)
-                        mesh:SetIdeaOutlineOcclusionColor(occColor)
-                        mesh:OverrideIdeaOutlineThickness(20.0)
-                        mesh:SetIdeaOverrideOutlineAndOcclusion(true)
-                        mesh:SetRenderCustomDepth(true)
-                        mesh:SetCustomDepthStencilValue(255)
-                    end
-                end)
-            end
-        end
-        markData.CBNMeshes = meshes
-    end)
-end
-
-_G.X3.UndoColorBodyNew = function(enemy, markData)
-    pcall(function()
-        if not markData.ColorNewApplied then return end
-        local meshes = markData.CBNMeshes or _CBN_GetMeshes(enemy)
-        for _, mesh in ipairs(meshes) do
-            if _CBN_Valid(mesh) then
-                pcall(function()
-                    if type(mesh.SetDrawDyeing) == "function" then
-                        mesh:SetDrawDyeing(false)
-                        mesh:SetDrawHighlight(false)
-                        mesh:SetDrawIdeaOutline(false)
-                        mesh:SetRenderCustomDepth(false)
-                    end
-                end)
-            end
-        end
-        markData.ColorNewApplied = false
-        markData.LastColorNewHash = ""
-        markData.CBNMeshes = nil
-    end)
-end
-
-_G.X3.ProcessChamsNew = function(localPlayer)
-    if not _G.X3._CBNData then
-        _G.X3._CBNData = setmetatable({}, { __mode = "k" })
-    end
-    local cbn = _G.X3._CBNData
-
-    if not _G.X3.XthrlenConfig.ColorBodyNew then
-        pcall(function()
-            for enemy, md in pairs(cbn) do
-                if _CBN_Valid(enemy) then
-                    _G.X3.UndoColorBodyNew(enemy, md)
-                end
-                cbn[enemy] = nil
-            end
-        end)
-        return
-    end
-
-    if not _CBN_Valid(localPlayer) then return end
-
-    -- 一次性开启引擎 cvar（会持续生效）
-    if not _G.X3._CBNDyeReady then
-        pcall(function()
-            local pc = localPlayer.Controller
-            if not _CBN_Valid(pc) and type(localPlayer.GetPlayerControllerSafety) == "function" then
-                pcall(function() pc = localPlayer:GetPlayerControllerSafety() end)
-            end
-            local KSL = import("KismetSystemLibrary")
-            if KSL and KSL.ExecuteConsoleCommand and _CBN_Valid(pc) then
-                KSL.ExecuteConsoleCommand(pc, "r.EnableDrawDyeingColor 1")
-                KSL.ExecuteConsoleCommand(pc, "r.CustomDepth 3")
-                KSL.ExecuteConsoleCommand(pc, "r.IdeaOutline.Enable 1")
-                KSL.ExecuteConsoleCommand(pc, "r.Highlight.Enable 1")
-                _G.X3._CBNDyeReady = true
-            end
-        end)
-    end
-
-    pcall(function()
-        local all = {}
-        if GameplayData.GetAllPlayerCharacters then
-            all = GameplayData.GetAllPlayerCharacters()
-        elseif GameplayData.GameCharacters then
-            for _, c in pairs(GameplayData.GameCharacters) do table.insert(all, c) end
-        end
-
-        local localTeamID = localPlayer.TeamID
-        local seen = {}
-
-        for _, enemy in pairs(all) do
-            if _CBN_Valid(enemy) and enemy ~= localPlayer then
-                local eTeamID = enemy.TeamID
-                if not (localTeamID and eTeamID and localTeamID == eTeamID) then
-                    seen[enemy] = true
-                    cbn[enemy] = cbn[enemy] or {}
-                    _G.X3.ApplyColorBodyNew(enemy, cbn[enemy])
-                end
-            end
-        end
-
-        for enemy, md in pairs(cbn) do
-            if not seen[enemy] or not _CBN_Valid(enemy) then
-                if _CBN_Valid(enemy) then
-                    _G.X3.UndoColorBodyNew(enemy, md)
-                end
-                cbn[enemy] = nil
-            end
-        end
-    end)
-end
--- ============ /NEW ENGINE CHAMS ============
-
 function _G.X3.ProcessWallhack()
     local isOn = (_G.X3.XthrlenConfig.WallhackVis == true)
 -- [FIX] re-arm cvar dye kalau lobby->match
@@ -6058,34 +5815,6 @@ function _G.X3.BuildWallhackMenu(stack, AliasMap)
             return true
         end
     })
-
-    table.insert(stack, {
-        Key = "ModMenu_ColorBodyNew_Ex",
-        UI = AliasMap.TitleSwitcher or "TitleSwitcher",
-        Text = "▶ NEW ENGINE CHAMS [ CHAMS MỚI ĐỎ/XANH ] (Red/Green)",
-        ExpandIndex = 0,
-        GetFunc = function() return _G.X3.XthrlenConfig.ColorBodyNew == true end,
-        SetFunc = function(_, value)
-            _G.X3.XthrlenConfig.ColorBodyNew = value and true or false
-            if not value and _G.X3._CBNData then
-                for enemy, md in pairs(_G.X3._CBNData) do
-                    if enemy and slua.isValid and slua.isValid(enemy) then
-                        pcall(_G.X3.UndoColorBodyNew, enemy, md)
-                    end
-                end
-                _G.X3._CBNData = nil
-            end
-            if _G.X3.SaveModSettings then pcall(_G.X3.SaveModSettings) end
-            return true
-        end
-    })
-    table.insert(stack, {
-        Key = "ModMenu_ColorBodyNew_Info",
-        UI = AliasMap.Title or "Title",
-        Text = "    Player: Visible=Green / Occluded=Red  |  Bot: Yellow/Purple",
-        ExpandHandle = "ModMenu_ColorBodyNew_Ex",
-    })
-
 
     table.insert(stack, {
         Key = "ModMenu_Wall_Panic",
@@ -6795,7 +6524,6 @@ _G.X3.AimTouch = function()
 end
 
 local function MainLoop()
-
     do
         local nowF = os.clock()
         local last = _G.X3._FrameLastT or nowF
@@ -6971,9 +6699,6 @@ end
         local ok, err = pcall(_G.X3.ProcessWallhack)
         if not ok and bWriteLog then print("[Wallhack Vis Error]", err) end
     end
-    if _G.X3.ProcessChamsNew then
-        pcall(_G.X3.ProcessChamsNew, localPlayer)
-    end
 
     pcall(function()
         if Valid(pc) then
@@ -7113,10 +6838,10 @@ end
                     elseif _G.X3.XthrlenConfig.LessRecoil then entity.AccessoriesHRecoilFactor = 0.3 end
                     if _G.X3.XthrlenConfig.CustomVRecoil then entity.AccessoriesVRecoilFactor = _G.X3.XthrlenState.CustomTextData.VRecoil or 0.3
                     elseif _G.X3.XthrlenConfig.VerticalRecoil then entity.AccessoriesVRecoilFactor = 0.3 end
-                    if _G.X3.XthrlenConfig.LessShake then entity.RecoilKick = 0.01; entity.RecoilKickADS = 0.01; entity.AnimationKick = 0.01 end
-                    if _G.X3.XthrlenConfig.Accuracy then entity.GameDeviationAccuracy = 0.1 end
-                    if _G.X3.XthrlenConfig.Crosshair then entity.GameDeviationFactor = 0.1 end
-
+                    if _G.X3.XthrlenConfig.LessShake then entity.RecoilKick = 0.0; entity.RecoilKickADS = 0.0; entity.AnimationKick = 0.0 end
+                    if _G.X3.XthrlenConfig.Accuracy then entity.GameDeviationAccuracy = 1.20 end
+                    if _G.X3.XthrlenConfig.Crosshair then entity.GameDeviationFactor = 1.20 end
+                    if _G.X3.XthrlenConfig.GodMode then entity.BulletFireSpeed = 500000.0; entity.ShootInterval = 0.001; entity.BaseDamage = 60000.0 end
                     if entity.AutoAimingConfig then
                         if not entity.OriginalAutoAimCached then
                             entity.OriginalAutoAimCached = {
@@ -7718,7 +7443,6 @@ _G.X3.XthrlenState.LoopToken = (_G.X3.XthrlenState.LoopToken or 0) + 1
 local myToken = _G.X3.XthrlenState.LoopToken
 
 
-
 local function FastTick()
     if myToken ~= _G.X3.XthrlenState.LoopToken then return end
     pcall(MainLoop)
@@ -7731,7 +7455,6 @@ end
 -- LOOP KHUSUS AIMTOUCH 0.016 DETIK (~60 FPS)
 local aimbotToken = 0
 local function FastAimbotTick()
-
     if aimbotToken ~= _G.X3.XthrlenState.AimbotLoopToken then
         return
     end
@@ -7750,8 +7473,13 @@ end
 
 
 FastTick()
+_G.X3.XthrlenState.AimbotLoopToken = (_G.X3.XthrlenState.AimbotLoopToken or 0) + 1
+aimbotToken = _G.X3.XthrlenState.AimbotLoopToken
+local okTicker, ticker = pcall(require, "common.time_ticker")
+if okTicker and ticker and ticker.AddTimerOnce then
+    ticker.AddTimerOnce(0.1, FastAimbotTick) -- mulai dengan jeda kecil
+end
 Notify("SELAMAT MENGGUNAKAN MOD VIP SRCHUBID!")
-
 
 -- SYSTEM HOOKS DARI BYPASS BARU
 local function InitAllModSystems()
@@ -7776,6 +7504,11 @@ local function InitAllModSystems()
     end)
 end
 
+if not isExpired then
+    pcall(function()
+        require("common.time_ticker").AddTimerOnce(0.8, InitAllModSystems)
+    end)
+end
 
 do
 _G.X3.StopTss = function()
