@@ -9853,6 +9853,47 @@ pcall(function() if _G.X3._ACPacketFilterTry then _G.X3._ACPacketFilterTry() end
         end)
     end
 end
-function BRPlayerCharacterBase.OnBeginPlay(self)
-end
-return BRPlayerCharacterBase
+local class = require("class")
+local CCharacterBase = require("GameLua.GameCore.Framework.CharacterBase")
+local CBRPlayerCharacterBase = class(CCharacterBase, nil, BRPlayerCharacterBase)
+local finalClass = require("combine_class").DeclareFeature(CBRPlayerCharacterBase, {
+  {
+    SkyTransition = "GameLua.Mod.BaseMod.Gameplay.Feature.SkyControl.PlayerCharacterSkyTransitionFeature"
+  },
+  {
+    CarryDeadBoxFeature = "GameLua.Mod.Library.GamePlay.Feature.CarryDeadBoxFeature"
+  },
+  {
+    SpecialSuitFeature = "GameLua.Mod.Library.GamePlay.Feature.SpecialSuitFeature"
+  },
+  {
+    TeleportPawnFeature = "GameLua.Mod.Library.GamePlay.Feature.TeleportPawnFeature"
+  },
+  {
+    LifterControl = "GameLua.Mod.BaseMod.Gameplay.Feature.Player.CharacterLifterControlFeature"
+  },
+  {
+    FinalKillEffect = "GameLua.Mod.BaseMod.Gameplay.Feature.Player.PlayerCharacterFinalKillEffectFeature"
+  },
+  {
+    CampFeature = "GameLua.Mod.BaseMod.GamePlay.Feature.Camp.PlayerCharacterCampFeature"
+  },
+  {
+    BuildSkateFeature = "GameLua.Mod.BaseMod.GamePlay.Feature.PlayerCharacterBuildVehicleFeature"
+  },
+  {
+    CommonBornlandTransformFeature = "GameLua.Mod.BaseMod.GamePlay.Feature.HeroPropFeature.CommonBornlandTransformFeature"
+  },
+  {
+    ParachuteFormation = "GameLua.Mod.BaseMod.GamePlay.Feature.ParachuteFormationFeature"
+  },
+  {
+    SpiderSenseFootprintFeature = "GameLua.Mod.Library.GamePlay.Feature.SpiderSenseFootprintFeature"
+  },
+  {
+    GeneralShowSpotFeature = "GameLua.Mod.BRMod.Gameplay.Feature.PlayerCharacterGeneralShowSpotFeature"
+  }
+}, "BRPlayerCharacterBase")
+
+_G.X3_ActivePlayerClass = finalClass
+return finalClass
