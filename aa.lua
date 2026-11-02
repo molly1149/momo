@@ -2460,6 +2460,18 @@ _G.X3.XthrlenConfig = _G.X3.XthrlenConfig or {
     EspLoai6 = false,
     EspLoai7 = false,
     EspLoai8 = false,
+    EspVip = false, EspVipPro = false, EspLoai5 = false,
+    Esp3ShowName = true, Esp3ShowHP = true,
+    Esp7_SoLuong = true, Esp7_VuKhi = true, Esp7_TuThe = true,
+    EspBomMaster = false, EspItemBom = false, EspActiveBom = false,
+    EspAimWarning = false, EspAimWarningVisCheck = false,
+    EspVehicle = false, EspVeh_Dacia = true, EspVeh_UAZ = true, EspVeh_Buggy = true,
+    EspVeh_Coupe = true, EspVeh_Mirado = true, EspVeh_Motor = true, EspVeh_Other = true,
+    EspAntenna = false, EspOutline = false, OutlineThickness = 10,
+    EspItem_Master = false, EspItem_AR = true, EspItem_Sniper = true, EspItem_SMG = true,
+    EspItem_Shotgun = true, EspItem_LMG = true, EspItem_Pistol = true, EspItem_Melee = false,
+    EspItem_Special = true, EspItem_Scope = true, EspItem_Grenade = true, EspItem_Med = true,
+    WallVehicle = false, ColorBodyV3 = false, ColorBodyNew = false,
     UnlockFPS = false,
     IpadView = false,
     CustomHRecoil = false,
@@ -3834,1383 +3846,6 @@ _G.X3.ReadLiveConfig = function()
     if _G.X3.SaveModSettings then _G.X3.SaveModSettings() end
 end
 
-
--- ================================================================
--- [PORT] ESP & NEW ENGINE CHAMS (ported from 1.lua)
--- 命名空间适配：LexusConfig→X3.XthrlenConfig，LexusState→X3.XthrlenState
--- ================================================================
-do
-    -- 1) 确保配置键存在
-    local C = _G.X3 and _G.X3.XthrlenConfig
-    if C then
-        local esp_defaults = {
-            EspVip=false, EspDistance=false, EspVipPro=false, EspRadar=false,
-            EspLoai5=false, EspLoai6=false, EspLoai7=false, EspLoai8=false,
-            Esp7_SoLuong=true, Esp7_VuKhi=true, Esp7_TuThe=true,
-            EspBomMaster=false, EspItemBom=false, EspActiveBom=false,
-            EspAimWarning=false, EspAimWarningVisCheck=false,
-            EspVehicle=false, EspVeh_Dacia=true, EspVeh_UAZ=true, EspVeh_Buggy=true,
-            EspVeh_Coupe=true, EspVeh_Mirado=true, EspVeh_Motor=true, EspVeh_Other=true,
-            Esp3ShowName=true, Esp3ShowHP=true,
-            EspAntenna=false, EspOutline=false, OutlineThickness=10,
-            EspItem_Master=false, EspItem_AR=true, EspItem_Sniper=true,
-            EspItem_SMG=true, EspItem_Shotgun=true, EspItem_LMG=true,
-            EspItem_Pistol=true, EspItem_Melee=false, EspItem_Special=true,
-            EspItem_Scope=true, EspItem_Grenade=true, EspItem_Med=true,
-            ColorBodyNew=false,
-            ColorBodyV3=false,
-            BugManEnable=false,
-        }
-        for k, v in pairs(esp_defaults) do
-            if C[k] == nil then C[k] = v end
-        end
-    end
-
-    local S = _G.X3 and _G.X3.XthrlenState
-    if S then
-        S.CustomTextData = S.CustomTextData or {}
-        local td = S.CustomTextData
-        if td.OutlineColor == nil then td.OutlineColor = 4 end
-        if td.HiddenR == nil then
-            td.HiddenR = 150; td.HiddenG = 0; td.HiddenB = 0; td.HiddenA = 25
-            td.VisibleR = 0; td.VisibleG = 150; td.VisibleB = 0; td.VisibleA = 25
-        end
-        if td.ColorV3Hidden == nil then td.ColorV3Hidden = 1 end
-        if td.ColorV3Visible == nil then td.ColorV3Visible = 2 end
-        if td.ColorV3Thickness == nil then td.ColorV3Thickness = 4 end
-        if td.BugManRatio == nil then td.BugManRatio = 133 end
-    end
-
-    -- 2) 物品颜色常量
-local C_AR      = {R = 255, G = 255, B = 0, A = 255}
-local C_SMG     = {R = 0, G = 255, B = 255, A = 255}
-local C_Sniper  = {R = 255, G = 0, B = 0, A = 255}
-local C_Shotgun = {R = 0, G = 255, B = 0, A = 255}
-local C_LMG     = {R = 255, G = 255, B = 255, A = 255}
-local C_Pistol  = {R = 200, G = 200, B = 200, A = 255}
-local C_Special = {R = 255, G = 0, B = 255, A = 255}
-local C_Melee   = {R = 150, G = 150, B = 150, A = 255}
-local C_Scope   = {R = 0, G = 0, B = 255, A = 255}
-local C_Grenade = {R = 255, G = 165, B = 0, A = 255}
-local C_Med     = {R = 50, G = 255, B = 50, A = 255}
-
-
-
-    -- 3) 物品数据库
-local ItemDatabase = {
-    [101001] = { name = "AKM", cat = "AR", color = C_AR }, [101002] = { name = "M16A4", cat = "AR", color = C_AR },
-    [101003] = { name = "SCAR-L", cat = "AR", color = C_AR }, [101004] = { name = "M416", cat = "AR", color = C_AR },
-    [101005] = { name = "Groza", cat = "AR", color = C_AR }, [101006] = { name = "AUG", cat = "AR", color = C_AR },
-    [101007] = { name = "QBZ", cat = "AR", color = C_AR }, [101008] = { name = "M762", cat = "AR", color = C_AR },
-    [101009] = { name = "Mk47 Mutant", cat = "AR", color = C_AR }, [101010] = { name = "G36C", cat = "AR", color = C_AR },
-    [101011] = { name = "AC-VAL", cat = "AR", color = C_AR }, [101012] = { name = "Honey Badger", cat = "AR", color = C_AR },
-    [101100] = { name = "FAMAS", cat = "AR", color = C_AR }, [101101] = { name = "ASM Abakan AR", cat = "AR", color = C_AR },
-    [101102] = { name = "ACE32", cat = "AR", color = C_AR },
-    [102001] = { name = "UZI", cat = "SMG", color = C_SMG }, [102002] = { name = "UMP45", cat = "SMG", color = C_SMG },
-    [102003] = { name = "Vector", cat = "SMG", color = C_SMG }, [102004] = { name = "Thompson SMG", cat = "SMG", color = C_SMG },
-    [102005] = { name = "PP-19 Bizon", cat = "SMG", color = C_SMG }, [102007] = { name = "MP5K", cat = "SMG", color = C_SMG },
-    [102008] = { name = "JS9", cat = "SMG", color = C_SMG }, [102105] = { name = "P90", cat = "SMG", color = C_SMG },
-    [103001] = { name = "Kar98K", cat = "Sniper", color = C_Sniper }, [103002] = { name = "M24", cat = "Sniper", color = C_Sniper },
-    [103003] = { name = "AWM", cat = "Sniper", color = C_Sniper }, [103004] = { name = "SKS", cat = "Sniper", color = C_Sniper },
-    [103005] = { name = "VSS", cat = "Sniper", color = C_Sniper }, [103006] = { name = "Mini14", cat = "Sniper", color = C_Sniper },
-    [103007] = { name = "Mk14", cat = "Sniper", color = C_Sniper }, [103008] = { name = "Win94", cat = "Sniper", color = C_Sniper },
-    [103009] = { name = "SLR", cat = "Sniper", color = C_Sniper }, [103010] = { name = "QBU", cat = "Sniper", color = C_Sniper },
-    [103011] = { name = "Mosin Nagant", cat = "Sniper", color = C_Sniper }, [103012] = { name = "AMR", cat = "Sniper", color = C_Sniper },
-    [103100] = { name = "Mk12", cat = "Sniper", color = C_Sniper }, [103101] = { name = "TR-2A Air Gun", cat = "Sniper", color = C_Sniper },
-    [103102] = { name = "DSR", cat = "Sniper", color = C_Sniper }, [103103] = { name = "Sniper Rifle", cat = "Sniper", color = C_Sniper },
-    [103104] = { name = "Sniper Rifle", cat = "Sniper", color = C_Sniper }, [103105] = { name = "SR", cat = "Sniper", color = C_Sniper },
-    [104001] = { name = "S686", cat = "Shotgun", color = C_Shotgun }, [104002] = { name = "S1897", cat = "Shotgun", color = C_Shotgun },
-    [104003] = { name = "S12K", cat = "Shotgun", color = C_Shotgun }, [104004] = { name = "DBS", cat = "Shotgun", color = C_Shotgun },
-    [104100] = { name = "SPAS-12", cat = "Shotgun", color = C_Shotgun }, [104101] = { name = "M1014", cat = "Shotgun", color = C_Shotgun },
-    [104102] = { name = "NS2000", cat = "Shotgun", color = C_Shotgun },
-    [105001] = { name = "M249", cat = "LMG", color = C_LMG }, [105002] = { name = "DP-28", cat = "LMG", color = C_LMG },
-    [105003] = { name = "M134", cat = "LMG", color = C_LMG }, [105010] = { name = "MG3", cat = "LMG", color = C_LMG },
-    [105101] = { name = "Gatling", cat = "LMG", color = C_LMG }, [105115] = { name = "Lib Gatling MG", cat = "LMG", color = C_LMG },
-    [105004] = { name = "Flamethrower", cat = "LMG", color = C_LMG }, [105006] = { name = "M2 Fixed MG", cat = "LMG", color = C_LMG },
-    [105007] = { name = "Gatling Fixed MG", cat = "LMG", color = C_LMG }, [105008] = { name = "Mounted Flamethrower", cat = "LMG", color = C_LMG },
-    [105009] = { name = "M2 Mounted MG", cat = "LMG", color = C_LMG }, [105102] = { name = "Vehicle SG", cat = "LMG", color = C_LMG },
-    [105103] = { name = "RPG", cat = "LMG", color = C_LMG }, [105104] = { name = "RPG", cat = "LMG", color = C_LMG },
-    [105105] = { name = "PowPow MG", cat = "LMG", color = C_LMG }, [105106] = { name = "Tank Cannon", cat = "LMG", color = C_LMG },
-    [105107] = { name = "Tank MG", cat = "LMG", color = C_LMG }, [105108] = { name = "Tank Flare Gun", cat = "LMG", color = C_LMG },
-    [105116] = { name = "Lib Autocannon", cat = "LMG", color = C_LMG }, [105117] = { name = "Jet Missile", cat = "LMG", color = C_LMG },
-    [105118] = { name = "Jet Autocannon", cat = "LMG", color = C_LMG },
-    [106001] = { name = "P92", cat = "Pistol", color = C_Pistol }, [106002] = { name = "P1911", cat = "Pistol", color = C_Pistol },
-    [106003] = { name = "R1895", cat = "Pistol", color = C_Pistol }, [106004] = { name = "P18C", cat = "Pistol", color = C_Pistol },
-    [106005] = { name = "R45", cat = "Pistol", color = C_Pistol }, [106006] = { name = "Sawed-off", cat = "Pistol", color = C_Pistol },
-    [106008] = { name = "Skorpion", cat = "Pistol", color = C_Pistol }, [106010] = { name = "Desert Eagle", cat = "Pistol", color = C_Pistol },
-    [106007] = { name = "Flare Gun", cat = "Pistol", color = C_Pistol }, [106009] = { name = "Flare Gun", cat = "Pistol", color = C_Pistol },
-    [106011] = { name = "Dual MP7", cat = "Pistol", color = C_Pistol }, [106012] = { name = "Welding Gun", cat = "Pistol", color = C_Pistol },
-    [106013] = { name = "Stun Gun", cat = "Pistol", color = C_Pistol }, [106101] = { name = "Vehicle Flare", cat = "Pistol", color = C_Pistol },
-    [106103] = { name = "Flare Gun", cat = "Pistol", color = C_Pistol }, [106106] = { name = "Flare (Empty)", cat = "Pistol", color = C_Pistol },
-    [106107] = { name = "Respawn Flare", cat = "Pistol", color = C_Pistol }, [106203] = { name = "Magnet Gun", cat = "Pistol", color = C_Pistol },
-    [107011] = { name = "Súng Cối", cat = "Special", color = C_Special }, [307006] = { name = "Đạn Cối", cat = "Special", color = C_Special },
-    [107001] = { name = "Crossbow", cat = "Special", color = C_Special }, [107002] = { name = "RPG-7", cat = "Special", color = C_Special },
-    [107003] = { name = "Riot shield", cat = "Special", color = C_Special }, [107004] = { name = "Combat Drone", cat = "Special", color = C_Special },
-    [107005] = { name = "Panzerfaust", cat = "Special", color = C_Special }, [107006] = { name = "RPG-7", cat = "Special", color = C_Special },
-    [107007] = { name = "Tactical Crossbow", cat = "Special", color = C_Special }, [107008] = { name = "Explosive Bow", cat = "Special", color = C_Special },
-    [107009] = { name = "Explosive Bow", cat = "Special", color = C_Special }, [107010] = { name = "M79 Smoke Launcher", cat = "Special", color = C_Special },
-    [107019] = { name = "Atlas Gauntlet", cat = "Special", color = C_Special }, [107020] = { name = "Explosive Crossbow", cat = "Special", color = C_Special },
-    [107021] = { name = "Mercury Hammer", cat = "Special", color = C_Special }, [107022] = { name = "Fishbones Rocket", cat = "Special", color = C_Special },
-    [107092] = { name = "MGL", cat = "Special", color = C_Special }, [107093] = { name = "M202 Quad RPG", cat = "Special", color = C_Special },
-    [107094] = { name = "AT4-A Laser Missile", cat = "Special", color = C_Special }, [107095] = { name = "M202 Quad RPG", cat = "Special", color = C_Special },
-    [107096] = { name = "M79 Sawed-off", cat = "Special", color = C_Special }, [107097] = { name = "M79", cat = "Special", color = C_Special },
-    [107098] = { name = "MGL", cat = "Special", color = C_Special }, [107099] = { name = "M3E1-A", cat = "Special", color = C_Special },
-    [108001] = { name = "Machete", cat = "Melee", color = C_Melee }, [108002] = { name = "Crowbar", cat = "Melee", color = C_Melee },
-    [108003] = { name = "Sickle", cat = "Melee", color = C_Melee }, [108004] = { name = "Pan", cat = "Melee", color = C_Melee },
-    [108005] = { name = "Dagger", cat = "Melee", color = C_Melee }, [108006] = { name = "Mutation Blade", cat = "Melee", color = C_Melee },
-    [108007] = { name = "Mutation Gauntlets", cat = "Melee", color = C_Melee },
-    [203001] = { name = "Red Dot Sight", cat = "Scope", color = C_Scope }, [203002] = { name = "Holographic Sight", cat = "Scope", color = C_Scope },
-    [203003] = { name = "2x Scope", cat = "Scope", color = C_Scope }, [203004] = { name = "4x Scope", cat = "Scope", color = C_Scope },
-    [203005] = { name = "8x Scope", cat = "Scope", color = C_Scope }, [203014] = { name = "3x Scope", cat = "Scope", color = C_Scope },
-    [203015] = { name = "6x Scope", cat = "Scope", color = C_Scope },
-    [602001] = { name = "Stun Grenade", cat = "Grenade", color = C_Grenade }, [602002] = { name = "Smoke Grenade", cat = "Grenade", color = C_Grenade },
-    [602003] = { name = "Molotov", cat = "Grenade", color = C_Grenade }, [602004] = { name = "Frag Grenade", cat = "Grenade", color = C_Grenade },
-    [601001] = { name = "Nước Tăng Lực", cat = "Med", color = C_Med }, [601002] = { name = "Tiêm Adrenaline", cat = "Med", color = C_Med },
-    [601003] = { name = "Thuốc Giảm Đau", cat = "Med", color = C_Med }, [601004] = { name = "Băng Gạc", cat = "Med", color = C_Med },
-    [601005] = { name = "Bộ Sơ Cứu", cat = "Med", color = C_Med }, [601006] = { name = "Bộ Cứu Thương", cat = "Med", color = C_Med },
-    [601009] = { name = "Băng Gạc Nhanh", cat = "Med", color = C_Med }, [601010] = { name = "Sơ Cứu Nhanh", cat = "Med", color = C_Med },
-    [601011] = { name = "Băng Gạc QĐ", cat = "Med", color = C_Med }, [601012] = { name = "Nước Đậm Đặc", cat = "Med", color = C_Med },
-    [601020] = { name = "Băng Gạc", cat = "Med", color = C_Med }, [601021] = { name = "Bộ Sơ Cứu", cat = "Med", color = C_Med },
-    [601022] = { name = "Bộ Cứu Thương", cat = "Med", color = C_Med }, [601023] = { name = "Tiêm Adrenaline", cat = "Med", color = C_Med },
-    [601061] = { name = "Bộ Cứu Thương", cat = "Med", color = C_Med }, [601077] = { name = "Sơ Cứu Chiến Thuật", cat = "Med", color = C_Med },
-    [601078] = { name = "Sơ Cứu Toàn Năng", cat = "Med", color = C_Med }, [601079] = { name = "Cứu Thương Toàn Năng", cat = "Med", color = C_Med },
-    [601080] = { name = "Băng Gạc QĐ", cat = "Med", color = C_Med }, [601081] = { name = "Nước Đậm Đặc", cat = "Med", color = C_Med },
-    [601084] = { name = "Sơ Cứu Nhanh", cat = "Med", color = C_Med }, [601085] = { name = "Cứu Thương Nhanh", cat = "Med", color = C_Med },
-    [601095] = { name = "Máy AED (Hồi Sinh)", cat = "Med", color = C_Med }, [601096] = { name = "Chuẩn Bị Chiến Đấu", cat = "Med", color = C_Med },
-    [602054] = { name = "Tiếp Tế Y Tế", cat = "Med", color = C_Med }, 
-[602069] = { name = "Cứu Trợ Khẩn Cấp", cat = "Med", color = C_Med }
-}
-
-    -- 4) 扫描缓存
-    _G.CachedItems           = _G.CachedItems or {}
-    _G.LastScanItemTime      = _G.LastScanItemTime or 0
-    _G.AppliedVehicleWall    = _G.AppliedVehicleWall or {}
-    _G.AppliedItemESP        = _G.AppliedItemESP or {}
-
-    _G.X3.RunOptimizedItemAndVehicleESP = function(pc)
-        local curTime = os.clock()
-        if curTime - _G.LastScanItemTime > 1.0 then
-            _G.LastScanItemTime = curTime
-            local player = GameplayData.GetPlayerCharacter()
-            if not slua.isValid(player) then return end
-
-            if _G.X3.XthrlenConfig.WallVehicle then
-                local ASTExtraVehicleBase = import("STExtraVehicleBase")
-                if ASTExtraVehicleBase then
-                    local Actors = Game:GetActorsByClass(ASTExtraVehicleBase)
-                    if Actors then
-                        local count = Actors:Num() or 0
-                        for i = 0, count - 1 do
-                            local vehicle = Actors:Get(i)
-                            if slua.isValid(vehicle) and vehicle.GetMesh then
-                                if player:GetDistanceTo(vehicle) <= 200000 then
-                                    local vId = tostring(vehicle)
-                                    if not _G.AppliedVehicleWall[vId] then
-                                        local mesh = vehicle:GetMesh()
-                                        if slua.isValid(mesh) then
-                                            local mi = mesh:GetMaterial(0)
-                                            if slua.isValid(mi) then
-                                                local bm = mi:GetBaseMaterial()
-                                                if slua.isValid(bm) then
-                                                    bm.bDisableDepthTest = true
-                                                    bm.BlendMode = 2
-                                                    _G.AppliedVehicleWall[vId] = true
-                                                end
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            else _G.AppliedVehicleWall = {} end
-
-            if _G.X3.XthrlenConfig.EspItem_Master then
-                local APickUpWrapperActor = import("PickUpWrapperActor") or import("STPickupWrapperActor")
-                if APickUpWrapperActor then
-                    local Actors = Game:GetActorsByClass(APickUpWrapperActor)
-                    _G.CachedItems = {}
-                    if Actors then
-                        local count = Actors:Num() or 0
-                        for i = 0, count - 1 do
-                            local item = Actors:Get(i)
-                            local isPK = false
-                            pcall(function() if type(item.IsPendingKill) == "function" then isPK = item:IsPendingKill() end end)
-                            if slua.isValid(item) and not item.bHidden and not isPK then
-                                if player:GetDistanceTo(item) <= 7000 then
-                                    local itemId = item.DefineID and item.DefineID.TypeSpecificID or item.DefineId
-                                    local itemData = ItemDatabase[itemId]
-                                    if itemData then
-                                        local isShow = false
-                                        local cat, k = itemData.cat, _G.X3.XthrlenConfig
-                                        if     cat=="AR"      and k.EspItem_AR      then isShow=true
-                                        elseif cat=="Sniper"  and k.EspItem_Sniper  then isShow=true
-                                        elseif cat=="SMG"     and k.EspItem_SMG     then isShow=true
-                                        elseif cat=="Shotgun" and k.EspItem_Shotgun then isShow=true
-                                        elseif cat=="LMG"     and k.EspItem_LMG     then isShow=true
-                                        elseif cat=="Pistol"  and k.EspItem_Pistol  then isShow=true
-                                        elseif cat=="Melee"   and k.EspItem_Melee   then isShow=true
-                                        elseif cat=="Special" and k.EspItem_Special then isShow=true
-                                        elseif cat=="Grenade" and k.EspItem_Grenade then isShow=true
-                                        elseif cat=="Scope"   and k.EspItem_Scope   then isShow=true
-                                        elseif cat=="Med"     and k.EspItem_Med     then isShow=true
-                                        end
-                                        if isShow then table.insert(_G.CachedItems, item) end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            else
-                _G.AppliedItemESP = {}
-                _G.CachedItems = {}
-            end
-        end
-
-        if _G.X3.XthrlenConfig.EspItem_Master and slua.isValid(pc) and pc.MyHUD then
-            local hud = pc.MyHUD
-            local player = GameplayData.GetPlayerCharacter()
-            for _, item in ipairs(_G.CachedItems or {}) do
-                if slua.isValid(item) and not item.bHidden then
-                    local itemId = item.DefineID and item.DefineID.TypeSpecificID or item.DefineId
-                    local itemData = ItemDatabase[itemId]
-                    if itemData then
-                        local dist = (player.GetDistanceTo and player:GetDistanceTo(item) or 0) / 100
-                        local txt = string.format("%s [%.0fm]", itemData.name, dist)
-                        hud:AddDebugText(txt, item, 0.06, {X=0,Y=0,Z=50}, {X=0,Y=0,Z=50},
-                            {R=itemData.color.R, G=itemData.color.G, B=itemData.color.B, A=255},
-                            true, false, true, nil, 0.8, true)
-                    end
-                end
-            end
-        end
-    end
-
-    -- 5) SkeletalMesh 收集器
-local function GetAllSkeletalMeshes(enemy, markData)
-    local curTime = os.clock()
-    if markData and markData.CachedMeshes and markData.CachedMeshTime and (curTime - markData.CachedMeshTime < 0.5) then
-        local validMeshes = {}
-        for _, cachedMesh in ipairs(markData.CachedMeshes) do
-            local isPendingKill = false
-            pcall(function() if type(cachedMesh.IsPendingKill) == "function" then isPendingKill = cachedMesh:IsPendingKill() end end)
-            
-            if Valid(cachedMesh) and not isPendingKill then 
-                table.insert(validMeshes, cachedMesh) 
-            end
-        end
-        markData.CachedMeshes = validMeshes
-        return validMeshes
-    end
-
-    local meshes = {}
-    if Valid(enemy.Mesh) then table.insert(meshes, enemy.Mesh) end
-    pcall(function()
-        local SkeletalMeshClass = import("SkeletalMeshComponent")
-        if SkeletalMeshClass and type(enemy.GetComponentsByClass) == "function" then
-            local childs = enemy:GetComponentsByClass(SkeletalMeshClass)
-            if childs then
-                local count = type(childs.Num) == "function" and childs:Num() or #childs
-                for i = 1, count do
-                    local comp = type(childs.Get) == "function" and childs:Get(i-1) or childs[i]
-                    if Valid(comp) and comp ~= enemy.Mesh then
-                        table.insert(meshes, comp)
-                    end
-                end
-            end
-        end
-    end)
-    if markData then
-        markData.CachedMeshes = meshes
-        markData.CachedMeshTime = curTime
-    end
-    return meshes
-end
-
-
-
-
-    -- 8) 敌人计数 UI
-local BTN_BP = "/Game/UMG/UI_BP/Common/BaseComponent/CommonBaseComponent_TextButton_UIBP.CommonBaseComponent_TextButton_UIBP"
-local EnemyCounterWidget = nil
-local WarningTargetWidget = nil
-local LastCounterTime = 0
-
-function _G.CleanUpEnemyCounterWidget()
-    if EnemyCounterWidget and slua.isValid(EnemyCounterWidget) then
-        EnemyCounterWidget:RemoveFromParent()
-    end
-    EnemyCounterWidget = nil
-
-    if WarningTargetWidget and slua.isValid(WarningTargetWidget) then
-        WarningTargetWidget:RemoveFromParent()
-    end
-    WarningTargetWidget = nil
-end
-
-local function CreateEnemyCounterWidget()
-    if EnemyCounterWidget then
-        if slua.isValid(EnemyCounterWidget) then return EnemyCounterWidget else EnemyCounterWidget = nil end
-    end
-
-    pcall(function()
-        local btn = slua.loadUI(BTN_BP)
-        if not btn or not slua.isValid(btn) then return end
-        require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10500)
-        
-        if btn.RichText_Content then
-            btn.RichText_Content:SetText("Kẻ Địch: 0  |  Gần Nhất: 0m")
-            local fontInfo = btn.RichText_Content.Font
-            if fontInfo then fontInfo.Size = 16 btn.RichText_Content:SetFont(fontInfo) end
-        end
-        
-        local WidgetLayoutLibrary = import("WidgetLayoutLibrary")
-        local slot = WidgetLayoutLibrary.SlotAsCanvasSlot(btn)
-        if slot then
-            slot:SetAnchors(FAnchors(0.5, 0, 0.5, 0))
-            slot:SetAlignment(FVector2D(0.5, 0))
-            slot:SetPosition(FVector2D(0, 30))
-            slot:SetSize(FVector2D(240, 36))
-        end
-        btn:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
-        EnemyCounterWidget = btn
-    end)
-    return EnemyCounterWidget
-end
-
-local function CreateWarningTargetWidget()
-    if WarningTargetWidget then
-        if slua.isValid(WarningTargetWidget) then return WarningTargetWidget else WarningTargetWidget = nil end
-    end
-
-    pcall(function()
-        local btn = slua.loadUI(BTN_BP)
-        if not btn or not slua.isValid(btn) then return end
-        require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10501)
-        
-        if btn.RichText_Content then
-            btn.RichText_Content:SetText("ĐỊCH ĐANG NHÌN VỀ PHÍA BẠN")
-            local fontInfo = btn.RichText_Content.Font
-            if fontInfo then fontInfo.Size = 18 btn.RichText_Content:SetFont(fontInfo) end
-        end
-        
-        local WidgetLayoutLibrary = import("WidgetLayoutLibrary")
-        local slot = WidgetLayoutLibrary.SlotAsCanvasSlot(btn)
-        if slot then
-            slot:SetAnchors(FAnchors(0.5, 0, 0.5, 0))
-            slot:SetAlignment(FVector2D(0.5, 0))
-            slot:SetPosition(FVector2D(0, 75))
-            slot:SetSize(FVector2D(260, 36))
-        end
-        btn:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
-        WarningTargetWidget = btn
-    end)
-    return WarningTargetWidget
-end
-
-local function _M_DrawCounter()
-    pcall(function()
-        local player = GameplayData.GetPlayerCharacter()
-        if not slua.isValid(player) then 
-            if EnemyCounterWidget and slua.isValid(EnemyCounterWidget) then
-                EnemyCounterWidget:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
-            end
-            if WarningTargetWidget and slua.isValid(WarningTargetWidget) then
-                WarningTargetWidget:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
-            end
-            return 
-        end
-
-        local widgetCounter = CreateEnemyCounterWidget()
-        local widgetWarning = CreateWarningTargetWidget()
-
-        if widgetCounter and slua.isValid(widgetCounter) then
-            widgetCounter:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
-        end
-
-        local curTime = os.clock()
-        if (curTime - LastCounterTime) > 0.5 then
-            LastCounterTime = curTime
-            
-            local myTeam = player.TeamID or (type(player.GetTeamID) == "function" and player:GetTeamID()) or 0
-            local count = 0
-            local nearest = 9999
-            local isBeingTargeted = false
-            
-            local KismetMathLibrary = import("KismetMathLibrary")
-            local pc = player:GetPlayerControllerSafety()
-
-            local allCharacters = {}
-            if GameplayData.GetAllPlayerCharacters then
-                allCharacters = GameplayData.GetAllPlayerCharacters()
-            elseif GameplayData.GameCharacters then
-                for _, char in pairs(GameplayData.GameCharacters) do table.insert(allCharacters, char) end
-            end
-
-            for _, tPawn in pairs(allCharacters) do
-                if slua.isValid(tPawn) and tPawn ~= player then
-                    local isAlive = false
-                    if tPawn.HealthStatus ~= nil then
-                        isAlive = (tPawn.HealthStatus ~= 2)
-                    else
-                        isAlive = (tPawn.Health or 0) > 0 or (type(tPawn.IsAlive) == "function" and tPawn:IsAlive())
-                    end
-                    
-                    if isAlive then
-                        local tTeam = tPawn.TeamID or (type(tPawn.GetTeamID) == "function" and tPawn:GetTeamID()) or 0
-                        if tTeam ~= myTeam then
-                            count = count + 1
-                            local d = math.floor(player:GetDistanceTo(tPawn) / 100)
-                            if d < nearest then nearest = d end
-                            
-                            if _G.X3.XthrlenConfig.EspAimWarning and not isBeingTargeted and d < 400 then
-                                local eLoc = type(tPawn.K2_GetActorLocation) == "function" and tPawn:K2_GetActorLocation()
-                                local pLoc = type(player.K2_GetActorLocation) == "function" and player:K2_GetActorLocation()
-                                
-                                if eLoc and pLoc and KismetMathLibrary then
-                                    local lookRot = KismetMathLibrary.FindLookAtRotation(eLoc, pLoc)
-                                    local eRot = nil
-                                    
-                                    if type(tPawn.GetControlRotation) == "function" then
-                                        eRot = tPawn:GetControlRotation()
-                                    elseif type(tPawn.GetActorRotation) == "function" then
-                                        eRot = tPawn:GetActorRotation()
-                                    end
-                                    
-                                    if eRot and lookRot then
-                                        local dYaw = math.abs(eRot.Yaw - lookRot.Yaw)
-                                        if dYaw > 180 then dYaw = 360 - dYaw end
-                                        
-                                        local dPitch = math.abs(eRot.Pitch - lookRot.Pitch)
-                                        if dPitch > 180 then dPitch = 360 - dPitch end
-                                        
-                                        if dYaw < 15 and dPitch < 20 then
-                                            if _G.X3.XthrlenConfig.EspAimWarningVisCheck then
-                                                if slua.isValid(pc) and type(pc.LineOfSightTo) == "function" then
-                                                    if pc:LineOfSightTo(tPawn) then
-                                                        isBeingTargeted = true
-                                                    end
-                                                end
-                                            else
-                                                isBeingTargeted = true
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-
-            if widgetCounter and widgetCounter.RichText_Content then
-                widgetCounter.RichText_Content:SetText(string.format("Địch Xung Quanh: %d  |  Gần Nhất: %dm", count, count > 0 and nearest or 0))
-            end
-
-            if widgetWarning and slua.isValid(widgetWarning) then
-                if _G.X3.XthrlenConfig.EspAimWarning and isBeingTargeted then
-                    widgetWarning:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
-                else
-                    widgetWarning:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
-                end
-            end
-        end
-    end)
-end
-
-
-    -- [FULL-ESP] 独立的敌人 ESP mark 缓存（与 MainLoop EnemyMarks 分离，避免冲突）
-    _G.X3.EspMarks = _G.X3.EspMarks or {}
-
-    -- ============================================
-    -- [FULL-ESP] WallXuyenTuong / Chams V2 / Chams V3 前置函数
-    -- ============================================
-local function UndoWallXuyenTuong(enemy, markData)
-    pcall(function()
-        if markData.WallhackApplied then
-            local meshes = GetAllSkeletalMeshes(enemy, markData)
-            for _, mesh in ipairs(meshes) do
-                if Valid(mesh) then
-                    pcall(function() if type(mesh.SetRenderCustomDepth) == "function" then mesh:SetRenderCustomDepth(false) end end)
-                    for i = 0, 10 do 
-                        local matInterface = mesh:GetMaterial(i)
-                        if Valid(matInterface) then
-                            local baseMat = matInterface:GetBaseMaterial()
-                            if Valid(baseMat) then baseMat.bDisableDepthTest = false end
-                        end
-                    end
-                end
-            end
-            markData.WallhackApplied = false
-        end
-    end)
-end
-
-local function ApplyWallXuyenTuong(enemy, markData)
-    pcall(function()
-        local meshes = GetAllSkeletalMeshes(enemy, markData)
-        for _, mesh in ipairs(meshes) do
-            if Valid(mesh) then 
-                pcall(function()
-                    if type(mesh.SetRenderCustomDepth) == "function" then
-                        mesh:SetRenderCustomDepth(true)
-                    end
-                    if type(mesh.SetCustomDepthStencilValue) == "function" then
-                        mesh:SetCustomDepthStencilValue(252) 
-                    end
-                end)
-                for i = 0, 10 do 
-                    local matInterface = mesh:GetMaterial(i)
-                    if not Valid(matInterface) then break end
-                    local baseMat = matInterface:GetBaseMaterial()
-                    if Valid(baseMat) then
-                        baseMat.bDisableDepthTest = true
-                        baseMat.BlendMode = 2 
-                    end
-                end
-            end
-        end
-    end)
-end
-
-local function ApplyColorBodyV2(enemy, pc, markData)
-    pcall(function()
-        local meshes = GetAllSkeletalMeshes(enemy, markData)
-        if #meshes == 0 then return end
-        
-        local curTime = os.clock()
-        if markData.LastVisCheckTime == nil or (curTime - markData.LastVisCheckTime) > 0.3 then
-            markData.LastVisCheckTime = curTime
-            local isHidden = true
-            pcall(function()
-                if Valid(pc) and type(pc.LineOfSightTo) == "function" then
-                    if pc:LineOfSightTo(enemy) then isHidden = false else isHidden = true end
-                end
-            end)
-            markData.CachedHiddenState = isHidden
-        end
-        
-        local hidden = markData.CachedHiddenState
-        if hidden == nil then hidden = true end
-        
-        local cData = _G.X3.XthrlenState.CustomTextData or {}
-        local hiddenColor = {R = cData.HiddenR or 150, G = cData.HiddenG or 0, B = cData.HiddenB or 0, A = cData.HiddenA or 25}
-        local visibleColor = {R = cData.VisibleR or 0, G = cData.VisibleG or 150, B = cData.VisibleB or 0, A = cData.VisibleA or 25}
-        
-        local finalColor = hidden and hiddenColor or visibleColor
-        local colorHash = string.format("%d_%d_%d_%d", finalColor.R, finalColor.G, finalColor.B, finalColor.A)
-        local currentMeshCount = #meshes
-        local isMeshChanged = (markData.LastMeshCount ~= currentMeshCount)
-        
-        if not isMeshChanged and markData.LastHiddenState == hidden and markData.LastColorHash == colorHash then return end
-        
-        if isMeshChanged and markData.MIDs then
-            markData.MIDs = {}
-        end
-
-        markData.LastHiddenState = hidden
-        markData.LastMeshCount = currentMeshCount
-        markData.LastColorHash = colorHash
-        markData.ColorApplied = true
-        
-        for meshIndex, mesh in ipairs(meshes) do
-            if Valid(mesh) then
-                pcall(function()
-                    mesh.LDMaxDrawDistance = -99999
-                    mesh.MaxDrawDistanceOffset = -99999
-                    mesh.CachedMaxDrawDistance = -99999
-                    mesh.UseScopeDistanceCulling = true
-                    mesh.PrimitiveShadingStrategy = 1
-                    mesh.ShadingRate = 6
-                end)
-                for i = 0, 10 do
-                    local matInterface = mesh:GetMaterial(i)
-                    if not Valid(matInterface) then break end
-                    local baseMat = matInterface:GetBaseMaterial()
-                    if Valid(baseMat) then
-                        local matName = tostring(baseMat)
-                        if string.find(matName, "Master_Mask", 1, true) then
-                            if not markData.MIDs then markData.MIDs = {} end
-                            local meshKey = "Mesh_" .. tostring(meshIndex)
-                            
-                            if not markData.MIDs[meshKey] then markData.MIDs[meshKey] = {} end
-                            local mid = markData.MIDs[meshKey][i]
-                            if not Valid(mid) then
-                                mid = mesh:CreateAndSetMaterialInstanceDynamic(i)
-                                markData.MIDs[meshKey][i] = mid
-                            end
-                            if Valid(mid) then
-                                mid:SetVectorParameterValue("颜色", finalColor)
-                                mid:SetVectorParameterValue("Extra Light Color", finalColor)
-                                mid:SetVectorParameterValue("Para_Color", finalColor)
-                                mid:SetVectorParameterValue("Para_ColorTint", finalColor)
-                                mid:SetVectorParameterValue("Para_Color_1", finalColor)
-                                mid:SetVectorParameterValue("Tint", finalColor)
-                                mid:SetVectorParameterValue("Color", finalColor)
-                                mid:SetVectorParameterValue("BaseColor", finalColor)
-                                mid:SetVectorParameterValue("BodyColor", finalColor)
-                                mid:SetVectorParameterValue("MainColor", finalColor)
-                                mid:SetVectorParameterValue("DiffuseColor", finalColor)
-                                mid:SetVectorParameterValue("EmissiveColor", finalColor)
-                                mid:SetVectorParameterValue("ParaScaleOffset", SCALE_COLOR_V2)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end)
-end
-
-local function UndoColorBodyV2(enemy, markData)
-    pcall(function()
-        if markData.ColorApplied then
-            local meshes = GetAllSkeletalMeshes(enemy, markData)
-            for meshIndex, mesh in ipairs(meshes) do
-                if Valid(mesh) then
-                    pcall(function()
-                        mesh.PrimitiveShadingStrategy = 0
-                        mesh.ShadingRate = 1
-                    end)
-                    local meshKey = "Mesh_" .. tostring(meshIndex)
-                    if markData.MIDs and markData.MIDs[meshKey] then
-                        for i, mid in pairs(markData.MIDs[meshKey]) do
-                            if Valid(mid) then
-                                local defC = {R=1, G=1, B=1, A=1}
-                                mid:SetVectorParameterValue("颜色", defC)
-                                mid:SetVectorParameterValue("Extra Light Color", defC)
-                                mid:SetVectorParameterValue("Para_Color", defC)
-                                mid:SetVectorParameterValue("Para_ColorTint", defC)
-                                mid:SetVectorParameterValue("Para_Color_1", defC)
-                                mid:SetVectorParameterValue("Tint", defC)
-                                mid:SetVectorParameterValue("Color", defC)
-                                mid:SetVectorParameterValue("BaseColor", defC)
-                                mid:SetVectorParameterValue("BodyColor", defC)
-                                mid:SetVectorParameterValue("MainColor", defC)
-                                mid:SetVectorParameterValue("DiffuseColor", defC)
-                                mid:SetVectorParameterValue("EmissiveColor", defC)
-                            end
-                        end
-                    end
-                end
-            end
-            markData.ColorApplied = false
-            markData.LastColorHash = ""
-            markData.LastHiddenState = nil
-        end
-    end)
-end
-
-local function ApplyColorBodyV3(enemy, markData)
-    pcall(function()
-        local meshes = GetAllSkeletalMeshes(enemy, markData)
-        if #meshes == 0 then return end
-        
-        local cData = _G.X3.XthrlenState.CustomTextData or {}
-        local hidChoice = cData.ColorV3Hidden or 1
-        local visChoice = cData.ColorV3Visible or 2
-        local v3Thick = cData.ColorV3Thickness or 4
-        
-        local currentHash = string.format("%d_%d_%d", hidChoice, visChoice, v3Thick)
-        local colorChanged = (markData.LastColorV3Hash ~= currentHash)
-        markData.LastColorV3Hash = currentHash
-
-        local function GetColorRGB(choice)
-            if choice == 1 then return 255, 0, 0 end
-            if choice == 2 then return 0, 255, 0 end
-            if choice == 3 then return 0, 0, 255 end
-            if choice == 4 then return 255, 255, 0 end
-            if choice == 5 then return 255, 0, 255 end
-            if choice == 6 then return 255, 255, 255 end
-            return 255, 0, 0
-        end
-
-        local hR, hG, hB = GetColorRGB(hidChoice)
-        local vR, vG, vB = GetColorRGB(visChoice)
-
-        local invisColor = { R=hR, G=hG, B=hB, A=255, r=hR, g=hG, b=hB, a=255 }
-        
-        local glowIntensity = 80.0 
-        local LinearColorClass = import("LinearColor") or _G.FLinearColor
-        local visColor = LinearColorClass and LinearColorClass((vR/255)*glowIntensity, (vG/255)*glowIntensity, (vB/255)*glowIntensity, 1.0) or { R=vR*glowIntensity, G=vG*glowIntensity, B=vB*glowIntensity, A=255 }
-        local scale = { R=3.0, G=3.0, B=0.0, A=0.0, r=3.0, g=3.0, b=0.0, a=0.0 }
-        
-        markData.MIDs_V3 = markData.MIDs_V3 or {}
-
-        for meshIndex, comp in ipairs(meshes) do
-            if Valid(comp) then
-                local compKey = "MeshV3_" .. tostring(meshIndex)
-                markData.MIDs_V3[compKey] = markData.MIDs_V3[compKey] or {}
-                
-                pcall(function()
-                    if comp.PrimitiveShadingStrategy ~= 1 then
-                        comp.UseScopeDistanceCulling = false 
-                        comp.PrimitiveShadingStrategy = 1
-                        comp.ShadingRate = 6
-                    end
-                end)
-                
-                for i = 0, 10 do
-                    local matInterface = comp:GetMaterial(i)
-                    if not Valid(matInterface) then break end
-                    
-                    local baseMat = matInterface:GetBaseMaterial()
-                    if Valid(baseMat) then
-                        if baseMat.bDisableDepthTest ~= true then baseMat.bDisableDepthTest = true end
-                        if baseMat.BlendMode ~= 2 then baseMat.BlendMode = 2 end
-                    end
-                    
-                    local currentCached = markData.MIDs_V3[compKey][i]
-                    local needUpdateColor = false
-                    
-                    if not Valid(currentCached) then
-                        local newMid = comp:CreateAndSetMaterialInstanceDynamic(i)
-                        if Valid(newMid) then 
-                            markData.MIDs_V3[compKey][i] = newMid
-                            currentCached = newMid
-                            needUpdateColor = true
-                        end
-                    elseif colorChanged then
-                        needUpdateColor = true
-                    end
-                    
-                    if Valid(currentCached) and needUpdateColor then
-                        pcall(function()
-                            currentCached:SetVectorParameterValue("颜色", invisColor)
-                            currentCached:SetVectorParameterValue("Extra Light Color", invisColor)
-                            currentCached:SetVectorParameterValue("Para_Color", invisColor)
-                            currentCached:SetVectorParameterValue("Para_ColorTint", invisColor)
-                            currentCached:SetVectorParameterValue("Para_Color_1", invisColor)
-                            currentCached:SetVectorParameterValue("Tint", invisColor)
-                            currentCached:SetVectorParameterValue("Color", invisColor)
-                            currentCached:SetVectorParameterValue("BaseColor", invisColor)
-                            currentCached:SetVectorParameterValue("BodyColor", invisColor)
-                            currentCached:SetVectorParameterValue("MainColor", invisColor)
-                            currentCached:SetVectorParameterValue("DiffuseColor", invisColor)
-                            currentCached:SetVectorParameterValue("EmissiveColor", invisColor)
-                            currentCached:SetVectorParameterValue("CustomColor", invisColor)
-                            currentCached:SetVectorParameterValue("OverlayColor", invisColor)
-                            currentCached:SetVectorParameterValue("GlowColor", invisColor)
-                            currentCached:SetVectorParameterValue("EdgeColor", invisColor)
-                            currentCached:SetVectorParameterValue("LightColor", invisColor)
-                            currentCached:SetVectorParameterValue("OutlineColor", invisColor)
-                            currentCached:SetVectorParameterValue("ParaScaleOffset", scale)
-                            currentCached:SetScalarParameterValue("Opacity", 0.7)
-                            currentCached:SetScalarParameterValue("Alpha", 0.7)
-                            currentCached:SetScalarParameterValue("GlowIntensity", 1.0)
-                            currentCached:SetScalarParameterValue("Intensity", 1.0)
-                        end)
-                    end
-                end
-                
-                pcall(function()
-                    if comp.SetDrawIdeaOutline then
-                        comp:SetDrawIdeaOutline(true)
-                        if comp.OverrideIdeaOutlineColor then comp:OverrideIdeaOutlineColor(true, visColor) end
-                        if comp.OverrideIdeaOutlineThickness then comp:OverrideIdeaOutlineThickness(true, v3Thick) end
-                    end
-                end)
-            end
-        end
-        markData.ColorV3Applied = true
-    end)
-end
-
-local function UndoColorBodyV3(enemy, markData)
-    pcall(function()
-        if markData.ColorV3Applied then
-            local meshes = GetAllSkeletalMeshes(enemy, markData)
-            for meshIndex, comp in ipairs(meshes) do
-                if Valid(comp) then
-                    pcall(function()
-                        comp.PrimitiveShadingStrategy = 0
-                        comp.ShadingRate = 1
-                    end)
-                    
-                    for i = 0, 10 do
-                        local s, matInterface = pcall(function() return comp:GetMaterial(i) end)
-                        if s and Valid(matInterface) then
-                            local s2, baseMat = pcall(function() return matInterface:GetBaseMaterial() end)
-                            if s2 and Valid(baseMat) then
-                                baseMat.bDisableDepthTest = false
-                                baseMat.BlendMode = 1
-                            end
-                        end
-                    end
-                    
-                    local compKey = "MeshV3_" .. tostring(meshIndex)
-                    if markData.MIDs_V3 and markData.MIDs_V3[compKey] then
-                        for i, mid in pairs(markData.MIDs_V3[compKey]) do
-                            if Valid(mid) then
-                                pcall(function()
-                                    local defC = {R=1, G=1, B=1, A=1, r=1, g=1, b=1, a=1}
-                                    mid:SetVectorParameterValue("颜色", defC)
-                                    mid:SetVectorParameterValue("Extra Light Color", defC)
-                                    mid:SetVectorParameterValue("Para_Color", defC)
-                                    mid:SetVectorParameterValue("Tint", defC)
-                                    mid:SetVectorParameterValue("BaseColor", defC)
-                                    mid:SetVectorParameterValue("Color", defC)
-                                end)
-                            end
-                        end
-                    end
-                    
-                    pcall(function()
-                        if comp.SetDrawIdeaOutline then
-                            comp:SetDrawIdeaOutline(false)
-                        end
-                    end)
-                end
-            end
-            markData.ColorV3Applied = false
-            markData.LastMeshCountV3 = 0
-            if markData.MIDs_V3 then markData.MIDs_V3 = nil end
-        end
-    end)
-end
-
-
-
-
-    function _G.X3.ESP_Tick(lp, pc)
-    if not (lp and slua.isValid(lp)) then return end
-    local localPlayer = lp
-
-    if C.EspItem_Master or C.WallVehicle then
-        pcall(function()
-            if _G.X3.RunOptimizedItemAndVehicleESP then
-                _G.X3.RunOptimizedItemAndVehicleESP(pc)
-            end
-        end)
-    end
-
-    local Cached_PPM = nil
-    pcall(function() Cached_PPM = import("PostProcessManager").GetInstance() end)
-    local Cached_SecurityCommonUtils = nil
-    pcall(function() Cached_SecurityCommonUtils = require("GameLua.Mod.BaseMod.Common.Security.SecurityCommonUtils") end)
-    local Cached_MyHUD = pc and pc.MyHUD or nil
-
-    pcall(function()
-        local GD = require("GameLua.GameCore.Data.GameplayData")
-        local allCharacters = {}
-        if GD.GetAllPlayerCharacters then allCharacters = GD.GetAllPlayerCharacters()
-        elseif GD.GameCharacters then for _, char in pairs(GD.GameCharacters) do table.insert(allCharacters, char) end end
-
-        -- 清理已失效的 mark
-        local currentValidKeys = {}
-        for _, enemy in pairs(allCharacters) do
-            if Valid(enemy) and enemy ~= localPlayer then
-                currentValidKeys[GetSafeEnemyKey(enemy)] = true
-            end
-        end
-        for key, data in pairs(_G.X3.XthrlenState.EnemyMarks) do
-            if not currentValidKeys[key] then
-                SafeRemoveMark(data.radarMark)
-                SafeRemoveMark(data.hpMark)
-                SafeRemoveMark(data.hpMark8)
-                SafeRemoveMark(data.distMark)
-                if _G.X3.AimTouchVisCache and _G.X3.AimTouchVisCache[key] then _G.X3.AimTouchVisCache[key] = nil end
-                if data.MIDs then
-                    for _, mt in pairs(data.MIDs) do for k in pairs(mt) do mt[k] = nil end end
-                    data.MIDs = nil
-                end
-                if data.MIDs_V3 then
-                    for _, mt in pairs(data.MIDs_V3) do for k in pairs(mt) do mt[k] = nil end end
-                    data.MIDs_V3 = nil
-                end
-                data.enemy = nil
-                data.CachedMeshes = nil
-                _G.X3.XthrlenState.EnemyMarks[key] = nil
-            end
-        end
-
-        local realCount, aiCount = 0, 0
-        local mLoc = nil
-        pcall(function() if type(localPlayer.K2_GetActorLocation) == "function" then mLoc = localPlayer:K2_GetActorLocation() end end)
-
-        for _, enemy in pairs(allCharacters) do
-            if Valid(enemy) and enemy ~= localPlayer and enemy.TeamID ~= localPlayer.TeamID then
-                local bIsReallyDead = false
-                pcall(function()
-                    if type(enemy.IsDead) == "function" then bIsReallyDead = enemy:IsDead()
-                    elseif enemy.bIsDead ~= nil then bIsReallyDead = enemy.bIsDead
-                    elseif enemy.bIsDeadFlag ~= nil then bIsReallyDead = enemy.bIsDeadFlag end
-                    if enemy.HealthStatus ~= nil and enemy.HealthStatus == 2 then bIsReallyDead = true end
-                end)
-
-                local eKey = GetSafeEnemyKey(enemy)
-                _G.X3.XthrlenState.EnemyMarks[eKey] = _G.X3.XthrlenState.EnemyMarks[eKey] or { enemy = enemy }
-                local markData = _G.X3.XthrlenState.EnemyMarks[eKey]
-                markData.enemy = enemy
-
-                if not bIsReallyDead then
-                    if markData.lastEnemyActor ~= enemy then
-                        SafeRemoveMark(markData.hpMark);    markData.hpMark = nil
-                        SafeRemoveMark(markData.hpMark8);   markData.hpMark8 = nil
-                        SafeRemoveMark(markData.distMark);  markData.distMark = nil
-                        SafeRemoveMark(markData.radarMark); markData.radarMark = nil
-                        markData.lastEnemyActor = enemy
-                        markData.LastUIComp = nil
-                        markData.LastFrameUIState = nil
-                    end
-
-                    local eMesh = nil
-                    pcall(function() eMesh = enemy.Mesh or (type(enemy.getAvatarComponent2) == "function" and enemy:getAvatarComponent2() or nil) end)
-                    local aLoc = nil
-                    pcall(function() if type(enemy.K2_GetActorLocation) == "function" then aLoc = enemy:K2_GetActorLocation() end end)
-
-                    local isBot = false
-                    pcall(function() local _ = CheckIsAI(enemy, markData); isBot = markData.AK_IS_BOT or false end)
-
-                    local currentMeshCount = 0
-                    if Valid(eMesh) then
-                        local tempMeshes = GetAllSkeletalMeshes(enemy, markData)
-                        currentMeshCount = #tempMeshes
-                    end
-                    local isMeshChanged = (markData.LastMeshCountWall ~= currentMeshCount)
-
-                    -- ★ WallXuyenTuong
-                    if _G.X3.XthrlenConfig.WallXuyenTuong then
-                        if isMeshChanged or not markData.WallhackApplied then
-                            ApplyWallXuyenTuong(enemy, markData)
-                            markData.WallhackApplied = true
-                            markData.LastMeshCountWall = currentMeshCount
-                        end
-                    else
-                        UndoWallXuyenTuong(enemy, markData)
-                    end
-
-                    -- ★ Chams V2
-                    if _G.X3.XthrlenConfig.ColorBodyV2 then
-                        ApplyColorBodyV2(enemy, pc, markData)
-                    else
-                        UndoColorBodyV2(enemy, markData)
-                    end
-
-                    -- ★ Chams V3
-                    if _G.X3.XthrlenConfig.ColorBodyV3 then
-                        ApplyColorBodyV3(enemy, markData)
-                    else
-                        UndoColorBodyV3(enemy, markData)
-                    end
-
-                    -- ★ NEW ENGINE CHAMS (Red/Green)
-                    if _G.X3.XthrlenConfig.ColorBodyNew then
-                        ApplyColorBodyNew(enemy, markData)
-                    else
-                        UndoColorBodyNew(enemy, markData)
-                    end
-
-                    -- BugMan 拉伸
-                    pcall(function()
-                        if Valid(eMesh) then
-                            local targetScale = 1.0
-                            if _G.X3.XthrlenConfig.BugManEnable and _G.X3.XthrlenState.CustomTextData then
-                                targetScale = 177.0 / (_G.X3.XthrlenState.CustomTextData.BugManRatio or 133)
-                                if targetScale < 1.0 then targetScale = 1.0 end
-                                if targetScale > 2.0 then targetScale = 2.0 end
-                            end
-                            if markData.LastFatScale ~= targetScale then
-                                eMesh:SetRelativeScale3D(FVector(targetScale, targetScale, 1.0))
-                                markData.LastFatScale = targetScale
-                            end
-                        end
-                    end)
-
-                    local distM = 0
-                    pcall(function() distM = localPlayer:GetDistanceTo(enemy) / 100 end)
-
-                    local currentHp, maxHp = 100, 100
-                    local showFrameUI = _G.X3.XthrlenConfig.EspLoai5 or _G.X3.XthrlenConfig.EspVipPro or _G.X3.XthrlenConfig.EspVip
-                    if showFrameUI then
-                        pcall(function()
-                            if enemy.Health then currentHp = enemy.Health elseif type(enemy.GetHealth) == "function" then currentHp = enemy:GetHealth() end
-                            if enemy.HealthMax then maxHp = enemy.HealthMax elseif type(enemy.GetHealthMax) == "function" then maxHp = enemy:GetHealthMax() end
-                        end)
-                        if maxHp <= 0 then maxHp = 100 end
-                    end
-                    local hpRatio = currentHp / maxHp
-
-                    -- ★ EspAntenna
-                    if _G.X3.XthrlenConfig.EspAntenna then
-                        pcall(function()
-                            if Valid(Cached_MyHUD) and distM <= 400 then
-                                local baseZ = 105
-                                for i = 1, 8 do
-                                    local z = baseZ + (i * 1000)
-                                    Cached_MyHUD:AddDebugText("|", enemy, 0.06, {X=0,Y=0,Z=z}, {X=0,Y=0,Z=z}, C_GREEN, true, false, true, nil, 1.2, true)
-                                end
-                                Cached_MyHUD:AddDebugText("I", enemy, 0.06, {X=0,Y=0,Z=baseZ+8060}, {X=0,Y=0,Z=baseZ+8060}, C_GREEN, true, false, true, nil, 1.5, true)
-                            end
-                        end)
-                    end
-
-                    -- ★ EspLoai6 骨骼
-                    if _G.X3.XthrlenConfig.EspLoai6 then
-                        pcall(function()
-                            local t = os.clock()
-                            if markData.LastEsp6Time == nil or (t - markData.LastEsp6Time) >= 0.05 then
-                                markData.LastEsp6Time = t
-                                if Valid(Cached_MyHUD) and Valid(eMesh) and aLoc and distM <= 250 and type(eMesh.GetSocketLocation) == "function" then
-                                    for _, bName in ipairs(GLOBAL_BONE_LIST) do
-                                        if distM > 50 and (bName ~= "head" and bName ~= "pelvis" and bName ~= "neck_01") then
-                                            -- skip 远距离
-                                        else
-                                            local wLoc = eMesh:GetSocketLocation(bName)
-                                            if wLoc then
-                                                local off = {X=wLoc.X-aLoc.X, Y=wLoc.Y-aLoc.Y, Z=wLoc.Z-aLoc.Z}
-                                                local mark, size, color = "▪", 0.25, C_CYAN
-                                                if bName == "head" then mark, size, color = "●", 0.45, C_RED
-                                                elseif bName == "pelvis" or bName == "neck_01" then mark, size, color = "▪", 0.35, C_YELLOW end
-                                                Cached_MyHUD:AddDebugText(mark, enemy, 0.06, off, off, color, true, false, true, nil, size, true)
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        end)
-                    end
-
-                    -- ★ EspLoai7 详细信息
-                    if _G.X3.XthrlenConfig.EspLoai7 then
-                        pcall(function()
-                            if Valid(Cached_MyHUD) then
-                                if distM <= 600 then if isBot then aiCount = aiCount + 1 else realCount = realCount + 1 end end
-                                if distM <= 400 then
-                                    local stateText = ""
-                                    if _G.X3.XthrlenConfig.Esp7_TuThe then
-                                        local pose = enemy.PoseState or (type(enemy.GetPoseState) == "function" and enemy:GetPoseState())
-                                        if pose == 0 then stateText = "Đứng"
-                                        elseif pose == 1 then stateText = "Ngồi"
-                                        elseif pose == 2 then stateText = "Nằm"
-                                        else stateText = "Đứng" end
-                                    end
-                                    if _G.X3.XthrlenConfig.Esp7_VuKhi then
-                                        local t = os.clock()
-                                        if not markData.AK_LAST_WEP_TIME or t > markData.AK_LAST_WEP_TIME + 1.5 then
-                                            local w = enemy.CurrentWeapon or (type(enemy.GetCurrentWeapon) == "function" and enemy:GetCurrentWeapon()) or (enemy.WeaponManagerComponent and enemy.WeaponManagerComponent.CurrentWeaponReplicated)
-                                            local wName = "Tay Không"
-                                            if Valid(w) and type(w.GetWeaponName) == "function" then wName = w:GetWeaponName() end
-                                            markData.AK_CACHED_WEP_NAME = tostring(wName)
-                                            markData.AK_LAST_WEP_TIME = t
-                                        end
-                                        local wn = markData.AK_CACHED_WEP_NAME or "Tay Không"
-                                        if stateText ~= "" then stateText = stateText .. " - " .. wn else stateText = wn end
-                                    end
-                                    if stateText ~= "" then
-                                        Cached_MyHUD:AddDebugText(stateText, enemy, 0.06, {X=0,Y=0,Z=100}, {X=0,Y=0,Z=100},
-                                            isBot and C_CYAN or C_YELLOW, true, false, true, nil,
-                                            math.max(0.5, 0.8 - (distM / 400)), true)
-                                    end
-                                end
-                            end
-                        end)
-                    end
-
-                    -- Frame UI
-                    if showFrameUI then
-                        pcall(function()
-                            local show = true
-                            if enemy.HealthStatus and Cached_SecurityCommonUtils and Cached_SecurityCommonUtils.IsHealthStatusAlive then
-                                if not Cached_SecurityCommonUtils.IsHealthStatusAlive(enemy.HealthStatus) then show = false end
-                            end
-                            if show and mLoc and aLoc and Cached_SecurityCommonUtils and Cached_SecurityCommonUtils.IsVector then
-                                if Cached_SecurityCommonUtils.IsVector(aLoc) and Cached_SecurityCommonUtils.IsVector(mLoc) then
-                                    if aLoc.Z >= 150000 or FVector.Dist2D(mLoc, aLoc) > 50000 then show = false end
-                                end
-                            end
-                            if show then
-                                if enemy.Replay_IsEnemyFrameUIExisted and not enemy:Replay_IsEnemyFrameUIExisted() then enemy:Replay_CreateEnemyFrameUI(true, true) end
-                                if enemy.Replay_SetVisiableOfFrameUI then enemy:Replay_SetVisiableOfFrameUI(true) end
-                                if enemy.Replay_UpdateEnemyFrameUI then enemy:Replay_UpdateEnemyFrameUI(hpRatio) end
-                                local uiComp = enemy.EnemyFrameUI or (type(enemy.GetEnemyFrameUI) == "function" and enemy:GetEnemyFrameUI())
-                                if Valid(uiComp) and markData.LastFrameUIState ~= "VISIBLE" then
-                                    if uiComp.SetVisibility then uiComp:SetVisibility(0) end
-                                    if uiComp.SetHiddenInGame then uiComp:SetHiddenInGame(false) end
-                                    markData.LastFrameUIState = "VISIBLE"
-                                end
-                            end
-                        end)
-                    else
-                        pcall(function()
-                            if enemy.Replay_SetVisiableOfFrameUI then enemy:Replay_SetVisiableOfFrameUI(false) end
-                            local uiComp = enemy.EnemyFrameUI or (type(enemy.GetEnemyFrameUI) == "function" and enemy:GetEnemyFrameUI())
-                            if Valid(uiComp) and markData.LastFrameUIState ~= "HIDDEN" then
-                                if uiComp.SetVisibility then uiComp:SetVisibility(2) end
-                                if uiComp.SetHiddenInGame then uiComp:SetHiddenInGame(true) end
-                                markData.LastFrameUIState = "HIDDEN"
-                            end
-                        end)
-                    end
-
-                    -- ★ EspVipPro 名称+血条
-                    if _G.X3.XthrlenConfig.EspVipPro then
-                        pcall(function()
-                            if Valid(Cached_MyHUD) and distM <= 400 then
-                                local scale = math.max(0.55, 0.95 - (distM / 400))
-                                local isKnock = (currentHp <= 0 and enemy.HealthStatus == 1)
-                                local hpColor = C_GREEN
-                                if hpRatio < 0.3 then hpColor = C_RED elseif hpRatio < 0.7 then hpColor = C_YELLOW end
-                                if isKnock then hpColor = C_RED end
-                                if _G.X3.XthrlenConfig.Esp3ShowName then
-                                    local n = "Enemy"
-                                    pcall(function() if enemy.PlayerName then n = enemy.PlayerName elseif type(enemy.GetPlayerName) == "function" then n = enemy:GetPlayerName() end end)
-                                    if n == "" then n = "Enemy" end
-                                    if isKnock then n = "KNOCK: " .. n end
-                                    Cached_MyHUD:AddDebugText(n, enemy, 0.06, {X=0,Y=0,Z=-370}, {X=0,Y=0,Z=-370}, C_WHITE, true, false, true, nil, scale * 1.1, true)
-                                end
-                                if _G.X3.XthrlenConfig.Esp3ShowHP then
-                                    if not isKnock then
-                                        local segs, filled, startZ = 6, math.floor(hpRatio * 6), 20
-                                        local sp = 10.0 * scale
-                                        for j = 1, segs do
-                                            local c = (j <= filled) and hpColor or {R=30,G=30,B=30,A=180}
-                                            Cached_MyHUD:AddDebugText("█", enemy, 0.06, {X=0,Y=-115,Z=startZ+j*sp}, {X=0,Y=-115,Z=startZ+j*sp}, c, true, false, true, nil, scale*1.2, true)
-                                        end
-                                        Cached_MyHUD:AddDebugText(string.format("%d%%", math.floor(hpRatio*100)), enemy, 0.06, {X=0,Y=-60,Z=startZ-12}, {X=0,Y=-60,Z=startZ-12}, hpColor, true, false, true, nil, scale*0.8, true)
-                                    else
-                                        Cached_MyHUD:AddDebugText("DOWN", enemy, 0.06, {X=0,Y=-115,Z=50}, {X=0,Y=-115,Z=50}, C_RED, true, false, true, nil, scale, true)
-                                    end
-                                end
-                            end
-                        end)
-                    end
-
-                    -- ★ EspDistance
-                    if _G.X3.XthrlenConfig.EspDistance then
-                        pcall(function()
-                            if Valid(Cached_MyHUD) and distM <= 400 then
-                                local scale = math.max(0.55, 0.95 - (distM / 400))
-                                Cached_MyHUD:AddDebugText(string.format("[%dm]", math.floor(distM)), enemy, 0.06,
-                                    {X=0,Y=115,Z=20}, {X=0,Y=115,Z=20}, C_BLUE_TEXT, true, false, true, nil, scale*1.5, true)
-                            end
-                        end)
-                    end
-
-                    -- ★ EspVip marks (1006 + 9999)
-                    if _G.X3.XthrlenConfig.EspVip then
-                        if markData.hpMark == nil then markData.hpMark = SafeAddMark(1006, FVector(0,0,0), 0, "", 4, enemy) end
-                        if markData.distMark == nil then markData.distMark = SafeAddMark(9999, FVector(0,0,0), 0, "", 4, enemy) end
-                    else
-                        if markData.hpMark then SafeRemoveMark(markData.hpMark); markData.hpMark = nil end
-                        if markData.distMark then SafeRemoveMark(markData.distMark); markData.distMark = nil end
-                    end
-
-                    -- ★ EspLoai8 (Head HP bar)
-                    if _G.X3.XthrlenConfig.EspLoai8 then
-                        if markData.hpMark8 == nil then markData.hpMark8 = SafeAddMark(1006, FVector(0,0,0), 0, "", 4, enemy) end
-                    else
-                        if markData.hpMark8 then SafeRemoveMark(markData.hpMark8); markData.hpMark8 = nil end
-                    end
-
-                    -- ★ EspRadar (8888)
-                    if _G.X3.XthrlenConfig.EspRadar then
-                        if not markData.radarMark or markData.radarMark == 0 then
-                            markData.radarMark = SafeAddMark(8888, FVector(0,0,0), 0, "", 4, enemy)
-                        end
-                    else
-                        if markData.radarMark and markData.radarMark ~= 0 then
-                            SafeRemoveMark(markData.radarMark); markData.radarMark = nil
-                        end
-                    end
-
-                    -- ★ EspOutline
-                    if _G.X3.XthrlenConfig.EspOutline then
-                        pcall(function()
-                            local outColor = _G.X3.XthrlenState.CustomTextData.OutlineColor or 4
-                            local outThick = _G.X3.XthrlenConfig.OutlineThickness or 10
-                            local oh = string.format("%d_%d", outThick, outColor)
-                            local meshes = GetAllSkeletalMeshes(enemy, markData)
-                            if markData.OutlineState ~= oh or markData.LastMeshCountOutline ~= #meshes then
-                                local r,g,b = 255,255,0
-                                if outColor==1 then r,g,b=255,0,0 elseif outColor==2 then r,g,b=0,255,0
-                                elseif outColor==3 then r,g,b=0,0,255 elseif outColor==5 then r,g,b=255,0,255
-                                elseif outColor==6 then r,g,b=255,255,255 end
-                                local LC = import("LinearColor") or _G.FLinearColor
-                                local glow = LC and LC((r/255)*80,(g/255)*80,(b/255)*80,1.0) or {R=r*80,G=g*80,B=b*80,A=255}
-                                for _, comp in ipairs(meshes) do
-                                    if Valid(comp) then
-                                        pcall(function() comp.UseScopeDistanceCulling = false; comp.PrimitiveShadingStrategy = 1; comp.ShadingRate = 6 end)
-                                        if comp.SetDrawIdeaOutline then
-                                            comp:SetDrawIdeaOutline(true)
-                                            if comp.OverrideIdeaOutlineColor then comp:OverrideIdeaOutlineColor(true, glow) end
-                                            if comp.OverrideIdeaOutlineThickness then comp:OverrideIdeaOutlineThickness(true, outThick) end
-                                        end
-                                    end
-                                end
-                                markData.OutlineState = oh
-                                markData.LastMeshCountOutline = #meshes
-                            end
-                        end)
-                    else
-                        pcall(function()
-                            if markData.OutlineState ~= "OFF" then
-                                local meshes = GetAllSkeletalMeshes(enemy, markData)
-                                for _, comp in ipairs(meshes) do
-                                    if Valid(comp) then
-                                        pcall(function() comp.PrimitiveShadingStrategy = 0; comp.ShadingRate = 1 end)
-                                        if comp.SetDrawIdeaOutline then comp:SetDrawIdeaOutline(false) end
-                                    end
-                                end
-                                markData.OutlineState = "OFF"
-                                markData.LastMeshCountOutline = 0
-                            end
-                        end)
-                    end
-
-                else
-                    -- 清理死亡敌人的 mark
-                    if not markData.IsCleanedUp then
-                        SafeRemoveMark(markData.radarMark); markData.radarMark = nil
-                        SafeRemoveMark(markData.hpMark);    markData.hpMark = nil
-                        SafeRemoveMark(markData.hpMark8);   markData.hpMark8 = nil
-                        SafeRemoveMark(markData.distMark);  markData.distMark = nil
-                        if markData.MIDs then
-                            for _, mt in pairs(markData.MIDs) do for k in pairs(mt) do mt[k] = nil end end
-                            markData.MIDs = nil
-                        end
-                        if markData.MIDs_V3 then
-                            for _, mt in pairs(markData.MIDs_V3) do for k in pairs(mt) do mt[k] = nil end end
-                            markData.MIDs_V3 = nil
-                        end
-                        pcall(function()
-                            local eObj = markData.enemy
-                            if Valid(eObj) then
-                                if eObj.Replay_SetVisiableOfFrameUI then eObj:Replay_SetVisiableOfFrameUI(false) end
-                                local uiComp = eObj.EnemyFrameUI or (type(eObj.GetEnemyFrameUI)=="function" and eObj:GetEnemyFrameUI())
-                                if Valid(uiComp) then
-                                    if uiComp.SetVisibility then uiComp:SetVisibility(2) end
-                                    if uiComp.SetHiddenInGame then uiComp:SetHiddenInGame(true) end
-                                end
-                            end
-                            local PPM = Cached_PPM
-                            local avatarComp = Valid(eObj) and (type(eObj.getAvatarComponent2)=="function") and eObj:getAvatarComponent2() or nil
-                            if Valid(avatarComp) and Valid(PPM) then PPM:EnableAvatarOutline(avatarComp, false) end
-                        end)
-                        markData.IsCleanedUp = true
-                    end
-                end
-            end
-        end
-
-        -- 敌人计数器
-        if _G.X3.XthrlenConfig.EspLoai7 and _G.X3.XthrlenConfig.Esp7_SoLuong then
-            _M_DrawCounter()
-        else
-            if EnemyCounterWidget and slua.isValid(EnemyCounterWidget) then
-                EnemyCounterWidget:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
-            end
-        end
-    end)
-end
-
-
-    -- 10) 菜单构建器
-    function _G.X3.ESP_BuildMenu(stack, AliasMap)
-        if not stack or not AliasMap then return end
-local stack_items = {
-            { Key = "ModMenu_ESP1", UI = AliasMap.Switcher, Text = "ESP Type 1 (360 Alert-HP-Name) ", GetFunc = function() return _G.X3.XthrlenConfig.EspVip end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVip = v return true end },
-            { Key = "ModMenu_ESP2", UI = AliasMap.Switcher, Text = "ESP Type 2 (Distance Meter) ", GetFunc = function() return _G.X3.XthrlenConfig.EspDistance end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspDistance = v return true end },
-            
-            { Key = "ModMenu_ESP3_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ ESP Type 3 (Vertical HP & Name) ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspVipPro end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVipPro = v return true end },
-            { Key = "ModMenu_ESP3_Name", UI = AliasMap.Switcher, Text = "   Show Player Name ", ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp3ShowName end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp3ShowName = v return true end },
-            { Key = "ModMenu_ESP3_HP", UI = AliasMap.Switcher, Text = "   Show Vertical HP Bar ", ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp3ShowHP end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp3ShowHP = v return true end },
-            
-            { Key = "ModMenu_ESP4", UI = AliasMap.Switcher, Text = "ESP Type 4 (Radar 360) ", GetFunc = function() return _G.X3.XthrlenConfig.EspRadar end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspRadar = v return true end },
-            { Key = "ModMenu_ESP5", UI = AliasMap.Switcher, Text = "ESP Type 5 (Box ESP) ", GetFunc = function() return _G.X3.XthrlenConfig.EspLoai5 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai5 = v return true end },
-            { Key = "ModMenu_ESP6", UI = AliasMap.Switcher, Text = "ESP Type 6 (Skeleton) ", GetFunc = function() return _G.X3.XthrlenConfig.EspLoai6 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai6 = v return true end },
-            { Key = "ModMenu_ESP7_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ ESP Type 7 (Detail Info) ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspLoai7 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai7 = v return true end },
-            { Key = "ModMenu_ESP7_SoLuong", UI = AliasMap.Switcher, Text = "   Show Enemies Count Around ", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp7_SoLuong end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp7_SoLuong = v return true end },
-            { Key = "ModMenu_ESP7_VuKhi", UI = AliasMap.Switcher, Text = "   Show Enemy Weapon ", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp7_VuKhi end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp7_VuKhi = v return true end },
-            { Key = "ModMenu_ESP7_TuThe", UI = AliasMap.Switcher, Text = "   Show Posture (Stand/Crouch/Prone) ", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp7_TuThe end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp7_TuThe = v return true end },
-            { Key = "ModMenu_EspAimWarning", UI = AliasMap.Switcher, Text = "   Enemy Aim Warning ", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspAimWarning end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspAimWarning = v return true end },
-            { Key = "ModMenu_EspAimWarning_Vis", UI = AliasMap.Switcher, Text = "      Visibility Check ", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspAimWarningVisCheck end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspAimWarningVisCheck = v return true end },
-            { Key = "ModMenu_ESP8", UI = AliasMap.Switcher, Text = "ESP Type 8 (Head HP Bar) ", GetFunc = function() return _G.X3.XthrlenConfig.EspLoai8 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai8 = v return true end },
-            
-            { Key = "ModMenu_EspItem_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Item ESP (Under 70m) ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Master end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Master = v return true end },
-            { Key = "ModMenu_EspItem_AR", UI = AliasMap.Switcher, Text = "   Show AR Weapons ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_AR end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_AR = v return true end },
-            { Key = "ModMenu_EspItem_Sniper", UI = AliasMap.Switcher, Text = "   Show Sniper Rifles ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Sniper end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Sniper = v return true end },
-            { Key = "ModMenu_EspItem_SMG", UI = AliasMap.Switcher, Text = "   Show SMGs ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_SMG end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_SMG = v return true end },
-            { Key = "ModMenu_EspItem_Shotgun", UI = AliasMap.Switcher, Text = "   Show Shotguns ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Shotgun end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Shotgun = v return true end },
-            { Key = "ModMenu_EspItem_LMG", UI = AliasMap.Switcher, Text = "   Show LMGs ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_LMG end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_LMG = v return true end },
-            { Key = "ModMenu_EspItem_Pistol", UI = AliasMap.Switcher, Text = "   Show Pistols / Flares ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Pistol end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Pistol = v return true end },
-            { Key = "ModMenu_EspItem_Melee", UI = AliasMap.Switcher, Text = "   Show Melee Weapons ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Melee end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Melee = v return true end },
-            { Key = "ModMenu_EspItem_Special", UI = AliasMap.Switcher, Text = "   Show Special Weapons ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Special end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Special = v return true end },
-            { Key = "ModMenu_EspItem_Scope", UI = AliasMap.Switcher, Text = "   Show Scopes ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Scope end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Scope = v return true end },
-            { Key = "ModMenu_EspItem_Grenade", UI = AliasMap.Switcher, Text = "   Show Grenades ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Grenade end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Grenade = v return true end },
-            { Key = "ModMenu_EspItem_Med", UI = AliasMap.Switcher, Text = "   Show Medkits/Boosters ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Med end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Med = v return true end },
-            
-            { Key = "ModMenu_ESPBom_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Grenade Warning & Tracker ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspBomMaster end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspBomMaster = v return true end },
-            { Key = "ModMenu_ESPItemBom", UI = AliasMap.Switcher, Text = "   Show Grenades On Ground ", ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItemBom end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItemBom = v return true end },
-            { Key = "ModMenu_ESPActiveBom", UI = AliasMap.Switcher, Text = "   Active Grenade Warning ", ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspActiveBom end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspActiveBom = v return true end },
-            
-            { Key = "ModMenu_ESPVehicle_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Vehicle ESP ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspVehicle end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVehicle = v return true end },
-            { Key = "ModMenu_ESPVeh_Dacia", UI = AliasMap.Switcher, Text = "   Show Dacia ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Dacia end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Dacia = v return true end },
-            { Key = "ModMenu_ESPVeh_UAZ", UI = AliasMap.Switcher, Text = "   Show UAZ ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_UAZ end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_UAZ = v return true end },
-            { Key = "ModMenu_ESPVeh_Buggy", UI = AliasMap.Switcher, Text = "   Show Buggy ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Buggy end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Buggy = v return true end },
-            { Key = "ModMenu_ESPVeh_Coupe", UI = AliasMap.Switcher, Text = "   Show Coupe RB ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Coupe end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Coupe = v return true end },
-            { Key = "ModMenu_ESPVeh_Mirado", UI = AliasMap.Switcher, Text = "   Show Mirado ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Mirado end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Mirado = v return true end },
-            { Key = "ModMenu_ESPVeh_Motor", UI = AliasMap.Switcher, Text = "   Show Motorcycles ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Motor end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Motor = v return true end },
-            { Key = "ModMenu_ESPVeh_Other", UI = AliasMap.Switcher, Text = "   Show Others (Boat/BRDM) ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Other end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Other = v return true end },
-            
-            { Key = "ModMenu_ESPAntenna", UI = AliasMap.Switcher, Text = "Antenna ESP ", GetFunc = function() return _G.X3.XthrlenConfig.EspAntenna end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspAntenna = v return true end },
-            { Key = "ModMenu_ESPOutline_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Outline ESP (HDR supported) ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspOutline end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspOutline = v return true end },
-            { Key = "ModMenu_ESPOutline_Color", UI = AliasMap.Slider, Text = "   Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Pur 6:Wht) ", ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 6, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.OutlineColor or 4 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.OutlineColor = v return true end },
-
-            { Key = "ModMenu_ESPOutline_Thickness", UI = AliasMap.Slider, Text = "   Outline Thickness ", ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 20, min = 1, max = 20, GetFunc = function() return _G.X3.XthrlenConfig.OutlineThickness end, SetFunc = function(c,v) _G.X3.XthrlenConfig.OutlineThickness = v return true end },
-            { Key = "ModMenu_WallXuyenTuong", UI = AliasMap.Switcher, Text = "Wallhack V1 (See Through) [ TEMBUS PANDANG ]",
-              GetFunc = function() return _G.X3.XthrlenConfig.WallXuyenTuong end,
-              SetFunc = function(c,v) _G.X3.XthrlenConfig.WallXuyenTuong = v return true end },
-            { Key = "ModMenu_ColorBodyV2", UI = AliasMap.Switcher, Text = "Chams V2 (Basic Color) [ WARNA TUBUH V2 ]",
-              GetFunc = function() return _G.X3.XthrlenConfig.ColorBodyV2 end,
-              SetFunc = function(c,v) _G.X3.XthrlenConfig.ColorBodyV2 = v return true end },
-            { Key = "ModMenu_ColorBodyV3", UI = AliasMap.Switcher, Text = "Chams V3 (Custom Color) [ WARNA TUBUH V3 ]",
-              GetFunc = function() return _G.X3.XthrlenConfig.ColorBodyV3 end,
-              SetFunc = function(c,v) _G.X3.XthrlenConfig.ColorBodyV3 = v return true end },
-            { Key = "ModMenu_ColorBodyNew", UI = AliasMap.Switcher, Text = "★ NEW ENGINE CHAMS (Red/Green) [ WARNA ENGINE BARU ]",
-              GetFunc = function() return _G.X3.XthrlenConfig.ColorBodyNew end,
-              SetFunc = function(c,v) _G.X3.XthrlenConfig.ColorBodyNew = v return true end },
-            { Key = "ModMenu_BugMan_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Screen Stretch (Fat Body) [ TUBUH GEMUK ]", ExpandIndex = 0,
-              GetFunc = function() return _G.X3.XthrlenConfig.BugManEnable end,
-              SetFunc = function(c,v) _G.X3.XthrlenConfig.BugManEnable = v return true end },
-            { Key = "ModMenu_BugMan_Ratio", UI = AliasMap.Slider, Text = "   Stretch Ratio [ RASIO ]", ExpandHandle = "ModMenu_BugMan_Ex",
-              MinValue = 110, MaxValue = 200, min = 110, max = 200,
-              GetFunc = function() return _G.X3.XthrlenState.CustomTextData.BugManRatio or 133 end,
-              SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.BugManRatio = v return true end }
-        }
-        if stack_items then
-            for _, it in ipairs(stack_items) do table.insert(stack, it) end
-        end
-
-    end
-
-    -- 11) 独立 ticker（仅当 MainLoop 未运行时作为兜底）
-    if not _G.X3.ESP_TickStarted then
-        _G.X3.ESP_TickStarted = true
-        local function espLoop()
-            pcall(function()
-                local GD = require("GameLua.GameCore.Data.GameplayData")
-                local pc = GD and GD.GetPlayerController and GD.GetPlayerController()
-                local lp = pc and pc.GetPlayerCharacterSafety and pc:GetPlayerCharacterSafety() or nil
-                if lp then _G.X3.ESP_Tick(lp, pc) end
-            end)
-            local okT, tk = pcall(require, "common.time_ticker")
-            if okT and tk and tk.AddTimerOnce then
-                tk.AddTimerOnce(0.15, espLoop)
-            end
-        end
-        local okT, tk = pcall(require, "common.time_ticker")
-        if okT and tk and tk.AddTimerOnce then
-            tk.AddTimerOnce(0.15, espLoop)
-        end
-    end
-
-    print("[PORT] FULL ESP injected (Vip/VipPro/Distance/Radar/Loai5-8/Antenna/Outline/AimWarning/Bom/Vehicle/ChamsV2-V3/WallXuyenTuong/BugMan + 0.15s ticker)")
-end
--- [/PORT]
-
 function _G.X3.InitModMenuTab()
     if _G.X3.ModMenuInitialized and _G.X3.ModMenuBuiltStamp == _G.X3.BuildStamp then return true end
 
@@ -5434,21 +4069,84 @@ end
             { Key = "ModMenu_BlackSky", UI = AliasMap.Switcher, Text = "Black Sky [ LANGIT GELAP ]", GetFunc = function() return _G.X3.XthrlenConfig.BlackSky end, SetFunc = function(c,v) _G.X3.XthrlenConfig.BlackSky = v return true end },
             { Key = "ModMenu_RemoveFog", UI = AliasMap.Switcher, Text = "No Fog [ TIDAK ADA KABUT ]", GetFunc = function() return _G.X3.XthrlenConfig.RemoveFog end, SetFunc = function(c,v) _G.X3.XthrlenConfig.RemoveFog = v return true end },
             { Key = "ModMenu_RemoveGrass", UI = AliasMap.Switcher, Text = "No Grass [ TIDAK ADA RUMPUT ]", GetFunc = function() return _G.X3.XthrlenConfig.RemoveGrass end, SetFunc = function(c,v) _G.X3.XthrlenConfig.RemoveGrass = v return true end }
+,            { UI = AliasMap.Title, Text = "WALL & CHAMS" },
+            { Key = "ModMenu_WallXuyenTuong", UI = AliasMap.Switcher, Text = "Wall Xuyen Tuong V1 [ TEMBUS PANDANG ]", GetFunc = function() return _G.X3.XthrlenConfig.WallXuyenTuong end, SetFunc = function(c,v) _G.X3.XthrlenConfig.WallXuyenTuong = v return true end },
+            { Key = "ModMenu_ColorBodyV2", UI = AliasMap.Switcher, Text = "Chams V2 [ WARNA TUBUH V2 ]", GetFunc = function() return _G.X3.XthrlenConfig.ColorBodyV2 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.ColorBodyV2 = v return true end },
+            { Key = "ModMenu_ColorBodyNew", UI = AliasMap.Switcher, Text = "NEW ENGINE CHAMS [ WARNA ENGINE BARU ]", GetFunc = function() return _G.X3.XthrlenConfig.ColorBodyNew end, SetFunc = function(c,v) _G.X3.XthrlenConfig.ColorBodyNew = v return true end },
+            { Key = "ModMenu_ColorBodyV3_Ex", UI = AliasMap.TitleSwitcher, Text = "WALL V2 + CHAMS V3 [ WARNA KUSTOM ]", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.ColorBodyV3 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.ColorBodyV3 = v return true end },
+            { Key = "ModMenu_V3_Hidden", UI = AliasMap.Slider, Text = "   Warna di Balik Tembok (1:Merah 2:Hijau 3:Biru 4:Kuning 5:Ungu 6:Putih)", ExpandHandle = "ModMenu_ColorBodyV3_Ex", MinValue = 1, MaxValue = 6, min = 1, max = 6, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.ColorV3Hidden or 1 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.ColorV3Hidden = v return true end },
+            { Key = "ModMenu_V3_Vis", UI = AliasMap.Slider, Text = "   Warna Terlihat (1:Merah 2:Hijau 3:Biru 4:Kuning 5:Ungu 6:Putih)", ExpandHandle = "ModMenu_ColorBodyV3_Ex", MinValue = 1, MaxValue = 6, min = 1, max = 6, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.ColorV3Visible or 2 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.ColorV3Visible = v return true end },
+            { Key = "ModMenu_V3_Thick", UI = AliasMap.Slider, Text = "   Ketebalan Outline HDR (1-20)", ExpandHandle = "ModMenu_ColorBodyV3_Ex", MinValue = 1, MaxValue = 20, min = 1, max = 20, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.ColorV3Thickness or 4 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.ColorV3Thickness = v return true end },
 
         }
 
             if _G.X3.BuildX3RareGraphicMenu then _G.X3.BuildX3RareGraphicMenu(StackGraphic, AliasMap) end
+
+
+        -- ====================================================================
+        -- [PORT] STACK ESP (lengkap, dari 1.lua)
+        -- ====================================================================
+        local StackESP = {
+            { UI = AliasMap.Title, Text = "SRCHUB ESP" },
+            { Key = "ModMenu_ESP1", UI = AliasMap.Switcher, Text = "ESP 1 [ WARNING 360 - HP - NAMA ]", GetFunc = function() return _G.X3.XthrlenConfig.EspVip end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVip = v return true end },
+            { Key = "ModMenu_ESP2", UI = AliasMap.Switcher, Text = "ESP 2 [ JARAK METER ]", GetFunc = function() return _G.X3.XthrlenConfig.EspDistance end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspDistance = v return true end },
+
+            { Key = "ModMenu_ESP3_Ex", UI = AliasMap.TitleSwitcher, Text = "ESP 3 [ HP VERTIKAL & NAMA ]", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspVipPro end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVipPro = v return true end },
+            { Key = "ModMenu_ESP3_Name", UI = AliasMap.Switcher, Text = "   Tampilkan Nama [ NAMA PLAYER ]", ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp3ShowName end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp3ShowName = v return true end },
+            { Key = "ModMenu_ESP3_HP", UI = AliasMap.Switcher, Text = "   Tampilkan HP Bar [ BAR HP VERTIKAL ]", ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp3ShowHP end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp3ShowHP = v return true end },
+
+            { Key = "ModMenu_ESP4", UI = AliasMap.Switcher, Text = "ESP 4 [ RADAR 360 ]", GetFunc = function() return _G.X3.XthrlenConfig.EspRadar end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspRadar = v return true end },
+            { Key = "ModMenu_ESP5", UI = AliasMap.Switcher, Text = "ESP 5 [ KOTAK / FRAME UI MUSUH ]", GetFunc = function() return _G.X3.XthrlenConfig.EspLoai5 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai5 = v return true end },
+            { Key = "ModMenu_ESP6", UI = AliasMap.Switcher, Text = "ESP 6 [ TULANG / SKELETON ]", GetFunc = function() return _G.X3.XthrlenConfig.EspLoai6 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai6 = v return true end },
+
+            { Key = "ModMenu_ESP7_Ex", UI = AliasMap.TitleSwitcher, Text = "ESP 7 [ INFO DETAIL MUSUH ]", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspLoai7 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai7 = v return true end },
+            { Key = "ModMenu_ESP7_SoLuong", UI = AliasMap.Switcher, Text = "   Hitung Musuh di Sekitar [ JUMLAH MUSUH ]", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp7_SoLuong end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp7_SoLuong = v return true end },
+            { Key = "ModMenu_ESP7_VuKhi", UI = AliasMap.Switcher, Text = "   Tampilkan Senjata Musuh [ SENJATA ]", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp7_VuKhi end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp7_VuKhi = v return true end },
+            { Key = "ModMenu_ESP7_TuThe", UI = AliasMap.Switcher, Text = "   Tampilkan Posisi [ BERDIRI / JONGKOK / TIARAP ]", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp7_TuThe end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp7_TuThe = v return true end },
+            { Key = "ModMenu_EspAimWarning", UI = AliasMap.Switcher, Text = "   Peringatan Musuh Membidik [ AIM WARNING ]", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspAimWarning end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspAimWarning = v return true end },
+            { Key = "ModMenu_EspAimWarning_Vis", UI = AliasMap.Switcher, Text = "      VisCheck [ HANYA SAAT TERLIHAT ]", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspAimWarningVisCheck end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspAimWarningVisCheck = v return true end },
+
+            { Key = "ModMenu_ESP8", UI = AliasMap.Switcher, Text = "ESP 8 [ HP DI ATAS KEPALA ]", GetFunc = function() return _G.X3.XthrlenConfig.EspLoai8 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai8 = v return true end },
+
+            { Key = "ModMenu_EspItem_Ex", UI = AliasMap.TitleSwitcher, Text = "ESP ITEM [ BARANG DI BAWAH 70m ]", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Master end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Master = v return true end },
+            { Key = "ModMenu_EspItem_AR", UI = AliasMap.Switcher, Text = "   Senjata AR [ AR ]", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_AR end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_AR = v return true end },
+            { Key = "ModMenu_EspItem_Sniper", UI = AliasMap.Switcher, Text = "   Senjata Sniper [ SNIPER ]", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Sniper end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Sniper = v return true end },
+            { Key = "ModMenu_EspItem_SMG", UI = AliasMap.Switcher, Text = "   Senjata SMG [ SMG ]", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_SMG end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_SMG = v return true end },
+            { Key = "ModMenu_EspItem_Shotgun", UI = AliasMap.Switcher, Text = "   Senjata Shotgun [ SHOTGUN ]", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Shotgun end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Shotgun = v return true end },
+            { Key = "ModMenu_EspItem_LMG", UI = AliasMap.Switcher, Text = "   Senjata LMG [ LMG ]", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_LMG end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_LMG = v return true end },
+            { Key = "ModMenu_EspItem_Pistol", UI = AliasMap.Switcher, Text = "   Pistol / Flare [ PISTOL ]", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Pistol end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Pistol = v return true end },
+            { Key = "ModMenu_EspItem_Melee", UI = AliasMap.Switcher, Text = "   Senjata Melee [ MELEE ]", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Melee end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Melee = v return true end },
+            { Key = "ModMenu_EspItem_Special", UI = AliasMap.Switcher, Text = "   Senjata Spesial [ SPECIAL ]", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Special end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Special = v return true end },
+            { Key = "ModMenu_EspItem_Scope", UI = AliasMap.Switcher, Text = "   Scope / Teropong [ SCOPE ]", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Scope end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Scope = v return true end },
+            { Key = "ModMenu_EspItem_Grenade", UI = AliasMap.Switcher, Text = "   Granat [ GRENADE ]", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Grenade end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Grenade = v return true end },
+            { Key = "ModMenu_EspItem_Med", UI = AliasMap.Switcher, Text = "   Obat & Minuman [ MEDKIT ]", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Med end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Med = v return true end },
+
+            { Key = "ModMenu_ESPBom_Ex", UI = AliasMap.TitleSwitcher, Text = "PERINGATAN & LOKASI BOM", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspBomMaster end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspBomMaster = v return true end },
+            { Key = "ModMenu_ESPItemBom", UI = AliasMap.Switcher, Text = "   Bom di Tanah [ ITEM BOM ]", ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItemBom end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItemBom = v return true end },
+            { Key = "ModMenu_ESPActiveBom", UI = AliasMap.Switcher, Text = "   Bom Dilempar + Timer [ TIMER BOM ]", ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspActiveBom end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspActiveBom = v return true end },
+
+            { Key = "ModMenu_ESPVehicle_Ex", UI = AliasMap.TitleSwitcher, Text = "ESP KENDARAAN", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspVehicle end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVehicle = v return true end },
+            { Key = "ModMenu_ESPVeh_Dacia", UI = AliasMap.Switcher, Text = "   Dacia", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Dacia end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Dacia = v return true end },
+            { Key = "ModMenu_ESPVeh_UAZ", UI = AliasMap.Switcher, Text = "   UAZ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_UAZ end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_UAZ = v return true end },
+            { Key = "ModMenu_ESPVeh_Buggy", UI = AliasMap.Switcher, Text = "   Buggy", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Buggy end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Buggy = v return true end },
+            { Key = "ModMenu_ESPVeh_Coupe", UI = AliasMap.Switcher, Text = "   Coupe RB", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Coupe end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Coupe = v return true end },
+            { Key = "ModMenu_ESPVeh_Mirado", UI = AliasMap.Switcher, Text = "   Mirado", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Mirado end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Mirado = v return true end },
+            { Key = "ModMenu_ESPVeh_Motor", UI = AliasMap.Switcher, Text = "   Motor / Scooter", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Motor end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Motor = v return true end },
+            { Key = "ModMenu_ESPVeh_Other", UI = AliasMap.Switcher, Text = "   Lainnya (Perahu/BRDM/Glider)", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Other end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Other = v return true end },
+            { Key = "ModMenu_WallVehicle", UI = AliasMap.Switcher, Text = "   Wall Kendaraan [ TEMBUS KENDARAAN ]", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.WallVehicle end, SetFunc = function(c,v) _G.X3.XthrlenConfig.WallVehicle = v return true end },
+
+            { Key = "ModMenu_ESPAntenna", UI = AliasMap.Switcher, Text = "ESP ANTENNA [ TIANG PENANDA ]", GetFunc = function() return _G.X3.XthrlenConfig.EspAntenna end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspAntenna = v return true end },
+
+            { Key = "ModMenu_ESPOutline_Ex", UI = AliasMap.TitleSwitcher, Text = "ESP OUTLINE [ GARIS TEPI MUSUH ]", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspOutline end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspOutline = v return true end },
+            { Key = "ModMenu_ESPOutline_Color", UI = AliasMap.Slider, Text = "   Warna (1:Merah 2:Hijau 3:Biru 4:Kuning 5:Ungu 6:Putih)", ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 6, min = 1, max = 6, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.OutlineColor or 4 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.OutlineColor = v return true end },
+            { Key = "ModMenu_ESPOutline_Thickness", UI = AliasMap.Slider, Text = "   Ketebalan Outline (1-20)", ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 20, min = 1, max = 20, GetFunc = function() return _G.X3.XthrlenConfig.OutlineThickness or 10 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.OutlineThickness = v return true end },
+        }
 
         local StackFiturLain = {}
         for _, v in ipairs(StackDeviceInfo) do table.insert(StackFiturLain, v) end
         for _, v in ipairs(StackCombat) do table.insert(StackFiturLain, v) end
         for _, v in ipairs(StackGraphic) do table.insert(StackFiturLain, v) end
 
-        -- [PORT] ESP 菜单构建
-        local StackESP = {}
-        if _G.X3.ESP_BuildMenu then
-            pcall(_G.X3.ESP_BuildMenu, StackESP, AliasMap)
-        end
         SettingPageDefine.ModMenu = {
             Key = "ModMenu",
             Text = "   SRCHUB MENU",
@@ -5688,7 +4386,7 @@ local function InitializeNativeESP()
                 cfg[1006].bBindBlocked = true;
                 cfg[1006].bBindOutScreen = true;
                 cfg[1006].MaxWidgetNum = 99
-                cfg[1006].MaxShowDistance = 33000;
+                cfg[1006].MaxShowDistance = 6000000;
                 cfg[1006].bScaleByDistance = false
                 cfg[1006].BindSocketName = "root";
                 cfg[1006].bUseLuaWorldSocketName = true
@@ -5731,6 +4429,1692 @@ local function InitializeNativeESP()
     _G.X3.XthrlenState.NativeESPReady = true
     Notify("Sistem ESP Native Diinisialisasi")
 end
+
+
+-- ============================================================================
+-- [PORT-ESP] ESP + WALL/CHAMS diambil dari 1.lua
+-- Namespace: LexusConfig -> X3.XthrlenConfig, LexusState -> X3.XthrlenState
+-- ============================================================================
+local PortESPModule = (function()
+_G.X3.PortESP = _G.X3.PortESP or {
+    LastItemScan = 0,
+    LastVehicleScan = 0,
+    LastBombScan = 0,
+    LastCounter = 0,
+    LastClearTimer = 0,
+    CounterWidget = nil,
+    WarningWidget = nil,
+    ItemCache = {},
+    VehicleCache = {},
+    ItemBombCache = {},
+    ActiveBombCache = {},
+    AppliedItem = {},
+    AppliedVehWall = {},
+    BombCache = setmetatable({}, { __mode = "k" }),
+    NonBombCache = setmetatable({}, { __mode = "k" }),
+    ActiveBombTimers = {},
+}
+local PE = _G.X3.PortESP
+
+local PortLinearColor = nil
+pcall(function() PortLinearColor = import("LinearColor") end)
+local PortSkelClass = nil
+pcall(function() PortSkelClass = import("SkeletalMeshComponent") end)
+
+local function PortCfg() return _G.X3.XthrlenConfig end
+local function PortData()
+    local S = _G.X3.XthrlenState
+    S.CustomTextData = S.CustomTextData or {}
+    return S.CustomTextData
+end
+
+-- Sama dengan 1.lua: kumpulkan semua SkeletalMesh (body + aksesoris)
+local function PortAllMeshes(enemy, markData)
+    local curTime = os.clock()
+    if markData and markData.CachedMeshes and markData.CachedMeshTime and (curTime - markData.CachedMeshTime < 0.5) then
+        local validMeshes = {}
+        for _, cachedMesh in ipairs(markData.CachedMeshes) do
+            local isPendingKill = false
+            pcall(function() if type(cachedMesh.IsPendingKill) == "function" then isPendingKill = cachedMesh:IsPendingKill() end end)
+            if Valid(cachedMesh) and not isPendingKill then table.insert(validMeshes, cachedMesh) end
+        end
+        markData.CachedMeshes = validMeshes
+        return validMeshes
+    end
+
+    local meshes = {}
+    if Valid(enemy.Mesh) then table.insert(meshes, enemy.Mesh) end
+    pcall(function()
+        if PortSkelClass and type(enemy.GetComponentsByClass) == "function" then
+            local childs = enemy:GetComponentsByClass(PortSkelClass)
+            if childs then
+                local count = type(childs.Num) == "function" and childs:Num() or #childs
+                for i = 1, count do
+                    local comp = type(childs.Get) == "function" and childs:Get(i - 1) or childs[i]
+                    if Valid(comp) and comp ~= enemy.Mesh then table.insert(meshes, comp) end
+                end
+            end
+        end
+    end)
+    if markData then
+        markData.CachedMeshes = meshes
+        markData.CachedMeshTime = curTime
+    end
+    return meshes
+end
+
+-- WALL XUYEN TUONG V1 (see-through)
+local function PortUndoWall(enemy, markData)
+    pcall(function()
+        if markData.WallhackApplied then
+            local meshes = PortAllMeshes(enemy, markData)
+            for _, mesh in ipairs(meshes) do
+                if Valid(mesh) then
+                    pcall(function() if type(mesh.SetRenderCustomDepth) == "function" then mesh:SetRenderCustomDepth(false) end end)
+                    for i = 0, 10 do
+                        local matInterface = mesh:GetMaterial(i)
+                        if Valid(matInterface) then
+                            local baseMat = matInterface:GetBaseMaterial()
+                            if Valid(baseMat) then baseMat.bDisableDepthTest = false end
+                        end
+                    end
+                end
+            end
+            markData.WallhackApplied = false
+        end
+    end)
+end
+
+local function PortApplyWall(enemy, markData)
+    pcall(function()
+        local meshes = PortAllMeshes(enemy, markData)
+        for _, mesh in ipairs(meshes) do
+            if Valid(mesh) then
+                pcall(function()
+                    if type(mesh.SetRenderCustomDepth) == "function" then mesh:SetRenderCustomDepth(true) end
+                    if type(mesh.SetCustomDepthStencilValue) == "function" then mesh:SetCustomDepthStencilValue(252) end
+                end)
+                for i = 0, 10 do
+                    local matInterface = mesh:GetMaterial(i)
+                    if not Valid(matInterface) then break end
+                    local baseMat = matInterface:GetBaseMaterial()
+                    if Valid(baseMat) then
+                        baseMat.bDisableDepthTest = true
+                        baseMat.BlendMode = 2
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- CHAMS V2 (basic color)
+local function PortApplyV2(enemy, pc, markData)
+    pcall(function()
+        local meshes = PortAllMeshes(enemy, markData)
+        if #meshes == 0 then return end
+
+        local curTime = os.clock()
+        if markData.LastVisCheckTime == nil or (curTime - markData.LastVisCheckTime) > 0.3 then
+            markData.LastVisCheckTime = curTime
+            local isHidden = true
+            pcall(function()
+                if Valid(pc) and type(pc.LineOfSightTo) == "function" then
+                    isHidden = not pc:LineOfSightTo(enemy)
+                end
+            end)
+            markData.CachedHiddenState = isHidden
+        end
+
+        local hidden = markData.CachedHiddenState
+        if hidden == nil then hidden = true end
+
+        local cData = PortData()
+        local hiddenColor = {R = cData.HiddenR or 150, G = cData.HiddenG or 0, B = cData.HiddenB or 0, A = cData.HiddenA or 25}
+        local visibleColor = {R = cData.VisibleR or 0, G = cData.VisibleG or 150, B = cData.VisibleB or 0, A = cData.VisibleA or 25}
+
+        local finalColor = hidden and hiddenColor or visibleColor
+        local colorHash = string.format("%d_%d_%d_%d", finalColor.R, finalColor.G, finalColor.B, finalColor.A)
+        local currentMeshCount = #meshes
+        local isMeshChanged = (markData.LastMeshCount ~= currentMeshCount)
+
+        if not isMeshChanged and markData.LastHiddenState == hidden and markData.LastColorHash == colorHash then return end
+        if isMeshChanged and markData.MIDs then markData.MIDs = {} end
+
+        markData.LastHiddenState = hidden
+        markData.LastMeshCount = currentMeshCount
+        markData.LastColorHash = colorHash
+        markData.ColorApplied = true
+
+        for meshIndex, mesh in ipairs(meshes) do
+            if Valid(mesh) then
+                pcall(function()
+                    mesh.LDMaxDrawDistance = -99999
+                    mesh.MaxDrawDistanceOffset = -99999
+                    mesh.CachedMaxDrawDistance = -99999
+                    mesh.UseScopeDistanceCulling = true
+                    mesh.PrimitiveShadingStrategy = 1
+                    mesh.ShadingRate = 6
+                end)
+                for i = 0, 10 do
+                    local matInterface = mesh:GetMaterial(i)
+                    if not Valid(matInterface) then break end
+                    local baseMat = matInterface:GetBaseMaterial()
+                    if Valid(baseMat) then
+                        local matName = tostring(baseMat)
+                        if string.find(matName, "Master_Mask", 1, true) then
+                            if not markData.MIDs then markData.MIDs = {} end
+                            local meshKey = "Mesh_" .. tostring(meshIndex)
+                            markData.MIDs[meshKey] = markData.MIDs[meshKey] or {}
+                            local mid = markData.MIDs[meshKey][i]
+                            if not Valid(mid) then
+                                mid = mesh:CreateAndSetMaterialInstanceDynamic(i)
+                                markData.MIDs[meshKey][i] = mid
+                            end
+                            if Valid(mid) then
+                                mid:SetVectorParameterValue("颜色", finalColor)
+                                mid:SetVectorParameterValue("Extra Light Color", finalColor)
+                                mid:SetVectorParameterValue("Para_Color", finalColor)
+                                mid:SetVectorParameterValue("Para_ColorTint", finalColor)
+                                mid:SetVectorParameterValue("Para_Color_1", finalColor)
+                                mid:SetVectorParameterValue("Tint", finalColor)
+                                mid:SetVectorParameterValue("Color", finalColor)
+                                mid:SetVectorParameterValue("BaseColor", finalColor)
+                                mid:SetVectorParameterValue("BodyColor", finalColor)
+                                mid:SetVectorParameterValue("MainColor", finalColor)
+                                mid:SetVectorParameterValue("DiffuseColor", finalColor)
+                                mid:SetVectorParameterValue("EmissiveColor", finalColor)
+                                mid:SetVectorParameterValue("ParaScaleOffset", SCALE_COLOR_V2)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function PortUndoV2(enemy, markData)
+    pcall(function()
+        if markData.ColorApplied then
+            local meshes = PortAllMeshes(enemy, markData)
+            for meshIndex, mesh in ipairs(meshes) do
+                if Valid(mesh) then
+                    pcall(function()
+                        mesh.PrimitiveShadingStrategy = 0
+                        mesh.ShadingRate = 1
+                    end)
+                    local meshKey = "Mesh_" .. tostring(meshIndex)
+                    if markData.MIDs and markData.MIDs[meshKey] then
+                        for _, mid in pairs(markData.MIDs[meshKey]) do
+                            if Valid(mid) then
+                                local defC = {R=1, G=1, B=1, A=1}
+                                mid:SetVectorParameterValue("颜色", defC)
+                                mid:SetVectorParameterValue("Extra Light Color", defC)
+                                mid:SetVectorParameterValue("Para_Color", defC)
+                                mid:SetVectorParameterValue("Para_ColorTint", defC)
+                                mid:SetVectorParameterValue("Para_Color_1", defC)
+                                mid:SetVectorParameterValue("Tint", defC)
+                                mid:SetVectorParameterValue("Color", defC)
+                                mid:SetVectorParameterValue("BaseColor", defC)
+                                mid:SetVectorParameterValue("BodyColor", defC)
+                                mid:SetVectorParameterValue("MainColor", defC)
+                                mid:SetVectorParameterValue("DiffuseColor", defC)
+                                mid:SetVectorParameterValue("EmissiveColor", defC)
+                            end
+                        end
+                    end
+                end
+            end
+            markData.ColorApplied = false
+            markData.LastColorHash = ""
+            markData.LastHiddenState = nil
+        end
+    end)
+end
+
+
+-- WALL V2 + CHAMS V3 (custom color)
+local function PortApplyV3(enemy, markData)
+    pcall(function()
+        local meshes = PortAllMeshes(enemy, markData)
+        if #meshes == 0 then return end
+
+        local cData = PortData()
+        local hidChoice = cData.ColorV3Hidden or 1
+        local visChoice = cData.ColorV3Visible or 2
+        local v3Thick = cData.ColorV3Thickness or 4
+
+        local currentHash = string.format("%d_%d_%d", hidChoice, visChoice, v3Thick)
+        local colorChanged = (markData.LastColorV3Hash ~= currentHash)
+        markData.LastColorV3Hash = currentHash
+
+        local function GetColorRGB(choice)
+            if choice == 1 then return 255, 0, 0 end
+            if choice == 2 then return 0, 255, 0 end
+            if choice == 3 then return 0, 0, 255 end
+            if choice == 4 then return 255, 255, 0 end
+            if choice == 5 then return 255, 0, 255 end
+            if choice == 6 then return 255, 255, 255 end
+            return 255, 0, 0
+        end
+
+        local hR, hG, hB = GetColorRGB(hidChoice)
+        local vR, vG, vB = GetColorRGB(visChoice)
+
+        local invisColor = { R=hR, G=hG, B=hB, A=255, r=hR, g=hG, b=hB, a=255 }
+
+        local glowIntensity = 80.0
+        local visColor
+        if PortLinearColor then
+            local okLC, lc = pcall(PortLinearColor, (vR/255)*glowIntensity, (vG/255)*glowIntensity, (vB/255)*glowIntensity, 1.0)
+            if okLC and lc then visColor = lc end
+        end
+        if not visColor then
+            visColor = { R=vR*glowIntensity, G=vG*glowIntensity, B=vB*glowIntensity, A=255 }
+        end
+        local scale = { R=3.0, G=3.0, B=0.0, A=0.0, r=3.0, g=3.0, b=0.0, a=0.0 }
+
+        markData.MIDs_V3 = markData.MIDs_V3 or {}
+
+        for meshIndex, comp in ipairs(meshes) do
+            if Valid(comp) then
+                local compKey = "MeshV3_" .. tostring(meshIndex)
+                markData.MIDs_V3[compKey] = markData.MIDs_V3[compKey] or {}
+
+                pcall(function()
+                    if comp.PrimitiveShadingStrategy ~= 1 then
+                        comp.UseScopeDistanceCulling = false
+                        comp.PrimitiveShadingStrategy = 1
+                        comp.ShadingRate = 6
+                    end
+                end)
+
+                for i = 0, 10 do
+                    local matInterface = comp:GetMaterial(i)
+                    if not Valid(matInterface) then break end
+
+                    local baseMat = matInterface:GetBaseMaterial()
+                    if Valid(baseMat) then
+                        if baseMat.bDisableDepthTest ~= true then baseMat.bDisableDepthTest = true end
+                        if baseMat.BlendMode ~= 2 then baseMat.BlendMode = 2 end
+                    end
+
+                    local currentCached = markData.MIDs_V3[compKey][i]
+                    local needUpdateColor = false
+
+                    if not Valid(currentCached) then
+                        local newMid = comp:CreateAndSetMaterialInstanceDynamic(i)
+                        if Valid(newMid) then
+                            markData.MIDs_V3[compKey][i] = newMid
+                            currentCached = newMid
+                            needUpdateColor = true
+                        end
+                    elseif colorChanged then
+                        needUpdateColor = true
+                    end
+
+                    if Valid(currentCached) and needUpdateColor then
+                        pcall(function()
+                            currentCached:SetVectorParameterValue("颜色", invisColor)
+                            currentCached:SetVectorParameterValue("Extra Light Color", invisColor)
+                            currentCached:SetVectorParameterValue("Para_Color", invisColor)
+                            currentCached:SetVectorParameterValue("Para_ColorTint", invisColor)
+                            currentCached:SetVectorParameterValue("Para_Color_1", invisColor)
+                            currentCached:SetVectorParameterValue("Tint", invisColor)
+                            currentCached:SetVectorParameterValue("Color", invisColor)
+                            currentCached:SetVectorParameterValue("BaseColor", invisColor)
+                            currentCached:SetVectorParameterValue("BodyColor", invisColor)
+                            currentCached:SetVectorParameterValue("MainColor", invisColor)
+                            currentCached:SetVectorParameterValue("DiffuseColor", invisColor)
+                            currentCached:SetVectorParameterValue("EmissiveColor", invisColor)
+                            currentCached:SetVectorParameterValue("CustomColor", invisColor)
+                            currentCached:SetVectorParameterValue("OverlayColor", invisColor)
+                            currentCached:SetVectorParameterValue("GlowColor", invisColor)
+                            currentCached:SetVectorParameterValue("EdgeColor", invisColor)
+                            currentCached:SetVectorParameterValue("LightColor", invisColor)
+                            currentCached:SetVectorParameterValue("OutlineColor", invisColor)
+                            currentCached:SetVectorParameterValue("ParaScaleOffset", scale)
+                            currentCached:SetScalarParameterValue("Opacity", 0.7)
+                            currentCached:SetScalarParameterValue("Alpha", 0.7)
+                            currentCached:SetScalarParameterValue("GlowIntensity", 1.0)
+                            currentCached:SetScalarParameterValue("Intensity", 1.0)
+                        end)
+                    end
+                end
+
+                pcall(function()
+                    if type(comp.SetDrawIdeaOutline) == "function" then
+                        comp:SetDrawIdeaOutline(true)
+                        if type(comp.OverrideIdeaOutlineColor) == "function" then comp:OverrideIdeaOutlineColor(true, visColor) end
+                        if type(comp.OverrideIdeaOutlineThickness) == "function" then comp:OverrideIdeaOutlineThickness(true, v3Thick) end
+                    end
+                end)
+            end
+        end
+        markData.ColorV3Applied = true
+    end)
+end
+
+local function PortUndoV3(enemy, markData)
+    pcall(function()
+        if markData.ColorV3Applied then
+            local meshes = PortAllMeshes(enemy, markData)
+            for meshIndex, comp in ipairs(meshes) do
+                if Valid(comp) then
+                    pcall(function()
+                        comp.PrimitiveShadingStrategy = 0
+                        comp.ShadingRate = 1
+                    end)
+
+                    for i = 0, 10 do
+                        local s, matInterface = pcall(function() return comp:GetMaterial(i) end)
+                        if s and Valid(matInterface) then
+                            local s2, baseMat = pcall(function() return matInterface:GetBaseMaterial() end)
+                            if s2 and Valid(baseMat) then
+                                baseMat.bDisableDepthTest = false
+                                baseMat.BlendMode = 1
+                            end
+                        end
+                    end
+
+                    local compKey = "MeshV3_" .. tostring(meshIndex)
+                    if markData.MIDs_V3 and markData.MIDs_V3[compKey] then
+                        for _, mid in pairs(markData.MIDs_V3[compKey]) do
+                            if Valid(mid) then
+                                pcall(function()
+                                    local defC = {R=1, G=1, B=1, A=1, r=1, g=1, b=1, a=1}
+                                    mid:SetVectorParameterValue("颜色", defC)
+                                    mid:SetVectorParameterValue("Extra Light Color", defC)
+                                    mid:SetVectorParameterValue("Para_Color", defC)
+                                    mid:SetVectorParameterValue("Tint", defC)
+                                    mid:SetVectorParameterValue("BaseColor", defC)
+                                    mid:SetVectorParameterValue("Color", defC)
+                                end)
+                            end
+                        end
+                    end
+
+                    pcall(function()
+                        if type(comp.SetDrawIdeaOutline) == "function" then comp:SetDrawIdeaOutline(false) end
+                    end)
+                end
+            end
+            markData.ColorV3Applied = false
+            markData.LastMeshCountV3 = 0
+            markData.MIDs_V3 = nil
+        end
+    end)
+end
+
+-- NEW ENGINE CHAMS (merah/hijau)
+local function PortApplyNew(enemy, markData)
+    pcall(function()
+        if not _G.ConsoleNewWallReady then
+            local KismetSystemLibrary = import("KismetSystemLibrary")
+            local world = slua.getWorld()
+            if KismetSystemLibrary and world then
+                KismetSystemLibrary.ExecuteConsoleCommand(world, "r.EnableDrawDyeingColor 1")
+                KismetSystemLibrary.ExecuteConsoleCommand(world, "r.CustomDepth 3")
+                KismetSystemLibrary.ExecuteConsoleCommand(world, "r.IdeaOutline.Enable 1")
+                KismetSystemLibrary.ExecuteConsoleCommand(world, "r.Highlight.Enable 1")
+                _G.ConsoleNewWallReady = true
+            end
+        end
+
+        local meshes = PortAllMeshes(enemy, markData)
+
+        local weapon = nil
+        pcall(function() weapon = enemy:GetCurrentWeapon() end)
+        if type(weapon) ~= "function" and slua.isValid(weapon) and slua.isValid(weapon.Mesh) then table.insert(meshes, weapon.Mesh) end
+
+        local isBot = markData.AK_IS_BOT or false
+        local currentMeshCount = #meshes
+        local stateHash = (isBot and "BOT" or "PLAYER") .. "_" .. tostring(currentMeshCount)
+
+        if markData.LastColorNewHash == stateHash and markData.ColorNewApplied then return end
+
+        markData.LastColorNewHash = stateHash
+        markData.ColorNewApplied = true
+
+        local function LC(r, g, b, a)
+            if PortLinearColor then
+                local ok, v = pcall(PortLinearColor, r, g, b, a)
+                if ok and v then return v end
+            end
+            return {R=r, G=g, B=b, A=a}
+        end
+        local c_vis = LC(0, 100, 0, 1)
+        local c_occ = LC(100, 0, 0, 1)
+        local c_bVis = LC(49, 48, 0, 100)
+        local c_bOcc = LC(9, 1.5, 45, 100)
+
+        local visColor = isBot and c_bVis or c_vis
+        local occColor = isBot and c_bOcc or c_occ
+
+        for _, mesh in ipairs(meshes) do
+            if Valid(mesh) then
+                pcall(function()
+                    if type(mesh.SetDrawDyeing) == "function" then
+                        mesh:SetDrawDyeing(true)
+                        mesh:SetDrawDyeingMode(1)
+                        mesh:SetVisibleDyeingColor(visColor)
+                        mesh:SetOccludedDyeingColor(occColor)
+                        mesh:SetDyeingColorFadeDistance(99999.0)
+                        mesh:SetDyeingColorMinMaxDistance(0.0, 99999.0)
+                        mesh:SetDrawHighlight(true)
+                        mesh:OverrideHighlightColor(visColor)
+                        mesh:SetHighlightCanBeOccluded(false)
+                        mesh:SetDrawIdeaOutline(true)
+                        mesh:SetIdeaOutlineNew(true)
+                        mesh:SetIdeaOutlineOcclusionHighlight(true)
+                        mesh:OverrideIdeaOutlineColor(visColor)
+                        mesh:SetIdeaOutlineOcclusionColor(occColor)
+                        mesh:OverrideIdeaOutlineThickness(20.0)
+                        mesh:SetIdeaOverrideOutlineAndOcclusion(true)
+                        mesh:SetRenderCustomDepth(true)
+                        mesh:SetCustomDepthStencilValue(255)
+                    end
+                end)
+            end
+        end
+    end)
+end
+
+local function PortUndoNew(enemy, markData)
+    pcall(function()
+        if markData.ColorNewApplied then
+            local meshes = PortAllMeshes(enemy, markData)
+            local weapon = nil
+            pcall(function() weapon = enemy:GetCurrentWeapon() end)
+            if type(weapon) ~= "function" and slua.isValid(weapon) and slua.isValid(weapon.Mesh) then table.insert(meshes, weapon.Mesh) end
+
+            for _, mesh in ipairs(meshes) do
+                if Valid(mesh) then
+                    pcall(function()
+                        if type(mesh.SetDrawDyeing) == "function" then
+                            mesh:SetDrawDyeing(false)
+                            mesh:SetDrawHighlight(false)
+                            mesh:SetDrawIdeaOutline(false)
+                            mesh:SetRenderCustomDepth(false)
+                        end
+                    end)
+                end
+            end
+            markData.ColorNewApplied = false
+            markData.LastColorNewHash = ""
+        end
+    end)
+end
+
+local PortC_AR      = {R = 255, G = 255, B = 0, A = 255}
+local PortC_SMG     = {R = 0, G = 255, B = 255, A = 255}
+local PortC_Sniper  = {R = 255, G = 0, B = 0, A = 255}
+local PortC_Shotgun = {R = 0, G = 255, B = 0, A = 255}
+local PortC_LMG     = {R = 255, G = 255, B = 255, A = 255}
+local PortC_Pistol  = {R = 200, G = 200, B = 200, A = 255}
+local PortC_Special = {R = 255, G = 0, B = 255, A = 255}
+local PortC_Melee   = {R = 150, G = 150, B = 150, A = 255}
+local PortC_Scope   = {R = 0, G = 0, B = 255, A = 255}
+local PortC_Grenade = {R = 255, G = 165, B = 0, A = 255}
+local PortC_Med     = {R = 50, G = 255, B = 50, A = 255}
+
+local PortItemDB = {
+    [101001] = { name = "AKM", cat = "AR", color = PortC_AR }, [101002] = { name = "M16A4", cat = "AR", color = PortC_AR },
+    [101003] = { name = "SCAR-L", cat = "AR", color = PortC_AR }, [101004] = { name = "M416", cat = "AR", color = PortC_AR },
+    [101005] = { name = "Groza", cat = "AR", color = PortC_AR }, [101006] = { name = "AUG", cat = "AR", color = PortC_AR },
+    [101007] = { name = "QBZ", cat = "AR", color = PortC_AR }, [101008] = { name = "M762", cat = "AR", color = PortC_AR },
+    [101009] = { name = "Mk47 Mutant", cat = "AR", color = PortC_AR }, [101010] = { name = "G36C", cat = "AR", color = PortC_AR },
+    [101011] = { name = "AC-VAL", cat = "AR", color = PortC_AR }, [101012] = { name = "Honey Badger", cat = "AR", color = PortC_AR },
+    [101100] = { name = "FAMAS", cat = "AR", color = PortC_AR }, [101101] = { name = "ASM Abakan AR", cat = "AR", color = PortC_AR },
+    [101102] = { name = "ACE32", cat = "AR", color = PortC_AR },
+    [102001] = { name = "UZI", cat = "SMG", color = PortC_SMG }, [102002] = { name = "UMP45", cat = "SMG", color = PortC_SMG },
+    [102003] = { name = "Vector", cat = "SMG", color = PortC_SMG }, [102004] = { name = "Thompson SMG", cat = "SMG", color = PortC_SMG },
+    [102005] = { name = "PP-19 Bizon", cat = "SMG", color = PortC_SMG }, [102007] = { name = "MP5K", cat = "SMG", color = PortC_SMG },
+    [102008] = { name = "JS9", cat = "SMG", color = PortC_SMG }, [102105] = { name = "P90", cat = "SMG", color = PortC_SMG },
+    [103001] = { name = "Kar98K", cat = "Sniper", color = PortC_Sniper }, [103002] = { name = "M24", cat = "Sniper", color = PortC_Sniper },
+    [103003] = { name = "AWM", cat = "Sniper", color = PortC_Sniper }, [103004] = { name = "SKS", cat = "Sniper", color = PortC_Sniper },
+    [103005] = { name = "VSS", cat = "Sniper", color = PortC_Sniper }, [103006] = { name = "Mini14", cat = "Sniper", color = PortC_Sniper },
+    [103007] = { name = "Mk14", cat = "Sniper", color = PortC_Sniper }, [103008] = { name = "Win94", cat = "Sniper", color = PortC_Sniper },
+    [103009] = { name = "SLR", cat = "Sniper", color = PortC_Sniper }, [103010] = { name = "QBU", cat = "Sniper", color = PortC_Sniper },
+    [103011] = { name = "Mosin Nagant", cat = "Sniper", color = PortC_Sniper }, [103012] = { name = "AMR", cat = "Sniper", color = PortC_Sniper },
+    [103100] = { name = "Mk12", cat = "Sniper", color = PortC_Sniper }, [103101] = { name = "TR-2A Air Gun", cat = "Sniper", color = PortC_Sniper },
+    [103102] = { name = "DSR", cat = "Sniper", color = PortC_Sniper }, [103103] = { name = "Sniper Rifle", cat = "Sniper", color = PortC_Sniper },
+    [103104] = { name = "Sniper Rifle", cat = "Sniper", color = PortC_Sniper }, [103105] = { name = "SR", cat = "Sniper", color = PortC_Sniper },
+    [104001] = { name = "S686", cat = "Shotgun", color = PortC_Shotgun }, [104002] = { name = "S1897", cat = "Shotgun", color = PortC_Shotgun },
+    [104003] = { name = "S12K", cat = "Shotgun", color = PortC_Shotgun }, [104004] = { name = "DBS", cat = "Shotgun", color = PortC_Shotgun },
+    [104100] = { name = "SPAS-12", cat = "Shotgun", color = PortC_Shotgun }, [104101] = { name = "M1014", cat = "Shotgun", color = PortC_Shotgun },
+    [104102] = { name = "NS2000", cat = "Shotgun", color = PortC_Shotgun },
+    [105001] = { name = "M249", cat = "LMG", color = PortC_LMG }, [105002] = { name = "DP-28", cat = "LMG", color = PortC_LMG },
+    [105003] = { name = "M134", cat = "LMG", color = PortC_LMG }, [105010] = { name = "MG3", cat = "LMG", color = PortC_LMG },
+    [105101] = { name = "Gatling", cat = "LMG", color = PortC_LMG }, [105115] = { name = "Lib Gatling MG", cat = "LMG", color = PortC_LMG },
+    [105004] = { name = "Flamethrower", cat = "LMG", color = PortC_LMG }, [105006] = { name = "M2 Fixed MG", cat = "LMG", color = PortC_LMG },
+    [105007] = { name = "Gatling Fixed MG", cat = "LMG", color = PortC_LMG }, [105008] = { name = "Mounted Flamethrower", cat = "LMG", color = PortC_LMG },
+    [105009] = { name = "M2 Mounted MG", cat = "LMG", color = PortC_LMG }, [105102] = { name = "Vehicle SG", cat = "LMG", color = PortC_LMG },
+    [105103] = { name = "RPG", cat = "LMG", color = PortC_LMG }, [105104] = { name = "RPG", cat = "LMG", color = PortC_LMG },
+    [105105] = { name = "PowPow MG", cat = "LMG", color = PortC_LMG }, [105106] = { name = "Tank Cannon", cat = "LMG", color = PortC_LMG },
+    [105107] = { name = "Tank MG", cat = "LMG", color = PortC_LMG }, [105108] = { name = "Tank Flare Gun", cat = "LMG", color = PortC_LMG },
+    [105116] = { name = "Lib Autocannon", cat = "LMG", color = PortC_LMG }, [105117] = { name = "Jet Missile", cat = "LMG", color = PortC_LMG },
+    [105118] = { name = "Jet Autocannon", cat = "LMG", color = PortC_LMG },
+    [106001] = { name = "P92", cat = "Pistol", color = PortC_Pistol }, [106002] = { name = "P1911", cat = "Pistol", color = PortC_Pistol },
+    [106003] = { name = "R1895", cat = "Pistol", color = PortC_Pistol }, [106004] = { name = "P18C", cat = "Pistol", color = PortC_Pistol },
+    [106005] = { name = "R45", cat = "Pistol", color = PortC_Pistol }, [106006] = { name = "Sawed-off", cat = "Pistol", color = PortC_Pistol },
+    [106008] = { name = "Skorpion", cat = "Pistol", color = PortC_Pistol }, [106010] = { name = "Desert Eagle", cat = "Pistol", color = PortC_Pistol },
+    [106007] = { name = "Flare Gun", cat = "Pistol", color = PortC_Pistol }, [106009] = { name = "Flare Gun", cat = "Pistol", color = PortC_Pistol },
+    [106011] = { name = "Dual MP7", cat = "Pistol", color = PortC_Pistol }, [106012] = { name = "Welding Gun", cat = "Pistol", color = PortC_Pistol },
+    [106013] = { name = "Stun Gun", cat = "Pistol", color = PortC_Pistol }, [106101] = { name = "Vehicle Flare", cat = "Pistol", color = PortC_Pistol },
+    [106103] = { name = "Flare Gun", cat = "Pistol", color = PortC_Pistol }, [106106] = { name = "Flare (Empty)", cat = "Pistol", color = PortC_Pistol },
+    [106107] = { name = "Respawn Flare", cat = "Pistol", color = PortC_Pistol }, [106203] = { name = "Magnet Gun", cat = "Pistol", color = PortC_Pistol },
+    [107011] = { name = "Súng Cối", cat = "Special", color = PortC_Special }, [307006] = { name = "Đạn Cối", cat = "Special", color = PortC_Special },
+    [107001] = { name = "Crossbow", cat = "Special", color = PortC_Special }, [107002] = { name = "RPG-7", cat = "Special", color = PortC_Special },
+    [107003] = { name = "Riot shield", cat = "Special", color = PortC_Special }, [107004] = { name = "Combat Drone", cat = "Special", color = PortC_Special },
+    [107005] = { name = "Panzerfaust", cat = "Special", color = PortC_Special }, [107006] = { name = "RPG-7", cat = "Special", color = PortC_Special },
+    [107007] = { name = "Tactical Crossbow", cat = "Special", color = PortC_Special }, [107008] = { name = "Explosive Bow", cat = "Special", color = PortC_Special },
+    [107009] = { name = "Explosive Bow", cat = "Special", color = PortC_Special }, [107010] = { name = "M79 Smoke Launcher", cat = "Special", color = PortC_Special },
+    [107019] = { name = "Atlas Gauntlet", cat = "Special", color = PortC_Special }, [107020] = { name = "Explosive Crossbow", cat = "Special", color = PortC_Special },
+    [107021] = { name = "Mercury Hammer", cat = "Special", color = PortC_Special }, [107022] = { name = "Fishbones Rocket", cat = "Special", color = PortC_Special },
+    [107092] = { name = "MGL", cat = "Special", color = PortC_Special }, [107093] = { name = "M202 Quad RPG", cat = "Special", color = PortC_Special },
+    [107094] = { name = "AT4-A Laser Missile", cat = "Special", color = PortC_Special }, [107095] = { name = "M202 Quad RPG", cat = "Special", color = PortC_Special },
+    [107096] = { name = "M79 Sawed-off", cat = "Special", color = PortC_Special }, [107097] = { name = "M79", cat = "Special", color = PortC_Special },
+    [107098] = { name = "MGL", cat = "Special", color = PortC_Special }, [107099] = { name = "M3E1-A", cat = "Special", color = PortC_Special },
+    [108001] = { name = "Machete", cat = "Melee", color = PortC_Melee }, [108002] = { name = "Crowbar", cat = "Melee", color = PortC_Melee },
+    [108003] = { name = "Sickle", cat = "Melee", color = PortC_Melee }, [108004] = { name = "Pan", cat = "Melee", color = PortC_Melee },
+    [108005] = { name = "Dagger", cat = "Melee", color = PortC_Melee }, [108006] = { name = "Mutation Blade", cat = "Melee", color = PortC_Melee },
+    [108007] = { name = "Mutation Gauntlets", cat = "Melee", color = PortC_Melee },
+    [203001] = { name = "Red Dot Sight", cat = "Scope", color = PortC_Scope }, [203002] = { name = "Holographic Sight", cat = "Scope", color = PortC_Scope },
+    [203003] = { name = "2x Scope", cat = "Scope", color = PortC_Scope }, [203004] = { name = "4x Scope", cat = "Scope", color = PortC_Scope },
+    [203005] = { name = "8x Scope", cat = "Scope", color = PortC_Scope }, [203014] = { name = "3x Scope", cat = "Scope", color = PortC_Scope },
+    [203015] = { name = "6x Scope", cat = "Scope", color = PortC_Scope },
+    [602001] = { name = "Stun Grenade", cat = "Grenade", color = PortC_Grenade }, [602002] = { name = "Smoke Grenade", cat = "Grenade", color = PortC_Grenade },
+    [602003] = { name = "Molotov", cat = "Grenade", color = PortC_Grenade }, [602004] = { name = "Frag Grenade", cat = "Grenade", color = PortC_Grenade },
+    [601001] = { name = "Nước Tăng Lực", cat = "Med", color = PortC_Med }, [601002] = { name = "Tiêm Adrenaline", cat = "Med", color = PortC_Med },
+    [601003] = { name = "Thuốc Giảm Đau", cat = "Med", color = PortC_Med }, [601004] = { name = "Băng Gạc", cat = "Med", color = PortC_Med },
+    [601005] = { name = "Bộ Sơ Cứu", cat = "Med", color = PortC_Med }, [601006] = { name = "Bộ Cứu Thương", cat = "Med", color = PortC_Med },
+    [601009] = { name = "Băng Gạc Nhanh", cat = "Med", color = PortC_Med }, [601010] = { name = "Sơ Cứu Nhanh", cat = "Med", color = PortC_Med },
+    [601011] = { name = "Băng Gạc QĐ", cat = "Med", color = PortC_Med }, [601012] = { name = "Nước Đậm Đặc", cat = "Med", color = PortC_Med },
+    [601020] = { name = "Băng Gạc", cat = "Med", color = PortC_Med }, [601021] = { name = "Bộ Sơ Cứu", cat = "Med", color = PortC_Med },
+    [601022] = { name = "Bộ Cứu Thương", cat = "Med", color = PortC_Med }, [601023] = { name = "Tiêm Adrenaline", cat = "Med", color = PortC_Med },
+    [601061] = { name = "Bộ Cứu Thương", cat = "Med", color = PortC_Med }, [601077] = { name = "Sơ Cứu Chiến Thuật", cat = "Med", color = PortC_Med },
+    [601078] = { name = "Sơ Cứu Toàn Năng", cat = "Med", color = PortC_Med }, [601079] = { name = "Cứu Thương Toàn Năng", cat = "Med", color = PortC_Med },
+    [601080] = { name = "Băng Gạc QĐ", cat = "Med", color = PortC_Med }, [601081] = { name = "Nước Đậm Đặc", cat = "Med", color = PortC_Med },
+    [601084] = { name = "Sơ Cứu Nhanh", cat = "Med", color = PortC_Med }, [601085] = { name = "Cứu Thương Nhanh", cat = "Med", color = PortC_Med },
+    [601095] = { name = "Máy AED (Hồi Sinh)", cat = "Med", color = PortC_Med }, [601096] = { name = "Chuẩn Bị Chiến Đấu", cat = "Med", color = PortC_Med },
+    [602054] = { name = "Tiếp Tế Y Tế", cat = "Med", color = PortC_Med }, [602069] = { name = "Cứu Trợ Khẩn Cấp", cat = "Med", color = PortC_Med }
+}
+
+
+
+-- ============================================================================
+-- WALL KENDARAAN + ESP ITEM (dari 1.lua RunOptimizedItemAndVehicleESP)
+-- ============================================================================
+local function PortRunItemVehicle(pc, lp)
+    local C = PortCfg()
+    local curTime = os.clock()
+    local G = rawget(_G, "Game")
+
+    if curTime - PE.LastItemScan > 1.0 then
+        PE.LastItemScan = curTime
+
+        if C.WallVehicle then
+            pcall(function()
+                local VehClass = import("STExtraVehicleBase")
+                if VehClass and G and G.GetActorsByClass then
+                    local Actors = G:GetActorsByClass(VehClass)
+                    if Actors then
+                        local count = Actors:Num() or 0
+                        for i = 0, count - 1 do
+                            local vehicle = Actors:Get(i)
+                            if slua.isValid(vehicle) and vehicle.GetMesh then
+                                local dist = lp:GetDistanceTo(vehicle)
+                                if dist <= 200000 then
+                                    local vId = tostring(vehicle)
+                                    if not PE.AppliedVehWall[vId] then
+                                        local mesh = vehicle:GetMesh()
+                                        if slua.isValid(mesh) then
+                                            local matInterface = mesh:GetMaterial(0)
+                                            if slua.isValid(matInterface) then
+                                                local baseMat = matInterface:GetBaseMaterial()
+                                                if slua.isValid(baseMat) then
+                                                    baseMat.bDisableDepthTest = true
+                                                    baseMat.BlendMode = 2
+                                                    PE.AppliedVehWall[vId] = true
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        else
+            PE.AppliedVehWall = {}
+        end
+
+        if C.EspItem_Master then
+            pcall(function()
+                local ItemClass = import("PickUpWrapperActor") or import("STPickupWrapperActor")
+                if ItemClass and G and G.GetActorsByClass then
+                    local Actors = G:GetActorsByClass(ItemClass)
+                    PE.ItemCache = {}
+                    if Actors then
+                        local count = Actors:Num() or 0
+                        for i = 0, count - 1 do
+                            local item = Actors:Get(i)
+                            local isPendingKill = false
+                            pcall(function() if type(item.IsPendingKill) == "function" then isPendingKill = item:IsPendingKill() end end)
+
+                            if slua.isValid(item) and not item.bHidden and not isPendingKill then
+                                local dist = lp:GetDistanceTo(item)
+                                if dist <= 7000 then
+                                    local itemId = item.DefineID and item.DefineID.TypeSpecificID or item.DefineId
+                                    local itemData = PortItemDB[itemId]
+                                    if itemData then
+                                        local isShow = false
+                                        if itemData.cat == "AR" and C.EspItem_AR then isShow = true
+                                        elseif itemData.cat == "Sniper" and C.EspItem_Sniper then isShow = true
+                                        elseif itemData.cat == "SMG" and C.EspItem_SMG then isShow = true
+                                        elseif itemData.cat == "Shotgun" and C.EspItem_Shotgun then isShow = true
+                                        elseif itemData.cat == "LMG" and C.EspItem_LMG then isShow = true
+                                        elseif itemData.cat == "Pistol" and C.EspItem_Pistol then isShow = true
+                                        elseif itemData.cat == "Melee" and C.EspItem_Melee then isShow = true
+                                        elseif itemData.cat == "Special" and C.EspItem_Special then isShow = true
+                                        elseif itemData.cat == "Grenade" and C.EspItem_Grenade then isShow = true
+                                        elseif itemData.cat == "Scope" and C.EspItem_Scope then isShow = true
+                                        elseif itemData.cat == "Med" and C.EspItem_Med then isShow = true
+                                        end
+
+                                        if isShow then
+                                            table.insert(PE.ItemCache, item)
+
+                                            local iId = tostring(item)
+                                            if not PE.AppliedItem[iId] then
+                                                local meshes = {}
+                                                if item.GetPickupMesh then
+                                                    local pMesh = item:GetPickupMesh()
+                                                    if slua.isValid(pMesh) then table.insert(meshes, pMesh) end
+                                                end
+                                                local StaticMeshClass = import("StaticMeshComponent")
+                                                local childs = StaticMeshClass and item:GetComponentsByClass(StaticMeshClass)
+                                                if childs then
+                                                    for _, v in pairs(childs) do
+                                                        if slua.isValid(v) then table.insert(meshes, v) end
+                                                    end
+                                                end
+                                                for _, mesh in pairs(meshes) do
+                                                    pcall(function() mesh:SetRenderCustomDepth(true) end)
+                                                    for mi = 0, 8 do
+                                                        local mid = mesh:CreateAndSetMaterialInstanceDynamic(mi)
+                                                        if slua.isValid(mid) then
+                                                            local colorVisible = {R = 50, G = 50, B = 0, A = 10}
+                                                            pcall(function()
+                                                                mid:SetVectorParameterValue("LightColor", colorVisible)
+                                                                mid:SetVectorParameterValue("ParaScaleOffset", {R = 3, G = 3, B = 0, A = 0})
+                                                                mid:SetScalarParameterValue("RimLight", 999)
+                                                                mid:SetScalarParameterValue("Brightness", 999)
+                                                                mid:SetScalarParameterValue("Exposure", 999)
+                                                            end)
+                                                        end
+                                                    end
+                                                end
+                                                PE.AppliedItem[iId] = true
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        else
+            PE.AppliedItem = {}
+            PE.ItemCache = {}
+        end
+    end
+
+    if C.EspItem_Master and slua.isValid(pc) and pc.MyHUD then
+        local hud = pc.MyHUD
+        for _, item in ipairs(PE.ItemCache) do
+            if slua.isValid(item) and not item.bHidden then
+                local itemId = item.DefineID and item.DefineID.TypeSpecificID or item.DefineId
+                local itemData = itemId and PortItemDB[itemId]
+                if itemData then
+                    local dist = (lp.GetDistanceTo and lp:GetDistanceTo(item) or 0) / 100
+                    local displayText = string.format("%s [%.0fm]", itemData.name, dist)
+                    local textColor = {R = itemData.color.R, G = itemData.color.G, B = itemData.color.B, A = 255}
+                    hud:AddDebugText(displayText, item, 0.06, {X=0, Y=0, Z=50}, {X=0, Y=0, Z=50}, textColor, true, false, true, nil, 0.8, true)
+                end
+            end
+        end
+    end
+end
+
+-- ============================================================================
+-- ESP BOM (di tanah / aktif / timer)
+-- ============================================================================
+local function PortDrawBombs(lp, hud, bombList, isItem, maxDist, curGameTime)
+    if not bombList then return end
+    local GameplayStatics = PE.GameplayStatics or import("GameplayStatics")
+    PE.GameplayStatics = GameplayStatics
+    for _, entry in ipairs(bombList) do
+        local bomb = entry.act
+        local bType = entry.type
+        if slua.isValid(bomb) and not bomb.bHidden then
+            local distM = 0
+            pcall(function() distM = lp:GetDistanceTo(bomb) / 100 end)
+            if distM > 0 and distM <= maxDist then
+                local displayName = ""
+                local bombColor = C_WHITE
+                local zOffset = isItem and 15 or 25
+                if bType == 1 then displayName = "Boom"; bombColor = isItem and {R=255, G=100, B=100, A=255} or C_RED
+                elseif bType == 2 then displayName = "ASAP"; bombColor = isItem and {R=200, G=200, B=200, A=255} or C_WHITE
+                elseif bType == 3 then displayName = "API"; bombColor = isItem and {R=255, G=160, B=50, A=255} or {R=255, G=100, B=0, A=255}
+                elseif bType == 4 then displayName = "FLASH"; bombColor = isItem and {R=150, G=255, B=255, A=255} or C_CYAN
+                elseif bType == 5 then displayName = "SMOKE"; bombColor = isItem and {R=150, G=255, B=150, A=255} or {R=100, G=255, B=100, A=255} end
+
+                local text = string.format("%s [%dm]", displayName, math.floor(distM))
+                local shouldTimerRun = not isItem
+                if isItem then
+                    pcall(function()
+                        if bomb.bIsPinPulled or bomb.bPinPulled or (type(bomb.IsPinPulled) == "function" and bomb:IsPinPulled()) then shouldTimerRun = true end
+                    end)
+                end
+
+                if shouldTimerRun and curGameTime > 0 then
+                    local timeLeft = -1
+                    pcall(function()
+                        if bomb.ExplosionTime then timeLeft = bomb.ExplosionTime - curGameTime
+                        elseif bomb.ExplodeTime then timeLeft = bomb.ExplodeTime - curGameTime end
+                    end)
+                    if timeLeft == -1 or timeLeft > 100 then
+                        local bombId = tostring(bomb)
+                        if not PE.ActiveBombTimers[bombId] then PE.ActiveBombTimers[bombId] = curGameTime end
+                        local elapsed = curGameTime - PE.ActiveBombTimers[bombId]
+                        local maxTime = (bType == 1 and 7.0) or (bType == 2 and 45.0) or (bType == 3 and 12.0) or (bType == 4 and 5.0) or 45.0
+                        timeLeft = maxTime - elapsed
+                    end
+                    if timeLeft < 0 then timeLeft = 0 end
+                    if timeLeft > 0.1 then text = string.format("%s (%.1fs)", text, timeLeft) end
+                end
+
+                local dynamicScale = math.max(0.6, 1.1 - (distM / maxDist))
+                hud:AddDebugText(text, bomb, 0.06, {X=0, Y=0, Z=zOffset}, {X=0, Y=0, Z=zOffset}, bombColor, true, false, true, nil, dynamicScale, true)
+            end
+        end
+    end
+end
+
+local function PortBombTick(lp, hud)
+    local C = PortCfg()
+    if not (C.EspBomMaster and (C.EspItemBom or C.EspActiveBom)) then
+        PE.ItemBombCache = {}
+        PE.ActiveBombCache = {}
+        return
+    end
+    local curTime = os.clock()
+    local G = rawget(_G, "Game")
+
+    if not PE.GameplayStatics then PE.GameplayStatics = import("GameplayStatics") end
+    if not PE.ActorClass then PE.ActorClass = import("Actor") end
+    if not PE.ProjArray and PE.ActorClass then
+        pcall(function() PE.ProjArray = slua.Array(UEnums.EPropertyClass.Object, PE.ActorClass) end)
+    end
+
+    local ui_util = require("client.common.ui_util")
+    local gameInstance = ui_util and ui_util.GetGameInstance()
+
+    if gameInstance and PE.GameplayStatics and PE.ProjArray and curTime - PE.LastBombScan > 0.5 then
+        PE.LastBombScan = curTime
+        local allActors = PE.GameplayStatics.GetAllActorsOfClass(gameInstance, PE.ActorClass, PE.ProjArray)
+        local activeBombs, itemBombs = {}, {}
+
+        if allActors then
+            for _, actor in pairs(allActors) do
+                if slua.isValid(actor) and not actor.bHidden and not actor.bTearOff then
+                    if not PE.NonBombCache[actor] then
+                        local bType = 0
+                        local isItem = false
+                        local isKnownBomb = PE.BombCache[actor]
+                        if isKnownBomb then
+                            bType = isKnownBomb.type
+                            isItem = isKnownBomb.isItem
+                        else
+                            local nameLower = nil
+                            pcall(function() nameLower = string.lower(type(actor.GetName) == "function" and actor:GetName() or tostring(actor)) end)
+                            if nameLower then
+                                if string.find(nameLower, "m79") or string.find(nameLower, "launcher") then bType = 5
+                                elseif string.find(nameLower, "smoke") then bType = 2
+                                elseif string.find(nameLower, "burn") or string.find(nameLower, "molotov") then bType = 3
+                                elseif string.find(nameLower, "flash") or string.find(nameLower, "stun") then bType = 4
+                                elseif string.find(nameLower, "grenade") then bType = 1 end
+
+                                if bType > 0 then
+                                    if string.find(nameLower, "projectile") or string.find(nameLower, "thrown") then
+                                        isItem = false
+                                    else
+                                        isItem = true
+                                        local shouldAdd = true
+                                        if bType == 3 and not (string.find(nameLower, "pickup") or string.find(nameLower, "wrapper") or string.find(nameLower, "weapon")) then
+                                            shouldAdd = false
+                                        elseif bType == 5 then
+                                            local attachParent = nil
+                                            pcall(function() if type(actor.GetAttachParentActor) == "function" then attachParent = actor:GetAttachParentActor() end end)
+                                            if slua.isValid(attachParent) then
+                                                local isHolding = false
+                                                pcall(function()
+                                                    local curWeapon = type(attachParent.GetCurrentWeapon) == "function" and attachParent:GetCurrentWeapon() or attachParent.CurrentWeapon
+                                                    if curWeapon == actor then isHolding = true end
+                                                end)
+                                                if not isHolding then shouldAdd = false end
+                                            end
+                                        end
+                                        if not shouldAdd then bType = 0 end
+                                    end
+                                end
+                            end
+                            if bType > 0 then
+                                PE.BombCache[actor] = { type = bType, isItem = isItem }
+                            else
+                                PE.NonBombCache[actor] = true
+                            end
+                        end
+
+                        if bType > 0 then
+                            local isPendingKill = false
+                            pcall(function() if type(actor.IsPendingKill) == "function" then isPendingKill = actor:IsPendingKill() end end)
+                            if not isPendingKill then
+                                if isItem then table.insert(itemBombs, {act = actor, type = bType})
+                                else table.insert(activeBombs, {act = actor, type = bType}) end
+                            else
+                                PE.BombCache[actor] = nil
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        PE.ActiveBombCache = activeBombs
+        PE.ItemBombCache = itemBombs
+    end
+
+    local curGameTime = 0
+    pcall(function() curGameTime = PE.GameplayStatics.GetTimeSeconds(gameInstance) end)
+
+    if not PE.LastClearTimer or (curTime - PE.LastClearTimer) > 1.0 then
+        PE.LastClearTimer = curTime
+        pcall(function()
+            for k, v in pairs(PE.ActiveBombTimers) do
+                if (curGameTime - v) > 60.0 then PE.ActiveBombTimers[k] = nil end
+            end
+        end)
+    end
+
+    if C.EspItemBom then PortDrawBombs(lp, hud, PE.ItemBombCache, true, 50, curGameTime) end
+    if C.EspActiveBom then PortDrawBombs(lp, hud, PE.ActiveBombCache, false, 150, curGameTime) end
+end
+
+
+-- ============================================================================
+-- ESP KENDARAAN
+-- ============================================================================
+local function PortVehicleTick(lp, hud)
+    local C = PortCfg()
+    if not C.EspVehicle then
+        PE.VehicleCache = {}
+        return
+    end
+    local curTime = os.clock()
+
+    if not PE.GameplayStatics then PE.GameplayStatics = import("GameplayStatics") end
+    if not PE.VehClass then PE.VehClass = import("STExtraVehicleBase") end
+    if not PE.VehArray and PE.VehClass then
+        pcall(function() PE.VehArray = slua.Array(UEnums.EPropertyClass.Object, PE.VehClass) end)
+    end
+
+    local ui_util = require("client.common.ui_util")
+    local gameInstance = ui_util and ui_util.GetGameInstance()
+
+    if gameInstance and PE.GameplayStatics and PE.VehArray and curTime - PE.LastVehicleScan > 1.0 then
+        PE.LastVehicleScan = curTime
+        local allVehicles = PE.GameplayStatics.GetAllActorsOfClass(gameInstance, PE.VehClass, PE.VehArray)
+        local activeVehicles = {}
+        if allVehicles then
+            for _, veh in pairs(allVehicles) do
+                if slua.isValid(veh) and not veh.bHidden and not veh.bTearOff then
+                    local isPendingKill = false
+                    pcall(function() if type(veh.IsPendingKill) == "function" then isPendingKill = veh:IsPendingKill() end end)
+                    if not isPendingKill then
+                        local vehName = "Mobil"
+                        local hasDriver = false
+                        pcall(function()
+                            if type(veh.GetVehicleName) == "function" then vehName = veh:GetVehicleName()
+                            elseif veh.VehicleName then vehName = veh.VehicleName end
+                            local driver = type(veh.GetDriver) == "function" and veh:GetDriver() or nil
+                            if slua.isValid(driver) then hasDriver = true end
+                        end)
+
+                        local nameLower = string.lower(tostring(vehName) .. tostring(veh))
+                        local displayName = "Mobil"
+                        if string.find(nameLower, "uaz") then displayName = "UAZ"
+                        elseif string.find(nameLower, "dacia") then displayName = "Dacia"
+                        elseif string.find(nameLower, "buggy") then displayName = "Buggy"
+                        elseif string.find(nameLower, "mirado") then displayName = "Mirado"
+                        elseif string.find(nameLower, "bike") or string.find(nameLower, "motor") then displayName = "Motor"
+                        elseif string.find(nameLower, "scooter") then displayName = "Scooter"
+                        elseif string.find(nameLower, "coupe") then displayName = "Coupe RB"
+                        elseif string.find(nameLower, "brdm") then displayName = "BRDM"
+                        elseif string.find(nameLower, "boat") or string.find(nameLower, "aquarail") then displayName = "Perahu"
+                        elseif string.find(nameLower, "glider") then displayName = "Glider"
+                        else displayName = "Mobil (" .. string.sub(vehName, 1, 8) .. ")" end
+
+                        table.insert(activeVehicles, {act = veh, name = displayName, hasDriver = hasDriver})
+                    end
+                end
+            end
+        end
+        PE.VehicleCache = activeVehicles
+    end
+
+    for _, item in ipairs(PE.VehicleCache) do
+        local veh = item.act
+        if slua.isValid(veh) and not veh.bHidden then
+            local isShow = false
+            if item.name == "Dacia" then isShow = C.EspVeh_Dacia
+            elseif item.name == "UAZ" then isShow = C.EspVeh_UAZ
+            elseif item.name == "Buggy" then isShow = C.EspVeh_Buggy
+            elseif item.name == "Coupe RB" then isShow = C.EspVeh_Coupe
+            elseif item.name == "Mirado" then isShow = C.EspVeh_Mirado
+            elseif item.name == "Motor" or item.name == "Scooter" then isShow = C.EspVeh_Motor
+            else isShow = C.EspVeh_Other end
+
+            if isShow then
+                local distM = 0
+                pcall(function() distM = lp:GetDistanceTo(veh) / 100 end)
+                if distM > 0 and distM <= 300 then
+                    local text = string.format("%s [%dm]", item.name, math.floor(distM))
+                    local vehColor = item.hasDriver and {R=255, G=50, B=50, A=255} or {R=0, G=255, B=150, A=255}
+                    local dynamicScale = math.max(0.6, 1.1 - (distM / 500))
+                    hud:AddDebugText(text, veh, 0.06, {X=0, Y=0, Z=50}, {X=0, Y=0, Z=50}, vehColor, true, false, true, nil, dynamicScale, true)
+                end
+            end
+        end
+    end
+end
+
+-- ============================================================================
+-- WIDGET COUNTER MUSUH + PERINGATAN AIM
+-- ============================================================================
+local PortBtnBP = "/Game/UMG/UI_BP/Common/BaseComponent/CommonBaseComponent_TextButton_UIBP.CommonBaseComponent_TextButton_UIBP"
+
+local function PortCounterCreate()
+    if PE.CounterWidget then
+        if slua.isValid(PE.CounterWidget) then return PE.CounterWidget end
+        PE.CounterWidget = nil
+    end
+    pcall(function()
+        local btn = slua.loadUI(PortBtnBP)
+        if not btn or not slua.isValid(btn) then return end
+        require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10500)
+        if btn.RichText_Content then
+            btn.RichText_Content:SetText("Musuh: 0  |  Terdekat: 0m")
+            local fontInfo = btn.RichText_Content.Font
+            if fontInfo then fontInfo.Size = 16; btn.RichText_Content:SetFont(fontInfo) end
+        end
+        local WidgetLayoutLibrary = import("WidgetLayoutLibrary")
+        local slot = WidgetLayoutLibrary.SlotAsCanvasSlot(btn)
+        if slot then
+            slot:SetAnchors(FAnchors(0.5, 0, 0.5, 0))
+            slot:SetAlignment(FVector2D(0.5, 0))
+            slot:SetPosition(FVector2D(0, 30))
+            slot:SetSize(FVector2D(240, 36))
+        end
+        btn:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+        PE.CounterWidget = btn
+    end)
+    return PE.CounterWidget
+end
+
+local function PortWarningCreate()
+    if PE.WarningWidget then
+        if slua.isValid(PE.WarningWidget) then return PE.WarningWidget end
+        PE.WarningWidget = nil
+    end
+    pcall(function()
+        local btn = slua.loadUI(PortBtnBP)
+        if not btn or not slua.isValid(btn) then return end
+        require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10501)
+        if btn.RichText_Content then
+            btn.RichText_Content:SetText("MUSUH MENGARAHKAN BIDIKAN")
+            local fontInfo = btn.RichText_Content.Font
+            if fontInfo then fontInfo.Size = 18; btn.RichText_Content:SetFont(fontInfo) end
+        end
+        local WidgetLayoutLibrary = import("WidgetLayoutLibrary")
+        local slot = WidgetLayoutLibrary.SlotAsCanvasSlot(btn)
+        if slot then
+            slot:SetAnchors(FAnchors(0.5, 0, 0.5, 0))
+            slot:SetAlignment(FVector2D(0.5, 0))
+            slot:SetPosition(FVector2D(0, 75))
+            slot:SetSize(FVector2D(260, 36))
+        end
+        btn:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+        PE.WarningWidget = btn
+    end)
+    return PE.WarningWidget
+end
+
+local function PortHideCounter()
+    if PE.CounterWidget and slua.isValid(PE.CounterWidget) then
+        PE.CounterWidget:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+    end
+    if PE.WarningWidget and slua.isValid(PE.WarningWidget) then
+        PE.WarningWidget:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+    end
+end
+
+local function PortCounterTick(lp)
+    local C = PortCfg()
+    if not (C.EspLoai7 and C.Esp7_SoLuong) and not C.EspAimWarning then
+        PortHideCounter()
+        return
+    end
+    if not slua.isValid(lp) then PortHideCounter() return end
+
+    local widgetCounter = PortCounterCreate()
+    local widgetWarning = PortWarningCreate()
+    if widgetCounter and slua.isValid(widgetCounter) then
+        widgetCounter:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+    end
+
+    local curTime = os.clock()
+    if (curTime - PE.LastCounter) <= 0.5 then return end
+    PE.LastCounter = curTime
+
+    local myTeam = lp.TeamID or (type(lp.GetTeamID) == "function" and lp:GetTeamID()) or 0
+    local count, nearest, isBeingTargeted = 0, 9999, false
+
+    local KismetMathLibrary = import("KismetMathLibrary")
+    local pc = lp:GetPlayerControllerSafety()
+
+    local GameplayData = package.loaded["GameLua.GameCore.Data.GameplayData"] or require("GameLua.GameCore.Data.GameplayData")
+    local allCharacters = {}
+    if GameplayData then
+        if GameplayData.GetAllPlayerCharacters then allCharacters = GameplayData.GetAllPlayerCharacters()
+        elseif GameplayData.GameCharacters then for _, char in pairs(GameplayData.GameCharacters) do table.insert(allCharacters, char) end end
+    end
+
+    for _, tPawn in pairs(allCharacters) do
+        if slua.isValid(tPawn) and tPawn ~= lp then
+            local isAlive = false
+            if tPawn.HealthStatus ~= nil then
+                isAlive = (tPawn.HealthStatus ~= 2)
+            else
+                isAlive = (tPawn.Health or 0) > 0 or (type(tPawn.IsAlive) == "function" and tPawn:IsAlive())
+            end
+
+            if isAlive then
+                local tTeam = tPawn.TeamID or (type(tPawn.GetTeamID) == "function" and tPawn:GetTeamID()) or 0
+                if tTeam ~= myTeam then
+                    count = count + 1
+                    local d = math.floor(lp:GetDistanceTo(tPawn) / 100)
+                    if d < nearest then nearest = d end
+
+                    if C.EspAimWarning and not isBeingTargeted and d < 400 then
+                        local eLoc = type(tPawn.K2_GetActorLocation) == "function" and tPawn:K2_GetActorLocation()
+                        local pLoc = type(lp.K2_GetActorLocation) == "function" and lp:K2_GetActorLocation()
+
+                        if eLoc and pLoc and KismetMathLibrary then
+                            local lookRot = KismetMathLibrary.FindLookAtRotation(eLoc, pLoc)
+                            local eRot = nil
+                            if type(tPawn.GetControlRotation) == "function" then eRot = tPawn:GetControlRotation()
+                            elseif type(tPawn.GetActorRotation) == "function" then eRot = tPawn:GetActorRotation() end
+
+                            if eRot and lookRot then
+                                local dYaw = math.abs(eRot.Yaw - lookRot.Yaw)
+                                if dYaw > 180 then dYaw = 360 - dYaw end
+                                local dPitch = math.abs(eRot.Pitch - lookRot.Pitch)
+                                if dPitch > 180 then dPitch = 360 - dPitch end
+
+                                if dYaw < 15 and dPitch < 20 then
+                                    if C.EspAimWarningVisCheck then
+                                        if slua.isValid(pc) and type(pc.LineOfSightTo) == "function" and pc:LineOfSightTo(tPawn) then
+                                            isBeingTargeted = true
+                                        end
+                                    else
+                                        isBeingTargeted = true
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    if widgetCounter and widgetCounter.RichText_Content then
+        widgetCounter.RichText_Content:SetText(string.format("Musuh: %d  |  Terdekat: %dm", count, count > 0 and nearest or 0))
+    end
+
+    if widgetWarning and slua.isValid(widgetWarning) then
+        if C.EspAimWarning and isBeingTargeted then
+            widgetWarning:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+        else
+            widgetWarning:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+        end
+    end
+end
+
+
+-- ============================================================================
+-- CEK: ada fitur ESP/Wall/Chams yang aktif?
+-- ============================================================================
+local function PortWanted()
+    local C = PortCfg()
+    if not C then return false end
+    return C.EspVip or C.EspDistance or C.EspVipPro or C.EspRadar
+        or C.EspLoai5 or C.EspLoai6 or C.EspLoai7 or C.EspLoai8
+        or C.EspAntenna or C.EspOutline or C.EspItem_Master
+        or C.WallVehicle or C.EspVehicle
+        or (C.EspBomMaster and (C.EspItemBom or C.EspActiveBom))
+        or C.WallXuyenTuong or C.ColorBodyV2 or C.ColorBodyNew or C.ColorBodyV3
+        or C.EspAimWarning
+end
+
+local function PortClearAll()
+    local S = _G.X3.XthrlenState
+    pcall(function()
+        for _, d in pairs(S.EnemyMarks or {}) do
+            SafeRemoveMark(d.radarMark); SafeRemoveMark(d.hpMark); SafeRemoveMark(d.hpMark8); SafeRemoveMark(d.distMark)
+            d.radarMark = nil; d.hpMark = nil; d.hpMark8 = nil; d.distMark = nil
+            d.MIDs = nil; d.MIDs_V3 = nil; d.enemy = nil; d.CachedMeshes = nil
+        end
+        S.EnemyMarks = {}
+        S.TrackedMarks = {}
+        if PE.CounterWidget and slua.isValid(PE.CounterWidget) then PE.CounterWidget:RemoveFromParent() end
+        PE.CounterWidget = nil
+        if PE.WarningWidget and slua.isValid(PE.WarningWidget) then PE.WarningWidget:RemoveFromParent() end
+        PE.WarningWidget = nil
+    end)
+    PE.ItemCache = {}
+    PE.VehicleCache = {}
+    PE.ItemBombCache = {}
+    PE.ActiveBombCache = {}
+    PE.AppliedItem = {}
+    PE.AppliedVehWall = {}
+end
+
+-- ============================================================================
+-- MAIN ESP TICK (dipanggil dari fast tick)
+-- ============================================================================
+local function PortESPTick()
+    pcall(function()
+        if not PortWanted() then
+            if not PE.Cleared then
+                PE.Cleared = true
+                PortClearAll()
+            end
+            return
+        end
+        PE.Cleared = false
+
+        local C = PortCfg()
+
+        local okData, GameplayData = pcall(require, "GameLua.GameCore.Data.GameplayData")
+        if not okData or not GameplayData then return end
+        local pc = GameplayData.GetPlayerController()
+        local lp = nil
+        if Valid(pc) then lp = pc:GetPlayerCharacterSafety() end
+
+        if not Valid(pc) or not Valid(lp) then
+            if not PE.NoPlayer then
+                PE.NoPlayer = true
+                PortClearAll()
+            end
+            return
+        end
+        PE.NoPlayer = false
+
+        pcall(InitializeNativeESP)
+
+        local Cached_MyHUD = pc.MyHUD
+        local Cached_PPM = nil
+        pcall(function() Cached_PPM = import("PostProcessManager").GetInstance() end)
+        local Cached_SCU = nil
+        pcall(function() Cached_SCU = require("GameLua.Mod.BaseMod.Common.Security.SecurityCommonUtils") end)
+
+        PortRunItemVehicle(pc, lp)
+
+        local S = _G.X3.XthrlenState
+        local allCharacters = {}
+        if GameplayData.GetAllPlayerCharacters then allCharacters = GameplayData.GetAllPlayerCharacters()
+        elseif GameplayData.GameCharacters then for _, char in pairs(GameplayData.GameCharacters) do table.insert(allCharacters, char) end end
+
+        -- bersihkan data musuh yang sudah tidak ada
+        local currentValidKeys = {}
+        for _, enemy in pairs(allCharacters) do
+            if Valid(enemy) and enemy ~= lp then currentValidKeys[GetSafeEnemyKey(enemy)] = true end
+        end
+        for key, data in pairs(S.EnemyMarks) do
+            if not currentValidKeys[key] then
+                SafeRemoveMark(data.radarMark)
+                SafeRemoveMark(data.hpMark)
+                SafeRemoveMark(data.hpMark8)
+                SafeRemoveMark(data.distMark)
+                data.MIDs = nil
+                data.MIDs_V3 = nil
+                data.enemy = nil
+                data.CachedMeshes = nil
+                S.EnemyMarks[key] = nil
+            end
+        end
+
+        local mLoc = nil
+        pcall(function() if type(lp.K2_GetActorLocation) == "function" then mLoc = lp:K2_GetActorLocation() end end)
+
+        for _, enemy in pairs(allCharacters) do
+            if Valid(enemy) and enemy ~= lp and enemy.TeamID ~= lp.TeamID then
+                local bIsReallyDead = false
+                pcall(function()
+                    if type(enemy.IsDead) == "function" then bIsReallyDead = enemy:IsDead()
+                    elseif enemy.bIsDead ~= nil then bIsReallyDead = enemy.bIsDead
+                    elseif enemy.bIsDeadFlag ~= nil then bIsReallyDead = enemy.bIsDeadFlag end
+                    if enemy.HealthStatus ~= nil and enemy.HealthStatus == 2 then bIsReallyDead = true end
+                end)
+
+                local eKey = GetSafeEnemyKey(enemy)
+                S.EnemyMarks[eKey] = S.EnemyMarks[eKey] or { enemy = enemy }
+                local markData = S.EnemyMarks[eKey]
+                markData.enemy = enemy
+
+                if not bIsReallyDead then
+                    if markData.lastEnemyActor ~= enemy then
+                        if markData.hpMark then SafeRemoveMark(markData.hpMark); markData.hpMark = nil end
+                        if markData.hpMark8 then SafeRemoveMark(markData.hpMark8); markData.hpMark8 = nil end
+                        if markData.distMark then SafeRemoveMark(markData.distMark); markData.distMark = nil end
+                        if markData.radarMark then SafeRemoveMark(markData.radarMark); markData.radarMark = nil end
+                        markData.lastEnemyActor = enemy
+                        markData.LastUIComp = nil
+                        markData.LastFrameUIState = nil
+                        markData.IsCleanedUp = false
+                    end
+
+                    local eMesh = nil
+                    pcall(function() eMesh = enemy.Mesh or (type(enemy.getAvatarComponent2) == "function" and enemy:getAvatarComponent2() or nil) end)
+                    local aLoc = nil
+                    pcall(function() if type(enemy.K2_GetActorLocation) == "function" then aLoc = enemy:K2_GetActorLocation() end end)
+
+                    local isBot = false
+                    pcall(function()
+                        local b, checked = CheckIsAI(enemy, markData)
+                        if checked then isBot = b == true else isBot = (markData.AK_IS_BOT == true) end
+                    end)
+
+                    -- WALL / CHAMS
+                    local currentMeshCount = 0
+                    if Valid(eMesh) then
+                        pcall(function() currentMeshCount = #PortAllMeshes(enemy, markData) end)
+                    end
+                    local isMeshChangedWall = (markData.LastMeshCountWall ~= currentMeshCount)
+
+                    if C.WallXuyenTuong then
+                        if isMeshChangedWall or not markData.WallhackApplied then
+                            PortApplyWall(enemy, markData)
+                            markData.WallhackApplied = true
+                            markData.LastMeshCountWall = currentMeshCount
+                        end
+                    else
+                        PortUndoWall(enemy, markData)
+                    end
+
+                    if C.ColorBodyV2 then PortApplyV2(enemy, pc, markData) else PortUndoV2(enemy, markData) end
+                    if C.ColorBodyV3 then PortApplyV3(enemy, markData) else PortUndoV3(enemy, markData) end
+                    if C.ColorBodyNew then PortApplyNew(enemy, markData) else PortUndoNew(enemy, markData) end
+
+                    local distM = 0
+                    pcall(function() distM = lp:GetDistanceTo(enemy) / 100 end)
+
+                    local currentHp, maxHp = 100, 100
+                    local showFrameUI = (C.EspLoai5 == true) or (C.EspVipPro == true) or (C.EspVip == true)
+                    if showFrameUI then
+                        pcall(function()
+                            if enemy.Health then currentHp = enemy.Health elseif type(enemy.GetHealth) == "function" then currentHp = enemy:GetHealth() end
+                            if enemy.HealthMax then maxHp = enemy.HealthMax elseif type(enemy.GetHealthMax) == "function" then maxHp = enemy:GetHealthMax() end
+                        end)
+                        if maxHp <= 0 then maxHp = 100 end
+                    end
+                    local hpRatio = currentHp / maxHp
+
+                    -- ESP ANTENNA
+                    if C.EspAntenna then
+                        pcall(function()
+                            local MyHUD = Cached_MyHUD
+                            if Valid(MyHUD) and distM <= 400 then
+                                local loopCount = 8
+                                local zStep = 1000
+                                local baseZ = 105
+                                local topZ = baseZ + (loopCount * zStep)
+                                for i = 1, loopCount do
+                                    local zOffset = baseZ + (i * zStep)
+                                    MyHUD:AddDebugText("|", enemy, 0.06, {X=0, Y=0, Z=zOffset}, {X=0, Y=0, Z=zOffset}, C_GREEN, true, false, true, nil, 1.2, true)
+                                end
+                                MyHUD:AddDebugText("I", enemy, 0.06, {X=0, Y=0, Z=topZ + 60}, {X=0, Y=0, Z=topZ + 60}, C_GREEN, true, false, true, nil, 1.5, true)
+                            end
+                        end)
+                    end
+
+                    -- ESP LOAI 6 (SKELETON)
+                    if C.EspLoai6 then
+                        pcall(function()
+                            local curTime = os.clock()
+                            if markData.LastEsp6Time == nil or (curTime - markData.LastEsp6Time) >= 0.05 then
+                                markData.LastEsp6Time = curTime
+                                local MyHUD = Cached_MyHUD
+                                if Valid(MyHUD) and Valid(eMesh) and aLoc then
+                                    if distM <= 250 and type(eMesh.GetSocketLocation) == "function" then
+                                        for _, bName in ipairs(GLOBAL_BONE_LIST) do
+                                            if distM > 50 and (bName ~= "head" and bName ~= "pelvis" and bName ~= "neck_01") then
+                                            else
+                                                local wLoc = eMesh:GetSocketLocation(bName)
+                                                if wLoc then
+                                                    local offset = {X = wLoc.X - aLoc.X, Y = wLoc.Y - aLoc.Y, Z = wLoc.Z - aLoc.Z}
+                                                    local mark, fixedSize, color = "▪", 0.25, C_CYAN
+                                                    if bName == "head" then mark, fixedSize, color = "●", 0.45, C_RED
+                                                    elseif bName == "pelvis" or bName == "neck_01" then mark, fixedSize, color = "▪", 0.35, C_YELLOW end
+                                                    MyHUD:AddDebugText(mark, enemy, 0.06, offset, offset, color, true, false, true, nil, fixedSize, true)
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end)
+                    end
+
+                    -- ESP LOAI 7 (INFO DETAIL)
+                    if C.EspLoai7 then
+                        pcall(function()
+                            local MyHUD = Cached_MyHUD
+                            if Valid(MyHUD) and distM <= 400 then
+                                local stateText = ""
+                                if C.Esp7_TuThe ~= false then
+                                    local pose = nil
+                                    if enemy.PoseState then pose = enemy.PoseState
+                                    elseif type(enemy.GetPoseState) == "function" then pose = enemy:GetPoseState() end
+                                    if pose == 0 or pose == "Stand" then stateText = "Berdiri"
+                                    elseif pose == 1 or pose == "Crouch" then stateText = "Jongkok"
+                                    elseif pose == 2 or pose == "Prone" then stateText = "Tiarap"
+                                    else stateText = "Berdiri" end
+                                end
+
+                                if C.Esp7_VuKhi ~= false then
+                                    local curTime = os.clock()
+                                    if markData.AK_LAST_WEP_TIME == nil or curTime > markData.AK_LAST_WEP_TIME + 1.5 then
+                                        local eWeapon = nil
+                                        local cwRaw = enemy.CurrentWeapon
+                                        if cwRaw ~= nil and type(cwRaw) ~= "function" then eWeapon = cwRaw
+                                        elseif type(enemy.GetCurrentWeapon) == "function" then eWeapon = enemy:GetCurrentWeapon()
+                                        elseif enemy.WeaponManagerComponent then eWeapon = enemy.WeaponManagerComponent.CurrentWeaponReplicated end
+                                        local weaponName = "Tangan Kosong"
+                                        if Valid(eWeapon) and type(eWeapon.GetWeaponName) == "function" then weaponName = eWeapon:GetWeaponName() end
+                                        markData.AK_CACHED_WEP_NAME = tostring(weaponName)
+                                        markData.AK_LAST_WEP_TIME = curTime
+                                    end
+                                    if stateText ~= "" then
+                                        stateText = stateText .. " - " .. (markData.AK_CACHED_WEP_NAME or "Tangan Kosong")
+                                    else
+                                        stateText = (markData.AK_CACHED_WEP_NAME or "Tangan Kosong")
+                                    end
+                                end
+
+                                if stateText ~= "" then
+                                    local textColor = isBot and C_CYAN or C_YELLOW
+                                    local dynamicScale = math.max(0.5, 0.8 - (distM / 400))
+                                    MyHUD:AddDebugText(stateText, enemy, 0.06, {X=0, Y=0, Z=100}, {X=0, Y=0, Z=100}, textColor, true, false, true, nil, dynamicScale, true)
+                                end
+                            end
+                        end)
+                    end
+
+                    -- ENEMY FRAME UI (ESP 1 / 3 / 5)
+                    if showFrameUI then
+                        pcall(function()
+                            local show = true
+                            if enemy.HealthStatus and Cached_SCU and Cached_SCU.IsHealthStatusAlive then
+                                if not Cached_SCU.IsHealthStatusAlive(enemy.HealthStatus) then show = false end
+                            end
+                            if show and mLoc then
+                                if aLoc and Cached_SCU and Cached_SCU.IsVector then
+                                    if Cached_SCU.IsVector(aLoc) and Cached_SCU.IsVector(mLoc) then
+                                        local ddx, ddy = aLoc.X - mLoc.X, aLoc.Y - mLoc.Y
+                                        if aLoc.Z >= 150000 or math.sqrt(ddx*ddx + ddy*ddy) > 50000 then show = false end
+                                    end
+                                end
+                            end
+                            if show then
+                                if enemy.Replay_IsEnemyFrameUIExisted and not enemy:Replay_IsEnemyFrameUIExisted() then enemy:Replay_CreateEnemyFrameUI(true, true) end
+                                if enemy.Replay_SetVisiableOfFrameUI then enemy:Replay_SetVisiableOfFrameUI(true) end
+                                if enemy.Replay_UpdateEnemyFrameUI then enemy:Replay_UpdateEnemyFrameUI(hpRatio) end
+
+                                local efuRaw = enemy.EnemyFrameUI
+                                local uiComp = nil
+                                if efuRaw ~= nil and type(efuRaw) ~= "function" then uiComp = efuRaw
+                                elseif type(enemy.GetEnemyFrameUI) == "function" then uiComp = enemy:GetEnemyFrameUI() end
+                                if Valid(uiComp) then
+                                    if markData.LastFrameUIState ~= "VISIBLE" then
+                                        if type(uiComp.SetVisibility) == "function" then uiComp:SetVisibility(0) end
+                                        if type(uiComp.SetHiddenInGame) == "function" then uiComp:SetHiddenInGame(false) end
+                                        markData.LastFrameUIState = "VISIBLE"
+                                    end
+                                end
+                            end
+                        end)
+                    else
+                        pcall(function()
+                            if enemy.Replay_SetVisiableOfFrameUI then enemy:Replay_SetVisiableOfFrameUI(false) end
+                            local efuRaw2 = enemy.EnemyFrameUI
+                            local uiComp = nil
+                            if efuRaw2 ~= nil and type(efuRaw2) ~= "function" then uiComp = efuRaw2
+                            elseif type(enemy.GetEnemyFrameUI) == "function" then uiComp = enemy:GetEnemyFrameUI() end
+                            if Valid(uiComp) then
+                                if markData.LastFrameUIState ~= "HIDDEN" then
+                                    if type(uiComp.SetVisibility) == "function" then uiComp:SetVisibility(2) end
+                                    if type(uiComp.SetHiddenInGame) == "function" then uiComp:SetHiddenInGame(true) end
+                                    markData.LastFrameUIState = "HIDDEN"
+                                end
+                            end
+                        end)
+                    end
+
+                    -- ESP 3: NAMA + HP VERTIKAL
+                    if C.EspVipPro then
+                        pcall(function()
+                            local hud = Cached_MyHUD
+                            if Valid(hud) and hud.AddDebugText and distM <= 400 then
+                                local dynamicScale = math.max(0.55, 0.95 - (distM / 400))
+                                local isKnock = (currentHp <= 0 and enemy.HealthStatus == 1)
+                                local hpColor = C_GREEN
+                                if hpRatio < 0.3 then hpColor = C_RED elseif hpRatio < 0.7 then hpColor = C_YELLOW end
+                                if isKnock then hpColor = C_RED end
+
+                                if C.Esp3ShowName ~= false then
+                                    local enemyName = "Enemy"
+                                    pcall(function()
+                                        if enemy.PlayerName then enemyName = enemy.PlayerName
+                                        elseif type(enemy.GetPlayerName) == "function" then enemyName = enemy:GetPlayerName() end
+                                    end)
+                                    if enemyName == "" or enemyName == nil then enemyName = "Enemy" end
+                                    if isKnock then enemyName = "KNOCK: " .. tostring(enemyName) end
+                                    hud:AddDebugText(tostring(enemyName), enemy, 0.06, {X=0, Y=0, Z=-370}, {X=0, Y=0, Z=-370}, C_WHITE, true, false, true, nil, dynamicScale * 1.1, true)
+                                end
+
+                                if C.Esp3ShowHP ~= false then
+                                    if not isKnock then
+                                        local segments = 6
+                                        local filled = math.floor(hpRatio * segments)
+                                        local startZ = 20
+                                        local spacing = 10.0 * dynamicScale
+                                        for j = 1, segments do
+                                            local color = (j <= filled) and hpColor or {R=30, G=30, B=30, A=180}
+                                            hud:AddDebugText("█", enemy, 0.06, {X=0, Y=-115, Z=startZ + (j * spacing)}, {X=0, Y=-115, Z=startZ + (j * spacing)}, color, true, false, true, nil, dynamicScale * 1.2, true)
+                                        end
+                                        hud:AddDebugText(string.format("%d%%", math.floor(hpRatio * 100)), enemy, 0.06, {X=0, Y=-60, Z=startZ - 12}, {X=0, Y=-60, Z=startZ - 12}, hpColor, true, false, true, nil, dynamicScale * 0.8, true)
+                                    else
+                                        hud:AddDebugText("DOWN", enemy, 0.06, {X=0, Y=-115, Z=50}, {X=0, Y=-115, Z=50}, C_RED, true, false, true, nil, dynamicScale, true)
+                                    end
+                                end
+                            end
+                        end)
+                    end
+
+                    -- ESP 2: JARAK
+                    if C.EspDistance then
+                        pcall(function()
+                            local hud = Cached_MyHUD
+                            if Valid(hud) and hud.AddDebugText and distM <= 400 then
+                                local dynamicScale = math.max(0.55, 0.95 - (distM / 400))
+                                hud:AddDebugText(string.format("[%dm]", math.floor(distM)), enemy, 0.06, {X=0, Y=115, Z=20}, {X=0, Y=115, Z=20}, C_BLUE_TEXT, true, false, true, nil, dynamicScale * 1.5, true)
+                            end
+                        end)
+                    end
+
+                    -- ESP 1: MARK HP + MARK JARAK
+                    if C.EspVip then
+                        if markData.hpMark == nil then markData.hpMark = SafeAddMark(1006, FVector(0,0,0), 0, "", 4, enemy) end
+                        if markData.distMark == nil then markData.distMark = SafeAddMark(9999, FVector(0,0,0), 0, "", 4, enemy) end
+                    else
+                        if markData.hpMark then SafeRemoveMark(markData.hpMark); markData.hpMark = nil end
+                        if markData.distMark then SafeRemoveMark(markData.distMark); markData.distMark = nil end
+                    end
+
+                    -- ESP 8: HP DI ATAS KEPALA
+                    if C.EspLoai8 then
+                        if markData.hpMark8 == nil then markData.hpMark8 = SafeAddMark(1006, FVector(0,0,0), 0, "", 4, enemy) end
+                    else
+                        if markData.hpMark8 then SafeRemoveMark(markData.hpMark8); markData.hpMark8 = nil end
+                    end
+
+                    -- ESP 4: RADAR
+                    if C.EspRadar then
+                        if not markData.radarMark or markData.radarMark == 0 then
+                            markData.radarMark = SafeAddMark(8888, FVector(0,0,0), 0, "", 4, enemy)
+                        end
+                    else
+                        if markData.radarMark and markData.radarMark ~= 0 then
+                            SafeRemoveMark(markData.radarMark)
+                            markData.radarMark = nil
+                        end
+                    end
+
+                    -- ESP OUTLINE
+                    if C.EspOutline then
+                        pcall(function()
+                            local outColorChoice = PortData().OutlineColor or 4
+                            local outThick = C.OutlineThickness or 10
+                            local outlineHash = string.format("%d_%d", outThick, outColorChoice)
+                            local meshes = PortAllMeshes(enemy, markData)
+                            local currentMeshCountOL = #meshes
+
+                            if markData.OutlineState ~= outlineHash or markData.LastMeshCountOutline ~= currentMeshCountOL then
+                                local r, g, b = 255, 255, 0
+                                if outColorChoice == 1 then r, g, b = 255, 0, 0
+                                elseif outColorChoice == 2 then r, g, b = 0, 255, 0
+                                elseif outColorChoice == 3 then r, g, b = 0, 0, 255
+                                elseif outColorChoice == 4 then r, g, b = 255, 255, 0
+                                elseif outColorChoice == 5 then r, g, b = 255, 0, 255
+                                elseif outColorChoice == 6 then r, g, b = 255, 255, 255 end
+
+                                local glowIntensity = 80.0
+                                local glowDynamic
+                                if PortLinearColor then
+                                    local okG, gv = pcall(PortLinearColor, (r/255)*glowIntensity, (g/255)*glowIntensity, (b/255)*glowIntensity, 1.0)
+                                    if okG and gv then glowDynamic = gv end
+                                end
+                                if not glowDynamic then glowDynamic = { R=r*glowIntensity, G=g*glowIntensity, B=b*glowIntensity, A=255 } end
+
+                                for _, comp in ipairs(meshes) do
+                                    if Valid(comp) then
+                                        pcall(function()
+                                            comp.UseScopeDistanceCulling = false
+                                            comp.PrimitiveShadingStrategy = 1
+                                            comp.ShadingRate = 6
+                                        end)
+                                        pcall(function()
+                                            if type(comp.SetDrawIdeaOutline) == "function" then
+                                                comp:SetDrawIdeaOutline(true)
+                                                if type(comp.OverrideIdeaOutlineColor) == "function" then comp:OverrideIdeaOutlineColor(true, glowDynamic) end
+                                                if type(comp.OverrideIdeaOutlineThickness) == "function" then comp:OverrideIdeaOutlineThickness(true, outThick) end
+                                            end
+                                        end)
+                                    end
+                                end
+                                markData.OutlineState = outlineHash
+                                markData.LastMeshCountOutline = currentMeshCountOL
+                            end
+                        end)
+                    else
+                        pcall(function()
+                            if markData.OutlineState ~= "OFF" then
+                                local meshes = PortAllMeshes(enemy, markData)
+                                for _, comp in ipairs(meshes) do
+                                    if Valid(comp) then
+                                        pcall(function()
+                                            comp.PrimitiveShadingStrategy = 0
+                                            comp.ShadingRate = 1
+                                        end)
+                                        pcall(function()
+                                            if type(comp.SetDrawIdeaOutline) == "function" then comp:SetDrawIdeaOutline(false) end
+                                        end)
+                                    end
+                                end
+                                markData.OutlineState = "OFF"
+                                markData.LastMeshCountOutline = 0
+                            end
+                        end)
+                    end
+
+                else
+                    if not markData.IsCleanedUp then
+                        SafeRemoveMark(markData.radarMark); markData.radarMark = nil
+                        SafeRemoveMark(markData.hpMark); markData.hpMark = nil
+                        SafeRemoveMark(markData.hpMark8); markData.hpMark8 = nil
+                        SafeRemoveMark(markData.distMark); markData.distMark = nil
+                        markData.MIDs = nil
+                        markData.MIDs_V3 = nil
+                        pcall(function()
+                            local eObj = markData.enemy
+                            if Valid(eObj) then
+                                if eObj.Replay_SetVisiableOfFrameUI then eObj:Replay_SetVisiableOfFrameUI(false) end
+                                local uiComp = eObj.EnemyFrameUI or (type(eObj.GetEnemyFrameUI) == "function" and eObj:GetEnemyFrameUI())
+                                if Valid(uiComp) then
+                                    if type(uiComp.SetVisibility) == "function" then uiComp:SetVisibility(2) end
+                                    if type(uiComp.SetHiddenInGame) == "function" then uiComp:SetHiddenInGame(true) end
+                                end
+                            end
+                            local avatarComp = Valid(eObj) and (type(eObj.getAvatarComponent2) == "function") and eObj:getAvatarComponent2() or nil
+                            if Valid(avatarComp) and Valid(Cached_PPM) then Cached_PPM:EnableAvatarOutline(avatarComp, false) end
+                        end)
+                        markData.IsCleanedUp = true
+                    end
+                end
+            end
+        end
+
+        local hud = Cached_MyHUD
+        if Valid(hud) then
+            PortBombTick(lp, hud)
+            PortVehicleTick(lp, hud)
+        end
+        PortCounterTick(lp)
+    end)
+end
+
+return { Tick = PortESPTick }
+end)()
+
+_G.X3.PortESPTick = PortESPModule and PortESPModule.Tick or nil
+
 
 _G.X3.XthrlenConfig = _G.X3.XthrlenConfig or {}
 _G.X3.XthrlenConfig.WallhackVis = _G.X3.XthrlenConfig.WallhackVis or false
@@ -5816,6 +6200,10 @@ _G.X3.XthrlenState.CustomTextData.WallFilterMode = _G.X3.XthrlenState.CustomText
 _G.X3.XthrlenState.CustomTextData.WallResolution = _G.X3.XthrlenState.CustomTextData.WallResolution or 1
 _G.X3.XthrlenState.CustomTextData.RenderDistSlider = _G.X3.XthrlenState.CustomTextData.RenderDistSlider or 100
 _G.X3.XthrlenState.CustomTextData.HDRSharpSlider = _G.X3.XthrlenState.CustomTextData.HDRSharpSlider or 100
+_G.X3.XthrlenState.CustomTextData.ColorV3Hidden = _G.X3.XthrlenState.CustomTextData.ColorV3Hidden or 1
+_G.X3.XthrlenState.CustomTextData.ColorV3Visible = _G.X3.XthrlenState.CustomTextData.ColorV3Visible or 2
+_G.X3.XthrlenState.CustomTextData.ColorV3Thickness = _G.X3.XthrlenState.CustomTextData.ColorV3Thickness or 4
+_G.X3.XthrlenState.CustomTextData.OutlineColor = _G.X3.XthrlenState.CustomTextData.OutlineColor or 4
 _G.X3.WallhackColorVersion = _G.X3.WallhackColorVersion or 1
 
 -- 1. SDK VALIDATED CLASS IMPORTS (Cached)
@@ -7209,17 +7597,7 @@ _G.X3.AimTouch = function()
 end
 
 local function MainLoop()
-    -- [DISABLED] 强制关闭 Wallhack / ESP 相关开关（用户请求）
-    if _G.X3 and _G.X3.XthrlenConfig then
-        _G.X3.XthrlenConfig.WallhackVis       = false
-        _G.X3.XthrlenConfig.EspEnemyCount     = false
-        _G.X3.XthrlenConfig.EspEnemyCountV2   = false
-        _G.X3.XthrlenConfig.EspDistance       = false
-        _G.X3.XthrlenConfig.EspRadar          = false
-        _G.X3.XthrlenConfig.EspLoai6          = false
-        _G.X3.XthrlenConfig.EspLoai7          = false
-        _G.X3.XthrlenConfig.EspLoai8          = false
-    end
+    -- [PORT] force-off ESP lama dihapus: menu ESP sekarang dikendalikan user
     do
         local nowF = os.clock()
         local last = _G.X3._FrameLastT or nowF
@@ -7360,7 +7738,6 @@ if _G.X3.XthrlenConfig and _G.X3.XthrlenConfig.WallhackVis and (nowWH - _G.X3._W
     end)
 end
 
-    if _G.X3.ESP_Tick then pcall(_G.X3.ESP_Tick, localPlayer, pc) end
     if _G.X3.OutlineTick then pcall(_G.X3.OutlineTick, localPlayer) end
 
     if _G.X3.BTTick then pcall(_G.X3.BTTick, localPlayer) end
@@ -7479,6 +7856,18 @@ end
                 gi:ExecuteCMD("r.CharacterDiffusePower", "1")
                 gi:ExecuteCMD("r.CharacterMinShadowFactor", "1")
                 _G.X3.XthrlenState.PrevGraphicsState.WhiteBody = false
+            end
+
+            if _G.X3.XthrlenConfig.ColorBodyV2 and not _G.X3.XthrlenState.PrevGraphicsState.ColorBodyV2 then
+                gi:ExecuteCMD("r.CharacterMinShadowFactor", "4")
+                gi:ExecuteCMD("r.CharacterDiffuseOffset", "200")
+                gi:ExecuteCMD("r.CharacterDiffusePower", "200")
+                _G.X3.XthrlenState.PrevGraphicsState.ColorBodyV2 = true
+            elseif not _G.X3.XthrlenConfig.ColorBodyV2 and _G.X3.XthrlenState.PrevGraphicsState.ColorBodyV2 then
+                gi:ExecuteCMD("r.CharacterMinShadowFactor", "1")
+                gi:ExecuteCMD("r.CharacterDiffuseOffset", "0")
+                gi:ExecuteCMD("r.CharacterDiffusePower", "1")
+                _G.X3.XthrlenState.PrevGraphicsState.ColorBodyV2 = false
             end
 
             if _G.X3.XthrlenConfig.BlackSky and not _G.X3.XthrlenState.PrevGraphicsState.BlackSky then
@@ -7864,108 +8253,6 @@ end
                     local distM = 0
                     pcall(function() distM = localPlayer:GetDistanceTo(enemy) / 100 end)
 
-                    if _G.X3.XthrlenConfig.EspLoai6 then
-                        pcall(function()
-                            local curTime = os.clock()
-                            if markData.LastEsp6Time == nil or (curTime - markData.LastEsp6Time) >= 0.1 then
-                                markData.LastEsp6Time = curTime
-                                local MyHUD = Cached_MyHUD
-                                if Valid(MyHUD) and Valid(eMesh) and aLoc and _G.X3.IsPawnRenderReady and _G.X3.IsPawnRenderReady(enemy, 0.6) then
-                                    if distM <= 250 then
-                                        if type(eMesh.GetSocketLocation) == "function" then
-                                            for _, bName in ipairs(GLOBAL_BONE_LIST) do
-                                                if distM > 50 and (bName ~= "head" and bName ~= "pelvis" and bName ~= "neck_01") then
-                                                else
-                                                    local wLoc = eMesh:GetSocketLocation(bName)
-                                                    if wLoc then
-                                                        local offset = {X = wLoc.X - aLoc.X, Y = wLoc.Y - aLoc.Y, Z = wLoc.Z - aLoc.Z}
-                                                        local mark = "▪"
-                                                        local fixedSize = 0.25
-                                                        local color = C_CYAN
-                                                        if bName == "head" then
-                                                            mark = "●"
-                                                            fixedSize = 0.45
-                                                            color = C_RED
-                                                        elseif bName == "pelvis" or bName == "neck_01" then
-                                                            mark = "▪"
-                                                            fixedSize = 0.35
-                                                            color = C_YELLOW
-                                                        end
-                                                        MyHUD:AddDebugText(mark, enemy, 0.15, offset, offset, color, true, false, true, nil, fixedSize, true)
-                                                    end
-                                                end
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        end)
-                    end
-
-                    if _G.X3.XthrlenConfig.EspLoai7 and eReady then
-                        pcall(function()
-                            local MyHUD = Cached_MyHUD
-                            if Valid(MyHUD) then
-                                if distM <= 600 then if isBot then aiCount = aiCount + 1 else realCount = realCount + 1 end end
-                                if distM <= 400 then
-                                    local stateText = ""
-                                    local pose = nil
-                                    if enemy.PoseState then pose = enemy.PoseState
-                                    elseif type(enemy.GetPoseState) == "function" then pose = enemy:GetPoseState() end
-                                    if pose == 0 or pose == "Stand" then stateText = "Stand [ BERDIRI ]"
-                                    elseif pose == 1 or pose == "Crouch" then stateText = "Crouch [ JONGKOK ]"
-                                    elseif pose == 2 or pose == "Prone" then stateText = "Prone [ TIARAP ]"
-                                    else stateText = "Stand [ BERDIRI ]" end
-                                    local curTime = os.clock()
-                                    if markData.AK_LAST_WEP_TIME == nil or curTime > markData.AK_LAST_WEP_TIME + 1.5 then
-                                        local eWeapon = nil
-                                        if enemy.CurrentWeapon then eWeapon = enemy.CurrentWeapon
-                                        elseif type(enemy.GetCurrentWeapon) == "function" then eWeapon = enemy:GetCurrentWeapon()
-                                        elseif enemy.WeaponManagerComponent then eWeapon = enemy.WeaponManagerComponent.CurrentWeaponReplicated end
-                                        local weaponName = "Senjata"
-                                        if Valid(eWeapon) then if type(eWeapon.GetWeaponName) == "function" then weaponName = eWeapon:GetWeaponName() end
-                                        else weaponName = "Tangan Kosong" end
-                                        markData.AK_CACHED_WEP_NAME = tostring(weaponName)
-                                        markData.AK_LAST_WEP_TIME = curTime
-                                    end
-                                    stateText = stateText .. " - " .. (markData.AK_CACHED_WEP_NAME or "Senjata")
-                                    local textColor = isBot and C_CYAN or C_YELLOW
-                                    local dynamicScale = math.max(0.5, 0.8 - (distM / 400))
-                                    MyHUD:AddDebugText(stateText, enemy, 0.15, {X=0, Y=0, Z=100}, {X=0, Y=0, Z=100}, textColor, true, false, true, nil, dynamicScale, true)
-                                end
-                            end
-                        end)
-                    end
-
-                    if _G.X3.XthrlenConfig.EspDistance and eReady then
-                        pcall(function()
-                            local hud = Cached_MyHUD
-                            if Valid(hud) and hud.AddDebugText then
-                                if distM <= 400 then
-                                    local dynamicScale = math.max(0.55, 0.95 - (distM / 400))
-                                    hud:AddDebugText(string.format("[%dm]", math.floor(distM)), enemy, 0.15, {X=0, Y=115, Z=20}, {X=0, Y=115, Z=20}, C_BLUE_TEXT, true, false, true, nil, dynamicScale * 1.5, true)
-                                end
-                            end
-                        end)
-                    end
-
-                    if _G.X3.XthrlenConfig.EspLoai8 and eReady then
-                        if markData.hpMark8 == nil then markData.hpMark8 = SafeAddMark(1006, FVector(0,0,0), 0, "", 4, enemy) end
-                    else
-                        if markData.hpMark8 then SafeRemoveMark(markData.hpMark8); markData.hpMark8 = nil end
-                    end
-
-                    if _G.X3.XthrlenConfig.EspRadar and eReady then
-                        if not markData.radarMark or markData.radarMark == 0 then
-                            markData.radarMark = SafeAddMark(8888, FVector(0,0,0), 0, "", 4, enemy)
-                        end
-                    else
-                        if markData.radarMark and markData.radarMark ~= 0 then
-                            SafeRemoveMark(markData.radarMark)
-                            markData.radarMark = nil
-                        end
-                    end
-
                 else
                     if not markData.IsCleanedUp then
                         SafeRemoveMark(markData.radarMark)
@@ -8072,16 +8359,6 @@ end
             end
         end
 
-        if _G.X3.XthrlenConfig.EspLoai7 then
-            pcall(function()
-                local MyHUD = Cached_MyHUD
-                if Valid(MyHUD) then
-                    local totalEnemies = realCount + aiCount
-                    local text = string.format("Musuh Di Sekitar: %d", totalEnemies)
-                    MyHUD:AddDebugText(text, localPlayer, 0.06, {X=0, Y=0, Z=0}, {X=0, Y=0, Z=0}, C_RED, true, false, true, nil, 0.8, true)
-                end
-            end)
-        end
     end)
 
     -- [DAMAGE MULTIPLIER v1.0] BaseDamage Hack
@@ -8143,6 +8420,24 @@ local function FastTick()
     if okTicker and ticker and ticker.AddTimerOnce then
         ticker.AddTimerOnce(0.4, FastTick)
     end
+end
+
+-- [PORT-ESP] Loop ESP cepat (0.05s) terpisah dari MainLoop 0.4s
+local espToken = 0
+local function FastESPTick()
+    if espToken ~= _G.X3.XthrlenState.EspLoopToken then return end
+    if _G.X3.PortESPTick then pcall(_G.X3.PortESPTick) end
+    local okT, tk = pcall(require, "common.time_ticker")
+    if okT and tk and tk.AddTimerOnce then
+        tk.AddTimerOnce(0.05, FastESPTick)
+    end
+end
+
+_G.X3.XthrlenState.EspLoopToken = (_G.X3.XthrlenState.EspLoopToken or 0) + 1
+espToken = _G.X3.XthrlenState.EspLoopToken
+local okTesp, tickerEsp = pcall(require, "common.time_ticker")
+if okTesp and tickerEsp and tickerEsp.AddTimerOnce then
+    tickerEsp.AddTimerOnce(0.2, FastESPTick)
 end
 
 -- LOOP KHUSUS AIMTOUCH 0.016 DETIK (~60 FPS)
