@@ -3834,6 +3834,519 @@ _G.X3.ReadLiveConfig = function()
     if _G.X3.SaveModSettings then _G.X3.SaveModSettings() end
 end
 
+
+-- ================================================================
+-- [PORT] ESP & NEW ENGINE CHAMS (ported from 1.lua)
+-- 命名空间适配：LexusConfig→X3.XthrlenConfig，LexusState→X3.XthrlenState
+-- ================================================================
+do
+    -- 1) 确保配置键存在
+    local C = _G.X3 and _G.X3.XthrlenConfig
+    if C then
+        local esp_defaults = {
+            EspVip=false, EspDistance=false, EspVipPro=false, EspRadar=false,
+            EspLoai5=false, EspLoai6=false, EspLoai7=false, EspLoai8=false,
+            Esp7_SoLuong=true, Esp7_VuKhi=true, Esp7_TuThe=true,
+            EspBomMaster=false, EspItemBom=false, EspActiveBom=false,
+            EspAimWarning=false, EspAimWarningVisCheck=false,
+            EspVehicle=false, EspVeh_Dacia=true, EspVeh_UAZ=true, EspVeh_Buggy=true,
+            EspVeh_Coupe=true, EspVeh_Mirado=true, EspVeh_Motor=true, EspVeh_Other=true,
+            Esp3ShowName=true, Esp3ShowHP=true,
+            EspAntenna=false, EspOutline=false, OutlineThickness=10,
+            EspItem_Master=false, EspItem_AR=true, EspItem_Sniper=true,
+            EspItem_SMG=true, EspItem_Shotgun=true, EspItem_LMG=true,
+            EspItem_Pistol=true, EspItem_Melee=false, EspItem_Special=true,
+            EspItem_Scope=true, EspItem_Grenade=true, EspItem_Med=true,
+            ColorBodyNew=false,
+        }
+        for k, v in pairs(esp_defaults) do
+            if C[k] == nil then C[k] = v end
+        end
+    end
+
+    local S = _G.X3 and _G.X3.XthrlenState
+    if S then
+        S.CustomTextData = S.CustomTextData or {}
+        local td = S.CustomTextData
+        if td.OutlineColor == nil then td.OutlineColor = 4 end
+        if td.HiddenR == nil then
+            td.HiddenR = 150; td.HiddenG = 0; td.HiddenB = 0; td.HiddenA = 25
+            td.VisibleR = 0; td.VisibleG = 150; td.VisibleB = 0; td.VisibleA = 25
+        end
+    end
+
+    -- 2) 物品颜色常量
+local C_AR      = {R = 255, G = 255, B = 0, A = 255}
+local C_SMG     = {R = 0, G = 255, B = 255, A = 255}
+local C_Sniper  = {R = 255, G = 0, B = 0, A = 255}
+local C_Shotgun = {R = 0, G = 255, B = 0, A = 255}
+local C_LMG     = {R = 255, G = 255, B = 255, A = 255}
+local C_Pistol  = {R = 200, G = 200, B = 200, A = 255}
+local C_Special = {R = 255, G = 0, B = 255, A = 255}
+local C_Melee   = {R = 150, G = 150, B = 150, A = 255}
+local C_Scope   = {R = 0, G = 0, B = 255, A = 255}
+local C_Grenade = {R = 255, G = 165, B = 0, A = 255}
+local C_Med     = {R = 50, G = 255, B = 50, A = 255}
+
+
+
+    -- 3) 物品数据库
+local ItemDatabase = {
+    [101001] = { name = "AKM", cat = "AR", color = C_AR }, [101002] = { name = "M16A4", cat = "AR", color = C_AR },
+    [101003] = { name = "SCAR-L", cat = "AR", color = C_AR }, [101004] = { name = "M416", cat = "AR", color = C_AR },
+    [101005] = { name = "Groza", cat = "AR", color = C_AR }, [101006] = { name = "AUG", cat = "AR", color = C_AR },
+    [101007] = { name = "QBZ", cat = "AR", color = C_AR }, [101008] = { name = "M762", cat = "AR", color = C_AR },
+    [101009] = { name = "Mk47 Mutant", cat = "AR", color = C_AR }, [101010] = { name = "G36C", cat = "AR", color = C_AR },
+    [101011] = { name = "AC-VAL", cat = "AR", color = C_AR }, [101012] = { name = "Honey Badger", cat = "AR", color = C_AR },
+    [101100] = { name = "FAMAS", cat = "AR", color = C_AR }, [101101] = { name = "ASM Abakan AR", cat = "AR", color = C_AR },
+    [101102] = { name = "ACE32", cat = "AR", color = C_AR },
+    [102001] = { name = "UZI", cat = "SMG", color = C_SMG }, [102002] = { name = "UMP45", cat = "SMG", color = C_SMG },
+    [102003] = { name = "Vector", cat = "SMG", color = C_SMG }, [102004] = { name = "Thompson SMG", cat = "SMG", color = C_SMG },
+    [102005] = { name = "PP-19 Bizon", cat = "SMG", color = C_SMG }, [102007] = { name = "MP5K", cat = "SMG", color = C_SMG },
+    [102008] = { name = "JS9", cat = "SMG", color = C_SMG }, [102105] = { name = "P90", cat = "SMG", color = C_SMG },
+    [103001] = { name = "Kar98K", cat = "Sniper", color = C_Sniper }, [103002] = { name = "M24", cat = "Sniper", color = C_Sniper },
+    [103003] = { name = "AWM", cat = "Sniper", color = C_Sniper }, [103004] = { name = "SKS", cat = "Sniper", color = C_Sniper },
+    [103005] = { name = "VSS", cat = "Sniper", color = C_Sniper }, [103006] = { name = "Mini14", cat = "Sniper", color = C_Sniper },
+    [103007] = { name = "Mk14", cat = "Sniper", color = C_Sniper }, [103008] = { name = "Win94", cat = "Sniper", color = C_Sniper },
+    [103009] = { name = "SLR", cat = "Sniper", color = C_Sniper }, [103010] = { name = "QBU", cat = "Sniper", color = C_Sniper },
+    [103011] = { name = "Mosin Nagant", cat = "Sniper", color = C_Sniper }, [103012] = { name = "AMR", cat = "Sniper", color = C_Sniper },
+    [103100] = { name = "Mk12", cat = "Sniper", color = C_Sniper }, [103101] = { name = "TR-2A Air Gun", cat = "Sniper", color = C_Sniper },
+    [103102] = { name = "DSR", cat = "Sniper", color = C_Sniper }, [103103] = { name = "Sniper Rifle", cat = "Sniper", color = C_Sniper },
+    [103104] = { name = "Sniper Rifle", cat = "Sniper", color = C_Sniper }, [103105] = { name = "SR", cat = "Sniper", color = C_Sniper },
+    [104001] = { name = "S686", cat = "Shotgun", color = C_Shotgun }, [104002] = { name = "S1897", cat = "Shotgun", color = C_Shotgun },
+    [104003] = { name = "S12K", cat = "Shotgun", color = C_Shotgun }, [104004] = { name = "DBS", cat = "Shotgun", color = C_Shotgun },
+    [104100] = { name = "SPAS-12", cat = "Shotgun", color = C_Shotgun }, [104101] = { name = "M1014", cat = "Shotgun", color = C_Shotgun },
+    [104102] = { name = "NS2000", cat = "Shotgun", color = C_Shotgun },
+    [105001] = { name = "M249", cat = "LMG", color = C_LMG }, [105002] = { name = "DP-28", cat = "LMG", color = C_LMG },
+    [105003] = { name = "M134", cat = "LMG", color = C_LMG }, [105010] = { name = "MG3", cat = "LMG", color = C_LMG },
+    [105101] = { name = "Gatling", cat = "LMG", color = C_LMG }, [105115] = { name = "Lib Gatling MG", cat = "LMG", color = C_LMG },
+    [105004] = { name = "Flamethrower", cat = "LMG", color = C_LMG }, [105006] = { name = "M2 Fixed MG", cat = "LMG", color = C_LMG },
+    [105007] = { name = "Gatling Fixed MG", cat = "LMG", color = C_LMG }, [105008] = { name = "Mounted Flamethrower", cat = "LMG", color = C_LMG },
+    [105009] = { name = "M2 Mounted MG", cat = "LMG", color = C_LMG }, [105102] = { name = "Vehicle SG", cat = "LMG", color = C_LMG },
+    [105103] = { name = "RPG", cat = "LMG", color = C_LMG }, [105104] = { name = "RPG", cat = "LMG", color = C_LMG },
+    [105105] = { name = "PowPow MG", cat = "LMG", color = C_LMG }, [105106] = { name = "Tank Cannon", cat = "LMG", color = C_LMG },
+    [105107] = { name = "Tank MG", cat = "LMG", color = C_LMG }, [105108] = { name = "Tank Flare Gun", cat = "LMG", color = C_LMG },
+    [105116] = { name = "Lib Autocannon", cat = "LMG", color = C_LMG }, [105117] = { name = "Jet Missile", cat = "LMG", color = C_LMG },
+    [105118] = { name = "Jet Autocannon", cat = "LMG", color = C_LMG },
+    [106001] = { name = "P92", cat = "Pistol", color = C_Pistol }, [106002] = { name = "P1911", cat = "Pistol", color = C_Pistol },
+    [106003] = { name = "R1895", cat = "Pistol", color = C_Pistol }, [106004] = { name = "P18C", cat = "Pistol", color = C_Pistol },
+    [106005] = { name = "R45", cat = "Pistol", color = C_Pistol }, [106006] = { name = "Sawed-off", cat = "Pistol", color = C_Pistol },
+    [106008] = { name = "Skorpion", cat = "Pistol", color = C_Pistol }, [106010] = { name = "Desert Eagle", cat = "Pistol", color = C_Pistol },
+    [106007] = { name = "Flare Gun", cat = "Pistol", color = C_Pistol }, [106009] = { name = "Flare Gun", cat = "Pistol", color = C_Pistol },
+    [106011] = { name = "Dual MP7", cat = "Pistol", color = C_Pistol }, [106012] = { name = "Welding Gun", cat = "Pistol", color = C_Pistol },
+    [106013] = { name = "Stun Gun", cat = "Pistol", color = C_Pistol }, [106101] = { name = "Vehicle Flare", cat = "Pistol", color = C_Pistol },
+    [106103] = { name = "Flare Gun", cat = "Pistol", color = C_Pistol }, [106106] = { name = "Flare (Empty)", cat = "Pistol", color = C_Pistol },
+    [106107] = { name = "Respawn Flare", cat = "Pistol", color = C_Pistol }, [106203] = { name = "Magnet Gun", cat = "Pistol", color = C_Pistol },
+    [107011] = { name = "Súng Cối", cat = "Special", color = C_Special }, [307006] = { name = "Đạn Cối", cat = "Special", color = C_Special },
+    [107001] = { name = "Crossbow", cat = "Special", color = C_Special }, [107002] = { name = "RPG-7", cat = "Special", color = C_Special },
+    [107003] = { name = "Riot shield", cat = "Special", color = C_Special }, [107004] = { name = "Combat Drone", cat = "Special", color = C_Special },
+    [107005] = { name = "Panzerfaust", cat = "Special", color = C_Special }, [107006] = { name = "RPG-7", cat = "Special", color = C_Special },
+    [107007] = { name = "Tactical Crossbow", cat = "Special", color = C_Special }, [107008] = { name = "Explosive Bow", cat = "Special", color = C_Special },
+    [107009] = { name = "Explosive Bow", cat = "Special", color = C_Special }, [107010] = { name = "M79 Smoke Launcher", cat = "Special", color = C_Special },
+    [107019] = { name = "Atlas Gauntlet", cat = "Special", color = C_Special }, [107020] = { name = "Explosive Crossbow", cat = "Special", color = C_Special },
+    [107021] = { name = "Mercury Hammer", cat = "Special", color = C_Special }, [107022] = { name = "Fishbones Rocket", cat = "Special", color = C_Special },
+    [107092] = { name = "MGL", cat = "Special", color = C_Special }, [107093] = { name = "M202 Quad RPG", cat = "Special", color = C_Special },
+    [107094] = { name = "AT4-A Laser Missile", cat = "Special", color = C_Special }, [107095] = { name = "M202 Quad RPG", cat = "Special", color = C_Special },
+    [107096] = { name = "M79 Sawed-off", cat = "Special", color = C_Special }, [107097] = { name = "M79", cat = "Special", color = C_Special },
+    [107098] = { name = "MGL", cat = "Special", color = C_Special }, [107099] = { name = "M3E1-A", cat = "Special", color = C_Special },
+    [108001] = { name = "Machete", cat = "Melee", color = C_Melee }, [108002] = { name = "Crowbar", cat = "Melee", color = C_Melee },
+    [108003] = { name = "Sickle", cat = "Melee", color = C_Melee }, [108004] = { name = "Pan", cat = "Melee", color = C_Melee },
+    [108005] = { name = "Dagger", cat = "Melee", color = C_Melee }, [108006] = { name = "Mutation Blade", cat = "Melee", color = C_Melee },
+    [108007] = { name = "Mutation Gauntlets", cat = "Melee", color = C_Melee },
+    [203001] = { name = "Red Dot Sight", cat = "Scope", color = C_Scope }, [203002] = { name = "Holographic Sight", cat = "Scope", color = C_Scope },
+    [203003] = { name = "2x Scope", cat = "Scope", color = C_Scope }, [203004] = { name = "4x Scope", cat = "Scope", color = C_Scope },
+    [203005] = { name = "8x Scope", cat = "Scope", color = C_Scope }, [203014] = { name = "3x Scope", cat = "Scope", color = C_Scope },
+    [203015] = { name = "6x Scope", cat = "Scope", color = C_Scope },
+    [602001] = { name = "Stun Grenade", cat = "Grenade", color = C_Grenade }, [602002] = { name = "Smoke Grenade", cat = "Grenade", color = C_Grenade },
+    [602003] = { name = "Molotov", cat = "Grenade", color = C_Grenade }, [602004] = { name = "Frag Grenade", cat = "Grenade", color = C_Grenade },
+    [601001] = { name = "Nước Tăng Lực", cat = "Med", color = C_Med }, [601002] = { name = "Tiêm Adrenaline", cat = "Med", color = C_Med },
+    [601003] = { name = "Thuốc Giảm Đau", cat = "Med", color = C_Med }, [601004] = { name = "Băng Gạc", cat = "Med", color = C_Med },
+    [601005] = { name = "Bộ Sơ Cứu", cat = "Med", color = C_Med }, [601006] = { name = "Bộ Cứu Thương", cat = "Med", color = C_Med },
+    [601009] = { name = "Băng Gạc Nhanh", cat = "Med", color = C_Med }, [601010] = { name = "Sơ Cứu Nhanh", cat = "Med", color = C_Med },
+    [601011] = { name = "Băng Gạc QĐ", cat = "Med", color = C_Med }, [601012] = { name = "Nước Đậm Đặc", cat = "Med", color = C_Med },
+    [601020] = { name = "Băng Gạc", cat = "Med", color = C_Med }, [601021] = { name = "Bộ Sơ Cứu", cat = "Med", color = C_Med },
+    [601022] = { name = "Bộ Cứu Thương", cat = "Med", color = C_Med }, [601023] = { name = "Tiêm Adrenaline", cat = "Med", color = C_Med },
+    [601061] = { name = "Bộ Cứu Thương", cat = "Med", color = C_Med }, [601077] = { name = "Sơ Cứu Chiến Thuật", cat = "Med", color = C_Med },
+    [601078] = { name = "Sơ Cứu Toàn Năng", cat = "Med", color = C_Med }, [601079] = { name = "Cứu Thương Toàn Năng", cat = "Med", color = C_Med },
+    [601080] = { name = "Băng Gạc QĐ", cat = "Med", color = C_Med }, [601081] = { name = "Nước Đậm Đặc", cat = "Med", color = C_Med },
+    [601084] = { name = "Sơ Cứu Nhanh", cat = "Med", color = C_Med }, [601085] = { name = "Cứu Thương Nhanh", cat = "Med", color = C_Med },
+    [601095] = { name = "Máy AED (Hồi Sinh)", cat = "Med", color = C_Med }, [601096] = { name = "Chuẩn Bị Chiến Đấu", cat = "Med", color = C_Med },
+    [602054] = { name = "Tiếp Tế Y Tế", cat = "Med", color = C_Med }, 
+[602069] = { name = "Cứu Trợ Khẩn Cấp", cat = "Med", color = C_Med }
+}
+
+    -- 4) 扫描缓存
+    _G.CachedItems           = _G.CachedItems or {}
+    _G.LastScanItemTime      = _G.LastScanItemTime or 0
+    _G.AppliedVehicleWall    = _G.AppliedVehicleWall or {}
+    _G.AppliedItemESP        = _G.AppliedItemESP or {}
+
+    -- 5) SkeletalMesh 收集器
+local function GetAllSkeletalMeshes(enemy, markData)
+    local curTime = os.clock()
+    if markData and markData.CachedMeshes and markData.CachedMeshTime and (curTime - markData.CachedMeshTime < 0.5) then
+        local validMeshes = {}
+        for _, cachedMesh in ipairs(markData.CachedMeshes) do
+            local isPendingKill = false
+            pcall(function() if type(cachedMesh.IsPendingKill) == "function" then isPendingKill = cachedMesh:IsPendingKill() end end)
+            
+            if Valid(cachedMesh) and not isPendingKill then 
+                table.insert(validMeshes, cachedMesh) 
+            end
+        end
+        markData.CachedMeshes = validMeshes
+        return validMeshes
+    end
+
+    local meshes = {}
+    if Valid(enemy.Mesh) then table.insert(meshes, enemy.Mesh) end
+    pcall(function()
+        local SkeletalMeshClass = import("SkeletalMeshComponent")
+        if SkeletalMeshClass and type(enemy.GetComponentsByClass) == "function" then
+            local childs = enemy:GetComponentsByClass(SkeletalMeshClass)
+            if childs then
+                local count = type(childs.Num) == "function" and childs:Num() or #childs
+                for i = 1, count do
+                    local comp = type(childs.Get) == "function" and childs:Get(i-1) or childs[i]
+                    if Valid(comp) and comp ~= enemy.Mesh then
+                        table.insert(meshes, comp)
+                    end
+                end
+            end
+        end
+    end)
+    if markData then
+        markData.CachedMeshes = meshes
+        markData.CachedMeshTime = curTime
+    end
+    return meshes
+end
+
+
+
+    -- 6) NEW ENGINE CHAMS (ApplyColorBodyNew / UndoColorBodyNew)
+
+
+    -- 7) 物品 / 车辆 ESP 运行时
+
+
+    -- 8) 敌人计数 UI
+local BTN_BP = "/Game/UMG/UI_BP/Common/BaseComponent/CommonBaseComponent_TextButton_UIBP.CommonBaseComponent_TextButton_UIBP"
+local EnemyCounterWidget = nil
+local WarningTargetWidget = nil
+local LastCounterTime = 0
+
+function _G.CleanUpEnemyCounterWidget()
+    if EnemyCounterWidget and slua.isValid(EnemyCounterWidget) then
+        EnemyCounterWidget:RemoveFromParent()
+    end
+    EnemyCounterWidget = nil
+
+    if WarningTargetWidget and slua.isValid(WarningTargetWidget) then
+        WarningTargetWidget:RemoveFromParent()
+    end
+    WarningTargetWidget = nil
+end
+
+local function CreateEnemyCounterWidget()
+    if EnemyCounterWidget then
+        if slua.isValid(EnemyCounterWidget) then return EnemyCounterWidget else EnemyCounterWidget = nil end
+    end
+
+    pcall(function()
+        local btn = slua.loadUI(BTN_BP)
+        if not btn or not slua.isValid(btn) then return end
+        require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10500)
+        
+        if btn.RichText_Content then
+            btn.RichText_Content:SetText("Kẻ Địch: 0  |  Gần Nhất: 0m")
+            local fontInfo = btn.RichText_Content.Font
+            if fontInfo then fontInfo.Size = 16 btn.RichText_Content:SetFont(fontInfo) end
+        end
+        
+        local WidgetLayoutLibrary = import("WidgetLayoutLibrary")
+        local slot = WidgetLayoutLibrary.SlotAsCanvasSlot(btn)
+        if slot then
+            slot:SetAnchors(FAnchors(0.5, 0, 0.5, 0))
+            slot:SetAlignment(FVector2D(0.5, 0))
+            slot:SetPosition(FVector2D(0, 30))
+            slot:SetSize(FVector2D(240, 36))
+        end
+        btn:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+        EnemyCounterWidget = btn
+    end)
+    return EnemyCounterWidget
+end
+
+local function CreateWarningTargetWidget()
+    if WarningTargetWidget then
+        if slua.isValid(WarningTargetWidget) then return WarningTargetWidget else WarningTargetWidget = nil end
+    end
+
+    pcall(function()
+        local btn = slua.loadUI(BTN_BP)
+        if not btn or not slua.isValid(btn) then return end
+        require("game_frontend_hud").AddToContainer(UIContainers.Top, btn, 10501)
+        
+        if btn.RichText_Content then
+            btn.RichText_Content:SetText("ĐỊCH ĐANG NHÌN VỀ PHÍA BẠN")
+            local fontInfo = btn.RichText_Content.Font
+            if fontInfo then fontInfo.Size = 18 btn.RichText_Content:SetFont(fontInfo) end
+        end
+        
+        local WidgetLayoutLibrary = import("WidgetLayoutLibrary")
+        local slot = WidgetLayoutLibrary.SlotAsCanvasSlot(btn)
+        if slot then
+            slot:SetAnchors(FAnchors(0.5, 0, 0.5, 0))
+            slot:SetAlignment(FVector2D(0.5, 0))
+            slot:SetPosition(FVector2D(0, 75))
+            slot:SetSize(FVector2D(260, 36))
+        end
+        btn:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+        WarningTargetWidget = btn
+    end)
+    return WarningTargetWidget
+end
+
+local function _M_DrawCounter()
+    pcall(function()
+        local player = GameplayData.GetPlayerCharacter()
+        if not slua.isValid(player) then 
+            if EnemyCounterWidget and slua.isValid(EnemyCounterWidget) then
+                EnemyCounterWidget:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+            end
+            if WarningTargetWidget and slua.isValid(WarningTargetWidget) then
+                WarningTargetWidget:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+            end
+            return 
+        end
+
+        local widgetCounter = CreateEnemyCounterWidget()
+        local widgetWarning = CreateWarningTargetWidget()
+
+        if widgetCounter and slua.isValid(widgetCounter) then
+            widgetCounter:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+        end
+
+        local curTime = os.clock()
+        if (curTime - LastCounterTime) > 0.5 then
+            LastCounterTime = curTime
+            
+            local myTeam = player.TeamID or (type(player.GetTeamID) == "function" and player:GetTeamID()) or 0
+            local count = 0
+            local nearest = 9999
+            local isBeingTargeted = false
+            
+            local KismetMathLibrary = import("KismetMathLibrary")
+            local pc = player:GetPlayerControllerSafety()
+
+            local allCharacters = {}
+            if GameplayData.GetAllPlayerCharacters then
+                allCharacters = GameplayData.GetAllPlayerCharacters()
+            elseif GameplayData.GameCharacters then
+                for _, char in pairs(GameplayData.GameCharacters) do table.insert(allCharacters, char) end
+            end
+
+            for _, tPawn in pairs(allCharacters) do
+                if slua.isValid(tPawn) and tPawn ~= player then
+                    local isAlive = false
+                    if tPawn.HealthStatus ~= nil then
+                        isAlive = (tPawn.HealthStatus ~= 2)
+                    else
+                        isAlive = (tPawn.Health or 0) > 0 or (type(tPawn.IsAlive) == "function" and tPawn:IsAlive())
+                    end
+                    
+                    if isAlive then
+                        local tTeam = tPawn.TeamID or (type(tPawn.GetTeamID) == "function" and tPawn:GetTeamID()) or 0
+                        if tTeam ~= myTeam then
+                            count = count + 1
+                            local d = math.floor(player:GetDistanceTo(tPawn) / 100)
+                            if d < nearest then nearest = d end
+                            
+                            if _G.X3.XthrlenConfig.EspAimWarning and not isBeingTargeted and d < 400 then
+                                local eLoc = type(tPawn.K2_GetActorLocation) == "function" and tPawn:K2_GetActorLocation()
+                                local pLoc = type(player.K2_GetActorLocation) == "function" and player:K2_GetActorLocation()
+                                
+                                if eLoc and pLoc and KismetMathLibrary then
+                                    local lookRot = KismetMathLibrary.FindLookAtRotation(eLoc, pLoc)
+                                    local eRot = nil
+                                    
+                                    if type(tPawn.GetControlRotation) == "function" then
+                                        eRot = tPawn:GetControlRotation()
+                                    elseif type(tPawn.GetActorRotation) == "function" then
+                                        eRot = tPawn:GetActorRotation()
+                                    end
+                                    
+                                    if eRot and lookRot then
+                                        local dYaw = math.abs(eRot.Yaw - lookRot.Yaw)
+                                        if dYaw > 180 then dYaw = 360 - dYaw end
+                                        
+                                        local dPitch = math.abs(eRot.Pitch - lookRot.Pitch)
+                                        if dPitch > 180 then dPitch = 360 - dPitch end
+                                        
+                                        if dYaw < 15 and dPitch < 20 then
+                                            if _G.X3.XthrlenConfig.EspAimWarningVisCheck then
+                                                if slua.isValid(pc) and type(pc.LineOfSightTo) == "function" then
+                                                    if pc:LineOfSightTo(tPawn) then
+                                                        isBeingTargeted = true
+                                                    end
+                                                end
+                                            else
+                                                isBeingTargeted = true
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+
+            if widgetCounter and widgetCounter.RichText_Content then
+                widgetCounter.RichText_Content:SetText(string.format("Địch Xung Quanh: %d  |  Gần Nhất: %dm", count, count > 0 and nearest or 0))
+            end
+
+            if widgetWarning and slua.isValid(widgetWarning) then
+                if _G.X3.XthrlenConfig.EspAimWarning and isBeingTargeted then
+                    widgetWarning:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
+                else
+                    widgetWarning:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+                end
+            end
+        end
+    end)
+end
+
+
+    -- 9) ESP Tick (0.15s ticker 驱动，主循环调度)
+    function _G.X3.ESP_Tick(lp, pc)
+        if not (lp and slua.isValid(lp)) then return end
+
+        if C.EspItem_Master or C.WallVehicle then
+            pcall(function() _G.RunOptimizedItemAndVehicleESP(pc) end)
+        end
+
+        if C.ColorBodyNew then
+            pcall(function()
+                local GD = require("GameLua.GameCore.Data.GameplayData")
+                local allChars = GD and GD.GetAllPlayerCharacters and GD.GetAllPlayerCharacters() or {}
+                local myTeam = lp.TeamID or (lp.GetTeamID and lp:GetTeamID()) or 0
+                for _, enemy in pairs(allChars) do
+                    if slua.isValid(enemy) and enemy ~= lp then
+                        local eTeam = enemy.TeamID or (enemy.GetTeamID and enemy:GetTeamID()) or 0
+                        if eTeam ~= myTeam then
+                            local eKey = (_G.X3.PawnReadyKey and _G.X3.PawnReadyKey(enemy)) or tostring(enemy)
+                            _G.X3.XthrlenState.EnemyMarks = _G.X3.XthrlenState.EnemyMarks or {}
+                            local md = _G.X3.XthrlenState.EnemyMarks[eKey]
+                            if not md then
+                                md = { enemy = enemy }
+                                _G.X3.XthrlenState.EnemyMarks[eKey] = md
+                            end
+                            md.enemy = enemy
+                            pcall(function() ApplyColorBodyNew(enemy, md) end)
+                        end
+                    end
+                end
+            end)
+        else
+            -- ColorBodyNew 关闭 → 遍历已记录目标并 Undo
+            pcall(function()
+                if _G.X3.XthrlenState and _G.X3.XthrlenState.EnemyMarks then
+                    for _, md in pairs(_G.X3.XthrlenState.EnemyMarks) do
+                        if md and md.ColorNewApplied and slua.isValid(md.enemy) then
+                            pcall(function() UndoColorBodyNew(md.enemy, md) end)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+
+    -- 10) 菜单构建器
+    function _G.X3.ESP_BuildMenu(stack, AliasMap)
+        if not stack or not AliasMap then return end
+local stack_items = {
+            { Key = "ModMenu_ESP1", UI = AliasMap.Switcher, Text = "ESP Type 1 (360 Alert-HP-Name) ", GetFunc = function() return _G.X3.XthrlenConfig.EspVip end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVip = v return true end },
+            { Key = "ModMenu_ESP2", UI = AliasMap.Switcher, Text = "ESP Type 2 (Distance Meter) ", GetFunc = function() return _G.X3.XthrlenConfig.EspDistance end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspDistance = v return true end },
+            
+            { Key = "ModMenu_ESP3_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ ESP Type 3 (Vertical HP & Name) ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspVipPro end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVipPro = v return true end },
+            { Key = "ModMenu_ESP3_Name", UI = AliasMap.Switcher, Text = "   Show Player Name ", ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp3ShowName end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp3ShowName = v return true end },
+            { Key = "ModMenu_ESP3_HP", UI = AliasMap.Switcher, Text = "   Show Vertical HP Bar ", ExpandHandle = "ModMenu_ESP3_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp3ShowHP end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp3ShowHP = v return true end },
+            
+            { Key = "ModMenu_ESP4", UI = AliasMap.Switcher, Text = "ESP Type 4 (Radar 360) ", GetFunc = function() return _G.X3.XthrlenConfig.EspRadar end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspRadar = v return true end },
+            { Key = "ModMenu_ESP5", UI = AliasMap.Switcher, Text = "ESP Type 5 (Box ESP) ", GetFunc = function() return _G.X3.XthrlenConfig.EspLoai5 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai5 = v return true end },
+            { Key = "ModMenu_ESP6", UI = AliasMap.Switcher, Text = "ESP Type 6 (Skeleton) ", GetFunc = function() return _G.X3.XthrlenConfig.EspLoai6 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai6 = v return true end },
+            { Key = "ModMenu_ESP7_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ ESP Type 7 (Detail Info) ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspLoai7 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai7 = v return true end },
+            { Key = "ModMenu_ESP7_SoLuong", UI = AliasMap.Switcher, Text = "   Show Enemies Count Around ", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp7_SoLuong end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp7_SoLuong = v return true end },
+            { Key = "ModMenu_ESP7_VuKhi", UI = AliasMap.Switcher, Text = "   Show Enemy Weapon ", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp7_VuKhi end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp7_VuKhi = v return true end },
+            { Key = "ModMenu_ESP7_TuThe", UI = AliasMap.Switcher, Text = "   Show Posture (Stand/Crouch/Prone) ", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.Esp7_TuThe end, SetFunc = function(c,v) _G.X3.XthrlenConfig.Esp7_TuThe = v return true end },
+            { Key = "ModMenu_EspAimWarning", UI = AliasMap.Switcher, Text = "   Enemy Aim Warning ", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspAimWarning end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspAimWarning = v return true end },
+            { Key = "ModMenu_EspAimWarning_Vis", UI = AliasMap.Switcher, Text = "      Visibility Check ", ExpandHandle = "ModMenu_ESP7_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspAimWarningVisCheck end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspAimWarningVisCheck = v return true end },
+            { Key = "ModMenu_ESP8", UI = AliasMap.Switcher, Text = "ESP Type 8 (Head HP Bar) ", GetFunc = function() return _G.X3.XthrlenConfig.EspLoai8 end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspLoai8 = v return true end },
+            
+            { Key = "ModMenu_EspItem_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Item ESP (Under 70m) ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Master end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Master = v return true end },
+            { Key = "ModMenu_EspItem_AR", UI = AliasMap.Switcher, Text = "   Show AR Weapons ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_AR end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_AR = v return true end },
+            { Key = "ModMenu_EspItem_Sniper", UI = AliasMap.Switcher, Text = "   Show Sniper Rifles ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Sniper end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Sniper = v return true end },
+            { Key = "ModMenu_EspItem_SMG", UI = AliasMap.Switcher, Text = "   Show SMGs ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_SMG end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_SMG = v return true end },
+            { Key = "ModMenu_EspItem_Shotgun", UI = AliasMap.Switcher, Text = "   Show Shotguns ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Shotgun end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Shotgun = v return true end },
+            { Key = "ModMenu_EspItem_LMG", UI = AliasMap.Switcher, Text = "   Show LMGs ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_LMG end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_LMG = v return true end },
+            { Key = "ModMenu_EspItem_Pistol", UI = AliasMap.Switcher, Text = "   Show Pistols / Flares ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Pistol end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Pistol = v return true end },
+            { Key = "ModMenu_EspItem_Melee", UI = AliasMap.Switcher, Text = "   Show Melee Weapons ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Melee end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Melee = v return true end },
+            { Key = "ModMenu_EspItem_Special", UI = AliasMap.Switcher, Text = "   Show Special Weapons ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Special end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Special = v return true end },
+            { Key = "ModMenu_EspItem_Scope", UI = AliasMap.Switcher, Text = "   Show Scopes ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Scope end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Scope = v return true end },
+            { Key = "ModMenu_EspItem_Grenade", UI = AliasMap.Switcher, Text = "   Show Grenades ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Grenade end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Grenade = v return true end },
+            { Key = "ModMenu_EspItem_Med", UI = AliasMap.Switcher, Text = "   Show Medkits/Boosters ", ExpandHandle = "ModMenu_EspItem_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItem_Med end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItem_Med = v return true end },
+            
+            { Key = "ModMenu_ESPBom_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Grenade Warning & Tracker ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspBomMaster end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspBomMaster = v return true end },
+            { Key = "ModMenu_ESPItemBom", UI = AliasMap.Switcher, Text = "   Show Grenades On Ground ", ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspItemBom end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspItemBom = v return true end },
+            { Key = "ModMenu_ESPActiveBom", UI = AliasMap.Switcher, Text = "   Active Grenade Warning ", ExpandHandle = "ModMenu_ESPBom_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspActiveBom end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspActiveBom = v return true end },
+            
+            { Key = "ModMenu_ESPVehicle_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Vehicle ESP ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspVehicle end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVehicle = v return true end },
+            { Key = "ModMenu_ESPVeh_Dacia", UI = AliasMap.Switcher, Text = "   Show Dacia ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Dacia end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Dacia = v return true end },
+            { Key = "ModMenu_ESPVeh_UAZ", UI = AliasMap.Switcher, Text = "   Show UAZ ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_UAZ end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_UAZ = v return true end },
+            { Key = "ModMenu_ESPVeh_Buggy", UI = AliasMap.Switcher, Text = "   Show Buggy ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Buggy end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Buggy = v return true end },
+            { Key = "ModMenu_ESPVeh_Coupe", UI = AliasMap.Switcher, Text = "   Show Coupe RB ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Coupe end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Coupe = v return true end },
+            { Key = "ModMenu_ESPVeh_Mirado", UI = AliasMap.Switcher, Text = "   Show Mirado ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Mirado end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Mirado = v return true end },
+            { Key = "ModMenu_ESPVeh_Motor", UI = AliasMap.Switcher, Text = "   Show Motorcycles ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Motor end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Motor = v return true end },
+            { Key = "ModMenu_ESPVeh_Other", UI = AliasMap.Switcher, Text = "   Show Others (Boat/BRDM) ", ExpandHandle = "ModMenu_ESPVehicle_Ex", GetFunc = function() return _G.X3.XthrlenConfig.EspVeh_Other end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspVeh_Other = v return true end },
+            
+            { Key = "ModMenu_ESPAntenna", UI = AliasMap.Switcher, Text = "Antenna ESP ", GetFunc = function() return _G.X3.XthrlenConfig.EspAntenna end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspAntenna = v return true end },
+            { Key = "ModMenu_ESPOutline_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Outline ESP (HDR supported) ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspOutline end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspOutline = v return true end },
+            { Key = "ModMenu_ESPOutline_Color", UI = AliasMap.Slider, Text = "   Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Pur 6:Wht) ", ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 6, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.OutlineColor or 4 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.OutlineColor = v return true end },
+            { Key = "ModMenu_ESPOutline_Thickness", UI = AliasMap.Slider, Text = "   Outline Thickness ", ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 20, min = 1, max = 20, GetFunc = function() return _G.X3.XthrlenConfig.OutlineThickness end, SetFunc = function(c,v) _G.X3.XthrlenConfig.OutlineThickness = v return true end }
+        }
+        if stack_items then
+            for _, it in ipairs(stack_items) do table.insert(stack, it) end
+        end
+
+    end
+
+    -- 11) 独立 ticker（仅当 MainLoop 未运行时作为兜底）
+    if not _G.X3.ESP_TickStarted then
+        _G.X3.ESP_TickStarted = true
+        local function espLoop()
+            pcall(function()
+                local GD = require("GameLua.GameCore.Data.GameplayData")
+                local pc = GD and GD.GetPlayerController and GD.GetPlayerController()
+                local lp = pc and pc.GetPlayerCharacterSafety and pc:GetPlayerCharacterSafety() or nil
+                if lp then _G.X3.ESP_Tick(lp, pc) end
+            end)
+            local okT, tk = pcall(require, "common.time_ticker")
+            if okT and tk and tk.AddTimerOnce then
+                tk.AddTimerOnce(0.15, espLoop)
+            end
+        end
+        local okT, tk = pcall(require, "common.time_ticker")
+        if okT and tk and tk.AddTimerOnce then
+            tk.AddTimerOnce(0.15, espLoop)
+        end
+    end
+
+    print("[PORT] ESP & NEW ENGINE CHAMS injected (0.15s ticker started)")
+end
+-- [/PORT]
+
 function _G.X3.InitModMenuTab()
     if _G.X3.ModMenuInitialized and _G.X3.ModMenuBuiltStamp == _G.X3.BuildStamp then return true end
 
@@ -4067,6 +4580,11 @@ end
         for _, v in ipairs(StackCombat) do table.insert(StackFiturLain, v) end
         for _, v in ipairs(StackGraphic) do table.insert(StackFiturLain, v) end
 
+        -- [PORT] ESP 菜单构建
+        local StackESP = {}
+        if _G.X3.ESP_BuildMenu then
+            pcall(_G.X3.ESP_BuildMenu, StackESP, AliasMap)
+        end
         SettingPageDefine.ModMenu = {
             Key = "ModMenu",
             Text = "   SRCHUB MENU",
@@ -4075,6 +4593,7 @@ end
                 { Key = "Cat_Wallhack", Text = "WALLHACK [ TEMBUS PANDANG ]", Stack = StackWallhack },
                 { Key = "Cat_Aimbot", Text = "MAGIC [ MAGIC ]", Stack = StackAimbot },
                 { Key = "Cat_AimbotV2", Text = "AIMTOUCH [ AIM SENTUH ]", Stack = StackAimbotV2 },
+                { Key = "Cat_ESP", Text = "ESP [ ESP ]", Stack = StackESP },
                 { Key = "Cat_ESP", Text = "ESP [ ESP ]", Stack = StackESP },
                 { Key = "Cat_Lain", Text = "FEATURES [ FITUR ]", Stack = StackFiturLain }
             }
@@ -5979,6 +6498,7 @@ if _G.X3.XthrlenConfig and _G.X3.XthrlenConfig.WallhackVis and (nowWH - _G.X3._W
     end)
 end
 
+    if _G.X3.ESP_Tick then pcall(_G.X3.ESP_Tick, localPlayer, pc) end
     if _G.X3.OutlineTick then pcall(_G.X3.OutlineTick, localPlayer) end
 
     if _G.X3.BTTick then pcall(_G.X3.BTTick, localPlayer) end
