@@ -7300,7 +7300,7 @@ _G.X3.AimTouch = function()
                 isShotgun = true
             end
 
-            if wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("Mk14") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") then
+            if wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") or wName:find("M1") or wName:find("DSR") then
                 isSniper = true
             end
 
@@ -8047,13 +8047,12 @@ end
                         }
                     end
                     if _G.X3.XthrlenConfig.CustomHRecoil then entity.AccessoriesHRecoilFactor = _G.X3.XthrlenState.CustomTextData.HRecoil or 0.3
-                    elseif _G.X3.XthrlenConfig.LessRecoil then entity.AccessoriesHRecoilFactor = 0.3 end
+                    elseif _G.X3.XthrlenConfig.LessRecoil then entity.AccessoriesHRecoilFactor = 0.2 end
                     if _G.X3.XthrlenConfig.CustomVRecoil then entity.AccessoriesVRecoilFactor = _G.X3.XthrlenState.CustomTextData.VRecoil or 0.3
-                    elseif _G.X3.XthrlenConfig.VerticalRecoil then entity.AccessoriesVRecoilFactor = 0.3 end
-                    if _G.X3.XthrlenConfig.LessShake then entity.RecoilKick = 0.0; entity.RecoilKickADS = 0.0; entity.AnimationKick = 0.0 end
-                    if _G.X3.XthrlenConfig.Accuracy then entity.GameDeviationAccuracy = 1.20 end
-                    if _G.X3.XthrlenConfig.Crosshair then entity.GameDeviationFactor = 1.20 end
-                    if _G.X3.XthrlenConfig.GodMode then entity.BulletFireSpeed = 500000.0; entity.ShootInterval = 0.001; entity.BaseDamage = 60000.0 end
+                    elseif _G.X3.XthrlenConfig.VerticalRecoil then entity.AccessoriesVRecoilFactor = 0.2 end
+                    if _G.X3.XthrlenConfig.LessShake then entity.RecoilKick = 0.1; entity.RecoilKickADS = 0.1; entity.AnimationKick = 0.2 end
+                    if _G.X3.XthrlenConfig.Accuracy then entity.GameDeviationAccuracy = 0.01 end
+                    if _G.X3.XthrlenConfig.Crosshair then entity.GameDeviationFactor = 0.08 end
                     if entity.AutoAimingConfig then
                         if not entity.OriginalAutoAimCached then
                             entity.OriginalAutoAimCached = {
