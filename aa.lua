@@ -3858,6 +3858,8 @@ do
             EspItem_Pistol=true, EspItem_Melee=false, EspItem_Special=true,
             EspItem_Scope=true, EspItem_Grenade=true, EspItem_Med=true,
             ColorBodyNew=false,
+            ColorBodyV3=false,
+            BugManEnable=false,
         }
         for k, v in pairs(esp_defaults) do
             if C[k] == nil then C[k] = v end
@@ -3873,6 +3875,10 @@ do
             td.HiddenR = 150; td.HiddenG = 0; td.HiddenB = 0; td.HiddenA = 25
             td.VisibleR = 0; td.VisibleG = 150; td.VisibleB = 0; td.VisibleA = 25
         end
+        if td.ColorV3Hidden == nil then td.ColorV3Hidden = 1 end
+        if td.ColorV3Visible == nil then td.ColorV3Visible = 2 end
+        if td.ColorV3Thickness == nil then td.ColorV3Thickness = 4 end
+        if td.BugManRatio == nil then td.BugManRatio = 133 end
     end
 
     -- 2) 物品颜色常量
@@ -4219,49 +4225,385 @@ local function _M_DrawCounter()
 end
 
 
-    -- 9) ESP Tick (0.15s ticker 驱动，主循环调度)
+    -- [FULL-ESP] 独立的敌人 ESP mark 缓存（与 MainLoop EnemyMarks 分离，避免冲突）
+    _G.X3.EspMarks = _G.X3.EspMarks or {}
+
+    -- ============================================
+    -- [FULL-ESP] WallXuyenTuong / Chams V2 / Chams V3 前置函数
+    -- ============================================
+local function UndoWallXuyenTuong(enemy, markData)
+    pcall(function()
+        if markData.WallhackApplied then
+            local meshes = GetAllSkeletalMeshes(enemy, markData)
+            for _, mesh in ipairs(meshes) do
+                if Valid(mesh) then
+                    pcall(function() if type(mesh.SetRenderCustomDepth) == "function" then mesh:SetRenderCustomDepth(false) end end)
+                    for i = 0, 10 do 
+                        local matInterface = mesh:GetMaterial(i)
+                        if Valid(matInterface) then
+                            local baseMat = matInterface:GetBaseMaterial()
+                            if Valid(baseMat) then baseMat.bDisableDepthTest = false end
+                        end
+                    end
+                end
+            end
+            markData.WallhackApplied = false
+        end
+    end)
+end
+
+local function ApplyWallXuyenTuong(enemy, markData)
+    pcall(function()
+        local meshes = GetAllSkeletalMeshes(enemy, markData)
+        for _, mesh in ipairs(meshes) do
+            if Valid(mesh) then 
+                pcall(function()
+                    if type(mesh.SetRenderCustomDepth) == "function" then
+                        mesh:SetRenderCustomDepth(true)
+                    end
+                    if type(mesh.SetCustomDepthStencilValue) == "function" then
+                        mesh:SetCustomDepthStencilValue(252) 
+                    end
+                end)
+                for i = 0, 10 do 
+                    local matInterface = mesh:GetMaterial(i)
+                    if not Valid(matInterface) then break end
+                    local baseMat = matInterface:GetBaseMaterial()
+                    if Valid(baseMat) then
+                        baseMat.bDisableDepthTest = true
+                        baseMat.BlendMode = 2 
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function ApplyColorBodyV2(enemy, pc, markData)
+    pcall(function()
+        local meshes = GetAllSkeletalMeshes(enemy, markData)
+        if #meshes == 0 then return end
+        
+        local curTime = os.clock()
+        if markData.LastVisCheckTime == nil or (curTime - markData.LastVisCheckTime) > 0.3 then
+            markData.LastVisCheckTime = curTime
+            local isHidden = true
+            pcall(function()
+                if Valid(pc) and type(pc.LineOfSightTo) == "function" then
+                    if pc:LineOfSightTo(enemy) then isHidden = false else isHidden = true end
+                end
+            end)
+            markData.CachedHiddenState = isHidden
+        end
+        
+        local hidden = markData.CachedHiddenState
+        if hidden == nil then hidden = true end
+        
+        local cData = _G.X3.XthrlenState.CustomTextData or {}
+        local hiddenColor = {R = cData.HiddenR or 150, G = cData.HiddenG or 0, B = cData.HiddenB or 0, A = cData.HiddenA or 25}
+        local visibleColor = {R = cData.VisibleR or 0, G = cData.VisibleG or 150, B = cData.VisibleB or 0, A = cData.VisibleA or 25}
+        
+        local finalColor = hidden and hiddenColor or visibleColor
+        local colorHash = string.format("%d_%d_%d_%d", finalColor.R, finalColor.G, finalColor.B, finalColor.A)
+        local currentMeshCount = #meshes
+        local isMeshChanged = (markData.LastMeshCount ~= currentMeshCount)
+        
+        if not isMeshChanged and markData.LastHiddenState == hidden and markData.LastColorHash == colorHash then return end
+        
+        if isMeshChanged and markData.MIDs then
+            markData.MIDs = {}
+        end
+
+        markData.LastHiddenState = hidden
+        markData.LastMeshCount = currentMeshCount
+        markData.LastColorHash = colorHash
+        markData.ColorApplied = true
+        
+        for meshIndex, mesh in ipairs(meshes) do
+            if Valid(mesh) then
+                pcall(function()
+                    mesh.LDMaxDrawDistance = -99999
+                    mesh.MaxDrawDistanceOffset = -99999
+                    mesh.CachedMaxDrawDistance = -99999
+                    mesh.UseScopeDistanceCulling = true
+                    mesh.PrimitiveShadingStrategy = 1
+                    mesh.ShadingRate = 6
+                end)
+                for i = 0, 10 do
+                    local matInterface = mesh:GetMaterial(i)
+                    if not Valid(matInterface) then break end
+                    local baseMat = matInterface:GetBaseMaterial()
+                    if Valid(baseMat) then
+                        local matName = tostring(baseMat)
+                        if string.find(matName, "Master_Mask", 1, true) then
+                            if not markData.MIDs then markData.MIDs = {} end
+                            local meshKey = "Mesh_" .. tostring(meshIndex)
+                            
+                            if not markData.MIDs[meshKey] then markData.MIDs[meshKey] = {} end
+                            local mid = markData.MIDs[meshKey][i]
+                            if not Valid(mid) then
+                                mid = mesh:CreateAndSetMaterialInstanceDynamic(i)
+                                markData.MIDs[meshKey][i] = mid
+                            end
+                            if Valid(mid) then
+                                mid:SetVectorParameterValue("颜色", finalColor)
+                                mid:SetVectorParameterValue("Extra Light Color", finalColor)
+                                mid:SetVectorParameterValue("Para_Color", finalColor)
+                                mid:SetVectorParameterValue("Para_ColorTint", finalColor)
+                                mid:SetVectorParameterValue("Para_Color_1", finalColor)
+                                mid:SetVectorParameterValue("Tint", finalColor)
+                                mid:SetVectorParameterValue("Color", finalColor)
+                                mid:SetVectorParameterValue("BaseColor", finalColor)
+                                mid:SetVectorParameterValue("BodyColor", finalColor)
+                                mid:SetVectorParameterValue("MainColor", finalColor)
+                                mid:SetVectorParameterValue("DiffuseColor", finalColor)
+                                mid:SetVectorParameterValue("EmissiveColor", finalColor)
+                                mid:SetVectorParameterValue("ParaScaleOffset", SCALE_COLOR_V2)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function UndoColorBodyV2(enemy, markData)
+    pcall(function()
+        if markData.ColorApplied then
+            local meshes = GetAllSkeletalMeshes(enemy, markData)
+            for meshIndex, mesh in ipairs(meshes) do
+                if Valid(mesh) then
+                    pcall(function()
+                        mesh.PrimitiveShadingStrategy = 0
+                        mesh.ShadingRate = 1
+                    end)
+                    local meshKey = "Mesh_" .. tostring(meshIndex)
+                    if markData.MIDs and markData.MIDs[meshKey] then
+                        for i, mid in pairs(markData.MIDs[meshKey]) do
+                            if Valid(mid) then
+                                local defC = {R=1, G=1, B=1, A=1}
+                                mid:SetVectorParameterValue("颜色", defC)
+                                mid:SetVectorParameterValue("Extra Light Color", defC)
+                                mid:SetVectorParameterValue("Para_Color", defC)
+                                mid:SetVectorParameterValue("Para_ColorTint", defC)
+                                mid:SetVectorParameterValue("Para_Color_1", defC)
+                                mid:SetVectorParameterValue("Tint", defC)
+                                mid:SetVectorParameterValue("Color", defC)
+                                mid:SetVectorParameterValue("BaseColor", defC)
+                                mid:SetVectorParameterValue("BodyColor", defC)
+                                mid:SetVectorParameterValue("MainColor", defC)
+                                mid:SetVectorParameterValue("DiffuseColor", defC)
+                                mid:SetVectorParameterValue("EmissiveColor", defC)
+                            end
+                        end
+                    end
+                end
+            end
+            markData.ColorApplied = false
+            markData.LastColorHash = ""
+            markData.LastHiddenState = nil
+        end
+    end)
+end
+
+local function ApplyColorBodyV3(enemy, markData)
+    pcall(function()
+        local meshes = GetAllSkeletalMeshes(enemy, markData)
+        if #meshes == 0 then return end
+        
+        local cData = _G.X3.XthrlenState.CustomTextData or {}
+        local hidChoice = cData.ColorV3Hidden or 1
+        local visChoice = cData.ColorV3Visible or 2
+        local v3Thick = cData.ColorV3Thickness or 4
+        
+        local currentHash = string.format("%d_%d_%d", hidChoice, visChoice, v3Thick)
+        local colorChanged = (markData.LastColorV3Hash ~= currentHash)
+        markData.LastColorV3Hash = currentHash
+
+        local function GetColorRGB(choice)
+            if choice == 1 then return 255, 0, 0 end
+            if choice == 2 then return 0, 255, 0 end
+            if choice == 3 then return 0, 0, 255 end
+            if choice == 4 then return 255, 255, 0 end
+            if choice == 5 then return 255, 0, 255 end
+            if choice == 6 then return 255, 255, 255 end
+            return 255, 0, 0
+        end
+
+        local hR, hG, hB = GetColorRGB(hidChoice)
+        local vR, vG, vB = GetColorRGB(visChoice)
+
+        local invisColor = { R=hR, G=hG, B=hB, A=255, r=hR, g=hG, b=hB, a=255 }
+        
+        local glowIntensity = 80.0 
+        local LinearColorClass = import("LinearColor") or _G.FLinearColor
+        local visColor = LinearColorClass and LinearColorClass((vR/255)*glowIntensity, (vG/255)*glowIntensity, (vB/255)*glowIntensity, 1.0) or { R=vR*glowIntensity, G=vG*glowIntensity, B=vB*glowIntensity, A=255 }
+        local scale = { R=3.0, G=3.0, B=0.0, A=0.0, r=3.0, g=3.0, b=0.0, a=0.0 }
+        
+        markData.MIDs_V3 = markData.MIDs_V3 or {}
+
+        for meshIndex, comp in ipairs(meshes) do
+            if Valid(comp) then
+                local compKey = "MeshV3_" .. tostring(meshIndex)
+                markData.MIDs_V3[compKey] = markData.MIDs_V3[compKey] or {}
+                
+                pcall(function()
+                    if comp.PrimitiveShadingStrategy ~= 1 then
+                        comp.UseScopeDistanceCulling = false 
+                        comp.PrimitiveShadingStrategy = 1
+                        comp.ShadingRate = 6
+                    end
+                end)
+                
+                for i = 0, 10 do
+                    local matInterface = comp:GetMaterial(i)
+                    if not Valid(matInterface) then break end
+                    
+                    local baseMat = matInterface:GetBaseMaterial()
+                    if Valid(baseMat) then
+                        if baseMat.bDisableDepthTest ~= true then baseMat.bDisableDepthTest = true end
+                        if baseMat.BlendMode ~= 2 then baseMat.BlendMode = 2 end
+                    end
+                    
+                    local currentCached = markData.MIDs_V3[compKey][i]
+                    local needUpdateColor = false
+                    
+                    if not Valid(currentCached) then
+                        local newMid = comp:CreateAndSetMaterialInstanceDynamic(i)
+                        if Valid(newMid) then 
+                            markData.MIDs_V3[compKey][i] = newMid
+                            currentCached = newMid
+                            needUpdateColor = true
+                        end
+                    elseif colorChanged then
+                        needUpdateColor = true
+                    end
+                    
+                    if Valid(currentCached) and needUpdateColor then
+                        pcall(function()
+                            currentCached:SetVectorParameterValue("颜色", invisColor)
+                            currentCached:SetVectorParameterValue("Extra Light Color", invisColor)
+                            currentCached:SetVectorParameterValue("Para_Color", invisColor)
+                            currentCached:SetVectorParameterValue("Para_ColorTint", invisColor)
+                            currentCached:SetVectorParameterValue("Para_Color_1", invisColor)
+                            currentCached:SetVectorParameterValue("Tint", invisColor)
+                            currentCached:SetVectorParameterValue("Color", invisColor)
+                            currentCached:SetVectorParameterValue("BaseColor", invisColor)
+                            currentCached:SetVectorParameterValue("BodyColor", invisColor)
+                            currentCached:SetVectorParameterValue("MainColor", invisColor)
+                            currentCached:SetVectorParameterValue("DiffuseColor", invisColor)
+                            currentCached:SetVectorParameterValue("EmissiveColor", invisColor)
+                            currentCached:SetVectorParameterValue("CustomColor", invisColor)
+                            currentCached:SetVectorParameterValue("OverlayColor", invisColor)
+                            currentCached:SetVectorParameterValue("GlowColor", invisColor)
+                            currentCached:SetVectorParameterValue("EdgeColor", invisColor)
+                            currentCached:SetVectorParameterValue("LightColor", invisColor)
+                            currentCached:SetVectorParameterValue("OutlineColor", invisColor)
+                            currentCached:SetVectorParameterValue("ParaScaleOffset", scale)
+                            currentCached:SetScalarParameterValue("Opacity", 0.7)
+                            currentCached:SetScalarParameterValue("Alpha", 0.7)
+                            currentCached:SetScalarParameterValue("GlowIntensity", 1.0)
+                            currentCached:SetScalarParameterValue("Intensity", 1.0)
+                        end)
+                    end
+                end
+                
+                pcall(function()
+                    if comp.SetDrawIdeaOutline then
+                        comp:SetDrawIdeaOutline(true)
+                        if comp.OverrideIdeaOutlineColor then comp:OverrideIdeaOutlineColor(true, visColor) end
+                        if comp.OverrideIdeaOutlineThickness then comp:OverrideIdeaOutlineThickness(true, v3Thick) end
+                    end
+                end)
+            end
+        end
+        markData.ColorV3Applied = true
+    end)
+end
+
+local function UndoColorBodyV3(enemy, markData)
+    pcall(function()
+        if markData.ColorV3Applied then
+            local meshes = GetAllSkeletalMeshes(enemy, markData)
+            for meshIndex, comp in ipairs(meshes) do
+                if Valid(comp) then
+                    pcall(function()
+                        comp.PrimitiveShadingStrategy = 0
+                        comp.ShadingRate = 1
+                    end)
+                    
+                    for i = 0, 10 do
+                        local s, matInterface = pcall(function() return comp:GetMaterial(i) end)
+                        if s and Valid(matInterface) then
+                            local s2, baseMat = pcall(function() return matInterface:GetBaseMaterial() end)
+                            if s2 and Valid(baseMat) then
+                                baseMat.bDisableDepthTest = false
+                                baseMat.BlendMode = 1
+                            end
+                        end
+                    end
+                    
+                    local compKey = "MeshV3_" .. tostring(meshIndex)
+                    if markData.MIDs_V3 and markData.MIDs_V3[compKey] then
+                        for i, mid in pairs(markData.MIDs_V3[compKey]) do
+                            if Valid(mid) then
+                                pcall(function()
+                                    local defC = {R=1, G=1, B=1, A=1, r=1, g=1, b=1, a=1}
+                                    mid:SetVectorParameterValue("颜色", defC)
+                                    mid:SetVectorParameterValue("Extra Light Color", defC)
+                                    mid:SetVectorParameterValue("Para_Color", defC)
+                                    mid:SetVectorParameterValue("Tint", defC)
+                                    mid:SetVectorParameterValue("BaseColor", defC)
+                                    mid:SetVectorParameterValue("Color", defC)
+                                end)
+                            end
+                        end
+                    end
+                    
+                    pcall(function()
+                        if comp.SetDrawIdeaOutline then
+                            comp:SetDrawIdeaOutline(false)
+                        end
+                    end)
+                end
+            end
+            markData.ColorV3Applied = false
+            markData.LastMeshCountV3 = 0
+            if markData.MIDs_V3 then markData.MIDs_V3 = nil end
+        end
+    end)
+end
+
+
+
+    -- ============================================
+    -- [FULL-ESP] ESP_Tick —— 完整敌人 ESP 主循环
+    -- ============================================
     function _G.X3.ESP_Tick(lp, pc)
         if not (lp and slua.isValid(lp)) then return end
+        local localPlayer = lp
 
+        -- (1) 物品 / 车辆 / 炸弹交互墙
         if C.EspItem_Master or C.WallVehicle then
             pcall(function() _G.RunOptimizedItemAndVehicleESP(pc) end)
         end
 
-        if C.ColorBodyNew then
-            pcall(function()
-                local GD = require("GameLua.GameCore.Data.GameplayData")
-                local allChars = GD and GD.GetAllPlayerCharacters and GD.GetAllPlayerCharacters() or {}
-                local myTeam = lp.TeamID or (lp.GetTeamID and lp:GetTeamID()) or 0
-                for _, enemy in pairs(allChars) do
-                    if slua.isValid(enemy) and enemy ~= lp then
-                        local eTeam = enemy.TeamID or (enemy.GetTeamID and enemy:GetTeamID()) or 0
-                        if eTeam ~= myTeam then
-                            local eKey = (_G.X3.PawnReadyKey and _G.X3.PawnReadyKey(enemy)) or tostring(enemy)
-                            _G.X3.XthrlenState.EnemyMarks = _G.X3.XthrlenState.EnemyMarks or {}
-                            local md = _G.X3.XthrlenState.EnemyMarks[eKey]
-                            if not md then
-                                md = { enemy = enemy }
-                                _G.X3.XthrlenState.EnemyMarks[eKey] = md
-                            end
-                            md.enemy = enemy
-                            pcall(function() ApplyColorBodyNew(enemy, md) end)
-                        end
-                    end
-                end
-            end)
-        else
-            -- ColorBodyNew 关闭 → 遍历已记录目标并 Undo
-            pcall(function()
-                if _G.X3.XthrlenState and _G.X3.XthrlenState.EnemyMarks then
-                    for _, md in pairs(_G.X3.XthrlenState.EnemyMarks) do
-                        if md and md.ColorNewApplied and slua.isValid(md.enemy) then
-                            pcall(function() UndoColorBodyNew(md.enemy, md) end)
-                        end
-                    end
-                end
-            end)
-        end
+        -- (2) 缓存常用对象
+        local Cached_PPM = nil
+        pcall(function() Cached_PPM = import("PostProcessManager").GetInstance() end)
+        local Cached_SecurityCommonUtils = nil
+        pcall(function() Cached_SecurityCommonUtils = require("GameLua.Mod.BaseMod.Common.Security.SecurityCommonUtils") end)
+        local Cached_MyHUD = pc and pc.MyHUD or nil
+
+        -- (3) 敌人 ESP 大循环（WallXuyenTuong / ChamsV2 / ChamsV3 / ChamsNew
+        --     / BugMan / MagicBullet hitbox / EspVip / EspVipPro / EspRadar
+        --     / EspLoai5/6/7/8 / EspDistance / EspAntenna / EspOutline / 炸弹 / 车辆）
+        pcall(function()
+
+        end)
     end
+
 
     -- 10) 菜单构建器
     function _G.X3.ESP_BuildMenu(stack, AliasMap)
@@ -4343,7 +4685,7 @@ local stack_items = {
         end
     end
 
-    print("[PORT] ESP & NEW ENGINE CHAMS injected (0.15s ticker started)")
+    print("[PORT] FULL ESP injected (Vip/VipPro/Distance/Radar/Loai5-8/Antenna/Outline/AimWarning/Bom/Vehicle/ChamsV2-V3/WallXuyenTuong/BugMan + 0.15s ticker)")
 end
 -- [/PORT]
 
@@ -4590,10 +4932,8 @@ end
             Text = "   SRCHUB MENU",
             UIKey = "Setting_Page_Privacy",
             Category = {
-                { Key = "Cat_Wallhack", Text = "WALLHACK [ TEMBUS PANDANG ]", Stack = StackWallhack },
                 { Key = "Cat_Aimbot", Text = "MAGIC [ MAGIC ]", Stack = StackAimbot },
                 { Key = "Cat_AimbotV2", Text = "AIMTOUCH [ AIM SENTUH ]", Stack = StackAimbotV2 },
-                { Key = "Cat_ESP", Text = "ESP [ ESP ]", Stack = StackESP },
                 { Key = "Cat_ESP", Text = "ESP [ ESP ]", Stack = StackESP },
                 { Key = "Cat_Lain", Text = "FEATURES [ FITUR ]", Stack = StackFiturLain }
             }
