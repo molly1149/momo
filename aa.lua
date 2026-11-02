@@ -4375,66 +4375,110 @@ end
 
 -- INISIALISASI SISTEM ESP (DASAR)
 -- ESP MUSUH / ENEMY ESP --
-local function InitializeNativeESP()
-    if _G.X3.XthrlenState.NativeESPReady then return end
-    pcall(function()
-        local GamePlayTools = require("GameLua.Mod.BaseMod.Common.GamePlayTools")
-        local currentMarkCfg = GamePlayTools.GetCurrentConfig("ScreenMarkConfig")
-        local function ApplyCfg(cfg)
-            if not cfg then return end
-            if cfg[1006] then
-                cfg[1006].bBindBlocked = true;
-                cfg[1006].bBindOutScreen = true;
-                cfg[1006].MaxWidgetNum = 99
-                cfg[1006].MaxShowDistance = 6000000;
-                cfg[1006].bScaleByDistance = false
-                cfg[1006].BindSocketName = "root";
-                cfg[1006].bUseLuaWorldSocketName = true
-                cfg[1006].WorldPositionOffset = FVector(0, 0, -30)
-            end
-            cfg[8888] = {
-                UIPathName = "/Game/Mod/EvoBase/BluePrints/UIBP/QuickSign/QuickSign_TipHitEnemy_UIBP_New.QuickSign_TipHitEnemy_UIBP_New_C",
-                MaxWidgetNum = 99,
-                MaxShowDistance = 6000000,
-                bBindOutScreen = true,
-                bBindBlocked = true,
-                bIsBindingActor = true,
-                BindSocketName = "head",
-                bUseLuaWorldSocketName = true,
-                WorldPositionOffset = FVector(0, 0, 30),
-                bNeedPreLoad = true,
-                Priority = 2
-            }
-            cfg[9999] = {
-                UIPathName = "/Game/Mod/EvoBase/BluePrints/UIBP/QuickSign/QuickSign_TipHitEnemy_UIBP_New.QuickSign_TipHitEnemy_UIBP_New_C",
-                MaxWidgetNum = 99,
-                MaxShowDistance = 6000000,
-                bBindOutScreen = true,
-                bBindBlocked = true,
-                bIsBindingActor = true,
-                BindSocketName = "head",
-                bUseLuaWorldSocketName = true,
-                WorldPositionOffset = FVector(0, 0, 50),
-                bNeedPreLoad = true,
-                Priority = 2
-            }
+-- (dibungkus closure: hemat slot local, batas Lua 200 local per chunk)
+local X3MarkCfg = (function()
+    local QuickSignUI = "/Game/Mod/EvoBase/BluePrints/UIBP/QuickSign/QuickSign_TipHitEnemy_UIBP_New.QuickSign_TipHitEnemy_UIBP_New_C"
+
+    local function EnsureMark(cfg, id, def)
+        local e = cfg[id]
+        if type(e) ~= "table" then e = {}; cfg[id] = e end
+        for k, v in pairs(def) do e[k] = v end
+        return e
+    end
+
+    local function Apply(cfg)
+        if type(cfg) ~= "table" then return end
+        if cfg[1006] then
+            cfg[1006].bBindBlocked = true;
+            cfg[1006].bBindOutScreen = true;
+            cfg[1006].MaxWidgetNum = 99
+            cfg[1006].MaxShowDistance = 6000000;
+            cfg[1006].bScaleByDistance = false
+            cfg[1006].BindSocketName = "root";
+            cfg[1006].bUseLuaWorldSocketName = true
+            cfg[1006].WorldPositionOffset = FVector(0, 0, -30)
         end
-        ApplyCfg(currentMarkCfg)
+        EnsureMark(cfg, 8888, {
+            UIPathName = QuickSignUI,
+            MaxWidgetNum = 99,
+            MaxShowDistance = 6000000,
+            bBindOutScreen = true,
+            bBindBlocked = true,
+            bIsBindingActor = true,
+            BindSocketName = "head",
+            bUseLuaWorldSocketName = true,
+            WorldPositionOffset = FVector(0, 0, 30),
+            bNeedPreLoad = true,
+            Priority = 2
+        })
+        EnsureMark(cfg, 9999, {
+            UIPathName = QuickSignUI,
+            MaxWidgetNum = 99,
+            MaxShowDistance = 6000000,
+            bBindOutScreen = true,
+            bBindBlocked = true,
+            bIsBindingActor = true,
+            BindSocketName = "head",
+            bUseLuaWorldSocketName = true,
+            WorldPositionOffset = FVector(0, 0, 50),
+            bNeedPreLoad = true,
+            Priority = 2
+        })
+    end
+
+    -- game me-reload ScreenMarkConfig tiap masuk match: suntik ulang tiap config diminta
+    local function InstallHook()
+        pcall(function()
+            local GPT = require("GameLua.Mod.BaseMod.Common.GamePlayTools")
+            if GPT and type(GPT.GetCurrentConfig) == "function" and not GPT._x3MarkHook then
+                local origGet = GPT.GetCurrentConfig
+                GPT.GetCurrentConfig = function(key, ...)
+                    local v = origGet(key, ...)
+                    if key == "ScreenMarkConfig" and type(v) == "table" then
+                        pcall(Apply, v)
+                    end
+                    return v
+                end
+                GPT._x3MarkHook = true
+            end
+        end)
+    end
+
+    return { Apply = Apply, InstallHook = InstallHook }
+end)()
+
+local function InitializeNativeESP()
+    local S = _G.X3.XthrlenState
+    local sceneKey = "lobby"
+    pcall(function()
+        local GD = package.loaded["GameLua.GameCore.Data.GameplayData"] or require("GameLua.GameCore.Data.GameplayData")
+        local pc = GD and GD.GetPlayerController and GD.GetPlayerController()
+        if pc then sceneKey = tostring(pc) end
+    end)
+    local now = os.clock()
+    if S.NativeESPReady and S.NativeESPKey == sceneKey and (now - (S.NativeESPRefresh or 0)) < 5 then return end
+    local okPatch = pcall(function()
+        local GamePlayTools = require("GameLua.Mod.BaseMod.Common.GamePlayTools")
+        X3MarkCfg.Apply(GamePlayTools.GetCurrentConfig("ScreenMarkConfig"))
         for k, cfg in pairs(package.loaded) do
             if type(k) == "string" and string.find(k, "ScreenMarkConfig") and type(cfg) == "table" then
-                ApplyCfg(cfg)
+                X3MarkCfg.Apply(cfg)
             end
         end
+        X3MarkCfg.InstallHook()
     end)
-    _G.X3.XthrlenState.NativeESPReady = true
-    Notify("Sistem ESP Native Diinisialisasi")
+    if okPatch then
+        S.NativeESPReady = true
+        S.NativeESPKey = sceneKey
+        S.NativeESPRefresh = now
+        if not S.NativeESPNotified then
+            S.NativeESPNotified = true
+            Notify("Sistem ESP Native Diinisialisasi")
+        end
+    end
 end
 
 
--- ============================================================================
--- [PORT-ESP] ESP + WALL/CHAMS diambil dari 1.lua
--- Namespace: LexusConfig -> X3.XthrlenConfig, LexusState -> X3.XthrlenState
--- ============================================================================
 local PortESPModule = (function()
 _G.X3.PortESP = _G.X3.PortESP or {
     LastItemScan = 0,
@@ -6071,7 +6115,20 @@ local function PortESPTick()
                     -- ESP 4: RADAR
                     if C.EspRadar then
                         if not markData.radarMark or markData.radarMark == 0 then
-                            markData.radarMark = SafeAddMark(8888, FVector(0,0,0), 0, "", 4, enemy)
+                            local nowR = os.clock()
+                            if markData.radarTry == nil or (nowR - markData.radarTry) > 1 then
+                                markData.radarTry = nowR
+                                markData.radarMark = SafeAddMark(8888, FVector(0,0,0), 0, "", 4, enemy)
+                                if markData.radarMark == nil or markData.radarMark == 0 then
+                                    markData.radarFail = (markData.radarFail or 0) + 1
+                                    if markData.radarFail == 10 and not PE.RadarWarned then
+                                        PE.RadarWarned = true
+                                        pcall(Notify, "ESP 4: mark 8888 tidak tersedia")
+                                    end
+                                else
+                                    markData.radarFail = 0
+                                end
+                            end
                         end
                     else
                         if markData.radarMark and markData.radarMark ~= 0 then
