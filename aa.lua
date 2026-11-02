@@ -3987,6 +3987,107 @@ local ItemDatabase = {
     _G.AppliedVehicleWall    = _G.AppliedVehicleWall or {}
     _G.AppliedItemESP        = _G.AppliedItemESP or {}
 
+    _G.X3.RunOptimizedItemAndVehicleESP = function(pc)
+        local curTime = os.clock()
+        if curTime - _G.LastScanItemTime > 1.0 then
+            _G.LastScanItemTime = curTime
+            local player = GameplayData.GetPlayerCharacter()
+            if not slua.isValid(player) then return end
+
+            if _G.X3.XthrlenConfig.WallVehicle then
+                local ASTExtraVehicleBase = import("STExtraVehicleBase")
+                if ASTExtraVehicleBase then
+                    local Actors = Game:GetActorsByClass(ASTExtraVehicleBase)
+                    if Actors then
+                        local count = Actors:Num() or 0
+                        for i = 0, count - 1 do
+                            local vehicle = Actors:Get(i)
+                            if slua.isValid(vehicle) and vehicle.GetMesh then
+                                if player:GetDistanceTo(vehicle) <= 200000 then
+                                    local vId = tostring(vehicle)
+                                    if not _G.AppliedVehicleWall[vId] then
+                                        local mesh = vehicle:GetMesh()
+                                        if slua.isValid(mesh) then
+                                            local mi = mesh:GetMaterial(0)
+                                            if slua.isValid(mi) then
+                                                local bm = mi:GetBaseMaterial()
+                                                if slua.isValid(bm) then
+                                                    bm.bDisableDepthTest = true
+                                                    bm.BlendMode = 2
+                                                    _G.AppliedVehicleWall[vId] = true
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            else _G.AppliedVehicleWall = {} end
+
+            if _G.X3.XthrlenConfig.EspItem_Master then
+                local APickUpWrapperActor = import("PickUpWrapperActor") or import("STPickupWrapperActor")
+                if APickUpWrapperActor then
+                    local Actors = Game:GetActorsByClass(APickUpWrapperActor)
+                    _G.CachedItems = {}
+                    if Actors then
+                        local count = Actors:Num() or 0
+                        for i = 0, count - 1 do
+                            local item = Actors:Get(i)
+                            local isPK = false
+                            pcall(function() if type(item.IsPendingKill) == "function" then isPK = item:IsPendingKill() end end)
+                            if slua.isValid(item) and not item.bHidden and not isPK then
+                                if player:GetDistanceTo(item) <= 7000 then
+                                    local itemId = item.DefineID and item.DefineID.TypeSpecificID or item.DefineId
+                                    local itemData = ItemDatabase[itemId]
+                                    if itemData then
+                                        local isShow = false
+                                        local cat, k = itemData.cat, _G.X3.XthrlenConfig
+                                        if     cat=="AR"      and k.EspItem_AR      then isShow=true
+                                        elseif cat=="Sniper"  and k.EspItem_Sniper  then isShow=true
+                                        elseif cat=="SMG"     and k.EspItem_SMG     then isShow=true
+                                        elseif cat=="Shotgun" and k.EspItem_Shotgun then isShow=true
+                                        elseif cat=="LMG"     and k.EspItem_LMG     then isShow=true
+                                        elseif cat=="Pistol"  and k.EspItem_Pistol  then isShow=true
+                                        elseif cat=="Melee"   and k.EspItem_Melee   then isShow=true
+                                        elseif cat=="Special" and k.EspItem_Special then isShow=true
+                                        elseif cat=="Grenade" and k.EspItem_Grenade then isShow=true
+                                        elseif cat=="Scope"   and k.EspItem_Scope   then isShow=true
+                                        elseif cat=="Med"     and k.EspItem_Med     then isShow=true
+                                        end
+                                        if isShow then table.insert(_G.CachedItems, item) end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            else
+                _G.AppliedItemESP = {}
+                _G.CachedItems = {}
+            end
+        end
+
+        if _G.X3.XthrlenConfig.EspItem_Master and slua.isValid(pc) and pc.MyHUD then
+            local hud = pc.MyHUD
+            local player = GameplayData.GetPlayerCharacter()
+            for _, item in ipairs(_G.CachedItems or {}) do
+                if slua.isValid(item) and not item.bHidden then
+                    local itemId = item.DefineID and item.DefineID.TypeSpecificID or item.DefineId
+                    local itemData = ItemDatabase[itemId]
+                    if itemData then
+                        local dist = (player.GetDistanceTo and player:GetDistanceTo(item) or 0) / 100
+                        local txt = string.format("%s [%.0fm]", itemData.name, dist)
+                        hud:AddDebugText(txt, item, 0.06, {X=0,Y=0,Z=50}, {X=0,Y=0,Z=50},
+                            {R=itemData.color.R, G=itemData.color.G, B=itemData.color.B, A=255},
+                            true, false, true, nil, 0.8, true)
+                    end
+                end
+            end
+        end
+    end
+
     -- 5) SkeletalMesh 收集器
 local function GetAllSkeletalMeshes(enemy, markData)
     local curTime = os.clock()
@@ -4029,11 +4130,6 @@ local function GetAllSkeletalMeshes(enemy, markData)
 end
 
 
-
-    -- 6) NEW ENGINE CHAMS (ApplyColorBodyNew / UndoColorBodyNew)
-
-
-    -- 7) 物品 / 车辆 ESP 运行时
 
 
     -- 8) 敌人计数 UI
@@ -4577,32 +4673,438 @@ end
 
 
 
-    -- ============================================
-    -- [FULL-ESP] ESP_Tick —— 完整敌人 ESP 主循环
-    -- ============================================
+
     function _G.X3.ESP_Tick(lp, pc)
-        if not (lp and slua.isValid(lp)) then return end
-        local localPlayer = lp
+    if not (lp and slua.isValid(lp)) then return end
+    local localPlayer = lp
 
-        -- (1) 物品 / 车辆 / 炸弹交互墙
-        if C.EspItem_Master or C.WallVehicle then
-            pcall(function() _G.RunOptimizedItemAndVehicleESP(pc) end)
-        end
-
-        -- (2) 缓存常用对象
-        local Cached_PPM = nil
-        pcall(function() Cached_PPM = import("PostProcessManager").GetInstance() end)
-        local Cached_SecurityCommonUtils = nil
-        pcall(function() Cached_SecurityCommonUtils = require("GameLua.Mod.BaseMod.Common.Security.SecurityCommonUtils") end)
-        local Cached_MyHUD = pc and pc.MyHUD or nil
-
-        -- (3) 敌人 ESP 大循环（WallXuyenTuong / ChamsV2 / ChamsV3 / ChamsNew
-        --     / BugMan / MagicBullet hitbox / EspVip / EspVipPro / EspRadar
-        --     / EspLoai5/6/7/8 / EspDistance / EspAntenna / EspOutline / 炸弹 / 车辆）
+    if C.EspItem_Master or C.WallVehicle then
         pcall(function()
-
+            if _G.X3.RunOptimizedItemAndVehicleESP then
+                _G.X3.RunOptimizedItemAndVehicleESP(pc)
+            end
         end)
     end
+
+    local Cached_PPM = nil
+    pcall(function() Cached_PPM = import("PostProcessManager").GetInstance() end)
+    local Cached_SecurityCommonUtils = nil
+    pcall(function() Cached_SecurityCommonUtils = require("GameLua.Mod.BaseMod.Common.Security.SecurityCommonUtils") end)
+    local Cached_MyHUD = pc and pc.MyHUD or nil
+
+    pcall(function()
+        local GD = require("GameLua.GameCore.Data.GameplayData")
+        local allCharacters = {}
+        if GD.GetAllPlayerCharacters then allCharacters = GD.GetAllPlayerCharacters()
+        elseif GD.GameCharacters then for _, char in pairs(GD.GameCharacters) do table.insert(allCharacters, char) end end
+
+        -- 清理已失效的 mark
+        local currentValidKeys = {}
+        for _, enemy in pairs(allCharacters) do
+            if Valid(enemy) and enemy ~= localPlayer then
+                currentValidKeys[GetSafeEnemyKey(enemy)] = true
+            end
+        end
+        for key, data in pairs(_G.X3.XthrlenState.EnemyMarks) do
+            if not currentValidKeys[key] then
+                SafeRemoveMark(data.radarMark)
+                SafeRemoveMark(data.hpMark)
+                SafeRemoveMark(data.hpMark8)
+                SafeRemoveMark(data.distMark)
+                if _G.X3.AimTouchVisCache and _G.X3.AimTouchVisCache[key] then _G.X3.AimTouchVisCache[key] = nil end
+                if data.MIDs then
+                    for _, mt in pairs(data.MIDs) do for k in pairs(mt) do mt[k] = nil end end
+                    data.MIDs = nil
+                end
+                if data.MIDs_V3 then
+                    for _, mt in pairs(data.MIDs_V3) do for k in pairs(mt) do mt[k] = nil end end
+                    data.MIDs_V3 = nil
+                end
+                data.enemy = nil
+                data.CachedMeshes = nil
+                _G.X3.XthrlenState.EnemyMarks[key] = nil
+            end
+        end
+
+        local realCount, aiCount = 0, 0
+        local mLoc = nil
+        pcall(function() if type(localPlayer.K2_GetActorLocation) == "function" then mLoc = localPlayer:K2_GetActorLocation() end end)
+
+        for _, enemy in pairs(allCharacters) do
+            if Valid(enemy) and enemy ~= localPlayer and enemy.TeamID ~= localPlayer.TeamID then
+                local bIsReallyDead = false
+                pcall(function()
+                    if type(enemy.IsDead) == "function" then bIsReallyDead = enemy:IsDead()
+                    elseif enemy.bIsDead ~= nil then bIsReallyDead = enemy.bIsDead
+                    elseif enemy.bIsDeadFlag ~= nil then bIsReallyDead = enemy.bIsDeadFlag end
+                    if enemy.HealthStatus ~= nil and enemy.HealthStatus == 2 then bIsReallyDead = true end
+                end)
+
+                local eKey = GetSafeEnemyKey(enemy)
+                _G.X3.XthrlenState.EnemyMarks[eKey] = _G.X3.XthrlenState.EnemyMarks[eKey] or { enemy = enemy }
+                local markData = _G.X3.XthrlenState.EnemyMarks[eKey]
+                markData.enemy = enemy
+
+                if not bIsReallyDead then
+                    if markData.lastEnemyActor ~= enemy then
+                        SafeRemoveMark(markData.hpMark);    markData.hpMark = nil
+                        SafeRemoveMark(markData.hpMark8);   markData.hpMark8 = nil
+                        SafeRemoveMark(markData.distMark);  markData.distMark = nil
+                        SafeRemoveMark(markData.radarMark); markData.radarMark = nil
+                        markData.lastEnemyActor = enemy
+                        markData.LastUIComp = nil
+                        markData.LastFrameUIState = nil
+                    end
+
+                    local eMesh = nil
+                    pcall(function() eMesh = enemy.Mesh or (type(enemy.getAvatarComponent2) == "function" and enemy:getAvatarComponent2() or nil) end)
+                    local aLoc = nil
+                    pcall(function() if type(enemy.K2_GetActorLocation) == "function" then aLoc = enemy:K2_GetActorLocation() end end)
+
+                    local isBot = false
+                    pcall(function() local _ = CheckIsAI(enemy, markData); isBot = markData.AK_IS_BOT or false end)
+
+                    local currentMeshCount = 0
+                    if Valid(eMesh) then
+                        local tempMeshes = GetAllSkeletalMeshes(enemy, markData)
+                        currentMeshCount = #tempMeshes
+                    end
+                    local isMeshChanged = (markData.LastMeshCountWall ~= currentMeshCount)
+
+                    -- ★ WallXuyenTuong
+                    if _G.X3.XthrlenConfig.WallXuyenTuong then
+                        if isMeshChanged or not markData.WallhackApplied then
+                            ApplyWallXuyenTuong(enemy, markData)
+                            markData.WallhackApplied = true
+                            markData.LastMeshCountWall = currentMeshCount
+                        end
+                    else
+                        UndoWallXuyenTuong(enemy, markData)
+                    end
+
+                    -- ★ Chams V2
+                    if _G.X3.XthrlenConfig.ColorBodyV2 then
+                        ApplyColorBodyV2(enemy, pc, markData)
+                    else
+                        UndoColorBodyV2(enemy, markData)
+                    end
+
+                    -- ★ Chams V3
+                    if _G.X3.XthrlenConfig.ColorBodyV3 then
+                        ApplyColorBodyV3(enemy, markData)
+                    else
+                        UndoColorBodyV3(enemy, markData)
+                    end
+
+                    -- ★ NEW ENGINE CHAMS (Red/Green)
+                    if _G.X3.XthrlenConfig.ColorBodyNew then
+                        ApplyColorBodyNew(enemy, markData)
+                    else
+                        UndoColorBodyNew(enemy, markData)
+                    end
+
+                    -- BugMan 拉伸
+                    pcall(function()
+                        if Valid(eMesh) then
+                            local targetScale = 1.0
+                            if _G.X3.XthrlenConfig.BugManEnable and _G.X3.XthrlenState.CustomTextData then
+                                targetScale = 177.0 / (_G.X3.XthrlenState.CustomTextData.BugManRatio or 133)
+                                if targetScale < 1.0 then targetScale = 1.0 end
+                                if targetScale > 2.0 then targetScale = 2.0 end
+                            end
+                            if markData.LastFatScale ~= targetScale then
+                                eMesh:SetRelativeScale3D(FVector(targetScale, targetScale, 1.0))
+                                markData.LastFatScale = targetScale
+                            end
+                        end
+                    end)
+
+                    local distM = 0
+                    pcall(function() distM = localPlayer:GetDistanceTo(enemy) / 100 end)
+
+                    local currentHp, maxHp = 100, 100
+                    local showFrameUI = _G.X3.XthrlenConfig.EspLoai5 or _G.X3.XthrlenConfig.EspVipPro or _G.X3.XthrlenConfig.EspVip
+                    if showFrameUI then
+                        pcall(function()
+                            if enemy.Health then currentHp = enemy.Health elseif type(enemy.GetHealth) == "function" then currentHp = enemy:GetHealth() end
+                            if enemy.HealthMax then maxHp = enemy.HealthMax elseif type(enemy.GetHealthMax) == "function" then maxHp = enemy:GetHealthMax() end
+                        end)
+                        if maxHp <= 0 then maxHp = 100 end
+                    end
+                    local hpRatio = currentHp / maxHp
+
+                    -- ★ EspAntenna
+                    if _G.X3.XthrlenConfig.EspAntenna then
+                        pcall(function()
+                            if Valid(Cached_MyHUD) and distM <= 400 then
+                                local baseZ = 105
+                                for i = 1, 8 do
+                                    local z = baseZ + (i * 1000)
+                                    Cached_MyHUD:AddDebugText("|", enemy, 0.06, {X=0,Y=0,Z=z}, {X=0,Y=0,Z=z}, C_GREEN, true, false, true, nil, 1.2, true)
+                                end
+                                Cached_MyHUD:AddDebugText("I", enemy, 0.06, {X=0,Y=0,Z=baseZ+8060}, {X=0,Y=0,Z=baseZ+8060}, C_GREEN, true, false, true, nil, 1.5, true)
+                            end
+                        end)
+                    end
+
+                    -- ★ EspLoai6 骨骼
+                    if _G.X3.XthrlenConfig.EspLoai6 then
+                        pcall(function()
+                            local t = os.clock()
+                            if markData.LastEsp6Time == nil or (t - markData.LastEsp6Time) >= 0.05 then
+                                markData.LastEsp6Time = t
+                                if Valid(Cached_MyHUD) and Valid(eMesh) and aLoc and distM <= 250 and type(eMesh.GetSocketLocation) == "function" then
+                                    for _, bName in ipairs(GLOBAL_BONE_LIST) do
+                                        if distM > 50 and (bName ~= "head" and bName ~= "pelvis" and bName ~= "neck_01") then
+                                            -- skip 远距离
+                                        else
+                                            local wLoc = eMesh:GetSocketLocation(bName)
+                                            if wLoc then
+                                                local off = {X=wLoc.X-aLoc.X, Y=wLoc.Y-aLoc.Y, Z=wLoc.Z-aLoc.Z}
+                                                local mark, size, color = "▪", 0.25, C_CYAN
+                                                if bName == "head" then mark, size, color = "●", 0.45, C_RED
+                                                elseif bName == "pelvis" or bName == "neck_01" then mark, size, color = "▪", 0.35, C_YELLOW end
+                                                Cached_MyHUD:AddDebugText(mark, enemy, 0.06, off, off, color, true, false, true, nil, size, true)
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end)
+                    end
+
+                    -- ★ EspLoai7 详细信息
+                    if _G.X3.XthrlenConfig.EspLoai7 then
+                        pcall(function()
+                            if Valid(Cached_MyHUD) then
+                                if distM <= 600 then if isBot then aiCount = aiCount + 1 else realCount = realCount + 1 end end
+                                if distM <= 400 then
+                                    local stateText = ""
+                                    if _G.X3.XthrlenConfig.Esp7_TuThe then
+                                        local pose = enemy.PoseState or (type(enemy.GetPoseState) == "function" and enemy:GetPoseState())
+                                        if pose == 0 then stateText = "Đứng"
+                                        elseif pose == 1 then stateText = "Ngồi"
+                                        elseif pose == 2 then stateText = "Nằm"
+                                        else stateText = "Đứng" end
+                                    end
+                                    if _G.X3.XthrlenConfig.Esp7_VuKhi then
+                                        local t = os.clock()
+                                        if not markData.AK_LAST_WEP_TIME or t > markData.AK_LAST_WEP_TIME + 1.5 then
+                                            local w = enemy.CurrentWeapon or (type(enemy.GetCurrentWeapon) == "function" and enemy:GetCurrentWeapon()) or (enemy.WeaponManagerComponent and enemy.WeaponManagerComponent.CurrentWeaponReplicated)
+                                            local wName = "Tay Không"
+                                            if Valid(w) and type(w.GetWeaponName) == "function" then wName = w:GetWeaponName() end
+                                            markData.AK_CACHED_WEP_NAME = tostring(wName)
+                                            markData.AK_LAST_WEP_TIME = t
+                                        end
+                                        local wn = markData.AK_CACHED_WEP_NAME or "Tay Không"
+                                        if stateText ~= "" then stateText = stateText .. " - " .. wn else stateText = wn end
+                                    end
+                                    if stateText ~= "" then
+                                        Cached_MyHUD:AddDebugText(stateText, enemy, 0.06, {X=0,Y=0,Z=100}, {X=0,Y=0,Z=100},
+                                            isBot and C_CYAN or C_YELLOW, true, false, true, nil,
+                                            math.max(0.5, 0.8 - (distM / 400)), true)
+                                    end
+                                end
+                            end
+                        end)
+                    end
+
+                    -- Frame UI
+                    if showFrameUI then
+                        pcall(function()
+                            local show = true
+                            if enemy.HealthStatus and Cached_SecurityCommonUtils and Cached_SecurityCommonUtils.IsHealthStatusAlive then
+                                if not Cached_SecurityCommonUtils.IsHealthStatusAlive(enemy.HealthStatus) then show = false end
+                            end
+                            if show and mLoc and aLoc and Cached_SecurityCommonUtils and Cached_SecurityCommonUtils.IsVector then
+                                if Cached_SecurityCommonUtils.IsVector(aLoc) and Cached_SecurityCommonUtils.IsVector(mLoc) then
+                                    if aLoc.Z >= 150000 or FVector.Dist2D(mLoc, aLoc) > 50000 then show = false end
+                                end
+                            end
+                            if show then
+                                if enemy.Replay_IsEnemyFrameUIExisted and not enemy:Replay_IsEnemyFrameUIExisted() then enemy:Replay_CreateEnemyFrameUI(true, true) end
+                                if enemy.Replay_SetVisiableOfFrameUI then enemy:Replay_SetVisiableOfFrameUI(true) end
+                                if enemy.Replay_UpdateEnemyFrameUI then enemy:Replay_UpdateEnemyFrameUI(hpRatio) end
+                                local uiComp = enemy.EnemyFrameUI or (type(enemy.GetEnemyFrameUI) == "function" and enemy:GetEnemyFrameUI())
+                                if Valid(uiComp) and markData.LastFrameUIState ~= "VISIBLE" then
+                                    if uiComp.SetVisibility then uiComp:SetVisibility(0) end
+                                    if uiComp.SetHiddenInGame then uiComp:SetHiddenInGame(false) end
+                                    markData.LastFrameUIState = "VISIBLE"
+                                end
+                            end
+                        end)
+                    else
+                        pcall(function()
+                            if enemy.Replay_SetVisiableOfFrameUI then enemy:Replay_SetVisiableOfFrameUI(false) end
+                            local uiComp = enemy.EnemyFrameUI or (type(enemy.GetEnemyFrameUI) == "function" and enemy:GetEnemyFrameUI())
+                            if Valid(uiComp) and markData.LastFrameUIState ~= "HIDDEN" then
+                                if uiComp.SetVisibility then uiComp:SetVisibility(2) end
+                                if uiComp.SetHiddenInGame then uiComp:SetHiddenInGame(true) end
+                                markData.LastFrameUIState = "HIDDEN"
+                            end
+                        end)
+                    end
+
+                    -- ★ EspVipPro 名称+血条
+                    if _G.X3.XthrlenConfig.EspVipPro then
+                        pcall(function()
+                            if Valid(Cached_MyHUD) and distM <= 400 then
+                                local scale = math.max(0.55, 0.95 - (distM / 400))
+                                local isKnock = (currentHp <= 0 and enemy.HealthStatus == 1)
+                                local hpColor = C_GREEN
+                                if hpRatio < 0.3 then hpColor = C_RED elseif hpRatio < 0.7 then hpColor = C_YELLOW end
+                                if isKnock then hpColor = C_RED end
+                                if _G.X3.XthrlenConfig.Esp3ShowName then
+                                    local n = "Enemy"
+                                    pcall(function() if enemy.PlayerName then n = enemy.PlayerName elseif type(enemy.GetPlayerName) == "function" then n = enemy:GetPlayerName() end end)
+                                    if n == "" then n = "Enemy" end
+                                    if isKnock then n = "KNOCK: " .. n end
+                                    Cached_MyHUD:AddDebugText(n, enemy, 0.06, {X=0,Y=0,Z=-370}, {X=0,Y=0,Z=-370}, C_WHITE, true, false, true, nil, scale * 1.1, true)
+                                end
+                                if _G.X3.XthrlenConfig.Esp3ShowHP then
+                                    if not isKnock then
+                                        local segs, filled, startZ = 6, math.floor(hpRatio * 6), 20
+                                        local sp = 10.0 * scale
+                                        for j = 1, segs do
+                                            local c = (j <= filled) and hpColor or {R=30,G=30,B=30,A=180}
+                                            Cached_MyHUD:AddDebugText("█", enemy, 0.06, {X=0,Y=-115,Z=startZ+j*sp}, {X=0,Y=-115,Z=startZ+j*sp}, c, true, false, true, nil, scale*1.2, true)
+                                        end
+                                        Cached_MyHUD:AddDebugText(string.format("%d%%", math.floor(hpRatio*100)), enemy, 0.06, {X=0,Y=-60,Z=startZ-12}, {X=0,Y=-60,Z=startZ-12}, hpColor, true, false, true, nil, scale*0.8, true)
+                                    else
+                                        Cached_MyHUD:AddDebugText("DOWN", enemy, 0.06, {X=0,Y=-115,Z=50}, {X=0,Y=-115,Z=50}, C_RED, true, false, true, nil, scale, true)
+                                    end
+                                end
+                            end
+                        end)
+                    end
+
+                    -- ★ EspDistance
+                    if _G.X3.XthrlenConfig.EspDistance then
+                        pcall(function()
+                            if Valid(Cached_MyHUD) and distM <= 400 then
+                                local scale = math.max(0.55, 0.95 - (distM / 400))
+                                Cached_MyHUD:AddDebugText(string.format("[%dm]", math.floor(distM)), enemy, 0.06,
+                                    {X=0,Y=115,Z=20}, {X=0,Y=115,Z=20}, C_BLUE_TEXT, true, false, true, nil, scale*1.5, true)
+                            end
+                        end)
+                    end
+
+                    -- ★ EspVip marks (1006 + 9999)
+                    if _G.X3.XthrlenConfig.EspVip then
+                        if markData.hpMark == nil then markData.hpMark = SafeAddMark(1006, FVector(0,0,0), 0, "", 4, enemy) end
+                        if markData.distMark == nil then markData.distMark = SafeAddMark(9999, FVector(0,0,0), 0, "", 4, enemy) end
+                    else
+                        if markData.hpMark then SafeRemoveMark(markData.hpMark); markData.hpMark = nil end
+                        if markData.distMark then SafeRemoveMark(markData.distMark); markData.distMark = nil end
+                    end
+
+                    -- ★ EspLoai8 (Head HP bar)
+                    if _G.X3.XthrlenConfig.EspLoai8 then
+                        if markData.hpMark8 == nil then markData.hpMark8 = SafeAddMark(1006, FVector(0,0,0), 0, "", 4, enemy) end
+                    else
+                        if markData.hpMark8 then SafeRemoveMark(markData.hpMark8); markData.hpMark8 = nil end
+                    end
+
+                    -- ★ EspRadar (8888)
+                    if _G.X3.XthrlenConfig.EspRadar then
+                        if not markData.radarMark or markData.radarMark == 0 then
+                            markData.radarMark = SafeAddMark(8888, FVector(0,0,0), 0, "", 4, enemy)
+                        end
+                    else
+                        if markData.radarMark and markData.radarMark ~= 0 then
+                            SafeRemoveMark(markData.radarMark); markData.radarMark = nil
+                        end
+                    end
+
+                    -- ★ EspOutline
+                    if _G.X3.XthrlenConfig.EspOutline then
+                        pcall(function()
+                            local outColor = _G.X3.XthrlenState.CustomTextData.OutlineColor or 4
+                            local outThick = _G.X3.XthrlenConfig.OutlineThickness or 10
+                            local oh = string.format("%d_%d", outThick, outColor)
+                            local meshes = GetAllSkeletalMeshes(enemy, markData)
+                            if markData.OutlineState ~= oh or markData.LastMeshCountOutline ~= #meshes then
+                                local r,g,b = 255,255,0
+                                if outColor==1 then r,g,b=255,0,0 elseif outColor==2 then r,g,b=0,255,0
+                                elseif outColor==3 then r,g,b=0,0,255 elseif outColor==5 then r,g,b=255,0,255
+                                elseif outColor==6 then r,g,b=255,255,255 end
+                                local LC = import("LinearColor") or _G.FLinearColor
+                                local glow = LC and LC((r/255)*80,(g/255)*80,(b/255)*80,1.0) or {R=r*80,G=g*80,B=b*80,A=255}
+                                for _, comp in ipairs(meshes) do
+                                    if Valid(comp) then
+                                        pcall(function() comp.UseScopeDistanceCulling = false; comp.PrimitiveShadingStrategy = 1; comp.ShadingRate = 6 end)
+                                        if comp.SetDrawIdeaOutline then
+                                            comp:SetDrawIdeaOutline(true)
+                                            if comp.OverrideIdeaOutlineColor then comp:OverrideIdeaOutlineColor(true, glow) end
+                                            if comp.OverrideIdeaOutlineThickness then comp:OverrideIdeaOutlineThickness(true, outThick) end
+                                        end
+                                    end
+                                end
+                                markData.OutlineState = oh
+                                markData.LastMeshCountOutline = #meshes
+                            end
+                        end)
+                    else
+                        pcall(function()
+                            if markData.OutlineState ~= "OFF" then
+                                local meshes = GetAllSkeletalMeshes(enemy, markData)
+                                for _, comp in ipairs(meshes) do
+                                    if Valid(comp) then
+                                        pcall(function() comp.PrimitiveShadingStrategy = 0; comp.ShadingRate = 1 end)
+                                        if comp.SetDrawIdeaOutline then comp:SetDrawIdeaOutline(false) end
+                                    end
+                                end
+                                markData.OutlineState = "OFF"
+                                markData.LastMeshCountOutline = 0
+                            end
+                        end)
+                    end
+
+                else
+                    -- 清理死亡敌人的 mark
+                    if not markData.IsCleanedUp then
+                        SafeRemoveMark(markData.radarMark); markData.radarMark = nil
+                        SafeRemoveMark(markData.hpMark);    markData.hpMark = nil
+                        SafeRemoveMark(markData.hpMark8);   markData.hpMark8 = nil
+                        SafeRemoveMark(markData.distMark);  markData.distMark = nil
+                        if markData.MIDs then
+                            for _, mt in pairs(markData.MIDs) do for k in pairs(mt) do mt[k] = nil end end
+                            markData.MIDs = nil
+                        end
+                        if markData.MIDs_V3 then
+                            for _, mt in pairs(markData.MIDs_V3) do for k in pairs(mt) do mt[k] = nil end end
+                            markData.MIDs_V3 = nil
+                        end
+                        pcall(function()
+                            local eObj = markData.enemy
+                            if Valid(eObj) then
+                                if eObj.Replay_SetVisiableOfFrameUI then eObj:Replay_SetVisiableOfFrameUI(false) end
+                                local uiComp = eObj.EnemyFrameUI or (type(eObj.GetEnemyFrameUI)=="function" and eObj:GetEnemyFrameUI())
+                                if Valid(uiComp) then
+                                    if uiComp.SetVisibility then uiComp:SetVisibility(2) end
+                                    if uiComp.SetHiddenInGame then uiComp:SetHiddenInGame(true) end
+                                end
+                            end
+                            local PPM = Cached_PPM
+                            local avatarComp = Valid(eObj) and (type(eObj.getAvatarComponent2)=="function") and eObj:getAvatarComponent2() or nil
+                            if Valid(avatarComp) and Valid(PPM) then PPM:EnableAvatarOutline(avatarComp, false) end
+                        end)
+                        markData.IsCleanedUp = true
+                    end
+                end
+            end
+        end
+
+        -- 敌人计数器
+        if _G.X3.XthrlenConfig.EspLoai7 and _G.X3.XthrlenConfig.Esp7_SoLuong then
+            _M_DrawCounter()
+        else
+            if EnemyCounterWidget and slua.isValid(EnemyCounterWidget) then
+                EnemyCounterWidget:SetWidgetVisibility(UEnums.ESlateVisibility.Collapsed)
+            end
+        end
+    end)
+end
 
 
     -- 10) 菜单构建器
@@ -4656,7 +5158,27 @@ local stack_items = {
             { Key = "ModMenu_ESPAntenna", UI = AliasMap.Switcher, Text = "Antenna ESP ", GetFunc = function() return _G.X3.XthrlenConfig.EspAntenna end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspAntenna = v return true end },
             { Key = "ModMenu_ESPOutline_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Outline ESP (HDR supported) ", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.EspOutline end, SetFunc = function(c,v) _G.X3.XthrlenConfig.EspOutline = v return true end },
             { Key = "ModMenu_ESPOutline_Color", UI = AliasMap.Slider, Text = "   Color (1:Red 2:Grn 3:Blu 4:Ylw 5:Pur 6:Wht) ", ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 6, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.OutlineColor or 4 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.OutlineColor = v return true end },
-            { Key = "ModMenu_ESPOutline_Thickness", UI = AliasMap.Slider, Text = "   Outline Thickness ", ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 20, min = 1, max = 20, GetFunc = function() return _G.X3.XthrlenConfig.OutlineThickness end, SetFunc = function(c,v) _G.X3.XthrlenConfig.OutlineThickness = v return true end }
+
+            { Key = "ModMenu_ESPOutline_Thickness", UI = AliasMap.Slider, Text = "   Outline Thickness ", ExpandHandle = "ModMenu_ESPOutline_Ex", MinValue = 1, MaxValue = 20, min = 1, max = 20, GetFunc = function() return _G.X3.XthrlenConfig.OutlineThickness end, SetFunc = function(c,v) _G.X3.XthrlenConfig.OutlineThickness = v return true end },
+            { Key = "ModMenu_WallXuyenTuong", UI = AliasMap.Switcher, Text = "Wallhack V1 (See Through) [ TEMBUS PANDANG ]",
+              GetFunc = function() return _G.X3.XthrlenConfig.WallXuyenTuong end,
+              SetFunc = function(c,v) _G.X3.XthrlenConfig.WallXuyenTuong = v return true end },
+            { Key = "ModMenu_ColorBodyV2", UI = AliasMap.Switcher, Text = "Chams V2 (Basic Color) [ WARNA TUBUH V2 ]",
+              GetFunc = function() return _G.X3.XthrlenConfig.ColorBodyV2 end,
+              SetFunc = function(c,v) _G.X3.XthrlenConfig.ColorBodyV2 = v return true end },
+            { Key = "ModMenu_ColorBodyV3", UI = AliasMap.Switcher, Text = "Chams V3 (Custom Color) [ WARNA TUBUH V3 ]",
+              GetFunc = function() return _G.X3.XthrlenConfig.ColorBodyV3 end,
+              SetFunc = function(c,v) _G.X3.XthrlenConfig.ColorBodyV3 = v return true end },
+            { Key = "ModMenu_ColorBodyNew", UI = AliasMap.Switcher, Text = "★ NEW ENGINE CHAMS (Red/Green) [ WARNA ENGINE BARU ]",
+              GetFunc = function() return _G.X3.XthrlenConfig.ColorBodyNew end,
+              SetFunc = function(c,v) _G.X3.XthrlenConfig.ColorBodyNew = v return true end },
+            { Key = "ModMenu_BugMan_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Screen Stretch (Fat Body) [ TUBUH GEMUK ]", ExpandIndex = 0,
+              GetFunc = function() return _G.X3.XthrlenConfig.BugManEnable end,
+              SetFunc = function(c,v) _G.X3.XthrlenConfig.BugManEnable = v return true end },
+            { Key = "ModMenu_BugMan_Ratio", UI = AliasMap.Slider, Text = "   Stretch Ratio [ RASIO ]", ExpandHandle = "ModMenu_BugMan_Ex",
+              MinValue = 110, MaxValue = 200, min = 110, max = 200,
+              GetFunc = function() return _G.X3.XthrlenState.CustomTextData.BugManRatio or 133 end,
+              SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.BugManRatio = v return true end }
         }
         if stack_items then
             for _, it in ipairs(stack_items) do table.insert(stack, it) end
