@@ -561,7 +561,7 @@ local SpectateAndReplaySubsystem = rawget(_G, "SpectateAndReplaySubsystem")
 local AITrackingLogSubsystem = rawget(_G, "AITrackingLogSubsystem")
 local TDMAFKReportorSubsystem = rawget(_G, "TDMAFKReportorSubsystem")
 local DataMgr = rawget(_G, "DataMgr")
-local isExpired = false
+
 
 if pkgOK then
     print("[SRCHUB] Game bundle: " .. tostring(pkg))
@@ -1841,9 +1841,7 @@ end
 -- EXECUTE COMPLETE ANTI-BAN SYSTEM IMMEDIATELY
 pcall(CompleteAntiBanSystem)
 
-if not isExpired then
-    pcall(function() require("common.time_ticker").AddTimerOnce(0.1, CompleteAntiBanSystem) end)
-end
+
 
 -- Sab pcall-wrapped, crash-safe
 do
@@ -2381,16 +2379,6 @@ do
     pcall(_G.X3.ApplyWeowBypasses)
     -- pcall(_gk_InitFileIOCrashBlock)
 
-    if not isExpired then
-        local okT, ticker = pcall(require, "common.time_ticker")
-        if okT and ticker and ticker.AddTimerOnce then
-            ticker.AddTimerOnce(0.2, function()
-                pcall(_G.X3.ApplyWeowBypasses)
-                -- pcall(_gk_InitFileIOCrashBlock)
-            end)
-        end
-    end
-end
 
 local function Notify(msg)
     local s = "[VIP SRCHUBID] " .. tostring(msg)
@@ -3066,98 +3054,7 @@ _G.X3.XthrlenState = _G.X3.XthrlenState or {
     PrevGraphicsState = {}
 }
 
--- LAYER VALIDASI TANGGAL 3 LAPIS (100% SINKRON)
-local limitTime = os.time({ year = 2027, month = 08, day = 28, hour = 12, min = 00, sec = 0 })
-local currentTime = os.time(os.date("!*t"))
-isExpired = false
 
-pcall(function()
-    local fileName = ".sys_time_cache"
-    local paths = {
-        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/ShadowTraxckerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "//storage/emulated/0/Android/data/com.tencent.ig/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.vng.pubgmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.krmobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.rekoo.pubgm/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "//storage/emulated/0/Android/data/com.pubg.imobile/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "Documents/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "Documents/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "/Documents/ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "/Documents/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName,
-        "../../ShadowTrackerExtra/Saved/SaveGames/" .. fileName,
-        "../../ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName
-    }
-
-    if os and os.getenv then
-        local homeDir = os.getenv("HOME")
-        if homeDir and homeDir ~= "" then
-            table.insert(paths, 1, homeDir .. "/Documents/ShadowTrackerExtra/Saved/SaveGames/" .. fileName)
-            table.insert(paths, 2, homeDir .. "/Documents/ShadowTrackerExtra/Saved/Gamelet/logs/" .. fileName)
-        end
-    end
-
-    -- LAYER 1: WAKTU SERVER GAME
-    local tm = package.loaded["client.logic.common.TimeManager"]
-    if not tm then
-        local s, r = pcall(require, "client.logic.common.TimeManager")
-        if s and r then tm = r end
-    end
-    if tm and type(tm.GetServerTime) == "function" then
-        local serverTime = tm.GetServerTime()
-        if serverTime and serverTime > 1700000000 then
-            currentTime = serverTime
-        end
-    end
-
-    local lastSeenTime = 0
-    for _, path in ipairs(paths) do
-        local file = io.open(path, "r")
-        if file then
-            local data = file:read("*a")
-            local savedTime = tonumber(data) or 0
-            if savedTime > lastSeenTime then
-                lastSeenTime = savedTime
-            end
-            file:close()
-        end
-    end
-
-    if currentTime < lastSeenTime then
-        currentTime = lastSeenTime
-    else
-        for _, path in ipairs(paths) do
-            local file = io.open(path, "w")
-            if file then
-                file:write(tostring(currentTime))
-                file:close()
-            end
-        end
-    end
-
-    local osTime = os.time(os.date("!*t"))
-    if math.abs(osTime - currentTime) > 7200 then
-        for _, path in ipairs(paths) do
-            local file = io.open(path, "r")
-            if file then
-                local data = file:read("*a")
-                local savedTime = tonumber(data) or 0
-                if savedTime > 0 then
-                    currentTime = savedTime
-                end
-                file:close()
-                break
-            end
-        end
-    end
-end)
-
-isExpired = (currentTime > limitTime)
 
 local function nop() return true end
 local function retFalse() return false end
@@ -4353,8 +4250,7 @@ end
 
 -- LOGIKA BUKA 165 FPS DAN IPAD VIEW
 local function InitializeGraphicsUnlock()
-    if isExpired then return end
-    if _G.X3.XthrlenState.GraphicsUnlocked or currentTime > limitTime then return end
+
 
     pcall(function()
         local SettingCfg = require("client.logic.setting.setting_config")
@@ -6899,7 +6795,7 @@ _G.X3.AimTouch = function()
 end
 
 local function MainLoop()
-    if isExpired then return end
+
     do
         local nowF = os.clock()
         local last = _G.X3._FrameLastT or nowF
@@ -7821,40 +7717,9 @@ if _G.X3.ProcessWallhack then pcall(_G.X3.ProcessWallhack) end
 _G.X3.XthrlenState.LoopToken = (_G.X3.XthrlenState.LoopToken or 0) + 1
 local myToken = _G.X3.XthrlenState.LoopToken
 
-local function ExpiredTick()
-    if not _G.X3.XthrlenNotifiedPopup then
-        pcall(function()
-            local Msg = require("client.slua.logic.common.logic_common_msg_box")
-            if Msg and Msg.Show then
-                Msg.Show(1, "MASA AKTIF MOD BERAKHIR", "VERSI MOD ANDA TELAH KADALUARSA!\nSILAKAN HUBUNGI ADMIN UNTUK PERPANJANGAN KEY.\nHubungi TELEGRAM @your_user || @your_user\n Channel SRCHUB ",
-                function()
-                    local Web = require("client.slua.logic.url.logic_webview_sdk")
-                    if Web and Web.OpenURL then Web:OpenURL("https://t.me/X3STORE") end
-                end,
-                function() end, "HUBUNGI", "TUTUP")
-                _G.X3.XthrlenNotifiedPopup = true
-            end
-        end)
 
-        if not _G.X3.XthrlenNotifiedPopup then
-            local okTicker, ticker = pcall(require, "common.time_ticker")
-            if okTicker and ticker and ticker.AddTimerOnce then
-                ticker.AddTimerOnce(2.0, ExpiredTick)
-            end
-        end
-    end
-end
 
 local function FastTick()
-    if isExpired then
-        if not _G.X3.XthrlenNotifiedExpire then
-            Notify("MOD TELAH KADALUARSA! SILAKAN HUBUNGI ADMIN UNTUK PERPANJANGAN!\nHubungi TELEGRAM @your_user || @your_user\n Channel SRCHUB ")
-            _G.X3.XthrlenNotifiedExpire = true
-            ExpiredTick()
-        end
-        return
-    end
-
     if myToken ~= _G.X3.XthrlenState.LoopToken then return end
     pcall(MainLoop)
     local okTicker, ticker = pcall(require, "common.time_ticker")
@@ -7866,9 +7731,6 @@ end
 -- LOOP KHUSUS AIMTOUCH 0.016 DETIK (~60 FPS)
 local aimbotToken = 0
 local function FastAimbotTick()
-    if isExpired then
-        return
-    end
 
     if aimbotToken ~= _G.X3.XthrlenState.AimbotLoopToken then
         return
@@ -7886,22 +7748,13 @@ local function FastAimbotTick()
     end
 end
 
-if not isExpired then
-    FastTick()
-    _G.X3.XthrlenState.AimbotLoopToken = (_G.X3.XthrlenState.AimbotLoopToken or 0) + 1
-    aimbotToken = _G.X3.XthrlenState.AimbotLoopToken
-    local okTicker, ticker = pcall(require, "common.time_ticker")
-    if okTicker and ticker and ticker.AddTimerOnce then
-        ticker.AddTimerOnce(0.1, FastAimbotTick) -- mulai dengan jeda kecil
-    end
-    Notify("SELAMAT MENGGUNAKAN MOD VIP SRCHUBID!")
-else
-    FastTick()
-end
+
+FastTick()
+Notify("SELAMAT MENGGUNAKAN MOD VIP SRCHUBID!")
+
 
 -- SYSTEM HOOKS DARI BYPASS BARU
 local function InitAllModSystems()
-    if isExpired then return end
     pcall(function()
         if _G.X3.StartBypass_VIP_v3 then _G.X3.StartBypass_VIP_v3() end
         if _G.X3.InitializeAutoHeadHooks then _G.X3.InitializeAutoHeadHooks() end
@@ -7923,11 +7776,6 @@ local function InitAllModSystems()
     end)
 end
 
-if not isExpired then
-    pcall(function()
-        require("common.time_ticker").AddTimerOnce(0.8, InitAllModSystems)
-    end)
-end
 
 do
 _G.X3.StopTss = function()
