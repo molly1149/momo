@@ -1,7 +1,6 @@
 local M = {}
 local GameplayStatics=import("GameplayStatics")
 local GameplayData=require("GameLua.GameCore.Data.GameplayData")
-
 local pkgOK = rawget(_G, "pkgOK")
 local pkg = rawget(_G, "pkg")
 local TssSdk = rawget(_G, "TssSdk")
@@ -9355,3 +9354,4 @@ pcall(function() if _G.X3._ACPacketFilterTry then _G.X3._ACPacketFilterTry() end
 end
 function M.OnBeginPlay(self)
 end
+return M
