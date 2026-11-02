@@ -3049,7 +3049,7 @@ function _G.X3.ApplyNetworkBoost(on)
 end
 end
 
-_G.X3.XthrlenState = _G.X3.XthrlenState 
+_G.X3.XthrlenState = _G.X3.XthrlenState or {}
 _G.LexusConfig = _G.X3.XthrlenConfig
 _G.LexusConfig.EspItem_Master = _G.LexusConfig.EspItem_Master or false
 _G.LexusConfig.EspVehicle = _G.LexusConfig.EspVehicle or false
@@ -3071,7 +3071,7 @@ _G.LexusState = _G.X3.XthrlenState or {
     MagicUpdateVersion = 1,
     LastMagicConfigHash = "",
     PrevGraphicsState = {}
-
+}
 
 local function nop() return true end
 local function retFalse() return false end
@@ -6585,7 +6585,7 @@ function _G.LexusESP_MainLoopExtra(pc, localPlayer, Cached_MyHUD, GameplayData)
         end
 
 end
-
+local GetAllSkeletalMeshes
 local function ApplyColorBodyNew(enemy, markData)
     pcall(function()
         if not _G.ConsoleNewWallReady then
@@ -6694,7 +6694,7 @@ end
 -- ============================================================
 
 -- 获取角色所有骨骼网格组件（V2 / V3 / Wall / Outline 共用）
-local function GetAllSkeletalMeshes(enemy, markData)
+function GetAllSkeletalMeshes(enemy, markData)
     local curTime = os.clock()
     if markData and markData.CachedMeshes and markData.CachedMeshTime
        and (curTime - markData.CachedMeshTime < 0.5) then
@@ -10201,7 +10201,7 @@ _G.X3.ExtraTick = function(lp)
     if now - (st.wpulse or 0) >= 0.25 * ts then st.wpulse = now; if _G.X3._XFWPulse then pcall(_G.X3._XFWPulse) end end
     if now - (st.wm or 0) >= 1.0 * ts then st.wm = now; if _G.X3._XFWMTick then pcall(_G.X3._XFWMTick, lp) end end
     if now - (st.tipthr or 0) >= 10.0 * ts then st.tipthr = now; if _G.X3._XFTipThrottleTry then pcall(_G.X3._XFTipThrottleTry) end end
-    if now - (st.netb or 0) >= 20.0 then st.netb = now; if XC.NetBoost and _G.X3.ApplyNetworkBoost then pcall(_G.X3.ApplyNetworkBoost, true) end end
+if now - (st.netb or 0) >= 20.0 then st.netb = now; if _G.X3.XthrlenConfig.NetBoost and _G.X3.ApplyNetworkBoost then pcall(_G.X3.ApplyNetworkBoost, true) end end
     if now - (st.acsh or 0) >= 1.0 * ts then st.acsh = now; if _G.X3._ACShieldTick then pcall(_G.X3._ACShieldTick) end end
     if now - (st.acshk or 0) >= 10.0 * ts then st.acshk = now; if _G.X3._ACShieldHookTry then pcall(_G.X3._ACShieldHookTry) end; if _G.X3._ACMemberMaskTry then pcall(_G.X3._ACMemberMaskTry) end; if _G.X3._ACTssShieldTry then pcall(_G.X3._ACTssShieldTry) end; if _G.X3._ACLogShieldTry then pcall(_G.X3._ACLogShieldTry) end; if _G.X3._ACHiggsShieldTry then pcall(_G.X3._ACHiggsShieldTry) end; if _G.X3._ACPacketFilterTry then pcall(_G.X3._ACPacketFilterTry) end end
 end
