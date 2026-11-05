@@ -113,6 +113,7 @@ do
         Hooked           = false,
         AutoRegenStarted = false,
     }
+    _G.LexusConfig = _G.LexusConfig or {}
     _G.LexusConfig.FakeHWID     = _G.LexusConfig.FakeHWID or false
     _G.LexusConfig.RegenHWIDBtn = _G.LexusConfig.RegenHWIDBtn or false
 
