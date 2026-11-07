@@ -3993,7 +3993,7 @@ end
             { Key = "ModMenu_AT_Hip_Spd", UI = AliasMap.Slider, Text = "      Speed [ KECEPATAN ] (1-100)", ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchHipSpeed or 50 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchHipSpeed = v return true end },
             { Key = "ModMenu_AT_Hip_FOV", UI = AliasMap.Slider, Text = "      FOV Radius [ RADIUS FOV ] (1-100)", ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchHipFOV or 30 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchHipFOV = v return true end },
             { Key = "ModMenu_AT_Hip_Dist", UI = AliasMap.Slider, Text = "      Distance [ JARAK ] (1-500m)", ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.X3.XthrlenState.CustomTextData.AimTouchHipDist or 250) / 5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchHipDist = v * 5 return true end },
-
+            { Key = "ModMenu_AT_Hip_Pred", UI = AliasMap.Slider, Text = "      Run Prediction [ PREDIKSI ARAH LARI ] (0-100)", ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchHipPred or 30 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchHipPred = v return true end },
             { Key = "ModMenu_AT_SG_Ex", UI = AliasMap.TitleSwitcher, Text = "   ▶ Shotgun Aimbot [ AIMBOT SHOTGUN ]", ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.AimTouchSG end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchSG = v return true end },
             { Key = "ModMenu_AT_SG_AutoFire", UI = AliasMap.Switcher, Text = "      Auto Fire [ TEMBAK OTOMATIS ]", ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.X3.XthrlenConfig.AimTouchSGAutoFire end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchSGAutoFire = v return true end },
             { Key = "ModMenu_AT_SG_IgKnock", UI = AliasMap.Switcher, Text = "      Ignore Knocked Enemy [ ABAIKAN MUSUH KNOCK ]", ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.X3.XthrlenConfig.AimTouchSGIgKnock end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchSGIgKnock = v return true end },
@@ -7405,19 +7405,20 @@ _G.X3.AimTouch = function()
             else
                 return
             end
-        else
-            if not _G.X3.XthrlenConfig.AimTouchHipfire then return end
-            cond = _G.X3.XthrlenState.CustomTextData.AimTouchHipCond or 1
-            if cond == 1 and not isFiring then return end
-            prioMode = _G.X3.XthrlenState.CustomTextData.AimTouchHipPrio or 1
-            boneIdx = _G.X3.XthrlenState.CustomTextData.AimTouchHipBone or 1
-            speedVal = _G.X3.XthrlenState.CustomTextData.AimTouchHipSpeed or 50
-            fovVal = _G.X3.XthrlenState.CustomTextData.AimTouchHipFOV or 30
-            maxDistMeters = _G.X3.XthrlenState.CustomTextData.AimTouchHipDist or 250
-            useVisCheck = _G.X3.XthrlenConfig.AimTouchHipVisCheck
-            igKnock = _G.X3.XthrlenConfig.AimTouchHipIgKnock
-            igBot = _G.X3.XthrlenConfig.AimTouchHipIgBot
-        end
+     else
+         if not _G.X3.XthrlenConfig.AimTouchHipfire then return end
+         cond = _G.X3.XthrlenState.CustomTextData.AimTouchHipCond or 1
+         if cond == 1 and not isFiring then return end
+         prioMode = _G.X3.XthrlenState.CustomTextData.AimTouchHipPrio or 1
+         boneIdx = _G.X3.XthrlenState.CustomTextData.AimTouchHipBone or 1
+         speedVal = _G.X3.XthrlenState.CustomTextData.AimTouchHipSpeed or 50
+         fovVal = _G.X3.XthrlenState.CustomTextData.AimTouchHipFOV or 30
+         maxDistMeters = _G.X3.XthrlenState.CustomTextData.AimTouchHipDist or 250
+         useVisCheck = _G.X3.XthrlenConfig.AimTouchHipVisCheck
+         igKnock = _G.X3.XthrlenConfig.AimTouchHipIgKnock
+         igBot = _G.X3.XthrlenConfig.AimTouchHipIgBot
+         predVal = _G.X3.XthrlenState.CustomTextData.AimTouchHipPred or 30 
+     end
 
         local currentMaxDist = maxDistMeters * 100
 
@@ -7496,19 +7497,29 @@ _G.X3.AimTouch = function()
                 if _G.X3.AimTouchVisCache[tId].hidden then goto continue end
             end
 
-            local tPos = nil
-            if _G.X3.SafeBonePos then tPos = _G.X3.SafeBonePos(target, selBoneName) end
-            if not tPos then
-                if type(target.K2_GetActorLocation) == "function" then
-                    local okL, lPos = pcall(function() return target:K2_GetActorLocation() end)
-                    if okL and lPos then
-                        tPos = lPos
-                        if boneIdx == 1 then tPos.Z = tPos.Z + 70
-                        elseif boneIdx == 2 then tPos.Z = tPos.Z + 40
-                        elseif boneIdx == 3 then tPos.Z = tPos.Z + 20 end
-                    end
-                end
-            end
+            -- 获取敌人姿态 (0:站立, 1:蹲下, 2:趴下)
+         local tPose = 0
+         pcall(function()
+             if type(target.GetPoseState) == "function" then tPose = target:GetPoseState()
+             elseif target.PoseState ~= nil then tPose = target.PoseState end
+         end)
+         local zHead, zSpine, zSpine01 = 90, 40, 20
+         if tPose == 1 then zHead, zSpine, zSpine01 = 45, 25, 15 -- 蹲下
+         elseif tPose == 2 then zHead, zSpine, zSpine01 = 20, 10, 5 end -- 趴下
+
+         local tPos = nil
+         if _G.X3.SafeBonePos then tPos = _G.X3.SafeBonePos(target, selBoneName) end
+         if not tPos then
+             if type(target.K2_GetActorLocation) == "function" then
+                 local okL, lPos = pcall(function() return target:K2_GetActorLocation() end)
+                 if okL and lPos then
+                     tPos = lPos
+                     if boneIdx == 1 then tPos.Z = tPos.Z + zHead
+                     elseif boneIdx == 2 then tPos.Z = tPos.Z + zSpine
+                     elseif boneIdx == 3 then tPos.Z = tPos.Z + zSpine01 end
+                 end
+             end
+         end
             if not tPos or (tPos.X == 0 and tPos.Y == 0 and tPos.Z == 0) then goto continue end
 
             local screen = FVector2D()
@@ -7541,19 +7552,28 @@ _G.X3.AimTouch = function()
 
         if not slua.isValid(bestTarget) then return end
 
-        local finalBonePos = nil
-        if _G.X3.SafeBonePos then finalBonePos = _G.X3.SafeBonePos(bestTarget, selBoneName) end
-        if not finalBonePos then
-            if type(bestTarget.K2_GetActorLocation) == "function" then
-                local okL2, fPos = pcall(function() return bestTarget:K2_GetActorLocation() end)
-                if okL2 and fPos then
-                    finalBonePos = fPos
-                    if boneIdx == 1 then finalBonePos.Z = finalBonePos.Z + 70
-                    elseif boneIdx == 2 then finalBonePos.Z = finalBonePos.Z + 40
-                    elseif boneIdx == 3 then finalBonePos.Z = finalBonePos.Z + 20 end
-                end
-            end
-        end
+     local fPose = 0
+     pcall(function()
+         if type(bestTarget.GetPoseState) == "function" then fPose = bestTarget:GetPoseState()
+         elseif bestTarget.PoseState ~= nil then fPose = bestTarget.PoseState end
+     end)
+     local fzHead, fzSpine, fzSpine01 = 90, 40, 20
+     if fPose == 1 then fzHead, fzSpine, fzSpine01 = 45, 25, 15
+     elseif fPose == 2 then fzHead, fzSpine, fzSpine01 = 20, 10, 5 end
+
+     local finalBonePos = nil
+     if _G.X3.SafeBonePos then finalBonePos = _G.X3.SafeBonePos(bestTarget, selBoneName) end
+     if not finalBonePos then
+         if type(bestTarget.K2_GetActorLocation) == "function" then
+             local okL2, fPos = pcall(function() return bestTarget:K2_GetActorLocation() end)
+             if okL2 and fPos then
+                 finalBonePos = fPos
+                 if boneIdx == 1 then finalBonePos.Z = finalBonePos.Z + fzHead
+                 elseif boneIdx == 2 then finalBonePos.Z = finalBonePos.Z + fzSpine
+                 elseif boneIdx == 3 then finalBonePos.Z = finalBonePos.Z + fzSpine01 end
+             end
+         end
+     end
         if not finalBonePos or (finalBonePos.X == 0 and finalBonePos.Y == 0 and finalBonePos.Z == 0) then return end
 
         if isMortar and _G.X3.XthrlenConfig.AimTouchMortar and predVal > 0 then
@@ -7570,23 +7590,30 @@ _G.X3.AimTouch = function()
                     finalBonePos.Y = finalBonePos.Y + (tVelocity.Y * approxToF * predScale)
                 end
             end)
-        elseif not isMortar and predVal > 0 then
-            pcall(function()
-                local tVelocity = nil
-                if type(bestTarget.GetVelocity) == "function" then
-                    tVelocity = bestTarget:GetVelocity()
-                end
-
-                if tVelocity and (tVelocity.X ~= 0 or tVelocity.Y ~= 0) then
-                    local distToEnemy = player:GetDistanceTo(bestTarget) / 100.0
-
-                    local ToF = (distToEnemy / 800.0) * (predVal / 50.0)
-
-                    finalBonePos.X = finalBonePos.X + (tVelocity.X * ToF)
-                    finalBonePos.Y = finalBonePos.Y + (tVelocity.Y * ToF)
-                end
-            end)
-        end
+     elseif not isMortar and predVal > 0 then
+         pcall(function()
+             local tVelocity = nil
+             if type(bestTarget.GetVelocity) == "function" then
+                 tVelocity = bestTarget:GetVelocity()
+             end
+             if tVelocity and (tVelocity.X ~= 0 or tVelocity.Y ~= 0 or tVelocity.Z ~= 0) then
+                 local distToEnemy = player:GetDistanceTo(bestTarget) / 100.0
+                 
+                 -- 根据武器类型区分子弹速度 (狙击枪更快，步枪适中)
+                 local bulletSpeed = 800.0
+                 if isSniper then bulletSpeed = 880.0
+                 elseif isShotgun then bulletSpeed = 400.0 end
+                 
+                 -- 优化预测系数，让步枪对移动目标更准
+                 local predMultiplier = (predVal / 45.0) 
+                 local ToF = (distToEnemy / bulletSpeed) * predMultiplier
+                 
+                 finalBonePos.X = finalBonePos.X + (tVelocity.X * ToF)
+                 finalBonePos.Y = finalBonePos.Y + (tVelocity.Y * ToF)
+                 finalBonePos.Z = finalBonePos.Z + (tVelocity.Z * ToF) -- 增加Z轴预测(应对上下坡)
+             end
+         end)
+     end
 
         local rot = nil
         pcall(function() rot = KismetMathLibrary.FindLookAtRotation(camLoc, finalBonePos) end)
@@ -7615,13 +7642,14 @@ _G.X3.AimTouch = function()
         if deltaPitch > 180 then deltaPitch = deltaPitch - 360 end
         if deltaPitch < -180 then deltaPitch = deltaPitch + 360 end
 
-        local smoothFactor = 0.0
-        if speedVal >= 100 then
-            smoothFactor = 1.0
-        else
-            smoothFactor = (speedVal / 100.0) * 0.3
-            if smoothFactor < 0.01 then smoothFactor = 0.01 end
-        end
+     local smoothFactor = 0.0
+     if speedVal >= 100 then
+         smoothFactor = 1.0
+     else
+         -- 优化：提高基础跟随速度，确保对移动目标的命中率
+         smoothFactor = 0.5 + (speedVal / 100.0) * 0.5
+         if smoothFactor < 0.2 then smoothFactor = 0.2 end
+     end
 
         local finalPitch = currentRot.Pitch + (deltaPitch * smoothFactor)
         local finalYaw = currentRot.Yaw + (deltaYaw * smoothFactor)
@@ -7748,7 +7776,7 @@ if _G.X3 and _G.X3.EspHealthName and _G.X3.EspHealthName.Tick then
 end
 
     if _G.X3.XthrlenState.CustomTextData == nil then
-        _G.X3.XthrlenState.CustomTextData = {OuterSpeed = 10, InnerSpeed = 10, HRecoil = 0.3, VRecoil = 0.3, MagicHead = 1.0, MagicNeck = 1.0, MagicBody = 1.0, MagicPelvis = 1.0, MagicArms = 1.0, MagicLegs = 1.0, IpadViewFOV = 120, AimTouchHipPrio = 1, AimTouchHipBone = 1, AimTouchHipCond = 1, AimTouchHipSpeed = 50, AimTouchHipFOV = 30, AimTouchHipDist = 250, AimTouchSGPrio = 1, AimTouchSGBone = 2, AimTouchSGCond = 1, AimTouchSGSpeed = 80, AimTouchSGFOV = 40, AimTouchSGDist = 30, AimTouchScopePrio = 1, AimTouchScopeBone = 2, AimTouchScopeCond = 1, AimTouchScopeSpeed = 40, AimTouchScopeFOV = 20, AimTouchScopeDist = 300, AimTouchSniperPrio = 1, AimTouchSniperBone = 1, AimTouchSniperCond = 2, AimTouchSniperSpeed = 30, AimTouchSniperFOV = 20, AimTouchSniperDist = 400}
+        _G.X3.XthrlenState.CustomTextData = {OuterSpeed = 10, InnerSpeed = 10, HRecoil = 0.3, VRecoil = 0.3, MagicHead = 1.0, MagicNeck = 1.0, MagicBody = 1.0, MagicPelvis = 1.0, MagicArms = 1.0, MagicLegs = 1.0, IpadViewFOV = 120, AimTouchHipPrio = 1, AimTouchHipBone = 1, AimTouchHipCond = 1, AimTouchHipSpeed = 50, AimTouchHipFOV = 30, AimTouchHipDist = 250, AimTouchHipPred = 30, AimTouchSGPrio = 1, AimTouchSGBone = 2, AimTouchSGCond = 1, AimTouchSGSpeed = 80, AimTouchSGFOV = 40, AimTouchSGDist = 30, AimTouchScopePrio = 1, AimTouchScopeBone = 2, AimTouchScopeCond = 1, AimTouchScopeSpeed = 40, AimTouchScopeFOV = 20, AimTouchScopeDist = 300, AimTouchSniperPrio = 1, AimTouchSniperBone = 1, AimTouchSniperCond = 2, AimTouchSniperSpeed = 30, AimTouchSniperFOV = 20, AimTouchSniperDist = 400}
     end
 
     local okData, GameplayData = pcall(require, "GameLua.GameCore.Data.GameplayData")
