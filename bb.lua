@@ -9822,7 +9822,16 @@ for slotID, resID in pairs(accTargets) do
                     entry.ItemID = resID
                     entry.FakeItemID = resID
                     if ESyncOperation then entry.OperationType = ESyncOperation.PutOn end
-                    applyData:Add(entry)
+                    local added = false
+                    if comp.ChangeSlotSyncData then
+                        pcall(function()
+                            comp:ChangeSlotSyncData(entry)
+                            added = true
+                        end)
+                    end
+                    if not added then
+                        pcall(function() applyData:Add(entry) end)
+                    end
                     changed = true
                     applied = true
                     AIR.log("AIR", "slot-add slot=" .. tostring(slotID)
@@ -9847,17 +9856,35 @@ for slotID, resID in pairs(accTargets) do
             AIR.groundAirAttempts = AIR.groundAirAttempts or {}
             local mayTry = inAir
                 or (tonumber(AIR.groundAirAttempts[gaKey]) or 0) < 3
-            if mayTry and comp.PutOnCustomEquipmentByID
-                and (now - (AIR.lastAirAttempt[key] or 0)) >= 2.0 then
-                AIR.lastAirAttempt[key] = now
-                if not inAir then
-                    AIR.groundAirAttempts[gaKey] = (tonumber(AIR.groundAirAttempts[gaKey]) or 0) + 1
-                end
-                local result = nil
-                pcall(function()
-                    result = comp:PutOnCustomEquipmentByID(resID)
-                end)
-                refreshMatchAvatar(comp)
+                -- [修复 2-B] 缩短冷却时间至 0.5s，确保跳伞瞬间能触发
+                if mayTry and comp.PutOnCustomEquipmentByID
+                    and (now - (AIR.lastAirAttempt[key] or 0)) >= 0.5 then
+                    AIR.lastAirAttempt[key] = now
+                    if not inAir then
+                        AIR.groundAirAttempts[gaKey] = (tonumber(AIR.groundAirAttempts[gaKey]) or 0) + 1
+                    end
+                    local result = nil
+                    pcall(function()
+                        result = comp:PutOnCustomEquipmentByID(resID)
+                    end)
+                    
+                    -- [修复 2-C] Fallback: 如果 PutOn 失败，使用 HandleEquipItem 强制指定 ItemType=4 (Extra)
+                    if not result then
+                        pcall(function()
+                            local _it = 4 
+                            pcall(function()
+                                local cc = cfg(resID)
+                                _it = cc and tonumber(cc.ItemType or cc.itemType) or 4
+                            end)
+                            local ItemDefineID = FItemDefineID(_it, resID)
+                            local EAvatarCustomType = import("EAvatarCustomType")
+                            local AvatarCustom = FAvatarCustomDefault()
+                            AvatarCustom.CustomType = EAvatarCustomType.AvatarCustomCharacter
+                            result = comp:HandleEquipItem(ItemDefineID, AvatarCustom)
+                        end)
+                    end
+                    
+                    refreshMatchAvatar(comp)
                 changed = true
                 local equippedAfter = AIR.equippedAirRes(comp, slotName)
                 AIR.log("AIR", "puton slot=" .. tostring(slotID)
@@ -15865,6 +15892,15 @@ local function apply_attachment(CurWeapon, avatarid)
             stabReset()
             -- Clear per-match vehicle skin overrides so the next match starts fresh.
             _G._chetanVehInMatchOverride = nil
+
+        
+        if AIR then
+            AIR.groundAirAttempts = {}
+            AIR.lastAirAttempt = { para = 0, glider = 0 }
+            AIR.lastAirDl = {}
+            AIR.lastAirLogKey = nil
+        end
+    end            
         end
 
         -- ========== PET / BUDDY COMPANION (lobby, client-authoritative) ==========
@@ -16338,6 +16374,17 @@ local function apply_attachment(CurWeapon, avatarid)
             -- Re-sweep summon platforms on match entry (spawn-island actors
             -- are fresh objects; boot-time patches predate them).
             pcall(function() if _S.hookXSuitSummon then _S.hookXSuitSummon() end end)
+            -- [修复 3] 强制预载降落伞和飞行器资产，防止第二局跳伞时 Mesh 未就绪
+            pcall(function()
+                local cch = cache()
+                if cch.equip.parachute and cch.equip.parachute > 0 then
+                    if _G.download_item then _G.download_item(cch.equip.parachute) end
+                end
+                if cch.equip.glider and cch.equip.glider > 0 then
+                    if _G.download_item then _G.download_item(cch.equip.glider) end
+                end
+            end)
+
             -- Set bootstrapped BEFORE matchApplyAll so guard holds even if apply errors
             _S.bootstrapped = true
             flog("MATCH", "bootstrapMatch: done, calling matchApplyAll")
