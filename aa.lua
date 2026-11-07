@@ -7302,6 +7302,19 @@ do
         if boneIdx == 2 then boneName = "spine_03"
         elseif boneIdx == 3 then boneName = "spine_01"
         elseif boneIdx == 4 then boneName = "pelvis" end
+  -- [新增] 检测目标是否趴下 (Prone)
+    local isProne = false
+    pcall(function()
+        local pose = target.PoseState or (type(target.GetPoseState) == "function" and target:GetPoseState())
+        if pose == 2 or pose == "Prone" then isProne = true end
+    end)
+    
+    -- [修复] 趴下时 head hitbox 容易偏移，自动降级为 neck_01 提高狙击枪命中率
+    if isProne and boneIdx == 1 then
+        boneName = "neck_01"
+    end       
+        
+        
         local pos = nil
         A.ZeroVec.X, A.ZeroVec.Y, A.ZeroVec.Z = 0, 0, 0
         pcall(function() pos = target:GetBonePos(boneName, A.ZeroVec) end)
@@ -7315,6 +7328,12 @@ do
                 pcall(function()
                     pos = target:K2_GetActorLocation()
                     if pos then
+                    if isProne then
+                        -- [修复] 趴下时的 Z 轴补偿 (高度大幅降低)
+                        if boneIdx == 1 then pos.Z = pos.Z + 45 -- neck_01 趴下高度
+                        elseif boneIdx == 2 then pos.Z = pos.Z + 20
+                        elseif boneIdx == 3 then pos.Z = pos.Z + 10 end
+                    else 
                         if boneIdx == 1 then pos.Z = pos.Z + 70
                         elseif boneIdx == 2 then pos.Z = pos.Z + 40
                         elseif boneIdx == 3 then pos.Z = pos.Z + 20 end
@@ -7376,14 +7395,15 @@ _G.X3.AimTouch = function()
             weapon = player:GetCurrentShootWeapon()
         end
 
-        local isShotgun, isSniper, isMortar = false, false, false
-        local currentAmmo = 1
-
-        if slua.isValid(weapon) then
-            local wID, wName = 0, ""
-            local wcache = _G.X3.AimTouchWeaponCache
-            if wcache and wcache.weapon == weapon then
-                wID, wName = wcache.id, wcache.name
+    local isShotgun, isSniper, isMortar = false, false, false
+    local currentAmmo = 1
+    local wName = "" -- [修改] 提升到外部作用域
+    if slua.isValid(weapon) then
+        local wID = 0
+        local wcache = _G.X3.AimTouchWeaponCache
+        if wcache and wcache.weapon == weapon then
+            wID = wcache.id
+            wName = wcache.name or "" -- [修改] 防止 nil
                 isShotgun, isSniper, isMortar = wcache.shotgun, wcache.sniper, wcache.mortar
             else
                 wID   = type(weapon.GetWeaponID)   == "function" and weapon:GetWeaponID()   or 0
@@ -7610,16 +7630,37 @@ _G.X3.AimTouch = function()
                     finalBonePos.Y = finalBonePos.Y + (tVelocity.Y * approxToF * predScale)
                 end
             end)
-        elseif not isMortar and predVal > 0 then
-            pcall(function()
-                if tVelocity and (tVelocity.X ~= 0 or tVelocity.Y ~= 0) then
-                    local distToEnemy = player:GetDistanceTo(target) / 100.0
-                    local ToF = (distToEnemy / 800.0) * (predVal / 50.0)
-                    finalBonePos.X = finalBonePos.X + (tVelocity.X * ToF)
-                    finalBonePos.Y = finalBonePos.Y + (tVelocity.Y * ToF)
+            elseif not isMortar and predVal > 0 then
+        pcall(function()
+            -- [优化] 加入 Z 轴判断，支持上下坡/跳跃目标预测
+            if tVelocity and (tVelocity.X ~= 0 or tVelocity.Y ~= 0 or (tVelocity.Z or 0) ~= 0) then
+                local distCm = player:GetDistanceTo(target)
+                
+                -- [优化] 根据武器类型动态匹配真实子弹速度 (m/s)
+                local bulletSpeedMs = 800
+                if isSniper then
+                    if wName:find("AWM") then bulletSpeedMs = 950
+                    elseif wName:find("Kar98") or wName:find("M24") then bulletSpeedMs = 760
+                    elseif wName:find("SKS") or wName:find("Mini") or wName:find("SLR") then bulletSpeedMs = 800
+                    else bulletSpeedMs = 780 end
+                else -- AR / SMG / SG
+                    if wName:find("M416") or wName:find("SCAR") or wName:find("AUG") then bulletSpeedMs = 880
+                    elseif wName:find("AKM") or wName:find("M762") or wName:find("Groza") then bulletSpeedMs = 715
+                    elseif wName:find("UMP") or wName:find("Vector") then bulletSpeedMs = 400
+                    else bulletSpeedMs = 800 end
                 end
-            end)
-        end
+                
+                local bulletSpeedCms = bulletSpeedMs * 100 -- 转换为 cm/s
+                local ToF = distCm / bulletSpeedCms        -- 计算飞行时间 (Time of Flight)
+                local predScale = predVal / 50.0           -- 50为100%预测
+                
+                -- [优化] 3D 提前量计算 (X/Y/Z 同步预测)
+                finalBonePos.X = finalBonePos.X + (tVelocity.X * ToF * predScale)
+                finalBonePos.Y = finalBonePos.Y + (tVelocity.Y * ToF * predScale)
+                finalBonePos.Z = finalBonePos.Z + ((tVelocity.Z or 0) * ToF * predScale) 
+            end
+        end)
+    end
 
         local rot = A.KismetMathLibrary.FindLookAtRotation(camLoc, finalBonePos)
         if not rot then return end
@@ -8078,10 +8119,10 @@ end
                         }
                     end
                     if _G.X3.XthrlenConfig.CustomHRecoil then entity.AccessoriesHRecoilFactor = _G.X3.XthrlenState.CustomTextData.HRecoil or 0.3
-                    elseif _G.X3.XthrlenConfig.LessRecoil then entity.AccessoriesHRecoilFactor = 0.2 end
+                    elseif _G.X3.XthrlenConfig.LessRecoil then entity.AccessoriesHRecoilFactor = 0.3 end
                     if _G.X3.XthrlenConfig.CustomVRecoil then entity.AccessoriesVRecoilFactor = _G.X3.XthrlenState.CustomTextData.VRecoil or 0.3
-                    elseif _G.X3.XthrlenConfig.VerticalRecoil then entity.AccessoriesVRecoilFactor = 0.2 end
-                    if _G.X3.XthrlenConfig.LessShake then entity.RecoilKick = 0.1; entity.RecoilKickADS = 0.1; entity.AnimationKick = 0.2 end
+                    elseif _G.X3.XthrlenConfig.VerticalRecoil then entity.AccessoriesVRecoilFactor = 0.3 end
+                    if _G.X3.XthrlenConfig.LessShake then entity.RecoilKick = 0.5; entity.RecoilKickADS = 0.5; entity.AnimationKick = 0.5 end
                     if _G.X3.XthrlenConfig.Accuracy then entity.GameDeviationAccuracy = 0.01 end
                     if _G.X3.XthrlenConfig.Crosshair then entity.GameDeviationFactor = 0.08 end
                     if entity.AutoAimingConfig then
