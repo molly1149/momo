@@ -3982,8 +3982,8 @@ end
         Text = "SRCHUB"
       },
             { Key = "ModMenu_AT_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Enable Aimbot Roy & Custom [ AKTIFKAN AIMBOT ROY & KUSTOM ]", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.AimTouchEnable end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchEnable = v return true end },
-            { Key = "ModMenu_AT_ADSOff_Ex", UI = AliasMap.TitleSwitcher, Text = "   ▶ ADS Offset Correction [ KOREKSI OFFSET BIDIK ]", ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return true end, SetFunc = function() return true end },
-         { Key = "ModMenu_AT_ADSYaw", UI = AliasMap.Slider, Text = "      Yaw Offset (Kiri/Kanan) [-5.0 to 5.0]", ExpandHandle = "ModMenu_AT_ADSOff_Ex", MinValue = -50, MaxValue = 50, min = -50, max = 50, GetFunc = function() return math.floor((_G.X3.XthrlenState.CustomTextData.AimTouchADSYawOffset or 0) * 10) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchADSYawOffset = v / 10.0 return true end },
+                     { Key = "ModMenu_AT_ADSYaw", UI = AliasMap.Slider, Text = "      Yaw Offset [0=Kiri, 50=Tengah, 100=Kanan]", ExpandHandle = "ModMenu_AT_ADSOff_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.X3.XthrlenState.CustomTextData.AimTouchADSYawOffset or 0) + 5.0) / 10.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchADSYawOffset = (v / 10.0) - 5.0 return true end },
+         { Key = "ModMenu_AT_ADSPitch", UI = AliasMap.Slider, Text = "      Pitch Offset [0=Atas, 50=Tengah, 100=Bawah]", ExpandHandle = "ModMenu_AT_ADSOff_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset or 0) + 5.0) / 10.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset = (v / 10.0) - 5.0 return true end },
          { Key = "ModMenu_AT_ADSPitch", UI = AliasMap.Slider, Text = "      Pitch Offset (Atas/Bawah) [-5.0 to 5.0]", ExpandHandle = "ModMenu_AT_ADSOff_Ex", MinValue = -50, MaxValue = 50, min = -50, max = 50, GetFunc = function() return math.floor((_G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset or 0) * 10) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset = v / 10.0 return true end },
 
             { Key = "ModMenu_AT_Hip_Ex", UI = AliasMap.TitleSwitcher, Text = "   ▶ Hipfire Aimbot [ AIMBOT HIPFIRE ]", ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.AimTouchHipfire end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchHipfire = v return true end },
@@ -7601,7 +7601,7 @@ _G.X3.AimTouch = function()
         if not finalBonePos then return end
         
             if isSniper and isADS then
-        local sniperHeightOffset = 30 -- 【重点】抬高的高度(单位:厘米)，可根据需要自行修改(建议30~60之间)
+        local sniperHeightOffset = 25 -- 【重点】抬高的高度(单位:厘米)，可根据需要自行修改(建议30~60之间)
         finalBonePos.Z = finalBonePos.Z + sniperHeightOffset
     end
         
