@@ -7503,9 +7503,9 @@ _G.X3.AimTouch = function()
              if type(target.GetPoseState) == "function" then tPose = target:GetPoseState()
              elseif target.PoseState ~= nil then tPose = target.PoseState end
          end)
-         local zHead, zSpine, zSpine01 = 70, 40, 20
-         if tPose == 1 then zHead, zSpine, zSpine01 = 45, 25, 15 -- 蹲下
-         elseif tPose == 2 then zHead, zSpine, zSpine01 = 20, 10, 5 end -- 趴下
+         local zHead, zSpine, zSpine01 = 75, 45, 25
+         if tPose == 1 then zHead, zSpine, zSpine01 = 55, 30, 15 -- 蹲下
+         elseif tPose == 2 then zHead, zSpine, zSpine01 = 40, 25, 10 end -- 趴下 (提高Z补偿，确保打头)
 
          local tPos = nil
          if _G.X3.SafeBonePos then tPos = _G.X3.SafeBonePos(target, selBoneName) end
@@ -7557,9 +7557,9 @@ _G.X3.AimTouch = function()
          if type(bestTarget.GetPoseState) == "function" then fPose = bestTarget:GetPoseState()
          elseif bestTarget.PoseState ~= nil then fPose = bestTarget.PoseState end
      end)
-     local fzHead, fzSpine, fzSpine01 = 70, 40, 20
-     if fPose == 1 then fzHead, fzSpine, fzSpine01 = 45, 25, 15
-     elseif fPose == 2 then fzHead, fzSpine, fzSpine01 = 20, 10, 5 end
+     local fzHead, fzSpine, fzSpine01 = 75, 45, 25
+     if fPose == 1 then fzHead, fzSpine, fzSpine01 = 55, 30, 15
+     elseif fPose == 2 then fzHead, fzSpine, fzSpine01 = 40, 25, 10 end -- 趴下 (提高Z补偿，确保打头)
 
      local finalBonePos = nil
      if _G.X3.SafeBonePos then finalBonePos = _G.X3.SafeBonePos(bestTarget, selBoneName) end
@@ -7610,7 +7610,6 @@ _G.X3.AimTouch = function()
                  
                  finalBonePos.X = finalBonePos.X + (tVelocity.X * ToF)
                  finalBonePos.Y = finalBonePos.Y + (tVelocity.Y * ToF)
-                 finalBonePos.Z = finalBonePos.Z + (tVelocity.Z * ToF) -- 增加Z轴预测(应对上下坡)
              end
          end)
      end
