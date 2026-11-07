@@ -7396,7 +7396,7 @@ _G.X3.AimTouch = function()
                 if wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin")
                    or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR")
                    or wName:find("Mini") or wName:find("Mk14") or wName:find("QBU") or wName:find("Mk12")
-                   or wName:find("VSS") then isSniper = true end
+                   or wName:find("VSS") or wName:find("M1") or wName:find("DSR") then isSniper = true end
                 if wName:lower():find("mortar") then isMortar = true end
                 _G.X3.AimTouchWeaponCache = {
                     weapon = weapon, id = wID, name = wName,
