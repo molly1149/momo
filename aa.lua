@@ -3982,9 +3982,6 @@ end
         Text = "SRCHUB"
       },
             { Key = "ModMenu_AT_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Enable Aimbot Roy & Custom [ AKTIFKAN AIMBOT ROY & KUSTOM ]", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.AimTouchEnable end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchEnable = v return true end },
-                     { Key = "ModMenu_AT_ADSYaw", UI = AliasMap.Slider, Text = "      Yaw Offset [0=Kiri, 50=Tengah, 100=Kanan]", ExpandHandle = "ModMenu_AT_ADSOff_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.X3.XthrlenState.CustomTextData.AimTouchADSYawOffset or 0) + 5.0) / 10.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchADSYawOffset = (v / 10.0) - 5.0 return true end },
-         { Key = "ModMenu_AT_ADSPitch", UI = AliasMap.Slider, Text = "      Pitch Offset [0=Atas, 50=Tengah, 100=Bawah]", ExpandHandle = "ModMenu_AT_ADSOff_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset or 0) + 5.0) / 10.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset = (v / 10.0) - 5.0 return true end },
-         { Key = "ModMenu_AT_ADSPitch", UI = AliasMap.Slider, Text = "      Pitch Offset (Atas/Bawah) [-5.0 to 5.0]", ExpandHandle = "ModMenu_AT_ADSOff_Ex", MinValue = -50, MaxValue = 50, min = -50, max = 50, GetFunc = function() return math.floor((_G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset or 0) * 10) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset = v / 10.0 return true end },
 
             { Key = "ModMenu_AT_Hip_Ex", UI = AliasMap.TitleSwitcher, Text = "   ▶ Hipfire Aimbot [ AIMBOT HIPFIRE ]", ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.AimTouchHipfire end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchHipfire = v return true end },
             { Key = "ModMenu_AT_Hip_IgKnock", UI = AliasMap.Switcher, Text = "      Ignore Knocked Enemy [ ABAIKAN MUSUH KNOCK ]", ExpandHandle = "ModMenu_AT_Hip_Ex", GetFunc = function() return _G.X3.XthrlenConfig.AimTouchHipIgKnock end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchHipIgKnock = v return true end },
@@ -4021,7 +4018,8 @@ end
             { Key = "ModMenu_AT_ScopeAll_Dist", UI = AliasMap.Slider, Text = "      Distance [ JARAK ] (1-500m)", ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.X3.XthrlenState.CustomTextData.AimTouchScopeDist or 300) / 5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchScopeDist = v * 5 return true end },
             { Key = "ModMenu_AT_ScopeAll_Pred", UI = AliasMap.Slider, Text = "      Run Prediction [ PREDIKSI ARAH LARI ]", ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchScopePred or 0 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchScopePred = v return true end },
             { Key = "ModMenu_AT_ScopeAll_Recoil", UI = AliasMap.Slider, Text = "      Recoil Compensation While Aim [ KOMPENSASI RECOIL SAAT AIM ]", ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 0, MaxValue = 50, min = 0, max = 50, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchScopeRecoil or 0 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchScopeRecoil = v return true end },
-
+         { Key = "ModMenu_AT_ScopeAll_Yaw", UI = AliasMap.Slider, Text = "      Yaw Offset (Kiri/Kanan) [0=Kiri, 50=Tengah, 100=Kanan]", ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.X3.XthrlenState.CustomTextData.AimTouchScopeYawOffset or 0) + 5.0) / 10.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchScopeYawOffset = (v / 10.0) - 5.0 return true end },
+         { Key = "ModMenu_AT_ScopeAll_Pitch", UI = AliasMap.Slider, Text = "      Pitch Offset (Atas/Bawah) [0=Atas, 50=Tengah, 100=Bawah]", ExpandHandle = "ModMenu_AT_ScopeAll_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.X3.XthrlenState.CustomTextData.AimTouchScopePitchOffset or 0) + 5.0) / 10.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchScopePitchOffset = (v / 10.0) - 5.0 return true end },
             { Key = "ModMenu_AT_Sniper_Ex", UI = AliasMap.TitleSwitcher, Text = "   ▶ Scope Aimbot (Sniper) [ AIMBOT SCOPE SNIPER ]", ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.AimTouchScopeSniper end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchScopeSniper = v return true end },
             { Key = "ModMenu_AT_Sniper_IgKnock", UI = AliasMap.Switcher, Text = "      Ignore Knocked Enemy [ ABAIKAN MUSUH KNOCK ]", ExpandHandle = "ModMenu_AT_Sniper_Ex", GetFunc = function() return _G.X3.XthrlenConfig.AimTouchSniperIgKnock end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchSniperIgKnock = v return true end },
             { Key = "ModMenu_AT_Sniper_IgBot", UI = AliasMap.Switcher, Text = "      Ignore Bot [ ABAIKAN BOT ]", ExpandHandle = "ModMenu_AT_Sniper_Ex", GetFunc = function() return _G.X3.XthrlenConfig.AimTouchSniperIgBot end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchSniperIgBot = v return true end },
@@ -4033,7 +4031,8 @@ end
             { Key = "ModMenu_AT_Sniper_FOV", UI = AliasMap.Slider, Text = "      FOV Radius [ RADIUS FOV ] (1-100)", ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchSniperFOV or 20 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchSniperFOV = v return true end },
             { Key = "ModMenu_AT_Sniper_Dist", UI = AliasMap.Slider, Text = "      Distance [ JARAK ] (1-500m)", ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.X3.XthrlenState.CustomTextData.AimTouchSniperDist or 400) / 5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchSniperDist = v * 5 return true end },
             { Key = "ModMenu_AT_Sniper_Pred", UI = AliasMap.Slider, Text = "      Run Prediction [ PREDIKSI ARAH LARI ] (0-100)", ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchSniperPred or 0 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchSniperPred = v return true end },
-
+         { Key = "ModMenu_AT_Sniper_Yaw", UI = AliasMap.Slider, Text = "      Yaw Offset (Kiri/Kanan) [0=Kiri, 50=Tengah, 100=Kanan]", ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.X3.XthrlenState.CustomTextData.AimTouchSniperYawOffset or 0) + 5.0) / 10.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchSniperYawOffset = (v / 10.0) - 5.0 return true end },
+         { Key = "ModMenu_AT_Sniper_Pitch", UI = AliasMap.Slider, Text = "      Pitch Offset (Atas/Bawah) [0=Atas, 50=Tengah, 100=Bawah]", ExpandHandle = "ModMenu_AT_Sniper_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return math.floor((((_G.X3.XthrlenState.CustomTextData.AimTouchSniperPitchOffset or 0) + 5.0) / 10.0) * 100 + 0.5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchSniperPitchOffset = (v / 10.0) - 5.0 return true end },
             { Key = "ModMenu_AT_Mortar_Ex", UI = AliasMap.TitleSwitcher, Text = "   ▶ Mortar Aimbot [ AIMBOT SUNG COI ]", ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.AimTouchMortar end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchMortar = v return true end },
             { Key = "ModMenu_AT_Mortar_Pred", UI = AliasMap.Slider, Text = "      Run Prediction [ PREDIKSI ARAH LARI ] (0-100)", ExpandHandle = "ModMenu_AT_Mortar_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchMortarPred or 0 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchMortarPred = v return true end },
             { Key = "ModMenu_AT_Mortar_FOV", UI = AliasMap.Slider, Text = "      FOV Radius [ RADIUS FOV ] (1-360)", ExpandHandle = "ModMenu_AT_Mortar_Ex", MinValue = 1, MaxValue = 360, min = 1, max = 360, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchMortarFOV or 360 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchMortarFOV = v return true end },
@@ -7645,12 +7644,22 @@ _G.X3.AimTouch = function()
              deltaPitch = deltaPitch - (camRot.Pitch - currentRot.Pitch)
          end
          
-         -- ================= [FIX] ADS Offset Correction =================
-         -- Koreksi Offset Kanan/Kiri (Yaw) & Atas/Bawah (Pitch)
-         local adsYawOff = _G.X3.XthrlenState.CustomTextData.AimTouchADSYawOffset or 0
-         local adsPitchOff = _G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset or 0
-         deltaYaw = deltaYaw + adsYawOff
-         deltaPitch = deltaPitch + adsPitchOff
+         -- ================= [FIX] 独立 ADS Offset Correction =================
+         local CTD = _G.X3.XthrlenState.CustomTextData
+         local yawOff, pitchOff = 0, 0
+         
+         if isSniper then
+             -- 【狙击枪】独立偏移
+             yawOff   = CTD.AimTouchSniperYawOffset or 0
+             pitchOff = CTD.AimTouchSniperPitchOffset or 0
+         else
+             -- 【步枪/普通Scope】独立偏移
+             yawOff   = CTD.AimTouchScopeYawOffset or 0
+             pitchOff = CTD.AimTouchScopePitchOffset or 0
+         end
+         
+         deltaYaw   = deltaYaw + yawOff
+         deltaPitch = deltaPitch + pitchOff
          -- ===============================================================
      end
         if deltaYaw > 180 then deltaYaw = deltaYaw - 360 end
