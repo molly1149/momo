@@ -3982,6 +3982,9 @@ end
         Text = "SRCHUB"
       },
             { Key = "ModMenu_AT_Ex", UI = AliasMap.TitleSwitcher, Text = "▶ Enable Aimbot Roy & Custom [ AKTIFKAN AIMBOT ROY & KUSTOM ]", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.AimTouchEnable end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchEnable = v return true end },
+            { Key = "ModMenu_AT_ADSOff_Ex", UI = AliasMap.TitleSwitcher, Text = "   ▶ ADS Offset Correction [ KOREKSI OFFSET BIDIK ]", ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return true end, SetFunc = function() return true end },
+         { Key = "ModMenu_AT_ADSYaw", UI = AliasMap.Slider, Text = "      Yaw Offset (Kiri/Kanan) [-5.0 to 5.0]", ExpandHandle = "ModMenu_AT_ADSOff_Ex", MinValue = -50, MaxValue = 50, min = -50, max = 50, GetFunc = function() return math.floor((_G.X3.XthrlenState.CustomTextData.AimTouchADSYawOffset or 0) * 10) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchADSYawOffset = v / 10.0 return true end },
+         { Key = "ModMenu_AT_ADSPitch", UI = AliasMap.Slider, Text = "      Pitch Offset (Atas/Bawah) [-5.0 to 5.0]", ExpandHandle = "ModMenu_AT_ADSOff_Ex", MinValue = -50, MaxValue = 50, min = -50, max = 50, GetFunc = function() return math.floor((_G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset or 0) * 10) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset = v / 10.0 return true end },
 
             { Key = "ModMenu_AT_Hip_Ex", UI = AliasMap.TitleSwitcher, Text = "   ▶ Hipfire Aimbot [ AIMBOT HIPFIRE ]", ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.AimTouchHipfire end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchHipfire = v return true end },
             { Key = "ModMenu_AT_Hip_IgKnock", UI = AliasMap.Switcher, Text = "      Ignore Knocked Enemy [ ABAIKAN MUSUH KNOCK ]", ExpandHandle = "ModMenu_AT_Hip_Ex", GetFunc = function() return _G.X3.XthrlenConfig.AimTouchHipIgKnock end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchHipIgKnock = v return true end },
@@ -7634,14 +7637,22 @@ _G.X3.AimTouch = function()
 
         local deltaYaw   = rot.Yaw   - currentRot.Yaw
         local deltaPitch = rot.Pitch - currentRot.Pitch
-        if isADS then
-            local camRot = nil
-            if type(camManager.GetCameraRotation) == "function" then camRot = camManager:GetCameraRotation() end
-            if camRot then
-                deltaYaw   = deltaYaw   - (camRot.Yaw   - currentRot.Yaw)
-                deltaPitch = deltaPitch - (camRot.Pitch - currentRot.Pitch)
-            end
-        end
+     if isADS then
+         local camRot = nil
+         if type(camManager.GetCameraRotation) == "function" then camRot = camManager:GetCameraRotation() end
+         if camRot then
+             deltaYaw   = deltaYaw   - (camRot.Yaw   - currentRot.Yaw)
+             deltaPitch = deltaPitch - (camRot.Pitch - currentRot.Pitch)
+         end
+         
+         -- ================= [FIX] ADS Offset Correction =================
+         -- Koreksi Offset Kanan/Kiri (Yaw) & Atas/Bawah (Pitch)
+         local adsYawOff = _G.X3.XthrlenState.CustomTextData.AimTouchADSYawOffset or 0
+         local adsPitchOff = _G.X3.XthrlenState.CustomTextData.AimTouchADSPitchOffset or 0
+         deltaYaw = deltaYaw + adsYawOff
+         deltaPitch = deltaPitch + adsPitchOff
+         -- ===============================================================
+     end
         if deltaYaw > 180 then deltaYaw = deltaYaw - 360 end
         if deltaYaw < -180 then deltaYaw = deltaYaw + 360 end
         if deltaPitch > 180 then deltaPitch = deltaPitch - 360 end
