@@ -495,7 +495,8 @@ _G.MODSKIN_LIST = {
     1108004377, -- Happy Penguin Pan (Level 5)
     1108004416, -- Hot Dance Fan - Pan (Level 3)
     1108005050, -- Frost Dragon - Dagger (Level 3)
-    1104001035, -- S6861104003046, -- S12K
+    1104001035, -- S686
+    1104003046, -- S12K
     1104004051, -- DBS
     452001,     -- Icy Gloves
     1400563,
@@ -509,7 +510,7 @@ _G.MODSKIN_LIST = {
 for _, id in ipairs(_G.MODSKIN_LIST) do _G.MODSKIN_IDS[id] = true end
 end
 
--- (Wingman helipad summon removedon request; XSuit summon untouched)
+-- (Wingman helipad summon removed on request; XSuit summon untouched)
 
 -- ========== FEATURE TOGGLES (file scope) ==========
 -- Defined at file scope, not inside the main loader, because the gate sites
@@ -546,7 +547,7 @@ _G.AddOutfitFeatOn = featOn
 -- in the loader before this chunk runs to keep them off.
 if _G.CHETAN_FILELOG_ON == nil then _G.CHETAN_FILELOG_ON = false end
 
--- Dedicatedon-device file log for the pet system (CHETAN_PET.log next to
+-- Dedicated on-device file log for the pet system (CHETAN_PET.log next to
 -- the save files). Same event-gated discipline as the AIR log: spawn,
 -- intercepts, match desired/container/attach lines only -- never per-tick.
 _G.AddOutfitPetLogPath = _G.AddOutfitPetLogPath or nil
@@ -579,7 +580,7 @@ end
 
 -- On-device file log for the airborne path (CHETAN_AIR.log next to the save
 -- files). File scope so BOTH the match-payload patch (above the AIR table)
--- and the AIR applier can use it. Event-gatedonly: never per-tick.
+-- and the AIR applier can use it. Event-gated only: never per-tick.
 _G.AddOutfitAirLog = function(tag, msg)
     if _G.CHETAN_FILELOG_ON ~= true then return end
     pcall(function()
@@ -673,7 +674,7 @@ end
 -- On-device file log for the grenade blast path (CHETAN_GRENADE.log).
 -- Deliberately NOT gated by CHETAN_FILELOG_ON: this is the active
 -- diagnostic surface (throw -> resolve -> blast route/scale -> sound ->
--- kill credit). Event-gatedonly: throw, blast, kill lines -- never per-tick.
+-- kill credit). Event-gated only: throw, blast, kill lines -- never per-tick.
 _G.AddOutfitGrenadeLogPath = _G.AddOutfitGrenadeLogPath or nil
 _G.AddOutfitGrenadeLog = function(msg)
     if _G.CHETAN_FILELOG_ON ~= true then return end
@@ -791,7 +792,7 @@ local _outfitSavePathCache = nil
     local _modSavePathCache = nil
     local _getOutfitSavePath
     -- Resolves the current account uid (default when pre-login).
-    local function __currentPid()
+    local function _currentPid()
         local pid = "default"
         pcall(function()
             local Subsystem = require("GameLua.GameCore.Module.Subsystem.SubsystemMgr")
@@ -812,7 +813,7 @@ local _outfitSavePathCache = nil
         local base = ""
         pcall(function()
             -- _getOutfitSavePath() resolves the real package dir by probing for
-            -- the game file, so derive ours from that insteadof guessing.
+            -- the game file, so derive ours from that instead of guessing.
             local gp = _getOutfitSavePath and _getOutfitSavePath() or ""
             base = gp:match("^(.*)/[^/]+$") or ""
         end)
@@ -831,11 +832,11 @@ local _outfitSavePathCache = nil
             return _outfitSavePathCache
         end
         if _outfitSavePathCache then
-            local nowPid = __currentPid()
+            local nowPid = _currentPid()
             if nowPid == "default" then return _outfitSavePathCache end
             _outfitSavePathCache = nil
         end
-        local pid = __currentPid()
+        local pid = _currentPid()
         local fileName = "AddOutfit_Save_" .. pid .. ".txt"
         local possibleDirs = {
             '/storage/emulated/0/Android/data/com.pubg.imobile/files/',
@@ -856,7 +857,7 @@ local _outfitSavePathCache = nil
     end
 
     -- Forward decl: _saveNeatModSave is defined further down but is called from
-    -- here so an equip is persisted immediately insteadof waiting for the
+    -- here so an equip is persisted immediately instead of waiting for the
     -- debounced _flushSave.
     local _saveNeatModSave
     -- Forward decl: _saveNeatModSave is assigned at 662 but only CALLED at
@@ -873,7 +874,7 @@ local isStockThrowableRes
 -- and _saveNeatModSave below both call it.
 local function mergePersistedVehicleSlots(list)
     local saved = _G._savedVehicleSlotList
-    if not savedor type(list) ~= "table" then return list end
+    if not saved or type(list) ~= "table" then return list end
     for subType, insList in pairs(saved) do
         if type(insList) == "table" and #insList > 0 then
             local cur = list[subType]
@@ -1035,7 +1036,7 @@ local function _persistModOutfit(resID, insID)
                         -- insToRes is keyed by ins, not res; indexing it by a
                         -- resID always yielded 0, so accessories were saved as
                         -- res:0 (unremovable, and the self-clean signature).
-                        -- Resolve via resToIns andonly write when we have a
+                        -- Resolve via resToIns and only write when we have a
                         -- real ins; the clothes= blob still covers the res.
                         local iIns = (_G.AddOutfit_R and _G.AddOutfit_R.resToIns
                             and _G.AddOutfit_R.resToIns[resID]) or 0
@@ -1166,7 +1167,7 @@ local function _persistModOutfit(resID, insID)
                     for slot, info in pairs(GTS.GarageVehicleInfo) do
                         if info and info.inst_id then
                             lines[#lines + 1] = "garage_" .. tostring(slot) .. "="
-                                .. tostring(info.inst_id) .. ":" .. tostring(info.res_idor 0)
+                                .. tostring(info.inst_id) .. ":" .. tostring(info.res_id or 0)
                         end
                     end
                 end
@@ -1192,7 +1193,7 @@ local function _persistModOutfit(resID, insID)
     -- The game file (AddOutfit_Save_*.txt) mixes OUR keys with the game's own
     -- (wpnskin_*, vst_skin, hall_theme_*, garage_*, vehicle_*, equipins_*), so it
     -- must stay byte-compatible and cannot be prettified. This file holds only
-    -- what the modowns and is the SOURCE OF TRUTH: _loadEquippedCache parses
+    -- what the mod owns and is the SOURCE OF TRUTH: _loadEquippedCache parses
     -- the game file first and this file second, so ours wins on every key.
     -- Safe to delete - it only rebuilds from whatever the game file still has.
     local MAX_SAFE_INT = 9007199254740992   -- 2^53; bigger insIDs lose precision
@@ -1323,7 +1324,7 @@ local function _persistModOutfit(resID, insID)
                 .. " placeholder/unusable dropped"
             -- Last gun the player actually equipped. This MUST be written to
             -- the mod file too: the game file (AddOutfit_Save_*.txt) gets
-            -- rewritten by the game on startup, so a key emittedonly there is
+            -- rewritten by the game on startup, so a key emitted only there is
             -- gone by the next launch -- which is why last_lobby_weapon never
             -- reappeared even though wpnskin_* did.
             local lw = _LAST_LOBBY_WEAPON
@@ -1472,8 +1473,8 @@ local function _persistModOutfit(resID, insID)
             garage = garage or _G._savedGarageVehicles or {}
             for _, slot in ipairs(keysOf(garage)) do
                 local info = garage[slot]
-                local ins = tonumber(info and (info.inst_idor info.instId))
-                local res = tonumber(info and (info.res_idor info.resId)) or 0
+                local ins = tonumber(info and (info.inst_id or info.instId))
+                local res = tonumber(info and (info.res_id or info.resId)) or 0
                 if ins and ins > 0 then put("garage_" .. slot, ins .. ":" .. res) end
             end
 
@@ -1488,7 +1489,7 @@ local function _persistModOutfit(resID, insID)
             -- vst_skin (last equipped lobby vehicle) is mod-owned: the game
             -- file loses injected picks (the server never knew them), so the
             -- last pick is persisted here like hall_theme and wins on load.
-            -- Recordedon every pick (real or injected), so this never goes
+            -- Recorded on every pick (real or injected), so this never goes
             -- stale; live DataMgr is only a fallback.
             pcall(function()
                 local vst = tonumber(_G._savedVstSkin)
@@ -1558,7 +1559,7 @@ local function _persistModOutfit(resID, insID)
                     -- live game values on every boot. Strip those so the game
                     -- file always wins for them. vst_skin is intentionally
                     -- KEPT: it is mod-owned now (last equipped lobby vehicle,
-                    -- savedon every pick) and must win on load.
+                    -- saved on every pick) and must win on load.
                     local kept = {}
                     for line in c:gmatch("[^\n]+") do
                         local k = line:match("^%s*([^=%s]-)%s*=")
@@ -1927,7 +1928,7 @@ local function _persistModOutfit(resID, insID)
             pcall(_saveEquippedCache)
             pcall(_saveNeatModSave)
             -- Keep the restore mirrors in step with the live cache. This used to
-            -- re-read the mod file we had just written, which couldonly echo
+            -- re-read the mod file we had just written, which could only echo
             -- stale values back over the cache it was meant to mirror.
             local cch2 = _G.AddOutfitEquippedCache
             if cch2 then
@@ -2088,7 +2089,7 @@ local function _persistModOutfit(resID, insID)
             end
             -- Injected (client-only) emotes are not owned server-side. Sending
             -- them makes the server reject the WHOLE list (error 20520005) and
-            -- the wheel then reverts. Keep them local, sendonly real ones.
+            -- the wheel then reverts. Keep them local, send only real ones.
             local R = getR()
             local serverList, injected = {}, {}
             for _, ins in ipairs(motion_list) do
@@ -2180,7 +2181,7 @@ local function _persistModOutfit(resID, insID)
         -- per-line print and the implicit flush are gone. Set
         -- _G.SKIN_VERBOSE_LOG = true to also mirror lines to logcat.
         _G.SKIN_VERBOSE_LOG = _G.SKIN_VERBOSE_LOG or false
-        -- File logging is OFF: CHETAN_flog.txt is never createdor appended.
+        -- File logging is OFF: CHETAN_flog.txt is never created or appended.
         -- log()/flog() stay as shims so every call site keeps working, but they
         -- now do no string building, no ring buffer and no disk I/O at all.
         -- Set _G.SKIN_VERBOSE_LOG = true to mirror messages to logcat (still no file).
@@ -2233,7 +2234,7 @@ local function _persistModOutfit(resID, insID)
                     f:close()
                 end
                 -- Retired menu toggles (entries removed from BuildModMenuStack):
-                -- always on. A stale settings file couldotherwise leave them
+                -- always on. A stale settings file could otherwise leave them
                 -- off with no UI left to re-enable them.
                 _G.AddOutfitFeat.grenade_fx = true
                 _G.AddOutfitFeat.grenade_snd = true
@@ -2320,7 +2321,7 @@ local function _persistModOutfit(resID, insID)
                     local maxStar, maxItem = {}, {}
                     local periodMembers = {}
                     for _, data in pairs(tbl) do
-                        local period = tonumber(data.Periodor data.period)
+                        local period = tonumber(data.Period or data.period)
                         local star   = tonumber(data.Star or data.star or data.Level or data.level)
                         local itm    = tonumber(data.ItemID or data.itemID or data.ItemId)
                         if period and star and itm then
@@ -2404,9 +2405,9 @@ local function _persistModOutfit(resID, insID)
             local nonMax = buildNonMaxLevelSet()
             local seen, count, skipped = {}, 0, 0
             for id, v in pairs(ItemTable) do
-                local rid = tonumber(v.ID or v.Idor id)
+                local rid = tonumber(v.ID or v.Id or id)
                 if rid and rid > 0 and not seen[rid] then
-                    local bpId = tonumber(v.BPID or v.bpID or v.BpIdor 0) or 0
+                    local bpId = tonumber(v.BPID or v.bpID or v.BpId or 0) or 0
                     local mainTab = tonumber(v.WardrobeMainTab or v.wardrobeMainTab or 0) or 0
                     if bpId ~= 0 or mainTab ~= 0 then
                         seen[rid] = true
@@ -2755,7 +2756,7 @@ local function _persistModOutfit(resID, insID)
         -- but must not overwrite an occupied mod cache entry unless that exact
         -- live item was just requested by the player. Deliberate removals are
         -- remembered so the next live read does not resurrect them.
-        -- Storedon _S (not as new closure locals) because this loader is near
+        -- Stored on _S (not as new closure locals) because this loader is near
         -- Lua's local cap.
         _S.lobbyClock = function()
             local now = 0
@@ -2765,7 +2766,7 @@ local function _persistModOutfit(resID, insID)
         _S.lobbyNoteRequest = function(insID, isPutDown)
             insID = tonumber(insID)
             if not insID or insID <= 0 then return end
-            _S.lobbyGuard = _S.lobbyGuardor {
+            _S.lobbyGuard = _S.lobbyGuard or {
                 putOnIns = 0, putOnAt = -1e9, putDownIns = 0, putDownAt = -1e9,
                 clearedEquip = {}, clearedWeapon = {}, clearedCloth = {},
                 clearedThrow = {}, clearedOutfit = nil,
@@ -2783,7 +2784,7 @@ local function _persistModOutfit(resID, insID)
             liveRes = tonumber(liveRes)
             if not liveRes or liveRes <= 0 then return false end
             liveIns = tonumber(liveIns) or 0
-            _S.lobbyGuard = _S.lobbyGuardor {
+            _S.lobbyGuard = _S.lobbyGuard or {
                 putOnIns = 0, putOnAt = -1e9, putDownIns = 0, putDownAt = -1e9,
                 clearedEquip = {}, clearedWeapon = {}, clearedCloth = {},
                 clearedThrow = {}, clearedOutfit = nil,
@@ -2826,7 +2827,7 @@ local function _persistModOutfit(resID, insID)
                 -- Do NOT fall through to `return true` below: that branch
                 -- treated any unknown live cloth as adoptable, so a stale
                 -- mask/glasses the game/server restored into rolewear got
-                -- re-added to the cache and re-appliedon every lobby
+                -- re-added to the cache and re-applied on every lobby
                 -- snapshot (visible as accessories "appearing" on inventory
                 -- close). Only adopt cloth the player just put on.
                 return intended
@@ -2843,8 +2844,8 @@ local function _persistModOutfit(resID, insID)
         end
         _S.lobbyProtectPutDown = function(item)
             if type(item) ~= "table" then return false end
-            local insID = tonumber(item.instidor item.insID or item.ins_id)
-            local resID = tonumber(item.res_idor item.resID or item.resId)
+            local insID = tonumber(item.instid or item.insID or item.ins_id)
+            local resID = tonumber(item.res_id or item.resID or item.resId)
             if not insID or insID <= 0 then return false end
             if not isInjectedIns(insID) then return false end
             resID = resID or R.insToRes[insID]
@@ -3127,9 +3128,9 @@ local function _persistModOutfit(resID, insID)
                     DataMgr.VehicleSlotList = DataMgr.VehicleSlotList or {}
                     for subType, insList in pairs(_G._savedVehicleSlotList) do
                         if insList and #insList > 0 then
-                            -- Union insteadof replace: the server may already have
+                            -- Union instead of replace: the server may already have
                             -- populated this subType with real (owned) skins, and
-                            -- those must survive alongside the injectedones.
+                            -- those must survive alongside the injected ones.
                             local cur = DataMgr.VehicleSlotList[subType]
                             if type(cur) ~= "table" then
                                 cur = {}
@@ -3245,7 +3246,7 @@ local function _persistModOutfit(resID, insID)
 
         local function detectEquipLevelFromBaseId(baseId, catalogResID)
             baseId, catalogResID = tonumber(baseId), tonumber(catalogResID)
-            if not baseIdor baseId <= 0 then return nil end
+            if not baseId or baseId <= 0 then return nil end
             local level
             pcall(function()
                 catalogResID = catalogResID and normalizeEquipCatalogRes(catalogResID) or catalogResID
@@ -3294,7 +3295,7 @@ local function _persistModOutfit(resID, insID)
 
         local function isBaseEquipItemId(itemId)
             itemId = tonumber(itemId)
-            if not itemIdor itemId <= 0 then return false end
+            if not itemId or itemId <= 0 then return false end
             if GAME_HELMET_LEVEL[itemId] or GAME_BAG_LEVEL[itemId] then return true end
             if itemId >= 1505000001 and itemId <= 1505000100 then return true end
             if itemId >= 1501000000 and itemId < 1502000000 then return true end
@@ -3410,7 +3411,7 @@ local function _persistModOutfit(resID, insID)
 
         -- Single entry point used by every bag/helmet writer.
         -- Returns nil when the level genuinely cannot be determined, so callers
-        -- leave the slot alone insteadof guessing (guessing is what flickered).
+        -- leave the slot alone instead of guessing (guessing is what flickered).
         local function resolveWornEquipLevel(char, slotID, isHelmet)
             local lvl = wornLevelFromRealItem(getCharRealEquipItemID(char, slotID), isHelmet)
             if lvl then return lvl end
@@ -3470,7 +3471,7 @@ local function _persistModOutfit(resID, insID)
 
         -- Drop the persisted accessory/cloth mirrors for the given subtypes, so
         -- a later boot restore (_G._savedRoleWearList / _savedMask / _savedGlasses
-        -- / _savedOutfitClothes) cannot resurrect an item the player removedor
+        -- / _savedOutfitClothes) cannot resurrect an item the player removed or
         -- a suit switch cleared.
         local function forgetSavedClothBySubTypes(stMap)
             if not stMap then return end
@@ -3676,7 +3677,7 @@ local function _persistModOutfit(resID, insID)
                     end
                     if bag.weapon_skin_list then
                         for weaponID, entry in pairs(bag.weapon_skin_list) do
-                            cacheWeaponSkinFromIns(weaponID, entry and (entry.skin_idor entry.skinId), true)
+                            cacheWeaponSkinFromIns(weaponID, entry and (entry.skin_id or entry.skinId), true)
                         end
                     end
                 end
@@ -3941,7 +3942,7 @@ local function _persistModOutfit(resID, insID)
         -- lobby paths skip the download check — the classic "lobby shows,
         -- match hides". One request per resID per session; _G.download_item
         -- itself no-ops when the pak state is already Done.
-        _G.AddOutfitWearDlQueued = _G.AddOutfitWearDlQueuedor {}
+        _G.AddOutfitWearDlQueued = _G.AddOutfitWearDlQueued or {}
         local function ensureWearDownloads()
             pcall(function()
                 local cch = cache()
@@ -4305,7 +4306,7 @@ local function _persistModOutfit(resID, insID)
             if n > 0 then
                 _S.injectedDone = true
                 -- Record entity identity + a depot probe so a later call can
-                -- detect a wiped/replaced depot and re-inject insteadof
+                -- detect a wiped/replaced depot and re-inject instead of
                 -- short-circuiting (inventory lost after a few matches).
                 _S.injectedEntity = entity
                 if not _S.injectedProbeRes and expanded[1] then
@@ -4429,7 +4430,7 @@ local function _persistModOutfit(resID, insID)
                 end)
                 pcall(function()
                     local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
-                    if not fbdor not fbd.GetRolewearByIndex then return end
+                    if not fbd or not fbd.GetRolewearByIndex then return end
                     for idx = 1, 10 do
                         local list = fbd:GetRolewearByIndex(idx)
                         if list == nil then break end
@@ -4551,7 +4552,7 @@ local function _persistModOutfit(resID, insID)
             local handled = false
             -- Remember this deliberate removal so a post-blip server read does
             -- not resurrect the same skin as if the player still wore it.
-            _S.lobbyGuard = _S.lobbyGuardor {
+            _S.lobbyGuard = _S.lobbyGuard or {
                 putOnIns = 0, putOnAt = -1e9, putDownIns = 0, putDownAt = -1e9,
                 clearedEquip = {}, clearedWeapon = {}, clearedCloth = {},
                 clearedThrow = {}, clearedOutfit = nil,
@@ -4675,7 +4676,7 @@ local function _persistModOutfit(resID, insID)
         takeOffClothVisual = function(resID, insID, kind)
             resID, insID = tonumber(resID), tonumber(insID)
             if not resID or not insID then return end
-            kind = kindor getClothKind(resID)
+            kind = kind or getClothKind(resID)
             local clearMap = subTypesToClearForKind(kind)
             if not clearMap then return end
             pcall(function()
@@ -4693,7 +4694,7 @@ local function _persistModOutfit(resID, insID)
                     itemSt = _K.ST_TOP
                     for st in pairs(clearMap) do
                         local oIns, oRes = findWornInsBySubType(st)
-                        if oIns andoRes andoRes > 0 then
+                        if oIns and oRes and oRes > 0 then
                             TAM.ChangeAvatarEquipment(uid, AvatarData.CreateAvatarCustom(oRes), false)
                         end
                     end
@@ -4759,8 +4760,8 @@ local function _persistModOutfit(resID, insID)
         --
         -- PutOnThrowObjectSkin resolves the subtype via
         -- wardrobe_data:GetHallDepotItemDataByInsID(putOnId) and does NOTHING when
-        -- that returns nil (fashionbag_data.lua:594). During boot restore andon
-        -- a fresh login the hall depot does not holdour injected items yet, so
+        -- that returns nil (fashionbag_data.lua:594). During boot restore and on
+        -- a fresh login the hall depot does not hold our injected items yet, so
         -- the call silently no-ops and the grenade stays on the stock default
         -- until the player clicks it by hand. We verify the result and fall back
         -- to SetThrowObjectSkin(st, insID) directly, which needs no depot lookup.
@@ -4814,7 +4815,7 @@ local function _persistModOutfit(resID, insID)
                 ensureKnapsackExtInfo()
                 local item = { res_id = resID, instid = insID, count = 1, color = 0, pattern = 0 }
                 local oldItem = nil
-                if oldInsID andoldInsID > 0 andoldResID andoldResID > 0 then
+                if oldInsID and oldInsID > 0 and oldResID and oldResID > 0 then
                     oldItem = { res_id = oldResID, instid = oldInsID, count = 1, color = 0, pattern = 0 }
                 end
                 local HT = require("client.logic.lobby.hall_theme_utils")
@@ -4854,7 +4855,7 @@ local function _persistModOutfit(resID, insID)
                     wl:on_puton_rsp(_K.NET_OK, item, oldItem, 1, insID, 0)
                 end
                 saveEquipSkin(resID, insID)
-                if oldResID andoldResID > 0 andoldResID ~= resID then
+                if oldResID and oldResID > 0 and oldResID ~= resID then
                     softRemoveEquipVisual(oldResID, slot)
                 end
                 -- البراشوت والجلايدر: لا يُطبقان مرئياً في اللوبي، يُخزنان للجيم فقط
@@ -4921,7 +4922,7 @@ local function _persistModOutfit(resID, insID)
                 slot = tonumber(slot) or (isBodyClothSubType(itemSt) and _K.PKG_SLOT or 1)
 
                 local olditem
-                if oldIns andoldIns ~= insID then
+                if oldIns and oldIns ~= insID then
                     olditem = { res_id = oldRes or R.insToRes[oldIns], count = 1, instid = oldIns }
                 end
 
@@ -5000,9 +5001,9 @@ local function _persistModOutfit(resID, insID)
                 fbd:UpdateCurrentFashionBagWeaponSkin(weaponID, insID)
             end
             -- The lobby "isUsing" tick comes from GetSkinIdByWeaponID, which
-            -- is hooked to readour cache directly, so mirroring into
+            -- is hooked to read our cache directly, so mirroring into
             -- bag.weapon_skin_list (publishLobbyWeaponSkinList) is redundant
-            -- and was a second full list rebuildon every click.
+            -- and was a second full list rebuild on every click.
             local bagIdx = fbd:GetFashionBagUseIndex()
             HT.proc_skin_list_chg("weapon_skin", weaponID, insID, bagIdx, {})
 
@@ -5025,7 +5026,7 @@ local function _persistModOutfit(resID, insID)
         -- SetGunID branch skips us (currentSkin == w.insID), and then every
         -- later click on that same skin is dismissed as a duplicate and the
         -- gun never visibly changes -- which reads as a laggy/dead switch.
-        _G.AddOutfitWeaponEquipped = _G.AddOutfitWeaponEquippedor {}
+        _G.AddOutfitWeaponEquipped = _G.AddOutfitWeaponEquipped or {}
         local function clearWeaponEquippedMark(weaponID)
             if weaponID then
                 _G.AddOutfitWeaponEquipped[tonumber(weaponID)] = nil
@@ -5179,7 +5180,7 @@ local function _persistModOutfit(resID, insID)
         -- Intercepts the game's own ProcPutOnHallTheme (V2 hookHallTheme):
         -- records manual picks made through ANY path (game UI direct calls,
         -- server-driven applies) so save + restore track the live theme.
-        -- Self-inflicted calls (putOnHallTheme above) are flaggedoff.
+        -- Self-inflicted calls (putOnHallTheme above) are flagged off.
         local function hookHallThemeProc()
             pcall(function()
                 local HT = require("client.logic.lobby.hall_theme_utils")
@@ -5221,7 +5222,7 @@ local function _persistModOutfit(resID, insID)
                 -- is stuck elsewhere -- e.g. wardrobe-close quits the
                 -- preview (unload) and nothing re-shows the real theme, so
                 -- the background sits OFF until the next pick. A switch in
-                -- flight is left alone to landon its own.
+                -- flight is left alone to land on its own.
                 local showing, displayed, loading = 0, 0, 0
                 pcall(function()
                     local HT = require("client.logic.lobby.hall_theme_utils")
@@ -5288,7 +5289,7 @@ local function _persistModOutfit(resID, insID)
 
         -- Lobby weapon skin lookup. The exact-DataMgr.Weapon_ID entry wins.
         -- If there is none, fall back to the weapon the player last equipped
-        -- (persisted per weapon type) insteadof iterating pairs() -- pairs
+        -- (persisted per weapon type) instead of iterating pairs() -- pairs
         -- order is arbitrary, so the lobby preview would jump between random
         -- skins on each reload.
         local function getWeaponSkinResFast()
@@ -5380,7 +5381,7 @@ local function _persistModOutfit(resID, insID)
             roleData.bshow = true
             roleData.pspace_wear_ext = roleData.pspace_wear_ext or {}
             local outfitRes = resolveLobbyOutfitRes()
-            if outfitRes andoutfitRes > 0 then
+            if outfitRes and outfitRes > 0 then
                 roleData.pspace_wear_ext[ENUM_AVATAR_SHOW_TYPE.SHOW_POS_CLOTH] = { outfitRes, 0, 0 }
             end
             local skinRes = resolveLobbyWeaponSkinRes()
@@ -5462,7 +5463,7 @@ local function _persistModOutfit(resID, insID)
             local outfitRes = resolveLobbyOutfitRes()
             local AvatarData = require("client.logic.data.AvatarData")
             local items = {}
-            if outfitRes andoutfitRes > 0 and isFullSuitRes(outfitRes) then
+            if outfitRes and outfitRes > 0 and isFullSuitRes(outfitRes) then
                 rememberLobbyOutfitRes(outfitRes)
                 local converted = AvatarData.ConvertToAvatarCustom({ outfitRes, 0, 0 })
                 if converted then items[#items + 1] = converted end
@@ -5491,7 +5492,7 @@ local function _persistModOutfit(resID, insID)
             local outfitRes = resolveLobbyOutfitRes()
             local items = getOutfitMergeItems()
             if #items == 0 then return end
-            if outfitRes andoutfitRes > 0 and isFullSuitRes(outfitRes) then
+            if outfitRes and outfitRes > 0 and isFullSuitRes(outfitRes) then
                 local newList = {}
                 for _, e in ipairs(wearData.WearInfoList or {}) do
                     if not (e and e.ItemID and isBodyClothSubType(subType(cfg(e.ItemID)))) then
@@ -5625,7 +5626,7 @@ local function _persistModOutfit(resID, insID)
         -- and from our own save keys -- neither of those feeds the lobby icon.
         local function publishLobbyWeaponSkinList()
             local ok, fbd = pcall(require, "client.slua.logic.wardrobe.fashionbag.fashionbag_data")
-            if not ok or not fbdor not fbd.GetCurrentFashionBag then return 0 end
+            if not ok or not fbd or not fbd.GetCurrentFashionBag then return 0 end
             local bag = fbd:GetCurrentFashionBag()
             if not bag then return 0 end
             if not bag.weapon_skin_list then bag.weapon_skin_list = { _isLeaf = true } end
@@ -5700,7 +5701,7 @@ local function _persistModOutfit(resID, insID)
             local cch = cache()
             flog("OUTFIT", "cch.outfitRes=" .. tostring(cch.outfitRes) .. " cch.outfitIns=" .. tostring(cch.outfitIns))
 
-            -- Restore savedoutfit/clothes into cache.
+            -- Restore saved outfit/clothes into cache.
             if _G._savedOutfitClothes then
                 for resID in pairs(_G._savedOutfitClothes) do
                     cch.clothes[resID] = true
@@ -5777,7 +5778,7 @@ local function _persistModOutfit(resID, insID)
             flog("OUTFIT", "outfitScheduled=" .. tostring(outfitScheduled))
             -- Accessories / individual clothing pieces
             -- Trail / footstep leftovers from an older save are dropped here
-            -- insteadof re-equipped, then the save rewrites clean.
+            -- instead of re-equipped, then the save rewrites clean.
             for resID in pairs(cch.clothes) do
                 if isTrailSlotRes(resID) then
                     cch.clothes[resID] = nil
@@ -5890,7 +5891,7 @@ local function _persistModOutfit(resID, insID)
                 _G._addOutfitBootSyncDone = true
                 syncMatchConfigFromCache()
                 pcall(_AutoSaveOutfit, true)
-                -- Release the boot-restore guardonly after every scheduled
+                -- Release the boot-restore guard only after every scheduled
                 -- apply has landed, and after the autosave -- otherwise the
                 -- restore itself would be recorded as the player's last gun.
                 _suppressLobbyWeaponRec = false
@@ -5961,7 +5962,7 @@ local function _persistModOutfit(resID, insID)
         -- Deep health probe for the lobby selector's reinjection logic:
         -- true only when the injected depot pool is actually present.
         -- Anything else (never injected, depot wiped/replaced) reads false
-        -- so the selector performs a full reinjection insteadof a no-op
+        -- so the selector performs a full reinjection instead of a no-op
         -- restore. Fully guarded; never errors outward.
         _G.AddOutfitHealthCheck = function()
             local ok, alive = pcall(function()
@@ -6007,7 +6008,7 @@ local function _persistModOutfit(resID, insID)
 
         -- X-suit (gold cloth) kill-message effect id. Declared here so the
         -- CDataTable hook below can see it; the elim-king hooks further down
-        -- reuse this same value insteadof shadowing it.
+        -- reuse this same value instead of shadowing it.
         local ELIMINATION_KING_EFFECT_ID = 619150001
 
         -- Cached synthetic GoldClothBattleEffect rows (see hookCDataTableCache).
@@ -6019,7 +6020,7 @@ local function _persistModOutfit(resID, insID)
         -- usually has nothing for it and every lookup returns nil -- which is
         -- why LogicKillInfo.GetXSuitKillInfoAssetList bails out with {} and the
         -- kill message never renders. We borrow a genuine KillEffect path
-        -- insteadof hardcoding a path that could rot between seasons.
+        -- instead of hardcoding a path that could rot between seasons.
         local _gcbeTemplate = nil
         local function goldClothKillEffectTemplate(origGetTableData)
             if _gcbeTemplate ~= nil then
@@ -6206,12 +6207,12 @@ local function _persistModOutfit(resID, insID)
             -- Hook fashionbag_data:SetThrowObjectSkin so that ANY equip of a
             -- throwable skin (mod OR stock, via the game's own wardrobe UI) is
             -- immediately reflected in _savedThrowObjects and cch.throwObjects.
-            -- Without this, restorePersistedThrowObjects (firedon lobby page
+            -- Without this, restorePersistedThrowObjects (fired on lobby page
             -- return, 0.5s after wardrobe close) stamps the OLD saved value back
             -- over whatever the player just chose, causing the visible revert.
             pcall(function()
                 local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
-                if not fbdor fbd._lava_hooked_setthrow then return end
+                if not fbd or fbd._lava_hooked_setthrow then return end
                 fbd._lava_hooked_setthrow = true
                 local origSet = fbd.SetThrowObjectSkin
                 if type(origSet) ~= "function" then return end
@@ -6229,7 +6230,7 @@ local function _persistModOutfit(resID, insID)
                             pcall(function()
                                 local wd2 = require("client.slua.logic.wardrobe.wardrobe_data")
                                 local item = wd2:GetHallDepotItemDataByInsID(insID)
-                                if item then resID = tonumber(item.resID or item.resIdor item.res_id) end
+                                if item then resID = tonumber(item.resID or item.resId or item.res_id) end
                             end)
                         end
                         if resID and resID > 0 then
@@ -6298,7 +6299,7 @@ local function _persistModOutfit(resID, insID)
                     if not allData or not next(allData) then return allData end
                     local pageId = self.subTabConfig and self.subTabConfig.pageId
                     local subTabId = self.subTabConfig and self.subTabConfig.subTabId
-                    if not pageIdor not subTabId then return allData end
+                    if not pageId or not subTabId then return allData end
                     local result = {}
                     for _, data in pairs(allData) do
                         local resID = depotResID(data)
@@ -6805,13 +6806,13 @@ local function _persistModOutfit(resID, insID)
                             local st = isThrowObjectRes(resID)
                             local cch = cache()
                             local oldThrow = cch.throwObjects and cch.throwObjects[st]
-                            local oldInsID = oldThrow andoldThrow.insID or 0
-                            local oldResID = oldThrow andoldThrow.resID or 0
+                            local oldInsID = oldThrow and oldThrow.insID or 0
+                            local oldResID = oldThrow and oldThrow.resID or 0
                             putOnThrowObject(insID)
                             local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
                             local bagIndex = fbd:GetFashionBagUseIndex()
                             local olditem
-                            if oldInsID andoldInsID ~= insID andoldInsID ~= 0 then
+                            if oldInsID and oldInsID ~= insID and oldInsID ~= 0 then
                                 olditem = { res_id = oldResID, count = 1, instid = oldInsID }
                             end
                             WRH.on_depot_put_on_rsp(_K.NET_OK, { res_id = resID, count = 1, instid = insID }, olditem, bagIndex, insID, oldInsID, extra)
@@ -7090,7 +7091,7 @@ local function _persistModOutfit(resID, insID)
                             origInitMotion(motion_info, limit, ...)
                             pcall(function()
                                 local saved = _G._savedMotionList
-                                if not savedor #saved == 0 then return end
+                                if not saved or #saved == 0 then return end
                                 DataMgr.MotionSlotList = mergedMotionSlotList()
                                 if EventSystem and EVENTTYPE_MOTION and EVENTID_MOTION_UPDATE_SLOT_LIST then
                                     EventSystem:postEvent(EVENTTYPE_MOTION, EVENTID_MOTION_UPDATE_SLOT_LIST)
@@ -7158,7 +7159,7 @@ local function _persistModOutfit(resID, insID)
             end)
         end
 
-        -- V2 in-match unlock list. Storedon the shared state table rather than
+        -- V2 in-match unlock list. Stored on the shared state table rather than
         -- as another closure local because this loader is near Lua's local cap.
         _S.extraEmotes = {
             12201301, 12216101, 12212201, 12219207, 12209001,
@@ -7547,7 +7548,7 @@ local function _persistModOutfit(resID, insID)
                 end
 
                 -- the server rejects slot saves for client-unlocked emotes; keep
-                -- the selection locally insteadof letting the UI snap back
+                -- the selection locally instead of letting the UI snap back
                 local origSaveRsp = EmoteHandler.on_save_milestone_slot_info_rsp
                 EmoteHandler.on_save_milestone_slot_info_rsp = function(err, sysType, slots, expID)
                     if err == 0 or err == nil or err == "ok" then
@@ -7582,7 +7583,7 @@ local function _persistModOutfit(resID, insID)
                 ---------------------------------------------------------------
                 local showcaseHooked = false
                 local function hookShowcase()
-                    if showcaseHookedor not MM or not MMcfg or not MMcfg.collect_pavilions_module then
+                    if showcaseHooked or not MM or not MMcfg or not MMcfg.collect_pavilions_module then
                         return
                     end
                     local pav = nil
@@ -7652,7 +7653,7 @@ local function _persistModOutfit(resID, insID)
                 --     "motion plating wheel"). This is a SEPARATE server-owned
                 --     table from MotionSlotList. Injected emotes are not owned
                 --     server-side, so send_set_motion_plating_wheel_req is
-                --     rejected (error 20520005) andon_set_wheel_rsp reloads
+                --     rejected (error 20520005) and on_set_wheel_rsp reloads
                 --     the defaults. Keep injected slots local, never send them,
                 --     re-assert them after every server reply and persist them
                 --     into the outfit save file.
@@ -7844,10 +7845,10 @@ local function _persistModOutfit(resID, insID)
                     skin = tonumber(skin)
                     if _S.equipSkinApplying or not skin or skin <= 0 or not isInjectedIns(skin) then return end
                     local rid = R.insToRes[skin]
-                    if not ridor not isInjectedRes(rid) then return end
+                    if not rid or not isInjectedRes(rid) then return end
                     local cch = cache()
                     local oldRes = cch.equip[slot]
-                    if oldRes andoldRes > 0 andoldRes ~= rid then
+                    if oldRes and oldRes > 0 and oldRes ~= rid then
                         softRemoveEquipVisual(oldRes, slot)
                     end
                     saveEquipSkin(rid, skin)
@@ -8122,7 +8123,7 @@ local function _persistModOutfit(resID, insID)
         -- written into SlotSyncData like every other slot.
         -- A worn full suit owns slot 5 via outfitRes (saveEquip clears the body
         -- pieces on a suit, and clears outfitRes on a body piece), so a 403 is
-        -- dropped when a suit is present insteadof clobbering it.
+        -- dropped when a suit is present instead of clobbering it.
         -- Built from a resID->true clothes map (snapshot or live cache).
         local function accTargetsFromClothes(clothes, outfitRes)
             local t = {}
@@ -8144,7 +8145,7 @@ local function _persistModOutfit(resID, insID)
             end
             -- Appearance hair/beard/head ride the sync slots so engine
             -- rebuilds keep them like any other slot (local-only PutOns are
-            -- wipedon every OnRep). Depot clothes never occupy the hair
+            -- wiped on every OnRep). Depot clothes never occupy the hair
             -- slot; beard/head slots only fill when no depot item set them.
             -- Head shape lives in avatar slot 1 (cf. LobbyPawn, which reads
             -- the equipped head ID back from slot 1). Fail-closed: only a
@@ -8184,7 +8185,7 @@ local function _persistModOutfit(resID, insID)
         -- ChangeSlotSyncData (when the slot exists) + visibility forcing +
         -- change-gated PutOnCustomEquipmentByID.
         _G.NetPatchCache = _G.NetPatchCache or {}
-        _G.NetPatchLogged = _G.NetPatchLoggedor {}
+        _G.NetPatchLogged = _G.NetPatchLogged or {}
         -- Head accessory slots (head/hat/face/glass/beard). The engine hides
         -- these itself when the local player is in first-person or aiming
         -- down sights; forcing them visible then puts the mesh right in front
@@ -8198,7 +8199,7 @@ local function _persistModOutfit(resID, insID)
             EAvatarSlotType_HairEquipemtSlot = true,
         }
         -- PERF: both tables below were literals INSIDE matchApplyOutfit, so a
-        -- fresh table was allocatedon every 0.5s in-match tick. They are never
+        -- fresh table was allocated on every 0.5s in-match tick. They are never
         -- mutated: build them once.
         local _ACC_SLOT_NAMES = {
             [1] = "EAvatarSlotType_HeadEquipemtSlot",
@@ -8218,8 +8219,8 @@ local function _persistModOutfit(resID, insID)
                 local owner = comp and comp.GetOwner and comp:GetOwner()
                 if not owner or not slua.isValid(owner) then owner = getLocalChar() end
                 if owner and slua.isValid(owner) then
-                    if owner.IsFirstPerson andowner:IsFirstPerson() then hidden = true
-                    elseif owner.IsGunADS andowner:IsGunADS() then hidden = true end
+                    if owner.IsFirstPerson and owner:IsFirstPerson() then hidden = true
+                    elseif owner.IsGunADS and owner:IsGunADS() then hidden = true end
                 end
             end)
             return hidden
@@ -8384,7 +8385,7 @@ local function _persistModOutfit(resID, insID)
         -- Policy: run fast (0.5s) while the server keeps reverting us (didWrite
         -- == true), then back off 0.5 -> 1 -> 2s once the loadout is genuinely
         -- live. A desired-state change resets the backoff so new gear lands
-        -- immediately insteadof waiting out a timer.
+        -- immediately instead of waiting out a timer.
         local STAB_FAST = 0.5
         local STAB_MAX  = 2.0
         local _stab = { next = 0, step = STAB_FAST, sig = nil, force = true }
@@ -8521,7 +8522,7 @@ local function _persistModOutfit(resID, insID)
             _G.SuitSkin = tonumber(outfitRes) or 0
 
             -- Re-assert cadence. Everything below that can rebuild the mesh
-            -- is gatedon stabDue(): fast while the server reverts us, backed
+            -- is gated on stabDue(): fast while the server reverts us, backed
             -- off to 2s once the loadout is actually live. This is what stops
             -- the permanent "everything refreshes every 0.5s" flicker.
             local doAcc = stabDue()
@@ -8584,7 +8585,7 @@ local function _persistModOutfit(resID, insID)
                         flog_flush()
                     end)
                 end
-                -- PERF: every write in this loop is gatedon doAcc already, so while the
+                -- PERF: every write in this loop is gated on doAcc already, so while the
                 -- adaptive cadence is closed the loop was a pure no-op scan
                 -- costing one slua Get(i) per slot per 0.5s tick. Skip it.
                 if doAcc then
@@ -8617,7 +8618,7 @@ local function _persistModOutfit(resID, insID)
                     -- never touched at all.
                     if doAcc and eq and eq.ItemId ~= 0 then
                         local target = 0
-                        if eq.SlotID == 5 andoutfitRes andoutfitRes ~= 0 then
+                        if eq.SlotID == 5 and outfitRes and outfitRes ~= 0 then
                             target = outfitRes
                         elseif eq.SlotID == 8 and cch.equip.bag and cch.equip.bag ~= 501001 then
                             -- Level comes from the REAL item via the shared
@@ -8800,7 +8801,7 @@ for slotID, resID in pairs(accTargets) do
             -- Array scans skip slots absent from SlotSyncData; this hits
             -- each accessory slot directly by enum name.
             local accSlotNames = _ACC_SLOT_NAMES
-            -- Cancel-hide / visibility. Movedoff the every-tick path: six
+            -- Cancel-hide / visibility. Moved off the every-tick path: six
             -- SetAvatarVisibility calls per 0.5s still force material and
             -- visibility recalcs on the whole actor. The re-assert below
             -- already re-applies the slot, so this only needs to ride along
@@ -8839,7 +8840,7 @@ for slotID, resID in pairs(accTargets) do
             -- ---- Fallback: if SlotSyncData slot 5 was not found, try PutOn for suit ----
             -- Verified first: an unconditional PutOn here rebuilt the whole
             -- avatar on every adaptive tick even when the suit was live.
-            if doAcc and not applied andoutfitRes andoutfitRes ~= 0 then
+            if doAcc and not applied and outfitRes and outfitRes ~= 0 then
                 local suitLive = 0
                 pcall(function()
                     local EAvatarSlotType = import("EAvatarSlotType")
@@ -8908,7 +8909,7 @@ for slotID, resID in pairs(accTargets) do
             -- Appearance (face/hair/beard/head/sex) into PlayerInfo so the
             -- match-spawn build carries the custom look. Only writes fields
             -- the PlayerInfo table already has (never fabricates schema),
-            -- plus wear_ext customs. Loggedonce per boot.
+            -- plus wear_ext customs. Logged once per boot.
             pcall(function()
                 local ap = _G._savedAppearance or {}
                 local hairId = tonumber(ap.avatarHair) or 0
@@ -9352,7 +9353,7 @@ for slotID, resID in pairs(accTargets) do
                     end
 
                     local origResult = orig3(self, InItemID)
-                    if origResult andorigResult > 0 andorigResult ~= InItemID then
+                    if origResult and origResult > 0 and origResult ~= InItemID then
                         return origResult
                     end
 
@@ -9390,7 +9391,7 @@ for slotID, resID in pairs(accTargets) do
                         if (isHelmet and cch.equip.helmet and cch.equip.helmet > 0)
                             or (isBag and cch.equip.bag and cch.equip.bag > 0) then
                             local owner = self.GetOwner and self:GetOwner()
-                            if owner and slua.isValid(owner) andowner.AddGameTimer then
+                            if owner and slua.isValid(owner) and owner.AddGameTimer then
                                 owner:AddGameTimer(0.25, false, function()
                                     if slua.isValid(owner) then matchApplyEquipSkins(owner) end
                                 end)
@@ -9436,7 +9437,7 @@ for slotID, resID in pairs(accTargets) do
             if not live or live <= 0 then return false end
             -- The slot can legitimately hold the skin id, the catalog id, or the
             -- level resID depending on how the server resolved it.
-            if live == skinIdor live == catalogResID then return true end
+            if live == skinId or live == catalogResID then return true end
             local set = getEquipLevelSet(catalogResID)
             if set and (live == mapEquipLevelSet(set, level)) then return true end
             return false
@@ -9447,7 +9448,7 @@ for slotID, resID in pairs(accTargets) do
             catalogResID = normalizeEquipCatalogRes(catalogResID)
             level = tonumber(level) or 3
             local skinId = mapEquipSkinRes(catalogResID, level)
-            if not skinIdor skinId <= 0 then skinId = catalogResID end
+            if not skinId or skinId <= 0 then skinId = catalogResID end
 
             local now = 0
             pcall(function() now = os.clock() end)
@@ -9584,14 +9585,14 @@ for slotID, resID in pairs(accTargets) do
                 local list = wd.GetHallDepotItemListByResID and wd:GetHallDepotItemListByResID(resID)
                 if list then
                     for _, v in pairs(list) do
-                        local id = tonumber(v.insID or v.instidor v.ins_id)
+                        local id = tonumber(v.insID or v.instid or v.ins_id)
                         if id and id > 0 then ins = id break end
                     end
                 end
                 if not ins then
                     local d = wd.GetValidHallDepotItemDataByInsID and wd:GetValidHallDepotItemDataByInsID(resID)
                         or (wd.GetHallDepotItemDataByResID and wd:GetHallDepotItemDataByResID(resID))
-                    if d then ins = tonumber(d.insID or d.instidor d.ins_id) end
+                    if d then ins = tonumber(d.insID or d.instid or d.ins_id) end
                 end
             end)
             return ins
@@ -9664,10 +9665,26 @@ for slotID, resID in pairs(accTargets) do
         AIR.lastAirAttempt = AIR.lastAirAttempt or { para = 0, glider = 0 }
         AIR.lastAirDl = AIR.lastAirDl or {}
 
+        -- Per-match reset. The game rebuilds DataMgr/NetAvatarData from server
+        -- data when a new match starts, so the "already synced this key" memo
+        -- (AIR.key) and the per-res retry counters are all stale afterwards.
+        -- Without this the second match keeps the memo, syncDataMgr returns
+        -- early, DataMgr keeps the stock parachute/glider and nothing in the
+        -- air path ever rewrites it -- the canopy and aircraft come out default.
+        AIR.resetMatch = function()
+            AIR.key = nil
+            AIR.lastSync = 0
+            AIR.lastAirLogKey = nil
+            AIR.lastAirAttempt = { para = 0, glider = 0 }
+            AIR.lastAirDl = {}
+            AIR.groundAirAttempts = {}
+            AIR.diagDone = {}
+        end
+
         -- On-device file log for the airborne path (CHETAN_AIR.log next to
         -- the save files). flog() is a memory-only ring buffer, so without
         -- this there is zero visibility into match-time glider failures.
-        -- Event-gatedonly (payloadonce per match, PutOn at most every 2s
+        -- Event-gated only (payload once per match, PutOn at most every 2s
         -- while mismatched): never per-tick, never in a hot loop.
         -- Delegates to the file-scope _G.AddOutfitAirLog (usable before AIR
         -- exists and from scopes where AIR is not visible).
@@ -9710,7 +9727,7 @@ for slotID, resID in pairs(accTargets) do
                 end
                 equipped = (id and tonumber(id.TypeSpecificID)) or 0
             end)
-            return equippedor 0
+            return equipped or 0
         end
         -- One-shot deep diagnostic per airborne resID. Answers WHY a native
         -- PutOn returns false: not-injected, unknown cfg type, CheckItemValid
@@ -9821,16 +9838,7 @@ for slotID, resID in pairs(accTargets) do
                     entry.ItemID = resID
                     entry.FakeItemID = resID
                     if ESyncOperation then entry.OperationType = ESyncOperation.PutOn end
-                    local added = false
-                    if comp.ChangeSlotSyncData then
-                        pcall(function()
-                            comp:ChangeSlotSyncData(entry)
-                            added = true
-                        end)
-                    end
-                    if not added then
-                        pcall(function() applyData:Add(entry) end)
-                    end
+                    applyData:Add(entry)
                     changed = true
                     applied = true
                     AIR.log("AIR", "slot-add slot=" .. tostring(slotID)
@@ -9855,35 +9863,17 @@ for slotID, resID in pairs(accTargets) do
             AIR.groundAirAttempts = AIR.groundAirAttempts or {}
             local mayTry = inAir
                 or (tonumber(AIR.groundAirAttempts[gaKey]) or 0) < 3
-                -- [修复 2-B] 缩短冷却时间至 0.5s，确保跳伞瞬间能触发
-                if mayTry and comp.PutOnCustomEquipmentByID
-                    and (now - (AIR.lastAirAttempt[key] or 0)) >= 0.5 then
-                    AIR.lastAirAttempt[key] = now
-                    if not inAir then
-                        AIR.groundAirAttempts[gaKey] = (tonumber(AIR.groundAirAttempts[gaKey]) or 0) + 1
-                    end
-                    local result = nil
-                    pcall(function()
-                        result = comp:PutOnCustomEquipmentByID(resID)
-                    end)
-                    
-                    -- [修复 2-C] Fallback: 如果 PutOn 失败，使用 HandleEquipItem 强制指定 ItemType=4 (Extra)
-                    if not result then
-                        pcall(function()
-                            local _it = 4 
-                            pcall(function()
-                                local cc = cfg(resID)
-                                _it = cc and tonumber(cc.ItemType or cc.itemType) or 4
-                            end)
-                            local ItemDefineID = FItemDefineID(_it, resID)
-                            local EAvatarCustomType = import("EAvatarCustomType")
-                            local AvatarCustom = FAvatarCustomDefault()
-                            AvatarCustom.CustomType = EAvatarCustomType.AvatarCustomCharacter
-                            result = comp:HandleEquipItem(ItemDefineID, AvatarCustom)
-                        end)
-                    end
-                    
-                    refreshMatchAvatar(comp)
+            if mayTry and comp.PutOnCustomEquipmentByID
+                and (now - (AIR.lastAirAttempt[key] or 0)) >= 2.0 then
+                AIR.lastAirAttempt[key] = now
+                if not inAir then
+                    AIR.groundAirAttempts[gaKey] = (tonumber(AIR.groundAirAttempts[gaKey]) or 0) + 1
+                end
+                local result = nil
+                pcall(function()
+                    result = comp:PutOnCustomEquipmentByID(resID)
+                end)
+                refreshMatchAvatar(comp)
                 changed = true
                 local equippedAfter = AIR.equippedAirRes(comp, slotName)
                 AIR.log("AIR", "puton slot=" .. tostring(slotID)
@@ -10400,7 +10390,7 @@ for slotID, resID in pairs(accTargets) do
                     -- own spawn path (BattleAvatarSystem actor branch).
                     if actor and cppSex ~= nil and actor.InitDefaultAvatarByResID then
                         local okI = pcall(function()
-                            actor:InitDefaultAvatarByResID(cppSex, headIdor 0, hairIdor 0)
+                            actor:InitDefaultAvatarByResID(cppSex, headId or 0, hairId or 0)
                         end)
                         verify.teamActorInit = okI and "ok" or "err"
                         if okI then meshOk = true end
@@ -10491,7 +10481,7 @@ for slotID, resID in pairs(accTargets) do
                                     localDone = true
                                 end
                                 if _S.persistAppearanceEquip then
-                                    _S.persistAppearanceEquip(appearanceType, ador {})
+                                    _S.persistAppearanceEquip(appearanceType, ad or {})
                                 end
                                 if _G.AddOutfitFaceLog then
                                     _G.AddOutfitFaceLog("lobby pick type=" .. tostring(appearanceType)
@@ -10524,7 +10514,7 @@ for slotID, resID in pairs(accTargets) do
                                 reallyOwned = (tonumber(DM.GetAvatarRemainTime(avatarId)) or -1) >= 0
                             end
                         end)
-                        if reallyOwnedor not localDone then
+                        if reallyOwned or not localDone then
                             return origPut(self, avatarId, appearanceType, bPutOn)
                         end
                         pcall(function()
@@ -10562,7 +10552,7 @@ for slotID, resID in pairs(accTargets) do
                                 if type(a) == "boolean" then isTry = a break end
                             end
                             if at and at > 0 and not isTry and _S.persistAppearanceEquip then
-                                _S.persistAppearanceEquip(at, ador {})
+                                _S.persistAppearanceEquip(at, ad or {})
                             end
                         end)
                         return table.unpack(vals, 1, n)
@@ -10574,7 +10564,7 @@ for slotID, resID in pairs(accTargets) do
 
         -- In-match re-assert: base mesh (InitDefaultAvatarByResID, Cpp sex) +
         -- hair/beard as equipment. PERSIST-first: live AvatarData in-match is
-        -- a server snapshot that wouldotherwise revert the custom look.
+        -- a server snapshot that would otherwise revert the custom look.
         -- Change-gated + live-verified backstop so a settled head costs no
         -- mesh rebuilds (InitDefaultAvatarByResID every tick = flicker).
         _S._appearanceMatchKey = nil
@@ -10627,7 +10617,7 @@ for slotID, resID in pairs(accTargets) do
             -- PERF: consume the coalesced retry flags set by the match-entry
             -- ladder. They mark that a retry window opened; forcing the
             -- timestamp back lets exactly one apply happen now (from this
-            -- tick) insteadof four separate heavy applies.
+            -- tick) instead of four separate heavy applies.
             if _S._appearanceRetryPending and _S._appearanceRetryPending > 0 then
                 _S._appearanceRetryPending = 0
                 _S._appearanceMatchAt = 0
@@ -10650,7 +10640,7 @@ for slotID, resID in pairs(accTargets) do
             -- hides"). One request per ID per boot; download_item no-ops
             -- when already Done.
             pcall(function()
-                _G.AddOutfitWearDlQueued = _G.AddOutfitWearDlQueuedor {}
+                _G.AddOutfitWearDlQueued = _G.AddOutfitWearDlQueued or {}
                 for _, did in ipairs({ hairId, beardId, headId }) do
                     did = tonumber(did) or 0
                     if did > 0 and not _G.AddOutfitWearDlQueued[did] then
@@ -10706,7 +10696,7 @@ for slotID, resID in pairs(accTargets) do
                 end
                 if comp1 and not slua.isValid(comp1) then comp1 = nil end
             end)
-            -- Capability probe (loggedonce per key): tells exactly which
+            -- Capability probe (logged once per key): tells exactly which
             -- engine APIs exist on this build.
             if _S._appearanceLoggedKey == key and not _S._appearanceProbeLogged then
                 _S._appearanceProbeLogged = true
@@ -10735,7 +10725,7 @@ for slotID, resID in pairs(accTargets) do
             end
             -- Sync-slot persistence (the clothes path): ensure SlotSyncData
             -- entries exist for hair/beard so engine rebuilds include them.
-            -- Without entries, local-only PutOns are wipedon every rebuild.
+            -- Without entries, local-only PutOns are wiped on every rebuild.
             local applied = false
             local stepRes = {}
             local hairNum = (_S and _S._hairSlotNum) or 2
@@ -10835,7 +10825,7 @@ for slotID, resID in pairs(accTargets) do
             -- match even when hair/beard are sync-settled. Without this the
             -- pawn keeps the server sex (male base) and a female head shape
             -- never lands. The Init only takes while the spawn mesh is still
-            -- building, so retry at 2.5/5/8/12s (skin2 shape) insteadof
+            -- building, so retry at 2.5/5/8/12s (skin2 shape) instead of
             -- once: a single attempt wins the race only sometimes. Mid-match
             -- base resets are skipped (see tryInit gate + revert check).
             local justInited = false
@@ -10852,9 +10842,9 @@ for slotID, resID in pairs(accTargets) do
                 end
                 pcall(function()
                     local function i2(obj)
-                        if obj and slua.isValid(obj) andobj.InitDefaultAvatarByResID then
+                        if obj and slua.isValid(obj) and obj.InitDefaultAvatarByResID then
                             pcall(function()
-                                obj:InitDefaultAvatarByResID(cppSex, headIdor 0, hairIdor 0)
+                                obj:InitDefaultAvatarByResID(cppSex, headId or 0, hairId or 0)
                             end)
                         end
                     end
@@ -10878,10 +10868,10 @@ for slotID, resID in pairs(accTargets) do
                     pcall(function() if comp.GetModel then avatarObj = comp:GetModel() end end)
                     local sx = modelSex2 or enumSex
                     local function sw2(obj)
-                        if obj and slua.isValid(obj) andobj.SwitchSexAndHeadAndHair
+                        if obj and slua.isValid(obj) and obj.SwitchSexAndHeadAndHair
                             and sx ~= nil then
                             pcall(function()
-                                obj:SwitchSexAndHeadAndHair(sx, headIdor 0, hairIdor 0)
+                                obj:SwitchSexAndHeadAndHair(sx, headId or 0, hairId or 0)
                             end)
                         end
                     end
@@ -10991,13 +10981,13 @@ for slotID, resID in pairs(accTargets) do
                     -- scheduled retries). Mid-match repeats are the visible
                     -- head flicker ("glitched"), so the steady path skips.
                     if _S._appearanceInitDone then stepRes[tag] = "done-skip" return end
-                    if not (obj and slua.isValid(obj) andobj.InitDefaultAvatarByResID) then
+                    if not (obj and slua.isValid(obj) and obj.InitDefaultAvatarByResID) then
                         stepRes[tag] = "noapi"
                         return
                     end
                     if cppSex == nil then stepRes[tag] = "nosex" return end
                     local ok, err = pcall(function()
-                        obj:InitDefaultAvatarByResID(cppSex, headIdor 0, hairIdor 0)
+                        obj:InitDefaultAvatarByResID(cppSex, headId or 0, hairId or 0)
                     end)
                     stepRes[tag] = ok and "ok" or ("err:" .. tostring(err):sub(1, 60))
                     if ok then applied = true end
@@ -11020,14 +11010,14 @@ for slotID, resID in pairs(accTargets) do
                 pcall(function() if comp.GetModel then avatarObj = comp:GetModel() end end)
                 local function trySwitch(tag, obj)
                     if _S._appearanceInitDone then stepRes[tag] = "done-skip" return end
-                    if not (obj and slua.isValid(obj) andobj.SwitchSexAndHeadAndHair) then
+                    if not (obj and slua.isValid(obj) and obj.SwitchSexAndHeadAndHair) then
                         stepRes[tag] = "noapi"
                         return
                     end
                     local sx = modelSex2 or enumSex
                     if sx == nil then stepRes[tag] = "nosex" return end
                     local ok, err = pcall(function()
-                        obj:SwitchSexAndHeadAndHair(sx, headIdor 0, hairIdor 0)
+                        obj:SwitchSexAndHeadAndHair(sx, headId or 0, hairId or 0)
                     end)
                     stepRes[tag] = ok and "ok" or ("err:" .. tostring(err):sub(1, 60))
                     if ok then applied = true end
@@ -11097,7 +11087,7 @@ for slotID, resID in pairs(accTargets) do
                 -- HandleEquipItem path (2.lua): PutOnCustomEquipmentByID
                 -- routes through HandleEquipItem internally, but calling it
                 -- directly with an AvatarCustomCharacter custom is the path
-                -- that actually builds hair/beardon the match pawn.
+                -- that actually builds hair/beard on the match pawn.
                 if comp.HandleEquipItem then
                     pcall(function()
                         local EAC = import("EAvatarCustomType")
@@ -11184,15 +11174,15 @@ for slotID, resID in pairs(accTargets) do
                         if dataSex > 0 and headId > 0
                             and type(myAvatar.SwitchSexAndHeadAndHair) == "function" then
                             myAvatar:SwitchSexAndHeadAndHair(
-                                dataSex, headId, hairIdor 0)
+                                dataSex, headId, hairId or 0)
                             applied = true
                         end
                     end)
                 end)
             end)
             -- Base-mesh revert detection (steady state only): if the engine
-            -- gender driftedoff our sex after the spawn window, reopen the
-            -- Init window so the next tick heals it. Skippedon runs where
+            -- gender drifted off our sex after the spawn window, reopen the
+            -- Init window so the next tick heals it. Skipped on runs where
             -- the once-block just ran (async settle would false-positive).
             pcall(function()
                 if justInited then return end
@@ -11336,7 +11326,7 @@ for slotID, resID in pairs(accTargets) do
                                 return false
                             end
                             local function pushCustom(id, color)
-                                if not idor id <= 0 or hasItem(id) then return end
+                                if not id or id <= 0 or hasItem(id) then return end
                                 local custom = nil
                                 pcall(function() custom = AvatarData.CreateAvatarCustom(id, color) end)
                                 if custom then
@@ -11691,7 +11681,7 @@ for slotID, resID in pairs(accTargets) do
         -- the case where that gate flips back, and it is also what lets self-play
         -- run without doubling the explosion. Set false to keep stock always.
         local _gfxEnableMuteStock = (_G.SKIN_GFX_MUTE_STOCK ~= false)
-        -- Set once the BeginInEffect hook is installedon whichever impl table
+        -- Set once the BeginInEffect hook is installed on whichever impl table
         -- won (ProjectileBase vs the derived FragGrenade).
         local _gfxBlastImplTagged = false
 
@@ -11862,7 +11852,7 @@ for slotID, resID in pairs(accTargets) do
             pcall(function()
                 if comp.GetCurGrenadeAvatarID then sid = tonumber(comp:GetCurGrenadeAvatarID()) end
             end)
-            if not sidor sid <= 0 then return nil end
+            if not sid or sid <= 0 then return nil end
             local cch = cache()
             if not cch.throwObjects then return end
             for _, info in pairs(cch.throwObjects) do
@@ -11881,7 +11871,7 @@ for slotID, resID in pairs(accTargets) do
             local eventName, bankName = nil, nil
             pcall(function()
                 -- fxGunID comes from the same GrenadeKillGunBindMap row the FX
-                -- path already resolves, so reuse it insteadof a second lookup.
+                -- path already resolves, so reuse it instead of a second lookup.
                 local _, _, fxGun = grenadeFXResolveFromConfigMoved(skinID)
                 if not fxGun or fxGun <= 0 then return end
                 local baseID = nil
@@ -11928,10 +11918,10 @@ for slotID, resID in pairs(accTargets) do
             return eventName, bankName
         end
 
-        -- Fallback bank: native override is deadon this path and some
+        -- Fallback bank: native override is dead on this path and some
         -- fxGuns have no voice row. Scan the whole voice table once for ANY
         -- usable GrenadeExplosionVoice (preferring the stock frag's own row)
-        -- so the blast still makes an explosion sound insteadof silence.
+        -- so the blast still makes an explosion sound instead of silence.
         local _gfxFallbackBank = nil
         local function grenadeSoundFallback()
             if _gfxFallbackBank ~= nil then
@@ -12041,12 +12031,12 @@ for slotID, resID in pairs(accTargets) do
                 _G.AddOutfitGrenadeLog("sound fallback used skin=" .. tostring(sid)
                     .. " event=" .. tostring(eventName))
             end
-            -- Same dedupe guard as the FX player, keyedoff the same component.
+            -- Same dedupe guard as the FX player, keyed off the same component.
             local nowT = 0
             pcall(function() nowT = os.time() end)
             if comp._lava_gfx_sndPlayed and nowT > 0
                 and (nowT - (tonumber(comp._lava_gfx_sndPlayedAt) or 0)) < 2 then
-                grenadeDiagMoved("sound: already playedon this component (dedupe)")
+                grenadeDiagMoved("sound: already played on this component (dedupe)")
                 return false
             end
             comp._lava_gfx_sndPlayed = true
@@ -12277,7 +12267,7 @@ for slotID, resID in pairs(accTargets) do
             pcall(function()
                 if comp.GetCurGrenadeAvatarID then sid = tonumber(comp:GetCurGrenadeAvatarID()) end
             end)
-            if not sidor sid <= 0 then return nil end
+            if not sid or sid <= 0 then return nil end
             local cch = cache()
             if not cch.throwObjects then return nil end
             for _, info in pairs(cch.throwObjects) do
@@ -12385,11 +12375,11 @@ for slotID, resID in pairs(accTargets) do
         -- (GrenadeAvatarComponent:GetSequencePath returns that field), and the
         -- field is only filled by the C++ SetOverrideFxIndex -- which the
         -- server-gated player branch of CheckHasOverrideFx zeroes out. Assigning
-        -- the fieldourselves is dispatch-independent, so it works even if a
+        -- the field ourselves is dispatch-independent, so it works even if a
         -- method hook is not in the instance's lookup chain.
         local function grenadeFXEnsurePath(comp, sid)
             if not (slua and slua.isValid and slua.isValid(comp)) then return nil end
-            sid = sidor grenadeFXOurSkinIDMoved(comp)
+            sid = sid or grenadeFXOurSkinIDMoved(comp)
             if not sid then return nil end
             local _, cfgSeq, fxGun = grenadeFXResolveFromConfigMoved(sid)
             if not cfgSeq then return nil end
@@ -12539,7 +12529,7 @@ for slotID, resID in pairs(accTargets) do
         -- game's own recipe (GrenadeAvatarComponent:CreateLevelSequenceActor):
         --     Game:PlayLevelSequence(self, seqPath, xf, SeqActorClass, false)
         -- The stock explosion is left completely untouched, so this ADDS the
-        -- themed blast on top of the normal one insteadof replacing it.
+        -- themed blast on top of the normal one instead of replacing it.
         local GFX_SEQ_ACTOR_CLS =
             "/Game/Arts_PlayerBluePrints/DeadBox/DeadBoxSmoke/BP_DeadBoxSmokeSeqActor.BP_DeadBoxSmokeSeqActor_C"
         local function grenadeFXPlaySequence(proj, comp, knownLoc)
@@ -12552,7 +12542,7 @@ for slotID, resID in pairs(accTargets) do
             -- exactly what hid the last failure.
             -- The projectile wrapper is EXPECTED to be invalid at detonation --
             -- the actor is being destroyed. comp (the avatar component) is the
-            -- authoritative object and everything is anchoredon it instead.
+            -- authoritative object and everything is anchored on it instead.
             local projValid = slua and slua.isValid and slua.isValid(proj)
             if not projValid then
                 grenadeDiagMoved("playseq: proj wrapper already invalid (normal at detonation); anchoring on component")
@@ -12568,7 +12558,7 @@ for slotID, resID in pairs(accTargets) do
             end
             local fxp, seq = grenadeFXResolveFromConfigMoved(sid)
             -- Replay fallback (mirrors the GetSequencePath substitution):
-            -- skins whose fxGun row lacks FxSeqPath wouldotherwise fall to
+            -- skins whose fxGun row lacks FxSeqPath would otherwise fall to
             -- the smaller particle-only route. A captured/replayed full
             -- sequence plays the big native blast instead.
             local replayUsed = false
@@ -12600,7 +12590,7 @@ for slotID, resID in pairs(accTargets) do
             pcall(function() nowT = os.time() end)
             if comp._lava_gfx_played and nowT > 0
                 and (nowT - (tonumber(comp._lava_gfx_playedAt) or 0)) < 2 then
-                grenadeDiagMoved("playseq: already playedon this component (dedupe)")
+                grenadeDiagMoved("playseq: already played on this component (dedupe)")
                 return
             end
             comp._lava_gfx_played = true
@@ -12610,7 +12600,7 @@ for slotID, resID in pairs(accTargets) do
                 dt = tostring(os.time() - (comp._lava_gfx_thrownAt or os.time())) .. "s"
             end)
             -- Route 1 (preferred): hand the path to the component's OWN
-            -- CreateLevelSequenceActor, which is the game's own code andonly
+            -- CreateLevelSequenceActor, which is the game's own code and only
             -- needs a location. Avoids constructing FRotator/FTransform here.
             -- K2_GetActorLocation is an ACTOR method. comp is a COMPONENT, so
             -- it answers to K2_GetComponentLocation / GetComponentLocation.
@@ -12826,7 +12816,7 @@ for slotID, resID in pairs(accTargets) do
         -- Shared skinner for the in-flight grenade projectile. Resolves which of
         -- our throwable skins belongs to this projectile, then pushes it onto the
         -- avatar component. Robust item-id lookup: the game uses a different
-        -- accessor depending on authority state, andon a client-replicated
+        -- accessor depending on authority state, and on a client-replicated
         -- projectile all of them can be empty, so fall back to the object name.
         local _gfxLastSrc, _gfxLastName = "none", ""
         local function applyThrowSkinToProjectile(self, tag)
@@ -13191,7 +13181,7 @@ for slotID, resID in pairs(accTargets) do
                             -- Class-level mute FIRST. C++ dispatches
                             -- SpawnExplosionEffect through __inner_impl, so an
                             -- instance shadow cannot suppress it -- and that
-                            -- route was skippedoutright because slua.isValid(self)
+                            -- route was skipped outright because slua.isValid(self)
                             -- is already false at detonation, which is exactly
                             -- why the stock blast kept playing next to ours.
                             -- Muting the impl tables needs no live actor.
@@ -13203,8 +13193,8 @@ for slotID, resID in pairs(accTargets) do
                             -- Full-sequence gate: mute stock ONLY when we hold a
                             -- complete replacement (config seq or replay seq).
                             -- Particle-only skins play ADDITIVE over the stock
-                            -- blast (full length + full boom, ours layeredon
-                            -- top) insteadof a fragment that ends abruptly.
+                            -- blast (full length + full boom, ours layered on
+                            -- top) instead of a fragment that ends abruptly.
 local msid = grenadeFXOurSkinIDMoved(comp)
                         local mseq, mpar = nil, nil
                         if msid then
@@ -13247,7 +13237,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                                 grenadeDiagMoved("muteC: helper not published, skipping class mute")
                             end
                             -- Instance shadow as a second line of defence, only
-                            -- while the projectile is still a validobject.
+                            -- while the projectile is still a valid object.
                             if slua.isValid(self) and not restoreClassMute then
                                 local okM, prev = pcall(function()
                                     -- Rawget through the MRO so we do not clobber
@@ -13303,7 +13293,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                         -- log), so ExplodeParticleSystem -- filled by C++ from the
                         -- DEFAULT cfg 612004000 -- is what plays next to ours.
                         -- Clearing it makes that elseif fail, so the game plays
-                        -- nothing andour sequence is the only blast. Only
+                        -- nothing and our sequence is the only blast. Only
                         -- when stock was actually muted (full-seq skins);
                         -- particle-only skins keep the stock emitter.
                         if comp and _gfxEnableMuteStock and stockMuted then
@@ -13351,7 +13341,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                             return nil
                         end
 
-                        -- Self-play must NOT be gatedon the mute succeeding.
+                        -- Self-play must NOT be gated on the mute succeeding.
                         -- Muting only suppresses the stock blast; if it failed,
                         -- gating here meant a sequence-type skin (FxSeqPath set,
                         -- FxPath empty -- e.g. the Groza) played NOTHING at all:
@@ -13380,7 +13370,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                                 grenadeDiagMoved("playseq: skipped, nothing playable")
                             end
                             -- Post-orig native readback (origBlast already ran):
-                            -- did the engine keep a soundoverride, or wipe it?
+                            -- did the engine keep a sound override, or wipe it?
                             pcall(function()
                                 if not (comp and slua.isValid(comp)) then return end
                                 local idx, hasS = nil, nil
@@ -13395,7 +13385,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                             end)
                         end
 
-                        -- Explosion SOUND, at the same blast moment and gatedon
+                        -- Explosion SOUND, at the same blast moment and gated on
                         -- the same "is this our skin" check as the FX above, so
                         -- it never fires for another player's grenade. Fully
                         -- wrapped and self-restoring: a failure here must not
@@ -13417,7 +13407,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                 local impl = Frag and Frag.__inner_impl
                 if not impl then return end
                 -- IsGrenadeHasAvatar is the GATE in FragGrenade:BeginInEffect:
-                --   if IsGrenadeHasAvatar() -> themed branches (themedonly)
+                --   if IsGrenadeHasAvatar() -> themed branches (themed only)
                 --   else                      -> self:SpawnExplosionEffect (STOCK)
                 -- The real implementation is C++-backed and needs a valid
                 -- UBackpackGrenadeAvatarHandle, which requires the server's
@@ -13469,13 +13459,13 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             -- GrenadeAvatarComponent:CheckHasOverrideFx is what actually decides
             -- the blast FX. For a real player it reads SERVER progress:
             --   PlayerDataMgr.GetPlayerProgressFromServer(UID, GrenadeBindWeaponMap)
-            -- andonly sets an override when the server has a GrenadeSkinID entry.
+            -- and only sets an override when the server has a GrenadeSkinID entry.
             -- An injected skin has none, so UnlockWeaponID is nil,
             -- VerifyUnlockWeaponID returns nil, and the game then does:
             --     self:SetOverrideFxIndex(0)
             --     self:SetOverrideSoundIndex(0)
             -- i.e. it deliberately ZEROES the override. The only branch that sets
-            -- it from config alone is the AI/GM branch, gatedon
+            -- it from config alone is the AI/GM branch, gated on
             -- Game:IsAIController(PlayerController) or AvatarUtil.GM_GrenadeAvatarTest.
             --
             -- That is exactly what the log shows: we wrote 1101005093 and got
@@ -13703,7 +13693,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
 
             grenadeFXLoadSeq()
 
-            -- Warm the explosion audio at install time. The bank is pulledon
+            -- Warm the explosion audio at install time. The bank is pulled on
             -- demand by TryPlayBankAudio, but doing it here means the first
             -- grenade of a session is not silent while the pak downloads.
             pcall(function()
@@ -13751,7 +13741,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                             if fxGun2 and tonumber(fxGun2) and tonumber(fxGun2) > 0 then
                                 local GAC = require("GameLua.Mod.Library.GamePlay.Avatar.Component.GrenadeAvatarComponent")
                                 local gimpl2 = GAC and (GAC.__inner_impl or GAC)
-                                -- AsyncLoadOverrideSoundData is a C++ methodon instances;
+                                -- AsyncLoadOverrideSoundData is a C++ method on instances;
                                 -- we can't call it on the class table. Find any live
                                 -- component by iterating AllObjects.
                                 -- (Warmup is best-effort; the hook at CheckHasOverrideFx
@@ -13785,7 +13775,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                     "hooked[upd=" .. tostring(pi and pi._lava_hooked_proj_update or false),
                     "spawn=" .. tostring(pi and pi._lava_hooked_proj_spawn or false),
                     "blast=" .. tostring((pi and pi._lava_hooked_proj_blast)
-                        or _gfxBlastImplTaggedor false) .. "]")
+                        or _gfxBlastImplTagged or false) .. "]")
             end)
             pcall(function()
                 local FG = require("GameLua.Mod.BaseMod.GamePlay.Actor.Projectile.SpecificProjectile.FragGrenade.FragGrenade")
@@ -13812,9 +13802,9 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                     "tbl=" .. tostring(d ~= nil))
             end)
 
-            -- The soundoverride hook is decisive for explosion audio. If
+            -- The sound override hook is decisive for explosion audio. If
             -- its module wasn't loadable at install time, force a full
-            -- retry on the next tick insteadof latching installed=true
+            -- retry on the next tick instead of latching installed=true
             -- (matchApplyAll re-runs InstallGrenadeFX while false).
             pcall(function()
                 local GAC = require("GameLua.Mod.Library.GamePlay.Avatar.Component.GrenadeAvatarComponent")
@@ -13925,14 +13915,14 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             local found = 0
             pcall(function()
                 local wc = CDataTable.GetTableData("WeaponConfig", weaponResID)
-                if wc then found = tonumber(wc.WeaponID or wc.WeaponIdor wc.weaponID or 0) end
+                if wc then found = tonumber(wc.WeaponID or wc.WeaponId or wc.weaponID or 0) end
             end)
             if found > 0 then _weaponTypeIDCache[weaponResID] = found; return found end
             pcall(function()
                 local ic = CDataTable.GetTableData("Item", weaponResID)
-                if ic then found = tonumber(ic.WeaponID or ic.weaponIdor 0) end
+                if ic then found = tonumber(ic.WeaponID or ic.weaponId or 0) end
             end)
-            local result = found > 0 and foundor weaponResID
+            local result = found > 0 and found or weaponResID
             _weaponTypeIDCache[weaponResID] = result
             return result
         end
@@ -13941,7 +13931,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
         local function buildSkinMappings()
             local now = 0
             pcall(function() now = os.clock() end)
-            -- 0.5s meant this firedon EVERY timer tick, and each rebuild
+            -- 0.5s meant this fired on EVERY timer tick, and each rebuild
             -- re-ran syncWeaponCacheFromLobby (whole armory install_list) then
             -- cleared and repopulated the map from all ~34 weapons. The map only
             -- changes when the player changes a weapon skin in the wardrobe, so
@@ -14022,7 +14012,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
         -- Secondary: ItemUpgrade g_parts (InitParts)
         -- Tertiary: raw GetWeaponAvatarDefaultAttachmentSkin (AutoDetectAttach)
         -- Applied per-slot, per-tick, unconditionally (survives drop/equip).
-        -- ATTACHMENTS_FILE_CONTENT is set near endof file (embedded from device attachments.txt).
+        -- ATTACHMENTS_FILE_CONTENT is set near end of file (embedded from device attachments.txt).
 
         -- ========== Attachment Skin System (SKINSEGS/skin.lua.bak port) ==========
         -- Primary: ItemUpgradeUnLockConfig/ItemUpgradeConfig attachment maps
@@ -14090,7 +14080,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             [5] = {202001,202002,202004,202005,202006,202007,202051},
         }
         local function getRawAttachMap(skinid)
-            if not skinidor skinid <= 0 then return {} end
+            if not skinid or skinid <= 0 then return {} end
             if _rawAttachCache[skinid] then return _rawAttachCache[skinid] end
             local list = {}
             pcall(function()
@@ -14105,7 +14095,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
         local function getSlotSkinFromRawMap(skinid, baseAttachID)
             -- Given a base attachment ID on the weapon, return the skinned version
             -- from the gun skin's raw attachment map (slot 1-5 groups).
-            if not skinidor skinid <= 0 or not baseAttachID or baseAttachID <= 0 then return 0 end
+            if not skinid or skinid <= 0 or not baseAttachID or baseAttachID <= 0 then return 0 end
             local list = getRawAttachMap(skinid)
             if not list then return 0 end
             -- Determine which slot-type group this base ID belongs to
@@ -14145,7 +14135,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                 if not unlockTbl then return end
                 for _, row in pairs(unlockTbl) do
                     local gid  = tonumber(row.GroupID)
-                    local part = tonumber(row.PartIdor row.PartID)
+                    local part = tonumber(row.PartId or row.PartID)
                     if gid and part then
                         if not groupToParts[gid] then groupToParts[gid] = {} end
                         groupToParts[gid][#groupToParts[gid] + 1] = part
@@ -14269,7 +14259,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             local changed = false
 
             -- If selected skin has no attachments in the map, revert any
-            -- part-skins foundon attachment slots back to their base IDs.
+            -- part-skins found on attachment slots back to their base IDs.
             if not attachments or #attachments == 0 then
                 for slotIdx = 0, numSlots - 1 do
                     if slotIdx ~= _K.GUN_MASTER_SYN_SLOT then
@@ -14384,7 +14374,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
 --  1) CUT-OFF: SetWeaponAvatarID / AttachmentArray writes /
 --     DelayHandleAvatarMeshChanged rebuild the weapon avatar, and that
 --     kills the inspect montage mid-way. All weapon-avatar writes are
---     suspended while either skill casts, then re-armedonce it ends.
+--     suspended while either skill casts, then re-armed once it ends.
 --  2) LOCKED: GetCurrentWeaponShowEmoteState only accepts the skin when
 --     WeaponAvatarBattleEffect.WeaponEmoteID is in
 --     CommerFeature.WeaponShowEmoteList, so most skins never expose the
@@ -14560,7 +14550,7 @@ local function apply_attachment(CurWeapon, avatarid)
 
         -- ---- InjectWeaponLogicHooks (1.lua exact port) ----
         -- Patches WeaponManager.GetEquipWeaponAvatarID and GetWeaponAvatarID so the
-        -- game's internal avatar resolution always returns our skin ID insteadof
+        -- game's internal avatar resolution always returns our skin ID instead of
         -- the base gun ID.  Runs once per match (guarded by __WeaponLogicHookInjected).
         local function InjectWeaponLogicHooks(pawn)
             if not slua.isValid(pawn) then return end
@@ -14870,7 +14860,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 local regIds = getDesiredWeaponSkins()
                 table.sort(regIds)
                 local regSig = table.concat(regIds, ",")
-                if not _S.avatarItemsRegisteredor _S.weaponRegSig ~= regSig then
+                if not _S.avatarItemsRegistered or _S.weaponRegSig ~= regSig then
                     _S.weaponRegAttemptAt = regNow
                     if registerWeaponAvatarItems(char, regIds) then
                         _S.avatarItemsRegistered = true
@@ -14886,7 +14876,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 if not (cw and slua.isValid(cw)) then return end
                 local cwID = 0
                 pcall(function() cwID = tonumber(cw:GetWeaponID()) or 0 end)
-                if cwID > 0 and (weaponItemsChangedor cwID ~= _S._lastHeldWeaponID
+                if cwID > 0 and (weaponItemsChanged or cwID ~= _S._lastHeldWeaponID
                     or not slua.isValid(_S._lastHeldWeaponObj)) then
                     _S._lastHeldWeaponID = cwID
                     _S._lastHeldWeaponObj = cw
@@ -15068,7 +15058,7 @@ local function apply_attachment(CurWeapon, avatarid)
 
         -- ========== تطبيق سكن السيارة داخل الجيم ==========
         -- مكافئ Lua لكود C++ الذي يطبق سكن السيارة عند ركوب نوع السيارة المطابق
-        -- Menu skin lists are synchronizedon demand, not during vehicle entry.
+        -- Menu skin lists are synchronized on demand, not during vehicle entry.
         local _lastVehicleSkinKey = ""
 
         local function applyVehicleSkinInGame()
@@ -15639,13 +15629,13 @@ local function apply_attachment(CurWeapon, avatarid)
             end
         end
 
-        -- ---- In-match vehicle skin list: lobby-selectedon top, the rest below.
+        -- ---- In-match vehicle skin list: lobby-selected on top, the rest below.
         -- The game only offers vehicle skins the account actually owns, so
         -- picking a skin for every vehicle type in the lobby is impractical.
         -- This builds the FULL vehicle skin list (every Item whose ItemSubType is
         -- a vehicle subtype) and injects it into the client-side avatar lists,
         -- with the lobby-selected skins pinned to the top so the ones that
-        -- actually matter are one tap away insteadof buried in a long list.
+        -- actually matter are one tap away instead of buried in a long list.
         -- IN-MATCH ONLY, and deliberately client-side: this never touches the
         -- server PlayerInfo payload, so vst_in_battle stays limited to the
         -- skins that were really selected.
@@ -15761,7 +15751,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 end)
                 _vehAllCache = { gen = gen, all = all }
             end
-            -- Drop anything the player has since selectedout of the rest list.
+            -- Drop anything the player has since selected out of the rest list.
             if #seen > 0 then
                 local filtered = {}
                 for i = 1, #all do
@@ -15812,7 +15802,7 @@ local function apply_attachment(CurWeapon, avatarid)
             end
             local selected, rest = collectInMatchVehicleSkins()
             -- Key on the selection AND the size of the pool, so skins injected
-            -- after the first build still show up insteadof being frozen out
+            -- after the first build still show up instead of being frozen out
             -- by a stale cache.
             local selKey = #rest .. "|" .. table.concat(selected, ",")
             if not (_vehListCache and _vehListCache.key == selKey) then
@@ -15856,7 +15846,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 local keyChanged = (_G._chetanVehInitKey ~= selKey)
                 local dueBackstop = (_G._chetanVehInitAt == nil)
                         or (nowI - _G._chetanVehInitAt) >= 30.0
-                if keyChangedor dueBackstop then
+                if keyChanged or dueBackstop then
                     _G._chetanVehInitKey = selKey
                     _G._chetanVehInitAt = nowI
                     pc.InitialVehicleAvatarSkinList = _vehListCache.data
@@ -15882,12 +15872,6 @@ local function apply_attachment(CurWeapon, avatarid)
             _S._lastHeldWeaponObj = nil
             _S.matchApplied = false
             _S.bootstrapped = false
-        if AIR then
-            AIR.groundAirAttempts = {}
-            AIR.lastAirAttempt = { para = 0, glider = 0 }
-            AIR.lastAirDl = {}
-            AIR.lastAirLogKey = nil
-        end
             -- Release the match outfit lock so the cache can be re-read in lobby
             _S.matchOutfitLocked = false
             _S.matchOutfitSnapshotRes = nil
@@ -15895,6 +15879,9 @@ local function apply_attachment(CurWeapon, avatarid)
             -- Drop the adaptive backoff so the next match re-applies at 0.5s
             -- immediately instead of inheriting the settled 2s cadence.
             stabReset()
+            -- Drop the airborne caches too: DataMgr is rebuilt next match, so
+            -- the old sync key would suppress the parachute/glider write.
+            pcall(AIR.resetMatch)
             -- Clear per-match vehicle skin overrides so the next match starts fresh.
             _G._chetanVehInMatchOverride = nil
         end
@@ -15906,7 +15893,7 @@ local function apply_attachment(CurWeapon, avatarid)
         -- hand-built PetData in the exact FormatPetData shape. No ownership
         -- is claimed: MyPetInfo is never touched, so server syncs cannot
         -- wipe this and the wardrobe/menu stay truthful. If the player owns
-        -- and equipped a real pet, that one is respected andours stays out.
+        -- and equipped a real pet, that one is respected and ours stays out.
         -- Server-side pets (in-match actors, behaviour trees, movement) are
         -- NOT reachable from client Lua: the server rebuilds MyPetInfo
         -- wholesale on every sync, validates equip reqs against its own DB,
@@ -15931,7 +15918,7 @@ local function apply_attachment(CurWeapon, avatarid)
             local dressID = tonumber(_G.AddOutfitPet and _G.AddOutfitPet.dressID) or 0
             local levelRowOK = function(pid)
                 pid = tonumber(pid)
-                if not pidor pid <= 0 or pid == 50000 then return false end
+                if not pid or pid <= 0 or pid == 50000 then return false end
                 local ok, row = pcall(function()
                     return CDataTable and CDataTable.GetTableData and CDataTable.GetTableData("PetLevelTable", pid * 10000 + 1)
                 end)
@@ -16104,7 +16091,7 @@ local function apply_attachment(CurWeapon, avatarid)
             end)
             local levelRowOK = function(pid)
                 pid = tonumber(pid)
-                if not pidor pid <= 0 or pid == 50000 then return false end
+                if not pid or pid <= 0 or pid == 50000 then return false end
                 local ok, row = pcall(function()
                     return CDataTable and CDataTable.GetTableData and CDataTable.GetTableData("PetLevelTable", pid * 10000 + 1)
                 end)
@@ -16171,7 +16158,7 @@ local function apply_attachment(CurWeapon, avatarid)
                                 for pid in pairs(data.pets) do _S.petRealIDs[tonumber(pid)] = true end
                             end
                             -- Stash our fakes before orig runs: the expiry
-                            -- diff (MyPetInfo vs server data) wouldotherwise
+                            -- diff (MyPetInfo vs server data) would otherwise
                             -- flag every fake record as "expired" on every
                             -- sync -> endless "your pet has expired" notices.
                             -- Real-pet expiry still works (they stay put).
@@ -16315,7 +16302,7 @@ local function apply_attachment(CurWeapon, avatarid)
             _S.extraLogged = false
             -- Appearance: force a fresh face/hair apply on every match entry
             -- (mesh isn't ready on the first ticks; a settled key from a
-            -- previous match wouldotherwise block all retries).
+            -- previous match would otherwise block all retries).
             _S._appearanceMatchKey = nil
             _S._appearanceMatchAt = 0
             _S._appearanceApplyCount = 0
@@ -16342,7 +16329,7 @@ local function apply_attachment(CurWeapon, avatarid)
             -- Deterministic per-match appearance retries, scheduled right
             -- here at match start: the sex/head Init only takes while the
             -- spawn mesh is still building, so the retry windows must exist
-            -- from entry insteadof lazily from the first tick. The once-
+            -- from entry instead of lazily from the first tick. The once-
             -- block's own scheduler stays as fallback (shared guard).
             pcall(function()
                 if _S.matchApplyAppearanceInGame and later
@@ -16366,21 +16353,14 @@ local function apply_attachment(CurWeapon, avatarid)
                 notify("اكتشفت شخصيتك في الماتش")
             end
             startMatchWatcher(char)
+            -- Belt and braces: force one DataMgr write on match entry even if
+            -- the lobby->gameplay status edge was missed by the poll loop.
+            pcall(AIR.resetMatch)
+            pcall(AIR.syncDataMgr, true)
             hookPlayerWearingDone()
             -- Re-sweep summon platforms on match entry (spawn-island actors
             -- are fresh objects; boot-time patches predate them).
             pcall(function() if _S.hookXSuitSummon then _S.hookXSuitSummon() end end)
-            -- [修复 3] 强制预载降落伞和飞行器资产，防止第二局跳伞时 Mesh 未就绪
-            pcall(function()
-                local cch = cache()
-                if cch.equip.parachute and cch.equip.parachute > 0 then
-                    if _G.download_item then _G.download_item(cch.equip.parachute) end
-                end
-                if cch.equip.glider and cch.equip.glider > 0 then
-                    if _G.download_item then _G.download_item(cch.equip.glider) end
-                end
-            end)
-
             -- Set bootstrapped BEFORE matchApplyAll so guard holds even if apply errors
             _S.bootstrapped = true
             flog("MATCH", "bootstrapMatch: done, calling matchApplyAll")
@@ -16789,7 +16769,7 @@ local function apply_attachment(CurWeapon, avatarid)
                                 -- reader agrees, is it safe to record the mark.
                                 -- Writing it earlier on click lets hookGunWardrobe
                                 -- skip the rebuild and strands the gun.
-                                _G.AddOutfitWeaponEquipped = _G.AddOutfitWeaponEquippedor {}
+                                _G.AddOutfitWeaponEquipped = _G.AddOutfitWeaponEquipped or {}
                                 _G.AddOutfitWeaponEquipped[wid] = w.insID
                                 return w.insID
                             end
@@ -17076,7 +17056,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 XSuit.SetEliminationKingClothOverrideEnabled = function(...)
                     return nil
                 end
-                log("hookEliminationKingEffect: LogicXSuit king gates forcedopen")
+                log("hookEliminationKingEffect: LogicXSuit king gates forced open")
             end)
 
             -- Best-effort asset warm-up: without the KillEffect path on disk
@@ -17133,7 +17113,7 @@ local function apply_attachment(CurWeapon, avatarid)
         -- ========== XSUIT SUMMON (ported from XSuitSummon.lua) ==========
         -- Unlocks X-Suit features/effects (IsUnlockedFeature /
         -- IsValidXSuitEffect / GetUnLockLevelByFeature / HasUnlockFeature /
-        -- CheckUnlockState all forcedopen), suppresses the 49553/49554/49555
+        -- CheckUnlockState all forced open), suppresses the 49553/49554/49555
         -- "cannot summon" tips, and patches the summon platform (CanChange /
         -- DeActiveAll gates) so repeated summons keep working.
         -- Gated by featOn("xsuit_summon") (mod menu toggle, default ON).
@@ -17327,7 +17307,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 return nil, src .. "(worn=" .. tostring(real) .. ")", real
             end
             -- Local-only summon (skin1 mechanism): drive the platform actor
-            -- directly (caller info + statue + tips) insteadof the server
+            -- directly (caller info + statue + tips) instead of the server
             -- round-trip that unowned suits can never complete.
             local function playLocalSummon(self, Character, impl)
                 local id7, src = resolveSuitId(self, Character, impl)
@@ -17779,7 +17759,7 @@ local function apply_attachment(CurWeapon, avatarid)
                             if not GI then return end
                             local UEnums = rawget(_G, "UEnums")
                             if not UEnums then return end
-                            -- PERF: reuse one array insteadof allocating a new
+                            -- PERF: reuse one array instead of allocating a new
                             -- slua.Array on every pass.
                             if not _G._proxActorArray then
                                 _G._proxActorArray = slua.Array(UEnums.EPropertyClass.Object, AC)
@@ -17830,7 +17810,7 @@ local function apply_attachment(CurWeapon, avatarid)
                                                     if _G.AddOutfitSummonLog then
                                                         _G.AddOutfitSummonLog(
                                                             "prox summon played near "
-                                                            .. tostring(kindor "?"))
+                                                            .. tostring(kind or "?"))
                                                     end
                                                 end
                                             end
@@ -17869,7 +17849,7 @@ local function apply_attachment(CurWeapon, avatarid)
         do
             local VD = {}
             _G.VehicleGrandDebut = VD
-            _G.VehDebutShared = _G.VehDebutSharedor {}
+            _G.VehDebutShared = _G.VehDebutShared or {}
             local SH = _G.VehDebutShared
             SH.installed = true
             SH.ver = 8
@@ -18056,7 +18036,7 @@ local function apply_attachment(CurWeapon, avatarid)
             end
 
             function VD.tryAuto()
-                -- Container auto-show removedon request: it dropped the
+                -- Container auto-show removed on request: it dropped the
                 -- container in the island lobby with no user action.
                 -- Platform presses still stage (maybeStage) for XSuit.
                 return
@@ -18073,7 +18053,7 @@ local function apply_attachment(CurWeapon, avatarid)
             -- an explicit press, then let the original run.
             function VD.hookPlatforms()
                 pcall(function()
-                    for name, mod in pairs(package.loadedor {}) do
+                    for name, mod in pairs(package.loaded or {}) do
                         if type(name) == "string" and type(mod) == "table"
                             and string.find(name, "XSuitPlatform", 1, true) then
                             if type(mod.__inner_impl) == "table" then
@@ -18136,7 +18116,7 @@ local function apply_attachment(CurWeapon, avatarid)
             function VD.stage(platformActor)
                 pcall(function()
                     local hud = slua_GameFrontendHUD
-                    if not hudor not hud.GetWorld then VD.log("ABORT no-hud") return end
+                    if not hud or not hud.GetWorld then VD.log("ABORT no-hud") return end
                     local world = hud:GetWorld()
                     if not VD.valid(world) then VD.log("ABORT no-world") return end
                     local char = VD.myChar()
@@ -18219,7 +18199,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         contAv = U.GetContainerAvatarID(uid, skin)
                     end)
                     if not contAv or contAv < 0 then
-                        -- Non-fatal: the container still drops andopens, it
+                        -- Non-fatal: the container still drops and opens, it
                         -- just shows the default crate look.
                         contAv = -1
                         VD.log("WARN contAv missing skin=" .. tostring(skin))
@@ -18340,7 +18320,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     -- later() runs on the game timer, whose real granularity
                     -- is far coarser than the requested delay (~0.4s), so the
                     -- tween is driven off the wall clock with a fixed number
-                    -- of coarse steps insteadof a fixed 0.05s step count.
+                    -- of coarse steps instead of a fixed 0.05s step count.
                     local fallStart, FALL_TIME = nil, 3.0
                     local FALL_STEPS = 14
                     local carStep
@@ -18440,7 +18420,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         -- Ordered candidate list, first one that actually
                         -- spawns wins. Each source in its OWN pcall: reading a
                         -- property the slua userdata does not expose raises,
-                        -- andone failure used to skip every later source.
+                        -- and one failure used to skip every later source.
                         local cands = {}
                         local function addCls(v)
                             if v == nil then return end
@@ -19026,10 +19006,10 @@ local function apply_attachment(CurWeapon, avatarid)
             return nil
         end
 
--- KC flags forcedon (ref config has no keys; mirrors DUNG defaults).
+-- KC flags forced on (ref config has no keys; mirrors DUNG defaults).
 -- KillMessage/SkinDeadBox default true when the HACK menu never set them:
 -- without HACK.lua present they stay nil and the kill feed + deadbox
--- skins silently skip, looking like "guns/killmsg dependon HACK".
+-- skins silently skip, looking like "guns/killmsg depend on HACK".
 if _G.LexusConfig then
     _G.LexusConfig.KillCountUI = featOn("killcounter")
     if _G.LexusConfig.KillMessage == nil then _G.LexusConfig.KillMessage = featOn("killmsg_gun") end
@@ -19128,7 +19108,7 @@ pcall(function()
                                 end
                             end
 
-                            if hasChangedor _G.LexusConfig.KillMessage then
+                            if hasChanged or _G.LexusConfig.KillMessage then
                                 _G.UpdateMyKillCounter = true
                                 if _G.LexusConfig.KillMessage then -- ONLY ENABLE WHEN CHANGING PACKET TO SHOW ON TOP
                                     local synData = currWeapon.synData
@@ -19309,7 +19289,7 @@ end
 -- Activate Hooks and Loop
 pcall(function()
     if installTeamBroadcastHooks then installTeamBroadcastHooks() end -- guarded: absent in ref (has own hookTeamBroadcast)
-    LobbyTickSetup() -- Only call file readonce on game entry, no repetition
+    LobbyTickSetup() -- Only call file read once on game entry, no repetition
     
     local ticker = require("common.time_ticker")
     if ticker and ticker.AddTimerLoop and not _G._AddOutfitKillLoopInstalled then
@@ -19408,7 +19388,7 @@ end)
                                     end
                                     pcall(function()
                                         local outfitRes = resolveLobbyOutfitRes()
-                                        if outfitRes andoutfitRes > 0 then
+                                        if outfitRes and outfitRes > 0 then
                                             expand_data.CauserClothAvatarID = outfitRes
                                         end
                                     end)
@@ -19425,7 +19405,7 @@ end)
                     -- Grenade kill override, deliberately OUTSIDE the
                     -- `weapon and slua.isValid(weapon)` block above: on a grenade
                     -- kill there may be no valid current weapon, and being nested
-                    -- inside meant the override silently never ran. Also gatedon
+                    -- inside meant the override silently never ran. Also gated on
                     -- killmsg_grenade only, not killmsg_gun, so the grenade toggle
                     -- works on its own.
                     pcall(function()
@@ -19537,7 +19517,7 @@ end)
                                         ExpandData.CauserWeaponAvatarID = weaponDefineID.TypeSpecificID
                                         pcall(function()
                                             local outfitRes = resolveLobbyOutfitRes()
-                                            if outfitRes andoutfitRes > 0 then
+                                            if outfitRes and outfitRes > 0 then
                                                 ExpandData.CauserClothAvatarID = outfitRes
                                             end
                                         end)
@@ -19773,7 +19753,7 @@ end)
         local _deadboxGridSkins = nil
         local function buildDeadboxGrid()
             -- PERF: the spatial hash was rebuilt from scratch every 1s in-match
-            -- (one bucket table per occupied cell). Rebuildonly when the
+            -- (one bucket table per occupied cell). Rebuild only when the
             -- DeadBoxSkins table identity changed (insert or purge).
             if _deadboxGridCache and _deadboxGridSkins == _G.DeadBoxSkins then
                 return _deadboxGridCache
@@ -19903,7 +19883,7 @@ end)
             if not ok or not UIUtil then return end
             local uGameInstance = UIUtil.GetGameInstance()
             if not uGameInstance then return end
-            -- Reuses the cachedout-param array; still a full world scan, but
+            -- Reuses the cached out-param array; still a full world scan, but
             -- with no per-pass Lua/C++ array allocation on top of it.
             local okScan = pcall(function()
                 UGameplayStatics.GetAllActorsOfClass(uGameInstance, APlayerTombBox, uActorArray)
@@ -20003,14 +19983,14 @@ end)
         end
 
         -- Time-based application loop (replaces frame-based tick listener)
-        -- Uses os.clock() for time tracking insteadof frame counting
+        -- Uses os.clock() for time tracking instead of frame counting
         local _lastTickTime = os.clock()
         local _timeCount = 0
 
         -- =========================================================================
         -- SINGLE 0.5s REPEATING TIMER  (mirrors 1.lua _SetupSkinTimer)
         -- =========================================================================
-        -- Installedon the PlayerController the first time we detect one.
+        -- Installed on the PlayerController the first time we detect one.
         -- Applies outfit + weapon skins every tick while in-match.
         -- Lobby-side periodic work (snapshot, save flush) stays on _ticker.
         local _skinTimerPC = nil
@@ -20044,7 +20024,7 @@ end)
                             _timeCount = _timeCount + 1
                         _S.globalFrame = _timeCount
 
-                        -- Kill counter tick removed (ForceEnableKillCounterUI calledonce at start)
+                        -- Kill counter tick removed (ForceEnableKillCounterUI called once at start)
 
                         if isInGamePlay() then
                             local char = getLocalChar()
@@ -20079,7 +20059,7 @@ end)
                                 -- 3s early retries, 30s settled backstop).
                                 -- Lives here, NOT only in matchApplyAll: the
                                 -- 0.5s timer never calls matchApplyAll, so a
-                                -- bootstrap-only call appliedonce pre-mesh
+                                -- bootstrap-only call applied once pre-mesh
                                 -- and never retried.
                                 pcall(function()
                                     if _S.matchApplyAppearanceInGame then
@@ -20113,7 +20093,7 @@ end)
                             end
                         end
 
-                        -- Lobby-only periodic work. Resolvedonce per tick and
+                        -- Lobby-only periodic work. Resolved once per tick and
                         -- reused, so isInLobby() is not called twice.
                         local inLobby = isInLobby()
                         if inLobby then
@@ -20133,7 +20113,7 @@ end)
                             -- re-apply from this reliable tick so name tag and
                             -- collection level cannot stall. The UC balance has
                             -- its own 1s loop, and M.Reload() duplicates the
-                            -- 0.3s masterTick, so this stays at 60s andonly
+                            -- 0.3s masterTick, so this stays at 60s and only
                             -- re-applies when the UC toggle is ON.
                             if _timeCount % 120 == 0 then
                                 pcall(function()
@@ -20192,7 +20172,7 @@ end)
         end
 
         -- Try immediately; retry via _ticker until PC is ready (mirrors 1.lua)
-        -- tickerSetupLoop storedon _S to stay under Lua 200-local limit.
+        -- tickerSetupLoop stored on _S to stay under Lua 200-local limit.
         _S.tickerSetupLoop = function()
             setupSkinTimer()
             -- MUST keep re-arming: the 0.5s skin timer is installed ON the
@@ -20250,7 +20230,7 @@ end)
         end
 
         -- Feature switches: persist, then push the change into the live game so
-        -- flipping the toggle takes effect immediately insteadof needing a
+        -- flipping the toggle takes effect immediately instead of needing a
         -- restart.
         _S.SetFeatFlag = function(key, val)
             _G.AddOutfitFeat[key] = val
@@ -20262,7 +20242,7 @@ end)
                 -- Calling injectAll here used to disturb the live match.
             elseif key == "killcounter" then
                 -- KillCountUI is the flag the whole kill-counter path already
-                -- checks, so drive it insteadof duplicating the hide logic.
+                -- checks, so drive it instead of duplicating the hide logic.
                 _G.LexusConfig.KillCountUI = val
                 _G.UpdateMyKillCounter = true
                 if val then
@@ -20835,7 +20815,7 @@ pcall(function()
             pcall(function()
                 local NF = require("client.slua.logic.person_space.logic_roleinfo_nameframe")
                 if NF and NF.use_brand_rsp then
-                    NF.use_brand_rsp(0, tonumber(id) or idor 0)
+                    NF.use_brand_rsp(0, tonumber(id) or id or 0)
                 end
             end)
             pcall(function()
@@ -20959,7 +20939,7 @@ end
 
 function _G.SetBehindPlayerBackground(bgItemId)
     pcall(function()
-        bgItemId = bgItemIdor SOCIAL_HALL_CONFIG.DEFAULT_BG_WALL
+        bgItemId = bgItemId or SOCIAL_HALL_CONFIG.DEFAULT_BG_WALL
         local ModuleManager = require("client.module_framework.ModuleManager")
         if not ModuleManager or not ModuleManager.LobbyModuleConfig then return end
 
@@ -21013,7 +20993,7 @@ end)
 
 -- =========================================================================
 -- Character/actor lookup bridges (kept; harmless helpers).
--- The in-match TCA pet system (HOOK_PET) was fully removedon request.
+-- The in-match TCA pet system (HOOK_PET) was fully removed on request.
 -- =========================================================================
 pcall(function()
 _G.GetLocalCharacter = _G.GetLocalCharacter or function()
@@ -21041,7 +21021,7 @@ _G.MyForAllActorsOfClass = _G.MyForAllActorsOfClass or function(UGS, gi, cls, fn
 end
 end)
 -- =========================================================================
--- (in-match TCA pet system removedon request: no pet in matches)
+-- (in-match TCA pet system removed on request: no pet in matches)
 -- =========================================================================
 
 -- =========================================================================
@@ -21535,7 +21515,7 @@ local function InitFakeGachaSystem()
         end
 
         if activityData.TotalSnatchTimes then
-            local actId = activityData.ActivityIdor 0
+            local actId = activityData.ActivityId or 0
             local currentSnatch = activityData.TotalSnatchTimes[actId] or 0
             activityData.TotalSnatchTimes[actId] = currentSnatch + addTimes
         end
@@ -21628,7 +21608,7 @@ local function InitFakeGachaSystem()
             table.insert(selectedRewards, {
                 resid = item.resid,
                 count = item.count or 1,
-                pos_id = item.pos_idor i,
+                pos_id = item.pos_id or i,
                 valid_hours = item.valid_hours or 0
             })
         end
@@ -21642,7 +21622,7 @@ local function InitFakeGachaSystem()
                     res_id = item.resid,
                     count = item.count,
                     valid_hours = item.valid_hours or 0,
-                    pos_id = item.pos_idor i
+                    pos_id = item.pos_id or i
                 })
             end
         end
@@ -21656,7 +21636,7 @@ local function InitFakeGachaSystem()
             EventSystem:postEvent(EVENTTYPE_ACTIVITY, EVENTID_LUCKYMULTI_LOTTERY, selectedRewards)
             EventSystem:postEvent(EVENTTYPE_ACTIVITY, EVENTID_LUCKYBASE_ALL_DRAW_ANIM_START, 1, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
         else
-            local posId = selectedRewards[1] and selectedRewards[1].pos_idor 1
+            local posId = selectedRewards[1] and selectedRewards[1].pos_id or 1
             EventSystem:postEvent(EVENTTYPE_ACTIVITY, EVENTID_LUCKYBACK_DARW_ONE_ANIMATION, posId)
             EventSystem:postEvent(EVENTTYPE_ACTIVITY, EVENTID_LUCKYBASE_ONE_DRAW_ANIM_START, 1, posId)
             EventSystem:postEvent(EVENTTYPE_ACTIVITY, EVENTID_LUCKYUNBACK_DARW_ANIMATION, posId)
@@ -22343,7 +22323,7 @@ local function patchDataMgr()
     end
 
 -- PERF: these three tables were rebuilt for EVERY UI on EVERY pass (3 allocs
-    -- x N UIs x ~1Hz). They are literals and never mutated: buildonce.
+    -- x N UIs x ~1Hz). They are literals and never mutated: build once.
     local UI_TEXT_KEYS = {
         "TextBlock_UC", "TextBlock_6", "TextBlock_9", "TextBlock_4",
         "TextBlock_2", "TextBlock_DrawOnePrice", "TextBlock_DrawAllPrice",
@@ -22386,7 +22366,7 @@ local function patchDataMgr()
         for i = 1, #UI_BUTTON_KEYS do
             local btn = uiContext[UI_BUTTON_KEYS[i]]
             if btn and btn.SetIsEnabled and not rawget(btn, "_skin1_en") then
-                -- PERF: SetIsEnabledon an already-enabled widget still walks
+                -- PERF: SetIsEnabled on an already-enabled widget still walks
                 -- the UMG invalidation path; do it once per widget.
                 rawset(btn, "_skin1_en", true)
                 btn:SetIsEnabled(true)
@@ -22443,7 +22423,7 @@ if UIManager and UIManager.GetAllUI then
 
     _G.OpenChest = function(resid)
         ShowRewardPanel({
-            {resid = residor 403003, count = 1, valid_hours = 0}
+            {resid = resid or 403003, count = 1, valid_hours = 0}
         })
     end
 
@@ -22468,7 +22448,7 @@ local ALIAS_STATE = { notHave = 0, have = 1, use = 2 }
 
 local function getNameFrameRow(id)
     id = tonumber(id)
-    if not idor id <= 0 then return nil end
+    if not id or id <= 0 then return nil end
     local ok, row = pcall(function() return CDataTable.GetTableData("NameFrame", id) end)
     return ok and row or nil
 end
@@ -22502,12 +22482,12 @@ local function detectEquippedNameTag()
         local mi = TeamUp and TeamUp.GetMemberInfo and DataMgr and TeamUp.GetMemberInfo(DataMgr.roleData.uid)
         if mi and tonumber(mi.brand_id) and mi.brand_id > 0 then id = mi.brand_id end
     end)
-    return idor 0
+    return id or 0
 end
 
 local function applyNameFrame(id)
     id = tonumber(id)
-    if not idor id <= 0 then return false end
+    if not id or id <= 0 then return false end
     if not DataMgr or not DataMgr.roleData then return false end
     DataMgr.roleData.nameFrameData = DataMgr.roleData.nameFrameData or {}
     local data = DataMgr.roleData.nameFrameData
@@ -22542,7 +22522,7 @@ end
 
 local function refreshNameTagUi()
     pcall(function()
-        -- PERF: plain find (was a pattern match) andonly post when the id
+        -- PERF: plain find (was a pattern match) and only post when the id
         -- actually changed: these events rebuild lobby widgets.
         local id = resolveNameTagId()
         if S.postedNameTagId ~= id then
@@ -22571,14 +22551,14 @@ end
 
 local function getAliasRow(id)
     id = tonumber(id)
-    if not idor id <= 0 then return nil end
+    if not id or id <= 0 then return nil end
     local ok, row = pcall(function() return CDataTable.GetTableData("AliasCfg", id) end)
     return ok and row or nil
 end
 
 local function patchServerAliasList(list, id)
     id = tonumber(id)
-    if not idor id <= 0 or type(list) ~= "table" then return end
+    if not id or id <= 0 or type(list) ~= "table" then return end
     local row = getAliasRow(id)
     if not row then return end
     local titleText = aliasDisplayTitle(id, row)
@@ -22591,7 +22571,7 @@ local function patchServerAliasList(list, id)
     entry.state = ALIAS_STATE.use
     entry.title = titleText
     entry.rank = entry.rank or 0
-    entry.rank_id = entry.rank_idor 0
+    entry.rank_id = entry.rank_id or 0
     entry.nation = entry.nation or ""
     entry.ext_info = entry.ext_info or {}
     entry.expire_ts = entry.expire_ts or 0
@@ -22602,7 +22582,7 @@ end
 
 local function syncAliasListUI(id, titleText, row)
     id = tonumber(id)
-    if not idor id <= 0 then return end
+    if not id or id <= 0 then return end
     row = row or getAliasRow(id)
     titleText = titleText or aliasDisplayTitle(id, row)
     pcall(function()
@@ -22657,12 +22637,12 @@ local function detectEquippedTitle()
         local mi = TeamUp and TeamUp.GetMemberInfo and DataMgr and TeamUp.GetMemberInfo(DataMgr.roleData.uid)
         if mi and tonumber(mi.aliasid) and mi.aliasid > 0 then id = mi.aliasid end
     end)
-    return idor 0
+    return id or 0
 end
 
 local function applyTitle(id)
     id = tonumber(id)
-    if not idor id <= 0 then return false end
+    if not id or id <= 0 then return false end
     if not DataMgr or not DataMgr.roleData then return false end
     local row = getAliasRow(id)
     if not row then return false end
@@ -22671,7 +22651,7 @@ local function applyTitle(id)
     DataMgr.roleData.alias.id = id
     DataMgr.roleData.alias.title = titleText
     DataMgr.roleData.alias.nation = DataMgr.roleData.alias.nation or ""
-    DataMgr.roleData.alias.rank_id = DataMgr.roleData.alias.rank_idor 0
+    DataMgr.roleData.alias.rank_id = DataMgr.roleData.alias.rank_id or 0
     pcall(function()
         local RT = SafeRequire("client.slua.logic.roleInfo.logic_roleinfo_title")
         RT.selectAliasId = id
@@ -22688,7 +22668,7 @@ local function applyTitle(id)
             mi.aliasid = id
             mi.aliastitle = titleText
             mi.aliasnation = DataMgr.roleData.alias.nation or ""
-            mi.aliasRankId = DataMgr.roleData.alias.rank_idor 0
+            mi.aliasRankId = DataMgr.roleData.alias.rank_id or 0
             mi.alias = mi.alias or {}
             mi.alias.id = id
             mi.alias.title = titleText
@@ -22707,7 +22687,7 @@ local function applyTitle(id)
             profile.alias.id = id
             profile.alias.title = titleText
             profile.alias.nation = DataMgr.roleData.alias.nation or ""
-            profile.alias.rank_id = DataMgr.roleData.alias.rank_idor 0
+            profile.alias.rank_id = DataMgr.roleData.alias.rank_id or 0
         end
     end)
     return true
@@ -22718,7 +22698,7 @@ local function refreshTitleUi()
     pcall(function()
         if not UIManager or not UIManager.UI_Config then return end
         for key, conf in pairs(UIManager.UI_Config) do
-            -- PERF: test the key BEFORE UIManager.GetUI. The oldorder called
+            -- PERF: test the key BEFORE UIManager.GetUI. The old order called
             -- GetUI for every registered UI config on every refresh.
             if type(key) == "string" then
                 local isTitle = key:find("Personalization_Title", 1, true) ~= nil
@@ -22749,20 +22729,20 @@ end
 
 local function patchPlayerInfoAlias(info, id)
     id = tonumber(id) or resolveTitleId()
-    if not info or not idor id <= 0 then return end
+    if not info or not id or id <= 0 then return end
     info.alias = info.alias or {}
     info.alias.id = id
     info.alias.title = aliasDisplayTitle(id)
     info.alias.nation = info.alias.nation or ""
-    info.alias.rank_id = info.alias.rank_idor 0
+    info.alias.rank_id = info.alias.rank_id or 0
     info.alias.rank = info.alias.rank or 0
     info.alias.ext_info = info.alias.ext_info or {}
 end
 
 local function applyPlayerStateAlias(ps, id)
     id = tonumber(id) or resolveTitleId()
-    if not ps or not idor id <= 0 then return false end
-    if not slua or not slua.isValidor not slua.isValid(ps) then return false end
+    if not ps or not id or id <= 0 then return false end
+    if not slua or not slua.isValid or not slua.isValid(ps) then return false end
     pcall(function()
         local title = aliasDisplayTitle(id)
         ps.AliasInfo.aliasID = id
@@ -23057,7 +23037,7 @@ local function resolveConquerorTitleId()
             end
         end
     end)
-    BC.conquerorTitleId = bestIdor 0
+    BC.conquerorTitleId = bestId or 0
     return BC.conquerorTitleId
 end
 
@@ -23094,7 +23074,7 @@ end
 local function buildHsegmentTitle(titleId)
     titleId = tonumber(titleId) or 0
     if titleId <= 0 then return nil end
-    -- PERF: 43 tables per call; cachedon the title id.
+    -- PERF: 43 tables per call; cached on the title id.
     if BC.hsId == titleId and BC.hs then return BC.hs end
     local det = {}
     for z = 1, ZONE_COUNT do
@@ -23106,7 +23086,7 @@ local function buildHsegmentTitle(titleId)
 end
 
 local function buildPeakgameList(segmentId, maxSegmentId, rating)
-    -- PERF: 13 tables per call on the tick; cachedon its 3 inputs.
+    -- PERF: 13 tables per call on the tick; cached on its 3 inputs.
     local key = tostring(segmentId) .. "|" .. tostring(maxSegmentId) .. "|" .. tostring(rating)
     if BC.pkKey == key and BC.pkList then return BC.pkList end
     local ok, PGC = pcall(require, "client.logic.PeakGame.PeakGameConfig")
@@ -23117,8 +23097,8 @@ local function buildPeakgameList(segmentId, maxSegmentId, rating)
         list[z] = {
             [bt] = {
                 rating = rating or PGC.DefaultPeakGameRating,
-                segment_id = segmentIdor PGC.DefaultPeakGameSegment,
-                max_segment_id = maxSegmentIdor segmentIdor PGC.DefaultPeakGameSegment,
+                segment_id = segmentId or PGC.DefaultPeakGameSegment,
+                max_segment_id = maxSegmentId or segmentId or PGC.DefaultPeakGameSegment,
             },
         }
     end
@@ -23145,18 +23125,18 @@ local function getSeasonSeriesSegmentId()
         local m = ModuleManager.GetModule(ModuleManager.LobbyModuleConfig.logic_leisure_season)
         if m and m.GetLeisureDefaultID then segId = m:GetLeisureDefaultID() end
     end)
-    if not segIdor segId == 0 then
+    if not segId or segId == 0 then
         pcall(function()
             local row = CDataTable.GetTableData and CDataTable.GetTableData("LeisureSeasonParamCfg", "MinSegmentId")
             if row and row.Value then segId = tonumber(row.Value) end
         end)
     end
-    return segIdor 101
+    return segId or 101
 end
 
 local function buildSeasonYearBadge(level)
-    -- PERF: ~18 tables per call, calledon the tick from applyProfileExtras;
-    -- cachedon level + the glow/visual drivers.
+    -- PERF: ~18 tables per call, called on the tick from applyProfileExtras;
+    -- cached on level + the glow/visual drivers.
     local lvl = tonumber(level) or 1
     local key = tostring(lvl) .. "/" .. tostring(C.JOURNEY_BADGE_VISUAL_LEVEL)
         .. "/" .. tostring(C.JOURNEY_BADGE_GLOW_TASKS)
@@ -23184,7 +23164,7 @@ end
 
 local function badgeForWidgetRender(badgeData)
     if not badgeData then return nil end
-    -- PERF: full deep copy of the badge every call; cachedon source identity
+    -- PERF: full deep copy of the badge every call; cached on source identity
     -- plus the visual-level driver.
     local visKey = tostring(tonumber(C.JOURNEY_BADGE_VISUAL_LEVEL) or 3)
     if BC.bwrSrc == badgeData and BC.bwrKey == visKey then return BC.bwrOut end
@@ -23292,7 +23272,7 @@ local function applyDataMgrRanks()
         end
     end)
     pcall(function()
-        DataMgr.maxSegmentSquad = DataMgr.maxSegmentSquador { zoneid = 1, SegmentLevel = 0 }
+        DataMgr.maxSegmentSquad = DataMgr.maxSegmentSquad or { zoneid = 1, SegmentLevel = 0 }
         DataMgr.maxSegmentSquad.SegmentLevel = cur
         DataMgr.maxSegmentSquad.zoneid = 1
     end)
@@ -23332,7 +23312,7 @@ local function applyProfileExtras(profile)
     profile.rankdata = buildRankdata(wantRating)
     profile.cur_max_segment_level = C.CURRENT_SEGMENT
     profile.history_max_segment_level = profile.history_max_segment_level or {}
-    profile.history_max_segment_season_id = profile.history_max_segment_season_idor {}
+    profile.history_max_segment_season_id = profile.history_max_segment_season_id or {}
     for z = 1, ZONE_COUNT do
         profile.history_max_segment_level[z] = C.HISTORY_SEGMENT
         profile.history_max_segment_season_id[z] = profile.history_max_segment_season_id[z] or (DataMgr and DataMgr.season_id) or 0
@@ -23410,8 +23390,8 @@ local function patchConquerorStarUi()
                 end
                 local segTitleId = self:GetSegmentTitleId(allZoneTitle, zoneid, modeid)
                 local rating = (tonumber(maxSeg) == 801) and getStarRating() or nil
-                local sid = seasonIdor DataMgr.season_id
-                if not segTitleIdor tonumber(segTitleId) == 0 then
+                local sid = seasonId or DataMgr.season_id
+                if not segTitleId or tonumber(segTitleId) == 0 then
                     if rating and rating > 0 then
                         widget:SetRankInteralWithSegmentTitle(maxSeg, nil, sid, 0, rating)
                     else
@@ -23800,7 +23780,7 @@ local function collOn()
     return _G.AddOutfitFeatOn and _G.AddOutfitFeatOn("collection_level_100")
 end
 local function patchCollectModule(mod)
-    if not modor rawget(mod, "_7lua_collect_patched") then return false end
+    if not mod or rawget(mod, "_7lua_collect_patched") then return false end
     rawset(mod, "_7lua_collect_patched", true)
     if mod.GetLevelDataByScore then
         local __orig_LDBS = mod.GetLevelDataByScore
@@ -23882,7 +23862,7 @@ local function initCollectionLevel()
     if S.hooked["collection"] then return end
     local ok, err = pcall(function()
         pcall(function()
-            for _, mod in pairs(package.loadedor {}) do
+            for _, mod in pairs(package.loaded or {}) do
                 if type(mod) == "table" and mod.on_get_collect_sys_main_data_rsp and not rawget(mod, "_7lua_ch_hooked") then
                     rawset(mod, "_7lua_ch_hooked", true)
                     local orig = mod.on_get_collect_sys_main_data_rsp
@@ -23920,7 +23900,7 @@ local function initCollectionLevel()
             end
         end)
         pcall(function()
-            for _, mod in pairs(package.loadedor {}) do
+            for _, mod in pairs(package.loaded or {}) do
                 if type(mod) == "table" and mod.GetLevelDataByScore and mod.GetSeasonLevelByScore and not rawget(mod, "_7lua_collect_patched") then
                     patchCollectModule(mod)
                 end
@@ -23928,7 +23908,7 @@ local function initCollectionLevel()
         end)
         injectCollectData()
         pcall(function()
-            for _, mod in pairs(package.loadedor {}) do
+            for _, mod in pairs(package.loaded or {}) do
                 if type(mod) == "table" and mod.ShowCollect and mod.ShowSeasonCollect and not rawget(mod, "_7lua_road_hooked") then
                     rawset(mod, "_7lua_road_hooked", true)
                     local orig_show = mod.ShowCollect
@@ -24007,7 +23987,7 @@ local function refreshReloadedModules()
     pcall(function()
         if S.hooked["collection"] then
             local needs = false
-            for _, mod in pairs(package.loadedor {}) do
+            for _, mod in pairs(package.loaded or {}) do
                 if type(mod) == "table" and mod.on_get_collect_sys_main_data_rsp
                     and not rawget(mod, "_7lua_ch_hooked") then
                     needs = true
@@ -24137,7 +24117,7 @@ end
 
 -- Unconditional collection data force: discovery-based patching can miss
 -- the first page open (module loads lazily); writing the score data every
--- ~3s guarantees 100 shows without depending on module loadorder.
+-- ~3s guarantees 100 shows without depending on module load order.
 local function forceCollectData()
     if not collOn() then return end
     pcall(function()
@@ -24200,7 +24180,7 @@ local function masterTick()
         end
 
         -- First-open fix: collection/profile modules load lazily, so re-check
-        -- for fresh copies every ~3s insteadof only on lobby re-entry.
+        -- for fresh copies every ~3s instead of only on lobby re-entry.
         if S.tick % 10 == 0 then
             -- PERF: refreshReloadedModules walks package.loaded twice. Module
             -- reloads only happen around lobby transitions, and forceReapplyAll
@@ -24265,7 +24245,7 @@ local function armWatchdog()
         end
     end)
     -- PERF: only ONE SetTimer fallback watchdog may ever exist. armWatchdog is
-    -- re-enteredon every lobby re-entry (forceReapplyAll), and the old code
+    -- re-entered on every lobby re-entry (forceReapplyAll), and the old code
     -- queued a brand new SetTimer chain each time (N matches = N watchdogs,
     -- each able to restart masterTick and double the 0.3s chain).
     if not S.watchSetTimerReg then
@@ -24277,7 +24257,7 @@ local function armWatchdog()
 end
 
 local function startLevelRefresh()
-    -- XP level spoof removedon request; collection level is handled by
+    -- XP level spoof removed on request; collection level is handled by
     -- initCollectionLevel / refreshReloadedModules.
 end
 
@@ -24447,7 +24427,7 @@ _G.ApplyFakeUCBalance = function()
             pcall(function() dMgr.roleData["uc"] = uc end)
             pcall(function() dMgr.roleData["ticket"] = uc end)
         end
-        -- UC purchase/spin gates must stay fakedor draw/buy buttons lock
+        -- UC purchase/spin gates must stay faked or draw/buy buttons lock
         -- with 0 UC. Wallet DISPLAYS stay real (only uc/UC fields are set).
         for _, fn in ipairs({ "GetCurrency", "GetMoney", "GetTicket", "GetUC",
             "GetGold", "GetDiamond", "GetMoneyByType" }) do
@@ -24501,7 +24481,7 @@ _G.ApplyFakeUCBalance = function()
                 if num == 1006 then
                     return _G.GetFakeUC()
                 end
-                return orig andorig(nItemId, bForever) or 0
+                return orig and orig(nItemId, bForever) or 0
             end
         end
     end)
@@ -24601,7 +24581,7 @@ pcall(function()
 
     -- PERF: install() re-arms every 5s and does ~47 SafeReq calls. Successful
     -- lookups are cached; MISSES are deliberately NOT cached so modules that
-    -- load late still get hookedon a later pass (that is why install re-runs).
+    -- load late still get hooked on a later pass (that is why install re-runs).
     local MODCACHE = {}
     local function SafeReq(path)
         local hit = MODCACHE[path]
@@ -24629,7 +24609,7 @@ pcall(function()
             local panel = sys.PageListPanel or (sys.store_system_main and sys.store_system_main.PageListPanel)
             if not panel or not panel.itemDataList then return end
             for _, v in pairs(panel.itemDataList) do
-                local id = tonumber(v.itemIdor (v.data and v.data.itemId))
+                local id = tonumber(v.itemId or (v.data and v.data.itemId))
                 if id and id > 0 then table.insert(pool, id) end
             end
         end)
@@ -24675,7 +24655,7 @@ pcall(function()
             local formatted = {}
             for _, item in ipairs(items) do
                 table.insert(formatted, {
-                    res_id = item.residor item.res_id,
+                    res_id = item.resid or item.res_id,
                     count = item.count or 1,
                     valid_hours = item.valid_hours or 0,
                 })
@@ -24719,11 +24699,11 @@ pcall(function()
             local rewardList = {}
             for _, v in pairs(itemList) do
                 table.insert(rewardList, {
-                    res_id = v.res_idor v.resid,
+                    res_id = v.res_id or v.resid,
                     count = v.count or 1,
                     valid_hours = v.valid_hours or 0,
                     getTags = v.drop_fun or 0,
-                    to_res_id = v.to_res_idor 0,
+                    to_res_id = v.to_res_id or 0,
                     to_res_cnt = v.to_res_cnt or 0,
                     ShowUseTime = true,
                 })
@@ -24806,7 +24786,7 @@ pcall(function()
                     SH.send_buy_shop_by_id_req = function(params)
                         local shopId, count = 1, 1
                         if type(params) == "table" then
-                            shopId = tonumber(params[1] or params.idor params[2]) or 1
+                            shopId = tonumber(params[1] or params.id or params[2]) or 1
                             count = tonumber(params[8] or params.count) or 1
                         end
                         -- Room-card shops go to the real server (else the
@@ -24821,7 +24801,7 @@ pcall(function()
                     SH.send_buy_market_by_id_req = function(params)
                         local mkId, count = 1, 1
                         if type(params) == "table" then
-                            mkId = tonumber(params[1] or params.idor params[2]) or 1
+                            mkId = tonumber(params[1] or params.id or params[2]) or 1
                             count = tonumber(params[8] or params.count) or 1
                         end
                         local items = makeList(count)
@@ -25556,7 +25536,7 @@ pcall(function()
                             if type(t) ~= "table" then return end
                             for _, v in pairs(t) do
                                 if type(v) == "table" then
-                                    chestid = tonumber(v[1] or v.shop_idor v.chest_idor v.chestidor v.id) or chestid
+                                    chestid = tonumber(v[1] or v.shop_id or v.chest_id or v.chestid or v.id) or chestid
                                     count = tonumber(v[2] or v.count or v.num) or count
                                     break
                                 elseif tonumber(v) and chestid == 0 then
@@ -25710,7 +25690,7 @@ local function reapplySocial()
                         -- Direct write too: a half-loaded module copy must
                         -- not silently drop the re-apply.
                         pcall(function()
-                            DM.roleData.social_card = DM.roleData.social_cardor {}
+                            DM.roleData.social_card = DM.roleData.social_card or {}
                             local sc2 = DM.roleData.social_card
                             sc2.social_info_bg = sc2.social_info_bg or {}
                             if EK and EK.RoleInfoBG then
@@ -25776,7 +25756,7 @@ local function installSocialHooks()
                 pcall(function()
                     local NF = require("client.slua.logic.person_space.logic_roleinfo_nameframe")
                     if NF and NF.use_brand_rsp then
-                        NF.use_brand_rsp(0, tonumber(id) or idor 0)
+                        NF.use_brand_rsp(0, tonumber(id) or id or 0)
                     end
                 end)
                 pcall(function()
@@ -26050,7 +26030,7 @@ local function installSocialModuleHooks()
             rawset(f, "_skin1_hp", true)
             return f
         end)()
-        sys.HasAvatarFrameCond = sys.HasAvatarFrameCond and rawget(sys.HasAvatarFrameCond, "_skin1_hp") and sys.HasAvatarFrameCondor (function()
+        sys.HasAvatarFrameCond = sys.HasAvatarFrameCond and rawget(sys.HasAvatarFrameCond, "_skin1_hp") and sys.HasAvatarFrameCond or (function()
             local f = function() return true end
             rawset(f, "_skin1_hp", true)
             return f
@@ -26119,7 +26099,7 @@ local function installSocialModuleHooks()
             NF.use_brand = function(id)
                 pcall(GlobalShowNotice, 49951)
                 pcall(function()
-                    if NF.use_brand_rsp then NF.use_brand_rsp(0, tonumber(id) or idor 0) end
+                    if NF.use_brand_rsp then NF.use_brand_rsp(0, tonumber(id) or id or 0) end
                 end)
                 pcall(function()
                     _G._savedNameFrame = tonumber(id) or 0
