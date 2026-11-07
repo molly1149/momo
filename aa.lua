@@ -3993,7 +3993,7 @@ end
             { Key = "ModMenu_AT_Hip_Spd", UI = AliasMap.Slider, Text = "      Speed [ KECEPATAN ] (1-100)", ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchHipSpeed or 50 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchHipSpeed = v return true end },
             { Key = "ModMenu_AT_Hip_FOV", UI = AliasMap.Slider, Text = "      FOV Radius [ RADIUS FOV ] (1-100)", ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchHipFOV or 30 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchHipFOV = v return true end },
             { Key = "ModMenu_AT_Hip_Dist", UI = AliasMap.Slider, Text = "      Distance [ JARAK ] (1-500m)", ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 1, MaxValue = 100, min = 1, max = 100, GetFunc = function() return math.floor((_G.X3.XthrlenState.CustomTextData.AimTouchHipDist or 250) / 5) end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchHipDist = v * 5 return true end },
-
+            { Key = "ModMenu_AT_Hip_Pred", UI = AliasMap.Slider, Text = "      Run Prediction [ PREDIKSI ARAH LARI ] (0-100)", ExpandHandle = "ModMenu_AT_Hip_Ex", MinValue = 0, MaxValue = 100, min = 0, max = 100, GetFunc = function() return _G.X3.XthrlenState.CustomTextData.AimTouchHipPred or 30 end, SetFunc = function(c,v) _G.X3.XthrlenState.CustomTextData.AimTouchHipPred = v return true end },
             { Key = "ModMenu_AT_SG_Ex", UI = AliasMap.TitleSwitcher, Text = "   ▶ Shotgun Aimbot [ AIMBOT SHOTGUN ]", ExpandHandle = "ModMenu_AT_Ex", ExpandIndex = 0, GetFunc = function() return _G.X3.XthrlenConfig.AimTouchSG end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchSG = v return true end },
             { Key = "ModMenu_AT_SG_AutoFire", UI = AliasMap.Switcher, Text = "      Auto Fire [ TEMBAK OTOMATIS ]", ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.X3.XthrlenConfig.AimTouchSGAutoFire end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchSGAutoFire = v return true end },
             { Key = "ModMenu_AT_SG_IgKnock", UI = AliasMap.Switcher, Text = "      Ignore Knocked Enemy [ ABAIKAN MUSUH KNOCK ]", ExpandHandle = "ModMenu_AT_SG_Ex", GetFunc = function() return _G.X3.XthrlenConfig.AimTouchSGIgKnock end, SetFunc = function(c,v) _G.X3.XthrlenConfig.AimTouchSGIgKnock = v return true end },
@@ -7238,24 +7238,116 @@ function _G.X3.BuildWallhackMenu(stack, AliasMap)
 end
 
 
--- SISTEM AIMBOT V2 TERINTEGRASI BARU
+-- ==============================================================================
+-- [AIMBOT V2 — aachetan.lua 完整移植]
+--   * 帧率无关平滑(exp-decay):任意 fps 手感一致,永不打嗝
+--   * 目标缓存:锁定后不重复扫描,只在失效/超出距离/超时 0.3s 后重扫
+--   * 完整分支:Hipfire / Scope / Shotgun / Sniper / Mortar
+--   * ADS 相机旋转补偿 / 速度预测 / 反冲补偿 / 自动开火
+--   * 死目标、Knocked、Bot 过滤 / VisCheck 缓存
+-- ==============================================================================
+
+local Aim_FVector2D        = nil
+local Aim_GameplayStatics  = nil
+local Aim_KismetMathLibrary= nil
+local Aim_ui_util          = nil
+local Aim_ZeroVec          = { X = 0, Y = 0, Z = 0 }
+local Aim_ScreenProbe      = nil
+
+local function Aim_EnsureImports()
+    if not Aim_FVector2D then pcall(function() Aim_FVector2D = import("Vector2D") end) end
+    if not Aim_GameplayStatics then pcall(function() Aim_GameplayStatics = import("GameplayStatics") end) end
+    if not Aim_KismetMathLibrary then pcall(function() Aim_KismetMathLibrary = import("KismetMathLibrary") end) end
+    if not Aim_ui_util then pcall(function() Aim_ui_util = require("client.common.ui_util") end) end
+end
+
+_G.X3.AimTouchState = _G.X3.AimTouchState or {
+    target       = nil,
+    lastScan     = 0,
+    lastApply    = 0,
+    scanInterval = 0.05,    -- 20 Hz 重扫
+}
+
+-- 帧率无关平滑系数(exp-decay,3..27/s)
+local function Aim_SmoothAlpha(speedVal, dt)
+    if not dt or dt <= 0 then dt = 0.016 end
+    if dt > 0.12 then dt = 0.12 end
+    local s = tonumber(speedVal) or 50
+    if s < 0 then s = 0 elseif s > 100 then s = 100 end
+    local k = 3.0 + (s / 100.0) * 24.0
+    local a = 1.0 - math.exp(-k * dt)
+    if a < 0.02 then a = 0.02 end
+    if a > 0.55 then a = 0.55 end
+    return a
+end
+
+local function Aim_IsAliveTarget(t)
+    local alive = true
+    pcall(function()
+        if type(t.IsAlive) == "function" then
+            alive = t:IsAlive()
+        else
+            local st = t.HealthStatus
+            if st ~= nil then alive = SecurityCommonUtils.IsHealthStatusAlive(st) end
+        end
+    end)
+    return alive
+end
+
+local function Aim_IsKnocked(t)
+    if not t then return false end
+    local knocked = false
+    pcall(function()
+        local st = nil
+        if type(t.GetHealthStatus) == "function" then st = t:GetHealthStatus() end
+        if st == nil then st = t.HealthStatus end
+        if st == nil then st = t.LastHealthStatus end
+        if st ~= nil and st == 1 then knocked = true end
+    end)
+    return knocked
+end
+
+local function Aim_BonePos(target, boneIdx)
+    local boneName = "head"
+    if boneIdx == 2 then boneName = "spine_03"
+    elseif boneIdx == 3 then boneName = "spine_01"
+    elseif boneIdx == 4 then boneName = "pelvis" end
+
+    local pos = nil
+    Aim_ZeroVec.X, Aim_ZeroVec.Y, Aim_ZeroVec.Z = 0, 0, 0
+    pcall(function() pos = target:GetBonePos(boneName, Aim_ZeroVec) end)
+    if not pos or (pos.X == 0 and pos.Y == 0 and pos.Z == 0) then
+        if type(target.GetSocketLocation) == "function" then
+            pcall(function() pos = target:GetSocketLocation(boneName) end)
+        end
+    end
+    if not pos or (pos.X == 0 and pos.Y == 0 and pos.Z == 0) then
+        if type(target.K2_GetActorLocation) == "function" then
+            pcall(function()
+                pos = target:K2_GetActorLocation()
+                if pos then
+                    if boneIdx == 1 then pos.Z = pos.Z + 70
+                    elseif boneIdx == 2 then pos.Z = pos.Z + 40
+                    elseif boneIdx == 3 then pos.Z = pos.Z + 20 end
+                end
+            end)
+        end
+    end
+    if not pos or (pos.X == 0 and pos.Y == 0 and pos.Z == 0) then return nil end
+    return pos
+end
+
 _G.X3.GetEnemyTargetsFromActors = function(radius)
     local result = {}
     local player = GameplayData.GetPlayerCharacter()
-
-    if not slua.isValid(player) then
-        return result
-    end
-
+    if not slua.isValid(player) then return result end
     local allCharacters = {}
     if GameplayData.GetAllPlayerCharacters then
         allCharacters = GameplayData.GetAllPlayerCharacters()
     elseif GameplayData.GameCharacters then
         for _, char in pairs(GameplayData.GameCharacters) do table.insert(allCharacters, char) end
     end
-
     local myTeam = player:GetTeamID()
-
     for _, actor in pairs(allCharacters) do
         if slua.isValid(actor) and actor ~= player and actor.GetTeamID and actor:IsAlive() then
             if actor:GetTeamID() ~= myTeam then
@@ -7269,45 +7361,57 @@ _G.X3.GetEnemyTargetsFromActors = function(radius)
     return result
 end
 
+-- 主瞄准函数(配置键与旧菜单 100% 兼容)
 _G.X3.AimTouch = function()
     pcall(function()
-        if not _G.X3.XthrlenConfig.AimTouchEnable then return end
+        if not _G.X3.XthrlenConfig.AimTouchEnable then
+            local st0 = _G.X3.AimTouchState
+            if st0 then st0.target = nil end
+            return
+        end
 
         local player = GameplayData.GetPlayerCharacter()
         if not slua.isValid(player) then return end
-
         local pc = player:GetPlayerControllerSafety()
         if not slua.isValid(pc) then return end
 
         local isFiring = player.bIsWeaponFiring
-        local isADS = player.bIsGunADS
+        local isADS    = player.bIsGunADS
 
         local weapon = player.WeaponManagerComponent and player.WeaponManagerComponent.CurrentWeaponReplicated
         if not weapon and type(player.GetCurrentShootWeapon) == "function" then
             weapon = player:GetCurrentShootWeapon()
         end
 
-        local isShotgun = false
-        local isSniper = false
-        local isMortar = false
+        local isShotgun, isSniper, isMortar = false, false, false
         local currentAmmo = 1
 
         if slua.isValid(weapon) then
-            local wID = type(weapon.GetWeaponID) == "function" and weapon:GetWeaponID() or 0
-            local wName = type(weapon.GetWeaponName) == "function" and weapon:GetWeaponName() or ""
-
-            if (wID >= 1030000 and wID < 1040000) or wName:find("S686") or wName:find("S1897") or wName:find("S12") or wName:find("DBS") or wName:find("M1014") then
-                isShotgun = true
+            local wID, wName = 0, ""
+            local wcache = _G.X3.AimTouchWeaponCache
+            if wcache and wcache.weapon == weapon then
+                wID, wName = wcache.id, wcache.name
+                isShotgun, isSniper, isMortar = wcache.shotgun, wcache.sniper, wcache.mortar
+            else
+                wID   = type(weapon.GetWeaponID)   == "function" and weapon:GetWeaponID()   or 0
+                wName = type(weapon.GetWeaponName) == "function" and weapon:GetWeaponName() or ""
+                wName = wName or ""
+                if (wID >= 1030000 and wID < 1040000) or wName:find("S686") or wName:find("S1897")
+                    or wName:find("S12") or wName:find("DBS") or wName:find("M1014") then
+                    isShotgun = true
+                end
+                if wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin")
+                    or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR")
+                    or wName:find("Mini") or wName:find("Mk14") or wName:find("QBU") or wName:find("Mk12")
+                    or wName:find("VSS") then
+                    isSniper = true
+                end
+                if wName:lower():find("mortar") then isMortar = true end
+                _G.X3.AimTouchWeaponCache = {
+                    weapon = weapon, id = wID, name = wName,
+                    shotgun = isShotgun, sniper = isSniper, mortar = isMortar,
+                }
             end
-
-            if wName:find("Kar98") or wName:find("M24") or wName:find("AWM") or wName:find("Mosin") or wName:find("Win94") or wName:find("AMR") or wName:find("SKS") or wName:find("SLR") or wName:find("Mini") or wName:find("Mk14") or wName:find("QBU") or wName:find("Mk12") or wName:find("VSS") then
-                isSniper = true
-            end
-
-            if wName:lower():find("mortar") or wName:lower():find("迫击炮") then
-                isMortar = true
-            end
-
             if type(weapon.GetCurrentAmmo) == "function" then
                 currentAmmo = weapon:GetCurrentAmmo()
             elseif weapon.ShootWeaponComponent and type(weapon.ShootWeaponComponent.GetCurrentAmmo) == "function" then
@@ -7328,275 +7432,231 @@ _G.X3.AimTouch = function()
             _G.X3.XthrlenState.IsAutoFiring = false
         end
 
-        if isShotgun and currentAmmo <= 0 then
-            return
-        end
+        if isShotgun and currentAmmo <= 0 then return end
 
-        local cond = 2
-        local prioMode = 1
-        local boneIdx = 1
-        local speedVal = 50
-        local fovVal = 30
+        local cond          = 2
+        local prioMode      = 1
+        local boneIdx       = 1
+        local speedVal      = 50
+        local fovVal        = 30
         local maxDistMeters = 50
-        local useVisCheck = false
-        local igKnock = false
-        local igBot = false
+        local useVisCheck, igKnock, igBot = false, false, false
+        local predVal, recoilCompVal = 0, 0
 
-        local predVal = 0
-        local recoilCompVal = 0
+        local CTD = _G.X3.XthrlenState.CustomTextData
 
         if isMortar and _G.X3.XthrlenConfig.AimTouchMortar then
             local isPlaced = false
-            pcall(function()
-                if weapon and weapon.MortarState == 2 then isPlaced = true end
-            end)
+            pcall(function() if weapon and weapon.MortarState == 2 then isPlaced = true end end)
             if not isPlaced then return end
-
-            cond = 2
-            prioMode = 1
-            boneIdx = 4
-            speedVal = 100
-            fovVal = _G.X3.XthrlenState.CustomTextData.AimTouchMortarFOV or 360
+            cond = 2; prioMode = 1; boneIdx = 4; speedVal = 100
+            fovVal = CTD.AimTouchMortarFOV or 360
             maxDistMeters = 2000
-            useVisCheck = false
-            igKnock = false
-            igBot = false
-            predVal = _G.X3.XthrlenState.CustomTextData.AimTouchMortarPred or 0
+            useVisCheck, igKnock, igBot = false, false, false
+            predVal = CTD.AimTouchMortarPred or 0
 
         elseif isShotgun and _G.X3.XthrlenConfig.AimTouchSG then
-            cond = _G.X3.XthrlenState.CustomTextData.AimTouchSGCond or 1
+            cond = CTD.AimTouchSGCond or 1
             if _G.X3.XthrlenConfig.AimTouchSGAutoFire then cond = 2 end
             if cond == 1 and not isFiring then return end
-            prioMode = _G.X3.XthrlenState.CustomTextData.AimTouchSGPrio or 1
-            boneIdx = _G.X3.XthrlenState.CustomTextData.AimTouchSGBone or 2
-            speedVal = _G.X3.XthrlenState.CustomTextData.AimTouchSGSpeed or 80
-            fovVal = _G.X3.XthrlenState.CustomTextData.AimTouchSGFOV or 40
-            maxDistMeters = _G.X3.XthrlenState.CustomTextData.AimTouchSGDist or 30
+            prioMode  = CTD.AimTouchSGPrio  or 1
+            boneIdx   = CTD.AimTouchSGBone  or 2
+            speedVal  = CTD.AimTouchSGSpeed or 80
+            fovVal    = CTD.AimTouchSGFOV   or 40
+            maxDistMeters = CTD.AimTouchSGDist or 30
             useVisCheck = _G.X3.XthrlenConfig.AimTouchSGVisCheck
-            igKnock = _G.X3.XthrlenConfig.AimTouchSGIgKnock
-            igBot = _G.X3.XthrlenConfig.AimTouchSGIgBot
+            igKnock     = _G.X3.XthrlenConfig.AimTouchSGIgKnock
+            igBot       = _G.X3.XthrlenConfig.AimTouchSGIgBot
 
         elseif isADS then
             if isSniper and _G.X3.XthrlenConfig.AimTouchScopeSniper then
-                cond = _G.X3.XthrlenState.CustomTextData.AimTouchSniperCond or 2
+                cond = CTD.AimTouchSniperCond or 2
                 if cond == 1 and not isFiring then return end
-                prioMode = _G.X3.XthrlenState.CustomTextData.AimTouchSniperPrio or 1
-                boneIdx = _G.X3.XthrlenState.CustomTextData.AimTouchSniperBone or 1
-                speedVal = _G.X3.XthrlenState.CustomTextData.AimTouchSniperSpeed or 30
-                fovVal = _G.X3.XthrlenState.CustomTextData.AimTouchSniperFOV or 20
-                maxDistMeters = _G.X3.XthrlenState.CustomTextData.AimTouchSniperDist or 400
+                prioMode  = CTD.AimTouchSniperPrio  or 1
+                boneIdx   = CTD.AimTouchSniperBone  or 1
+                speedVal  = CTD.AimTouchSniperSpeed or 30
+                fovVal    = CTD.AimTouchSniperFOV   or 20
+                maxDistMeters = CTD.AimTouchSniperDist or 400
                 useVisCheck = _G.X3.XthrlenConfig.AimTouchSniperVisCheck
-                igKnock = _G.X3.XthrlenConfig.AimTouchSniperIgKnock
-                igBot = _G.X3.XthrlenConfig.AimTouchSniperIgBot
-                predVal = _G.X3.XthrlenState.CustomTextData.AimTouchSniperPred or 0
+                igKnock     = _G.X3.XthrlenConfig.AimTouchSniperIgKnock
+                igBot       = _G.X3.XthrlenConfig.AimTouchSniperIgBot
+                predVal     = CTD.AimTouchSniperPred or 0
             elseif _G.X3.XthrlenConfig.AimTouchScopeAll then
-                cond = _G.X3.XthrlenState.CustomTextData.AimTouchScopeCond or 1
+                cond = CTD.AimTouchScopeCond or 1
                 if cond == 1 and not isFiring then return end
-                prioMode = _G.X3.XthrlenState.CustomTextData.AimTouchScopePrio or 1
-                boneIdx = _G.X3.XthrlenState.CustomTextData.AimTouchScopeBone or 2
-                speedVal = _G.X3.XthrlenState.CustomTextData.AimTouchScopeSpeed or 40
-                fovVal = _G.X3.XthrlenState.CustomTextData.AimTouchScopeFOV or 20
-                maxDistMeters = _G.X3.XthrlenState.CustomTextData.AimTouchScopeDist or 300
+                prioMode  = CTD.AimTouchScopePrio  or 1
+                boneIdx   = CTD.AimTouchScopeBone  or 2
+                speedVal  = CTD.AimTouchScopeSpeed or 40
+                fovVal    = CTD.AimTouchScopeFOV   or 20
+                maxDistMeters = CTD.AimTouchScopeDist or 300
                 useVisCheck = _G.X3.XthrlenConfig.AimTouchScopeVisCheck
-                igKnock = _G.X3.XthrlenConfig.AimTouchScopeIgKnock
-                igBot = _G.X3.XthrlenConfig.AimTouchScopeIgBot
-                predVal = _G.X3.XthrlenState.CustomTextData.AimTouchScopePred or 0
-                recoilCompVal = _G.X3.XthrlenState.CustomTextData.AimTouchScopeRecoil or 0
+                igKnock     = _G.X3.XthrlenConfig.AimTouchScopeIgKnock
+                igBot       = _G.X3.XthrlenConfig.AimTouchScopeIgBot
+                predVal       = CTD.AimTouchScopePred   or 0
+                recoilCompVal = CTD.AimTouchScopeRecoil or 0
             else
                 return
             end
         else
             if not _G.X3.XthrlenConfig.AimTouchHipfire then return end
-            cond = _G.X3.XthrlenState.CustomTextData.AimTouchHipCond or 1
+            cond = CTD.AimTouchHipCond or 1
             if cond == 1 and not isFiring then return end
-            prioMode = _G.X3.XthrlenState.CustomTextData.AimTouchHipPrio or 1
-            boneIdx = _G.X3.XthrlenState.CustomTextData.AimTouchHipBone or 1
-            speedVal = _G.X3.XthrlenState.CustomTextData.AimTouchHipSpeed or 50
-            fovVal = _G.X3.XthrlenState.CustomTextData.AimTouchHipFOV or 30
-            maxDistMeters = _G.X3.XthrlenState.CustomTextData.AimTouchHipDist or 250
+            prioMode  = CTD.AimTouchHipPrio  or 1
+            boneIdx   = CTD.AimTouchHipBone  or 1
+            speedVal  = CTD.AimTouchHipSpeed or 50
+            fovVal    = CTD.AimTouchHipFOV   or 30
+            maxDistMeters = CTD.AimTouchHipDist or 250
             useVisCheck = _G.X3.XthrlenConfig.AimTouchHipVisCheck
-            igKnock = _G.X3.XthrlenConfig.AimTouchHipIgKnock
-            igBot = _G.X3.XthrlenConfig.AimTouchHipIgBot
+            igKnock     = _G.X3.XthrlenConfig.AimTouchHipIgKnock
+            igBot       = _G.X3.XthrlenConfig.AimTouchHipIgBot
         end
 
         local currentMaxDist = maxDistMeters * 100
 
-        local enemies = _G.X3.GetEnemyTargetsFromActors(currentMaxDist)
-        if not enemies or #enemies == 0 then return end
+        Aim_EnsureImports()
+        if not (Aim_GameplayStatics and Aim_KismetMathLibrary and Aim_ui_util and Aim_FVector2D) then return end
 
-        local FVector2D = import("Vector2D")
-        local UGameplayStatics = import("GameplayStatics")
-        local KismetMathLibrary = import("KismetMathLibrary")
-
-        local camManager = UGameplayStatics.GetPlayerCameraManager(pc, 0)
+        local camManager = Aim_GameplayStatics.GetPlayerCameraManager(pc, 0)
         if not slua.isValid(camManager) then return end
-
         local camLoc = camManager:GetCameraLocation()
         if not camLoc then return end
 
-        local ui_util = require("client.common.ui_util")
-        if not ui_util then return end
+        local now = os.clock()
+        local st  = _G.X3.AimTouchState
+        local myTeam = nil
+        pcall(function() myTeam = player:GetTeamID() end)
 
-        local viewportSize = ui_util.GetViewportSize()
-        if not viewportSize then return end
-
-        local centerX = viewportSize.X * 0.5
-        local centerY = viewportSize.Y * 0.5
-
-        local FOV_RADIUS = (fovVal / 100.0) * (viewportSize.X / 2.0)
-
-        local bestTarget = nil
-        local bestScore = 99999999
-
-        local selBoneName = "head"
-        if boneIdx == 1 then selBoneName = "head"
-        elseif boneIdx == 2 then selBoneName = "spine_03"
-        elseif boneIdx == 3 then selBoneName = "spine_01"
-        elseif boneIdx == 4 then selBoneName = "pelvis" end
-
-        for i, target in ipairs(enemies) do
-            if not slua.isValid(target) then goto continue end
-
-            pcall(function()
-                if slua.isValid(target.Mesh) then
-                    local ufId = type(target.GetUniqueID) == "function" and target:GetUniqueID() or tostring(target)
-                    _G.X3.AimTouchMeshUpdT = _G.X3.AimTouchMeshUpdT or {}
-                    local ufNow = os.clock()
-                    if not _G.X3.AimTouchMeshUpdT[ufId] or (ufNow - _G.X3.AimTouchMeshUpdT[ufId]) > 2.0 then
-                        _G.X3.AimTouchMeshUpdT[ufId] = ufNow
-                        target.Mesh.MeshComponentUpdateFlag = 0
-                    end
-                end
-            end)
-
-            if igKnock and target.HealthStatus == 1 then goto continue end
-
-            if igBot then
-                local tIsBot = false
-                if _G.X3.IsBotPawn then
-                    local okB, rB = pcall(_G.X3.IsBotPawn, target)
-                    if okB and rB == true then tIsBot = true end
-                else
-                    if target.bIsAI == true then tIsBot = true end
-                    local pState = target.PlayerState
-                    if slua.isValid(pState) and (pState.bIsABot or pState.bIsBot) then tIsBot = true end
-                end
-                if tIsBot then goto continue end
+        -- 目标锁定:保持目标直至失效
+        local target = st.target
+        if target ~= nil then
+            local ok = slua.isValid(target) and Aim_IsAliveTarget(target)
+            if ok then
+                local tTeam = nil
+                pcall(function() tTeam = target:GetTeamID() end)
+                if tTeam == nil or tTeam <= 0 or tTeam == myTeam then ok = false end
             end
-
-            if useVisCheck then
-                local curTime = os.clock()
-                local tId = type(target.GetUniqueID) == "function" and target:GetUniqueID() or tostring(target)
-                _G.X3.AimTouchVisCache = _G.X3.AimTouchVisCache or {}
-                if not _G.X3.AimTouchVisCache[tId] or (curTime - _G.X3.AimTouchVisCache[tId].time) > 0.2 then
-                    local isHidden = true
-                    pcall(function() if pc:LineOfSightTo(target) then isHidden = false end end)
-                    _G.X3.AimTouchVisCache[tId] = { hidden = isHidden, time = curTime }
-                end
-                if _G.X3.AimTouchVisCache[tId].hidden then goto continue end
+            if ok and igKnock and Aim_IsKnocked(target) then ok = false end
+            if ok and (now - st.lastScan) >= 0.3 then
+                local d = nil
+                pcall(function() d = player:GetDistanceTo(target) end)
+                if d and d > currentMaxDist then ok = false end
             end
-
-            local tPos = nil
-            if _G.X3.SafeBonePos then tPos = _G.X3.SafeBonePos(target, selBoneName) end
-            if not tPos then
-                if type(target.K2_GetActorLocation) == "function" then
-                    local okL, lPos = pcall(function() return target:K2_GetActorLocation() end)
-                    if okL and lPos then
-                        tPos = lPos
-                        if boneIdx == 1 then tPos.Z = tPos.Z + 70
-                        elseif boneIdx == 2 then tPos.Z = tPos.Z + 40
-                        elseif boneIdx == 3 then tPos.Z = tPos.Z + 20 end
-                    end
-                end
-            end
-            if not tPos or (tPos.X == 0 and tPos.Y == 0 and tPos.Z == 0) then goto continue end
-
-            local screen = FVector2D()
-            local okP, success = pcall(function() return pc:ProjectWorldLocationToScreen(tPos, screen, false) end)
-            if not okP or not success or screen.X <= 0 or screen.Y <= 0 then goto continue end
-
-            local dx = screen.X - centerX
-            local dy = screen.Y - centerY
-            local distScreen = math.sqrt(dx*dx + dy*dy)
-
-            if distScreen > FOV_RADIUS then goto continue end
-
-            local currentScore = distScreen
-            if prioMode == 2 then currentScore = player:GetDistanceTo(target)
-            elseif prioMode == 3 then currentScore = target.Health or 100
-            elseif prioMode == 4 then
-                local hp = target.Health or 100
-                local maxhp = target.HealthMax or 100
-                if maxhp <= 0 then maxhp = 100 end
-                currentScore = hp / maxhp
-            end
-
-            if currentScore < bestScore then
-                bestScore = currentScore
-                bestTarget = target
-            end
-
-            ::continue::
+            if not ok then target = nil end
         end
 
-        if not slua.isValid(bestTarget) then return end
+        local needScan = (target == nil) or ((now - st.lastScan) >= st.scanInterval)
+        if needScan then
+            st.lastScan = now
+            local enemies = _G.X3.GetEnemyTargetsFromActors(currentMaxDist)
+            if enemies and #enemies > 0 then
+                local viewportSize = Aim_ui_util.GetViewportSize()
+                if viewportSize then
+                    local centerX = viewportSize.X * 0.5
+                    local centerY = viewportSize.Y * 0.5
+                    local FOV_RADIUS = (fovVal / 100.0) * (viewportSize.X / 2.0)
 
-        local finalBonePos = nil
-        if _G.X3.SafeBonePos then finalBonePos = _G.X3.SafeBonePos(bestTarget, selBoneName) end
-        if not finalBonePos then
-            if type(bestTarget.K2_GetActorLocation) == "function" then
-                local okL2, fPos = pcall(function() return bestTarget:K2_GetActorLocation() end)
-                if okL2 and fPos then
-                    finalBonePos = fPos
-                    if boneIdx == 1 then finalBonePos.Z = finalBonePos.Z + 70
-                    elseif boneIdx == 2 then finalBonePos.Z = finalBonePos.Z + 40
-                    elseif boneIdx == 3 then finalBonePos.Z = finalBonePos.Z + 20 end
+                    local bestTarget, bestScore = nil, 99999999
+                    for i, cand in ipairs(enemies) do
+                        if not slua.isValid(cand) then goto continue end
+                        pcall(function()
+                            if slua.isValid(cand.Mesh) then
+                                cand.Mesh.MeshComponentUpdateFlag = 0
+                            end
+                        end)
+                        if igKnock and Aim_IsKnocked(cand) then goto continue end
+                        if igBot then
+                            local tIsBot = false
+                            if cand.bIsAI == true or cand.IsAI == true then tIsBot = true end
+                            local pState = cand.PlayerState
+                            if slua.isValid(pState) and (pState.bIsABot or pState.bIsBot) then tIsBot = true end
+                            if tIsBot then goto continue end
+                        end
+                        if useVisCheck then
+                            local curTime = os.clock()
+                            local tId = type(cand.GetUniqueID) == "function" and cand:GetUniqueID() or tostring(cand)
+                            _G.X3.AimTouchVisCache = _G.X3.AimTouchVisCache or {}
+                            local cachedVis = _G.X3.AimTouchVisCache[tId]
+                            if not cachedVis or (curTime - cachedVis.time) > 0.2 then
+                                local isHidden = true
+                                pcall(function() if pc:LineOfSightTo(cand) then isHidden = false end end)
+                                cachedVis = { hidden = isHidden, time = curTime }
+                                _G.X3.AimTouchVisCache[tId] = cachedVis
+                            end
+                            if cachedVis.hidden then goto continue end
+                        end
+                        local tPos = Aim_BonePos(cand, boneIdx)
+                        if not tPos then goto continue end
+                        local screen = Aim_ScreenProbe
+                        if not screen then screen = Aim_FVector2D(); Aim_ScreenProbe = screen end
+                        screen.X = 0; screen.Y = 0
+                        local success = pc:ProjectWorldLocationToScreen(tPos, screen, false)
+                        if not success or screen.X <= 0 or screen.Y <= 0 then goto continue end
+                        local dx = screen.X - centerX
+                        local dy = screen.Y - centerY
+                        local distScreen = math.sqrt(dx*dx + dy*dy)
+                        if distScreen > FOV_RADIUS then goto continue end
+                        local currentScore = distScreen
+                        if prioMode == 2 then currentScore = player:GetDistanceTo(cand)
+                        elseif prioMode == 3 then currentScore = cand.Health or 100
+                        elseif prioMode == 4 then
+                            local hp = cand.Health or 100
+                            local maxhp = cand.HealthMax or 100
+                            if maxhp <= 0 then maxhp = 100 end
+                            currentScore = hp / maxhp
+                        end
+                        if currentScore < bestScore then
+                            bestScore  = currentScore
+                            bestTarget = cand
+                        end
+                        ::continue::
+                    end
+                    target = slua.isValid(bestTarget) and bestTarget or nil
                 end
+            else
+                target = nil
             end
+            st.target = target
         end
-        if not finalBonePos or (finalBonePos.X == 0 and finalBonePos.Y == 0 and finalBonePos.Z == 0) then return end
+
+        if not slua.isValid(target) then return end
+
+        local finalBonePos = Aim_BonePos(target, boneIdx)
+        if not finalBonePos then return end
+
+        local tVelocity = nil
+        pcall(function()
+            if type(target.GetVelocity) == "function" then
+                tVelocity = target:GetVelocity()
+            end
+        end)
 
         if isMortar and _G.X3.XthrlenConfig.AimTouchMortar and predVal > 0 then
             pcall(function()
-                local tVelocity = nil
-                if type(bestTarget.GetVelocity) == "function" then
-                    tVelocity = bestTarget:GetVelocity()
-                end
                 if tVelocity and (tVelocity.X ~= 0 or tVelocity.Y ~= 0) then
-                    local approxDist = player:GetDistanceTo(bestTarget) / 100.0
-                    local approxToF = approxDist / 100.0
-                    local predScale = predVal / 50.0
+                    local approxDist = player:GetDistanceTo(target) / 100.0
+                    local approxToF  = approxDist / 100.0
+                    local predScale  = predVal / 50.0
                     finalBonePos.X = finalBonePos.X + (tVelocity.X * approxToF * predScale)
                     finalBonePos.Y = finalBonePos.Y + (tVelocity.Y * approxToF * predScale)
                 end
             end)
         elseif not isMortar and predVal > 0 then
             pcall(function()
-                local tVelocity = nil
-                if type(bestTarget.GetVelocity) == "function" then
-                    tVelocity = bestTarget:GetVelocity()
-                end
-
                 if tVelocity and (tVelocity.X ~= 0 or tVelocity.Y ~= 0) then
-                    local distToEnemy = player:GetDistanceTo(bestTarget) / 100.0
-
+                    local distToEnemy = player:GetDistanceTo(target) / 100.0
                     local ToF = (distToEnemy / 800.0) * (predVal / 50.0)
-
                     finalBonePos.X = finalBonePos.X + (tVelocity.X * ToF)
                     finalBonePos.Y = finalBonePos.Y + (tVelocity.Y * ToF)
                 end
             end)
         end
 
-        local rot = nil
-        pcall(function() rot = KismetMathLibrary.FindLookAtRotation(camLoc, finalBonePos) end)
+        local rot = Aim_KismetMathLibrary.FindLookAtRotation(camLoc, finalBonePos)
         if not rot then return end
-
-        local currentRot = nil
-        pcall(function() currentRot = pc:GetControlRotation() end)
+        local currentRot = pc:GetControlRotation()
         if not currentRot then return end
 
-        local deltaYaw = rot.Yaw - currentRot.Yaw
+        local deltaYaw   = rot.Yaw   - currentRot.Yaw
         local deltaPitch = rot.Pitch - currentRot.Pitch
 
         if isADS then
@@ -7605,7 +7665,7 @@ _G.X3.AimTouch = function()
                 camRot = camManager:GetCameraRotation()
             end
             if camRot then
-                deltaYaw = deltaYaw - (camRot.Yaw - currentRot.Yaw)
+                deltaYaw   = deltaYaw   - (camRot.Yaw   - currentRot.Yaw)
                 deltaPitch = deltaPitch - (camRot.Pitch - currentRot.Pitch)
             end
         end
@@ -7615,16 +7675,12 @@ _G.X3.AimTouch = function()
         if deltaPitch > 180 then deltaPitch = deltaPitch - 360 end
         if deltaPitch < -180 then deltaPitch = deltaPitch + 360 end
 
-        local smoothFactor = 0.0
-        if speedVal >= 100 then
-            smoothFactor = 1.0
-        else
-            smoothFactor = (speedVal / 100.0) * 0.3
-            if smoothFactor < 0.01 then smoothFactor = 0.01 end
-        end
+        local dt = now - (st.lastApply or now)
+        st.lastApply = now
+        local smoothFactor = Aim_SmoothAlpha(speedVal, dt)
 
         local finalPitch = currentRot.Pitch + (deltaPitch * smoothFactor)
-        local finalYaw = currentRot.Yaw + (deltaYaw * smoothFactor)
+        local finalYaw   = currentRot.Yaw   + (deltaYaw   * smoothFactor)
 
         if recoilCompVal > 0 and isFiring then
             local pullDownForce = (recoilCompVal / 50.0) * 1.5
@@ -7637,9 +7693,7 @@ _G.X3.AimTouch = function()
             pcall(function()
                 if player.K2_GetActorLocation then
                     local pLoc = player:K2_GetActorLocation()
-                    if pLoc then
-                        launchPos = { X = pLoc.X, Y = pLoc.Y, Z = pLoc.Z + 50 }
-                    end
+                    if pLoc then launchPos = { X = pLoc.X, Y = pLoc.Y, Z = pLoc.Z + 50 } end
                 end
             end)
 
@@ -7647,15 +7701,10 @@ _G.X3.AimTouch = function()
                 local mDx = math.sqrt((tX - launchPos.X)^2 + (tY - launchPos.Y)^2) - 80
                 if mDx < 500 then mDx = 500 end
                 local mDy = tZ - launchPos.Z
-
                 local minVSq = G * (mDy + math.sqrt(mDx*mDx + mDy*mDy))
-                if (V * V) < minVSq then
-                    V = math.sqrt(minVSq) + 100
-                end
-
-                local v2 = V * V
+                if (V * V) < minVSq then V = math.sqrt(minVSq) + 100 end
+                local v2   = V * V
                 local root = v2*v2 - G*(G*mDx*mDx + 2*mDy*v2)
-
                 if root >= 0 then
                     local angleRad = math.atan((v2 + math.sqrt(root)) / (G * mDx))
                     local deg = math.deg(angleRad)
@@ -7667,53 +7716,41 @@ _G.X3.AimTouch = function()
             end
 
             local vNear, gNear = 9070, 980 * 2.8
-            local vFar, gFar = 12520, 980 * 4.0
-            local vUltra, gUltra = 16800, 980 * 4.5
-
+            local vFar,  gFar  = 12520, 980 * 4.0
+            local vUltra,gUltra= 16800, 980 * 4.5
             local isValid, physAngle, ToF, finalDx = false, 45, 0, 0
-
             local okNear, angNear, tofNear, dxN = CalcMortarTrajectory(vNear, gNear, targetPos.X, targetPos.Y, targetPos.Z)
-            local okFar, angFar, tofFar, dxF = CalcMortarTrajectory(vFar, gFar, targetPos.X, targetPos.Y, targetPos.Z)
-            local okUltra, angUltra, tofUltra, dxU = CalcMortarTrajectory(vUltra, gUltra, targetPos.X, targetPos.Y, targetPos.Z)
-
-            if okNear and dxN <= 25000 then
-                isValid, physAngle, ToF, finalDx = okNear, angNear, tofNear, dxN
-            elseif okFar and dxF <= 40000 then
-                isValid, physAngle, ToF, finalDx = okFar, angFar, tofFar, dxF
-            elseif okUltra then
-                isValid, physAngle, ToF, finalDx = okUltra, angUltra, tofUltra, dxU
-            elseif okNear then
-                isValid, physAngle, ToF, finalDx = okNear, angNear, tofNear, dxN
+            local okFar,  angFar,  tofFar,  dxF = CalcMortarTrajectory(vFar,  gFar,  targetPos.X, targetPos.Y, targetPos.Z)
+            local okUltra,angUltra,tofUltra,dxU = CalcMortarTrajectory(vUltra,gUltra,targetPos.X, targetPos.Y, targetPos.Z)
+            if     okNear  and dxN <= 25000 then isValid, physAngle, ToF, finalDx = okNear,  angNear, tofNear, dxN
+            elseif okFar   and dxF <= 40000 then isValid, physAngle, ToF, finalDx = okFar,   angFar,  tofFar,  dxF
+            elseif okUltra                  then isValid, physAngle, ToF, finalDx = okUltra, angUltra,tofUltra,dxU
+            elseif okNear                   then isValid, physAngle, ToF, finalDx = okNear,  angNear, tofNear, dxN
             end
-
             local targetCameraPitch = ((physAngle - 45) / 43.0) * 90.0 - 60.0
-            local targetCameraYaw = rot.Yaw
-
+            local targetCameraYaw   = rot.Yaw
             local deltaPitchMortar = targetCameraPitch - currentRot.Pitch
-            local deltaYawMortar = targetCameraYaw - currentRot.Yaw
-
+            local deltaYawMortar   = targetCameraYaw   - currentRot.Yaw
             if deltaPitchMortar > 180 then deltaPitchMortar = deltaPitchMortar - 360 end
             if deltaPitchMortar < -180 then deltaPitchMortar = deltaPitchMortar + 360 end
-            if deltaYawMortar > 180 then deltaYawMortar = deltaYawMortar - 360 end
-            if deltaYawMortar < -180 then deltaYawMortar = deltaYawMortar + 360 end
-
+            if deltaYawMortar   > 180 then deltaYawMortar   = deltaYawMortar   - 360 end
+            if deltaYawMortar   < -180 then deltaYawMortar  = deltaYawMortar   + 360 end
             finalPitch = currentRot.Pitch + (deltaPitchMortar * smoothFactor)
-            finalYaw = currentRot.Yaw + (deltaYawMortar * smoothFactor)
+            finalYaw   = currentRot.Yaw   + (deltaYawMortar   * smoothFactor)
         end
 
         local finalRot = { Pitch = finalPitch, Yaw = finalYaw, Roll = 0 }
-        pcall(function() pc:SetControlRotation(finalRot, "AimTouch") end)
+        pc:SetControlRotation(finalRot, "AimTouch")
 
         if isShotgun and _G.X3.XthrlenConfig.AimTouchSGAutoFire then
             pcall(function()
-                local distToTarget = player:GetDistanceTo(bestTarget) / 100
+                local distToTarget = player:GetDistanceTo(target) / 100
                 if distToTarget <= maxDistMeters then
                     player.bIsWeaponFiring = true
                     if type(player.SetIsWeaponFiring) == "function" then player:SetIsWeaponFiring(true) end
                     if slua.isValid(pc) and type(pc.SetIsWeaponFiring) == "function" then pc:SetIsWeaponFiring(true) end
                     local wepMgr = player.WeaponManagerComponent
                     if slua.isValid(wepMgr) then wepMgr.bIsWeaponFiring = true end
-
                     local currentWep = player:GetCurrentWeapon()
                     if slua.isValid(currentWep) and type(currentWep.StartFire) == "function" then
                         currentWep:StartFire()
@@ -7722,9 +7759,46 @@ _G.X3.AimTouch = function()
                 end
             end)
         end
-
     end)
 end
+
+-- ==============================================================================
+-- 60Hz 专用瞄准驱动(替代原 FastAimbotTick 的 30Hz 步进)
+--   心跳检测:_AIM_TIMER_LAST 落后 1s 视为计时器已死 → 重新挂载
+-- ==============================================================================
+local function StopAimTimer()
+    if _G.X3._AIM_TIMER and slua.isValid(_G.X3._AIM_TIMER_OWNER)
+       and _G.X3._AIM_TIMER_OWNER.RemoveGameTimer then
+        pcall(_G.X3._AIM_TIMER_OWNER.RemoveGameTimer, _G.X3._AIM_TIMER_OWNER, _G.X3._AIM_TIMER)
+    end
+    _G.X3._AIM_TIMER       = nil
+    _G.X3._AIM_TIMER_OWNER = nil
+    _G.X3._AIM_TIMER_LAST  = nil
+    if _G.X3.AimTouchState then
+        _G.X3.AimTouchState.target    = nil
+        _G.X3.AimTouchState.lastApply = 0
+    end
+end
+_G.X3.StopAimTimer = StopAimTimer
+
+local function StartAimTimer(pc)
+    if not (pc and slua.isValid(pc) and pc.AddGameTimer) then
+        pcall(function() pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController() end)
+    end
+    if not (pc and slua.isValid(pc) and pc.AddGameTimer) then return end
+    if _G.X3._AIM_TIMER then
+        local fresh = _G.X3._AIM_TIMER_LAST and (os.time() - _G.X3._AIM_TIMER_LAST) <= 1
+        if _G.X3._AIM_TIMER_OWNER == pc and fresh then return end
+        StopAimTimer()
+    end
+    _G.X3._AIM_TIMER_OWNER = pc
+    _G.X3._AIM_TIMER_LAST  = os.time()
+    _G.X3._AIM_TIMER = pc:AddGameTimer(0.016, true, function()
+        _G.X3._AIM_TIMER_LAST = os.time()
+        pcall(_G.X3.AimTouch)
+    end)
+end
+_G.X3.StartAimTimer = StartAimTimer
 
 local function MainLoop()
     -- [PORT] force-off ESP lama dihapus: menu ESP sekarang dikendalikan user
@@ -7748,7 +7822,7 @@ if _G.X3 and _G.X3.EspHealthName and _G.X3.EspHealthName.Tick then
 end
 
     if _G.X3.XthrlenState.CustomTextData == nil then
-        _G.X3.XthrlenState.CustomTextData = {OuterSpeed = 10, InnerSpeed = 10, HRecoil = 0.3, VRecoil = 0.3, MagicHead = 1.0, MagicNeck = 1.0, MagicBody = 1.0, MagicPelvis = 1.0, MagicArms = 1.0, MagicLegs = 1.0, IpadViewFOV = 120, AimTouchHipPrio = 1, AimTouchHipBone = 1, AimTouchHipCond = 1, AimTouchHipSpeed = 50, AimTouchHipFOV = 30, AimTouchHipDist = 250, AimTouchSGPrio = 1, AimTouchSGBone = 2, AimTouchSGCond = 1, AimTouchSGSpeed = 80, AimTouchSGFOV = 40, AimTouchSGDist = 30, AimTouchScopePrio = 1, AimTouchScopeBone = 2, AimTouchScopeCond = 1, AimTouchScopeSpeed = 40, AimTouchScopeFOV = 20, AimTouchScopeDist = 300, AimTouchSniperPrio = 1, AimTouchSniperBone = 1, AimTouchSniperCond = 2, AimTouchSniperSpeed = 30, AimTouchSniperFOV = 20, AimTouchSniperDist = 400}
+        _G.X3.XthrlenState.CustomTextData = {OuterSpeed = 10, InnerSpeed = 10, HRecoil = 0.3, VRecoil = 0.3, MagicHead = 1.0, MagicNeck = 1.0, MagicBody = 1.0, MagicPelvis = 1.0, MagicArms = 1.0, MagicLegs = 1.0, IpadViewFOV = 120, AimTouchHipPrio = 1, AimTouchHipBone = 1, AimTouchHipCond = 1, AimTouchHipSpeed = 50, AimTouchHipFOV = 30, AimTouchHipDist = 250, AimTouchHipPred = 30, AimTouchSGPrio = 1, AimTouchSGBone = 2, AimTouchSGCond = 1, AimTouchSGSpeed = 80, AimTouchSGFOV = 40, AimTouchSGDist = 30, AimTouchScopePrio = 1, AimTouchScopeBone = 2, AimTouchScopeCond = 1, AimTouchScopeSpeed = 40, AimTouchScopeFOV = 20, AimTouchScopeDist = 300, AimTouchSniperPrio = 1, AimTouchSniperBone = 1, AimTouchSniperCond = 2, AimTouchSniperSpeed = 30, AimTouchSniperFOV = 20, AimTouchSniperDist = 400}
     end
 
     local okData, GameplayData = pcall(require, "GameLua.GameCore.Data.GameplayData")
@@ -8047,13 +8121,12 @@ end
                         }
                     end
                     if _G.X3.XthrlenConfig.CustomHRecoil then entity.AccessoriesHRecoilFactor = _G.X3.XthrlenState.CustomTextData.HRecoil or 0.3
-                    elseif _G.X3.XthrlenConfig.LessRecoil then entity.AccessoriesHRecoilFactor = 0.3 end
+                    elseif _G.X3.XthrlenConfig.LessRecoil then entity.AccessoriesHRecoilFactor = 0.2 end
                     if _G.X3.XthrlenConfig.CustomVRecoil then entity.AccessoriesVRecoilFactor = _G.X3.XthrlenState.CustomTextData.VRecoil or 0.3
-                    elseif _G.X3.XthrlenConfig.VerticalRecoil then entity.AccessoriesVRecoilFactor = 0.3 end
-                    if _G.X3.XthrlenConfig.LessShake then entity.RecoilKick = 0.0; entity.RecoilKickADS = 0.0; entity.AnimationKick = 0.0 end
-                    if _G.X3.XthrlenConfig.Accuracy then entity.GameDeviationAccuracy = 1.20 end
-                    if _G.X3.XthrlenConfig.Crosshair then entity.GameDeviationFactor = 1.20 end
-                    if _G.X3.XthrlenConfig.GodMode then entity.BulletFireSpeed = 500000.0; entity.ShootInterval = 0.001; entity.BaseDamage = 60000.0 end
+                    elseif _G.X3.XthrlenConfig.VerticalRecoil then entity.AccessoriesVRecoilFactor = 0.2 end
+                    if _G.X3.XthrlenConfig.LessShake then entity.RecoilKick = 0.1; entity.RecoilKickADS = 0.1; entity.AnimationKick = 0.2 end
+                    if _G.X3.XthrlenConfig.Accuracy then entity.GameDeviationAccuracy = 0.01 end
+                    if _G.X3.XthrlenConfig.Crosshair then entity.GameDeviationFactor = 0.08 end
                     if entity.AutoAimingConfig then
                         if not entity.OriginalAutoAimCached then
                             entity.OriginalAutoAimCached = {
@@ -8570,7 +8643,11 @@ if okTesp and tickerEsp and tickerEsp.AddTimerOnce then
     tickerEsp.AddTimerOnce(0.2, FastESPTick)
 end
 
--- LOOP KHUSUS AIMTOUCH 0.016 DETIK (~60 FPS)
+-- ==============================================================================
+-- AIMTOUCH 驱动管理器 (原 30Hz 步进 → 改为 60Hz 专用 timer 启停)
+--   * 只负责根据 AimTouchEnable 启/停 _G.X3.StartAimTimer,不在本循环里跑瞄准
+--   * 每 0.5s 检查一次,极轻量;真正的高频瞄准在 StartAimTimer 内完成
+-- ==============================================================================
 local aimbotToken = 0
 local function FastAimbotTick()
     if aimbotToken ~= _G.X3.XthrlenState.AimbotLoopToken then
@@ -8578,24 +8655,34 @@ local function FastAimbotTick()
     end
 
     pcall(function()
-        if _G.X3.XthrlenConfig.AimTouchEnable then
-            _G.X3.AimTouch()
+        if _G.X3.XthrlenConfig and _G.X3.XthrlenConfig.AimTouchEnable then
+            local pc = GameplayData and GameplayData.GetPlayerController and GameplayData.GetPlayerController()
+            if not (pc and slua.isValid(pc)) then
+                pcall(function()
+                    pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
+                end)
+            end
+            if pc and slua.isValid(pc) and _G.X3.StartAimTimer then
+                pcall(_G.X3.StartAimTimer, pc)
+            end
+        else
+            if _G.X3.StopAimTimer then
+                pcall(_G.X3.StopAimTimer)
+            end
         end
     end)
 
     local okTicker, ticker = pcall(require, "common.time_ticker")
     if okTicker and ticker and ticker.AddTimerOnce then
-        ticker.AddTimerOnce(0.033, FastAimbotTick)
+        ticker.AddTimerOnce(0.5, FastAimbotTick)
     end
 end
-
-
 
 _G.X3.XthrlenState.AimbotLoopToken = (_G.X3.XthrlenState.AimbotLoopToken or 0) + 1
 aimbotToken = _G.X3.XthrlenState.AimbotLoopToken
 local okTicker, ticker = pcall(require, "common.time_ticker")
 if okTicker and ticker and ticker.AddTimerOnce then
-    ticker.AddTimerOnce(0.1, FastAimbotTick) -- mulai dengan jeda kecil
+    ticker.AddTimerOnce(0.2, FastAimbotTick)   -- 首次启动
 end
 FastTick()
 
