@@ -7600,7 +7600,7 @@ _G.X3.AimTouch = function()
         if not finalBonePos then return end
         
             if isSniper and isADS then
-        local sniperHeightOffset = 25 -- 【重点】抬高的高度(单位:厘米)，可根据需要自行修改(建议30~60之间)
+        local sniperHeightOffset = 22 -- 【重点】抬高的高度(单位:厘米)，可根据需要自行修改(建议30~60之间)
         finalBonePos.Z = finalBonePos.Z + sniperHeightOffset
     end
         
