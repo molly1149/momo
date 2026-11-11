@@ -31,7 +31,7 @@ _G.MODSKIN_LIST = {
     1405395, 1405404, 1405405, 1405406, 1405411, 1405419, 1405426, 1405444, 1405447, 1405449, 1405450, 1405463,
     1405470, 1405472, 1405473, 1405479, 1405481, 1405482, 1405489, 1405491, 1405503, 1405504, 1405514, 1405515,
     1405518, 1405519, 1405524, 1405529, 1405530, 1405543, 1405549, 1405555, 1405569, 1405582, 1405583, 1405584,
-    1405585, 1405590, 1405593, 1405605, 1405621, 1405622, 1405623, 1405624, 1405625, 1405629, 1405631, 1405632,
+    1405585, 1405590, 1405593, 1405605, 1405621, 1405622, 1405623, 1405624, 1405625, 1405628, 1405629, 1405631, 1405632,
     1405639, 1405640, 1405641, 1405653, 1405654, 1405655, 1405656, 1405657, 1405658, 1405662, 1405667, 1405674,
     1405703, 1405705, 1405706, 1405714, 1405720, 1405722, 1405723, 1405728, 1405736, 1405756, 1405757, 1405758,
     1405785, 1405786, 1405787, 1405788, 1405789, 1405796, 1405797, 1405798, 1405799, 1405802, 1405804, 1405805,
@@ -389,7 +389,7 @@ _G.MODSKIN_LIST = {
     4151060, -- Golden Serpent Glider
     4151061, -- Cycle 6 Hoverboard
     4151062, -- Zanmang Loopy Parachute Trail
-    4151063, -- SPYÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂFAMILY Bond Glider
+    4151063, -- SPYÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂFAMILY Bond Glider
     4151064, -- Angel Glider
     4151065, -- Angel Glider
     4151066, -- Divine Emperor Glider
@@ -478,7 +478,7 @@ _G.MODSKIN_LIST = {
     1107001018, -- Furious Clown King - Crossbow (Level 3)
     1107098003, -- Tech Tremor - MGL (Level 3)
     1108001057, -- Dragon Hunt - Knife (Level 3)
-    1108001064, -- Yor Short Sword SPYÃƒâ€”FAMILY (Level 3)
+    1108001064, -- Yor Short Sword SPYÃƒÆ’Ã¢â‚¬â€FAMILY (Level 3)
     1108001069, -- Ki Sword (Level 3)
     1108001081, -- Godzilla Inferno Axe (Level 3)
     1108001085, -- Scout Regiment Sword (Level 3)
@@ -640,6 +640,384 @@ _G.AddOutfitFaceLog = function(msg)
         if f then f:write(line) f:close() end
     end)
 end
+
+-- ============================================================
+-- TEAM / LOBBY DIAGNOSTIC LOG
+-- Writes to the SAME file the client_entry loader uses:
+--   /storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_inject.txt
+-- Unconditional (not gated by CHETAN_FILELOG_ON) but event-gated:
+-- hook call sites and errors only, never per-tick.
+-- ============================================================
+_G.CHETAN_INJ_PATH = _G.CHETAN_INJ_PATH or nil
+_G.CHETAN_TLog = function(tag, msg)
+    pcall(function()
+        local now = 0
+        pcall(function() now = os.clock() end)
+        local line = string.format("[%.1f][%s] %s\n", now, tostring(tag), tostring(msg))
+        local p = _G.CHETAN_INJ_PATH
+        if not p then
+            local paths = {
+                "/storage/emulated/0/Android/data/com.pubg.imobile/files/CHETAN_inject.txt",
+                "CHETAN_inject.txt",
+            }
+            for _, c in ipairs(paths) do
+                local f = io.open(c, "a")
+                if f then f:close() p = c break end
+            end
+            _G.CHETAN_INJ_PATH = p
+        end
+        if not p then return end
+        local sz = 0
+        local fr = io.open(p, "r")
+        if fr then sz = fr:seek("end") or 0 fr:close() end
+        local f = io.open(p, (sz > 262144) and "w" or "a")
+        if f then f:write(line) f:close() end
+    end)
+end
+
+_G.CHETAN_TLog_OLD = nil
+
+-- ============================================================
+-- ENGINE LOG-DUMP GUARD
+-- LobbyAvatarManager.GetOperateAvatarByAvatarID() dumps playerList with
+-- log_tree() when an avatar id is missing. After a match those slua pawns
+-- still reference Item rows from the match mod, so the engine THROWS:
+--   "Can't use Table[Item]'s Row[] Data because this row data might be
+--    unload in difference mod!"
+-- That throw aborts the caller, logic_team_up.on_team_info_sync ->
+-- teammates invisible + no voice + ready/cancel dead after a match.
+-- A debug dump must never be able to kill the caller.
+_G.CHETAN_BUILD = "guard9"
+local function _chetan_DBG(tag, msg)
+    local f = _G.CHETAN_TLog
+    if type(f) == "function" then pcall(f, tag, msg) end
+end
+_G._chetan_stack = function(maxn)
+    local out = {}
+    pcall(function()
+        if type(debug) ~= "table" then out[1] = "debug=" .. type(debug); return end
+        if type(debug.getinfo) ~= "function" then
+            out[1] = "getinfo=" .. type(debug.getinfo) .. " traceback=" .. type(debug.traceback)
+            return
+        end
+        for i = 0, (maxn or 20) do
+            local ok, inf = pcall(debug.getinfo, i, "nSl")
+            if ok and inf then
+                out[#out + 1] = (inf.short_src or "?") .. ":" .. tostring(inf.currentline)
+                    .. "[" .. tostring(inf.name or "?") .. "]"
+            end
+        end
+    end)
+    return table.concat(out, " <- ")
+end
+_G._chetan_install_guards = function(tag)
+    tag = tostring(tag or "?")
+    -- 0) Kill the engine tree dump at its gate. The payload runs in a
+    --    sandbox, so replacing the global log_tree does NOT reach module
+    --    code that already captured its own copy. common.log's LXLog_log_tree
+    --    reads log_filter.bLogTreeEnable from the SHARED module table every
+    --    call, so flipping it here disables every copy of the dump --
+    --    including the one at LobbyAvatarManager.lua:146 that throws after a
+    --    match and aborts logic_team_up.on_team_info_sync.
+    pcall(function()
+        local lf = require("common.log_filter")
+        if type(lf) ~= "table" then
+            _chetan_DBG("GUARD", "log_filter type=" .. type(lf))
+            return
+        end
+        if not _G._chetan_lf_off then
+            _G._chetan_lf_off = true
+            _G._chetan_lf_was = tostring(lf.bLogTreeEnable)
+            _chetan_DBG("GUARD", "log_filter.bLogTreeEnable was=" .. tostring(lf.bLogTreeEnable) .. " -> false")
+        end
+        lf.bLogTreeEnable = false
+    end)
+    pcall(function()
+        local cpp = package.loaded["cpp_log_tree"]
+        if type(cpp) == "table" and not cpp._chetan_guard and type(cpp.log_tree) == "function" then
+            cpp._chetan_guard = true
+            local o = cpp.log_tree
+            cpp.log_tree = function(...) pcall(o, ...) end
+            _chetan_DBG("GUARD", "cpp_log_tree.log_tree wrapped")
+        end
+    end)
+    -- 0b) require spy: if the game ever resolves the avatar manager through a
+    --     second module registry, the returned table will differ from the one
+    --     we wrapped. Log it instead of guessing.
+    pcall(function()
+        if _G._chetan_req_guard then return end
+        _G._chetan_req_guard = true
+        local oreq = require
+        _G.require = function(name, ...)
+            local r = oreq(name, ...)
+            if name == "client.logic.avatar.LobbyAvatarManager" then
+                _G._chetan_req_hits = (_G._chetan_req_hits or 0) + 1
+                if _G._chetan_req_hits <= 20 or r ~= _G._chetan_lam_seen then
+                    _chetan_DBG("GUARD", "require LAM #" .. tostring(_G._chetan_req_hits)
+                        .. " tbl=" .. tostring(r)
+                        .. " same=" .. tostring(r == _G._chetan_lam_seen)
+                        .. " guarded=" .. tostring(type(r) == "table" and r._chetan_guard))
+                end
+            end
+            return r
+        end
+    end)
+    -- 0d) breadcrumbs: a ring buffer of the last steps. If the team sync
+    --     error is a stored string re-thrown later, the marks show where.
+    pcall(function()
+        if _G._chetan_mark then return end
+        _G._chetan_marks = {}
+        _G._chetan_mark = function(s)
+            local m = _G._chetan_marks
+            m[#m + 1] = tostring(s)
+            if #m > 24 then table.remove(m, 1) end
+        end
+    end)
+    -- 0e) error() spy: log any re-throw that carries the LAM:146 message.
+    pcall(function()
+        if _G._chetan_err_hook then return end
+        _G._chetan_err_hook = true
+        local oerr = error
+        _G.error = function(msg, lvl)
+            if type(msg) == "string"
+                and (msg:find("LobbyAvatarManager", 1, true) or msg:find("unload in difference mod", 1, true)) then
+                _G._chetan_err_hits = (_G._chetan_err_hits or 0) + 1
+                if _G._chetan_err_hits <= 10 then
+                    _chetan_DBG("ERRHOOK", "error(lvl=" .. tostring(lvl) .. "): " .. tostring(msg)
+                        .. " || marks: " .. table.concat(_G._chetan_marks or {}, " > "))
+                end
+            end
+            return oerr(msg, lvl)
+        end
+    end)
+    -- 0c) log_tree: the global may be a Lua fn or a callable binding, and a
+    --    module reload can replace it. Wrap whatever is there right now.
+    pcall(function()
+        local lt = log_tree
+        if lt == nil then
+            if _G._chetan_lt_nil_logged ~= true then
+                _G._chetan_lt_nil_logged = true
+                _chetan_DBG("GUARD", "install(" .. tag .. ") log_tree is nil")
+            end
+            return
+        end
+        if _G._chetan_logtree_wrapper == lt then return end
+        if not _G._chetan_logtree_orig then _G._chetan_logtree_orig = lt end
+        local orig = _G._chetan_logtree_orig
+        local w
+        w = function(k, ...)
+            _G._chetan_lt_calls = (_G._chetan_lt_calls or 0) + 1
+            local n = _G._chetan_lt_calls
+            local key = tostring(k)
+            local important = key:find("on_team_info_sync", 1, true)
+                or key:find("LobbyAvatarManager", 1, true)
+                or key:find("LobbyAvatar", 1, true)
+            if n <= 60 or important then
+                _chetan_DBG("GUARD", "lt #" .. n .. " key=" .. key:sub(1, 70))
+            end
+            if _G._chetan_mark then _G._chetan_mark("lt:" .. key:sub(1, 40)) end
+            local ok, err = pcall(orig, k, ...)
+            if not ok then
+                _G._chetan_logtree_errs = (_G._chetan_logtree_errs or 0) + 1
+                if _G._chetan_logtree_errs <= 8 then
+                    _chetan_DBG("GUARD", "log_tree suppressed: " .. tostring(err))
+                end
+            end
+        end
+        _G._chetan_logtree_wrapper = w
+        _G.log_tree = w
+        _chetan_DBG("GUARD", "install(" .. tag .. ") log_tree wrapped, type=" .. type(lt)
+            .. " count=" .. tostring(_G._chetan_logtree_wraps))
+        _G._chetan_logtree_wraps = (_G._chetan_logtree_wraps or 0) + 1
+    end)
+    -- 2) the exact abort point. Wrap the module table itself so any caller
+    --    (LobbyAvatar:GetModel, pet container, ...) is covered.
+    pcall(function()
+        local LAM = require("client.logic.avatar.LobbyAvatarManager")
+        if type(LAM) ~= "table" then
+            _chetan_DBG("GUARD", "install(" .. tag .. ") LAM type=" .. type(LAM))
+            return
+        end
+        if LAM._chetan_guard then
+            if _G._chetan_lam_seen ~= LAM then
+                _G._chetan_lam_seen = LAM
+                _chetan_DBG("GUARD", "install(" .. tag .. ") LAM already wrapped mod=" .. tostring(LAM))
+            end
+            return
+        end
+        LAM._chetan_guard = true
+        _G._chetan_lam_seen = LAM
+        local o = LAM.GetOperateAvatarByAvatarID
+        _chetan_DBG("GUARD", "install(" .. tag .. ") LAM wrap fn=" .. type(o) .. " mod=" .. tostring(LAM))
+        if type(o) ~= "function" then return end
+        -- Probe: find the module chunk's _ENV. Some slua loaders give each
+        -- chunk its own globals table, so patching _G.log_tree never reaches
+        -- the log_tree call inside this file. Patch that env directly too.
+        pcall(function()
+            if type(debug) ~= "table" or type(debug.getupvalue) ~= "function" then return end
+            local i = 1
+            while true do
+                local name, val = debug.getupvalue(o, i)
+                if not name then break end
+                if name == "_ENV" then
+                    local same = (val == _G)
+                    _chetan_DBG("GUARD", "LAM _ENV==_G: " .. tostring(same))
+                    if not same and type(val) == "table" and type(_G.log_tree) == "function" then
+                        pcall(function() val.log_tree = _G.log_tree end)
+                        _chetan_DBG("GUARD", "patched LAM _ENV.log_tree, ltNow=" .. type(val.log_tree))
+                    end
+                end
+                i = i + 1
+            end
+        end)
+        LAM.GetOperateAvatarByAvatarID = function(id)
+            _G._chetan_lam_calls = (_G._chetan_lam_calls or 0) + 1
+            local n = _G._chetan_lam_calls
+            if _G._chetan_mark then _G._chetan_mark("GetOperate#" .. n .. " id=" .. tostring(id)) end
+            if (id ~= 1 or n <= 3) and n <= 80 then
+                _chetan_DBG("GUARD", "call #" .. n .. " id=" .. tostring(id))
+            end
+            local ok, r = pcall(o, id)
+            if not ok then
+                _G._chetan_lam_errs = (_G._chetan_lam_errs or 0) + 1
+                if _G._chetan_lam_errs <= 8 then
+                    _chetan_DBG("GUARD", "GetOperateAvatarByAvatarID(" .. tostring(id) .. ") swallowed: " .. tostring(r))
+                end
+                return nil
+            end
+            if r == nil and n <= 80 then
+                _chetan_DBG("GUARD", "call #" .. n .. " id=" .. tostring(id) .. " -> nil (no throw)")
+            end
+            return r
+        end
+        -- Wrap the other entries that dump UE data (log_tree at 236 and 663)
+        -- and the avatar creation path, so a throw can never escape unnoticed.
+        local function _pack(...) return { n = select("#", ...), ... } end
+        local function _wrapFn(name)
+            local f = LAM[name]
+            if type(f) ~= "function" or LAM["_chetan_w_" .. name] then return end
+            LAM["_chetan_w_" .. name] = true
+            _G._chetan_lam_fn = _G._chetan_lam_fn or {}
+            LAM[name] = function(...)
+                local c = (_G._chetan_lam_fn[name] or 0) + 1
+                _G._chetan_lam_fn[name] = c
+                if _G._chetan_mark then _G._chetan_mark("LAM." .. name .. "#" .. c) end
+                if c <= 12 then _chetan_DBG("GUARD", name .. " #" .. c) end
+                local pr = _pack(pcall(f, ...))
+                if _G._chetan_pl_reproxy then pcall(_G._chetan_pl_reproxy) end
+                if not pr[1] then
+                    _chetan_DBG("GUARD", name .. " ERR: " .. tostring(pr[2]) .. " @ " .. (_G._chetan_stack and _G._chetan_stack(6) or ""))
+                    return nil
+                end
+                return table.unpack(pr, 2, pr.n)
+            end
+            _chetan_DBG("GUARD", "wrapped LAM." .. name)
+        end
+        _wrapFn("CreateMyAvatar")
+        _wrapFn("EquipWeapon")
+        _wrapFn("CreateAvatar")
+        _wrapFn("SpawnPlayer")
+        _wrapFn("CreateDefaultAvatar")
+        _wrapFn("DestroyAllAvatar")
+        _wrapFn("ClearPools")
+    end)
+    pcall(function()
+        _G._chetan_pl_reproxy = function() end
+    end)
+    -- 3) belt and braces: the lobby avatar wrapper that calls the above.
+    pcall(function()
+        local LA = require("client.logic.avatar.LobbyAvatar")
+        if type(LA) ~= "table" or LA._chetan_guard then return end
+        if _G._chetan_la_logged ~= true then
+            _G._chetan_la_logged = true
+            _chetan_DBG("GUARD", "LobbyAvatar mod type=" .. type(LA)
+                .. " GetModel=" .. type(LA.GetModel)
+                .. " GetModelAvatarComp=" .. type(LA.GetModelAvatarComp)
+                .. " idx=" .. type(LA.__index))
+        end
+        if type(LA.GetModel) ~= "function" then return end
+        LA._chetan_guard = true
+        local o = LA.GetModel
+        LA.GetModel = function(self)
+            local ok, r = pcall(o, self)
+            if not ok then
+                _chetan_DBG("GUARD", "LobbyAvatar:GetModel swallowed: " .. tostring(r) .. " @ " .. _G._chetan_stack(8))
+                return nil
+            end
+            return r
+        end
+        _chetan_DBG("GUARD", "install(" .. tag .. ") LobbyAvatar.GetModel wrapped")
+    end)
+    -- 4) consumer dependencies: find which step carries the LAM:146 error.
+    pcall(function()
+        local VD = package.loaded["client.slua.logic.chat_voice.logic_chat_voice_doctor"]
+        if type(VD) == "table" and not VD._chetan_guard and type(VD.AddJoinTeamRoomStep) == "function" then
+            VD._chetan_guard = true
+            local vo = VD.AddJoinTeamRoomStep
+            VD.AddJoinTeamRoomStep = function(self, step, ...)
+                if _G._chetan_mark then _G._chetan_mark("voice step " .. tostring(step)) end
+                local ok, r = pcall(vo, self, step, ...)
+                if not ok then
+                    _chetan_DBG("GUARD", "AddJoinTeamRoomStep(" .. tostring(step) .. ") ERR: "
+                        .. tostring(r) .. " @ " .. _G._chetan_stack(12))
+                end
+                return r
+            end
+            _chetan_DBG("GUARD", "wrapped voice.AddJoinTeamRoomStep")
+        end
+    end)
+    pcall(function()
+        local TA = package.loaded["client.logic.avatar.logic_team_avatar_manager"]
+        if type(TA) ~= "table" or TA._chetan_guard then return end
+        TA._chetan_guard = true
+        local o = TA.CreateAvatar
+        if type(o) == "function" then
+            TA.CreateAvatar = function(uid, ...)
+                if _G._chetan_mark then _G._chetan_mark("TAM.CreateAvatar " .. tostring(uid)) end
+                local ok, r = pcall(o, uid, ...)
+                if not ok then
+                    _chetan_DBG("GUARD", "TAM.CreateAvatar(" .. tostring(uid) .. ") ERR: "
+                        .. tostring(r) .. " @ " .. _G._chetan_stack(12))
+                    return nil
+                end
+                return r
+            end
+        end
+        local g = TA.GetAvatarByUid
+        if type(g) == "function" then
+            TA.GetAvatarByUid = function(uid, ...)
+                if _G._chetan_mark then _G._chetan_mark("TAM.GetAvatarByUid " .. tostring(uid)) end
+                return g(uid, ...)
+            end
+        end
+        _chetan_DBG("GUARD", "wrapped TAM.CreateAvatar/GetAvatarByUid")
+    end)
+end
+_G._chetan_install_guards("boot")
+pcall(function() _G.CHETAN_TLog("BUILD", "guard9 loaded") end)
+_chetan_DBG("GUARD", "env probe: debug=" .. type(debug) .. " getinfo=" .. type(debug and debug.getinfo) .. " tb=" .. type(debug and debug.traceback) .. " _G==_ENV:" .. tostring(_G == _ENV))
+_chetan_DBG("GUARD", "stacktest=" .. tostring(_G._chetan_stack(6)))
+
+-- Watchdog: the lobby avatar modules can be reloaded when a match ends, which
+-- throws our wrappers away. Re-arm them continuously (cheap: 2 comparisons).
+pcall(function()
+    if _G._chetan_guard_watch then return end
+    _G._chetan_guard_watch = true
+    local tk = require("common.time_ticker")
+    if tk and tk.AddTimerLoop then
+        tk.AddTimerLoop(2, function()
+            pcall(function() _G._chetan_install_guards("tick") end)
+            pcall(function() if _G._chetan_pl_reproxy then _G._chetan_pl_reproxy() end end)
+            _G._chetan_watch_n = (_G._chetan_watch_n or 0) + 1
+            if _G._chetan_watch_n % 36 == 0 then
+                _chetan_DBG("GUARD", "watch alive n=" .. _G._chetan_watch_n)
+            end
+        end, -1, 5)
+        _chetan_DBG("GUARD", "watchdog armed 5s")
+    else
+        _chetan_DBG("GUARD", "watchdog unavailable tk=" .. type(tk))
+    end
+end)
 
 -- On-device file log for the lobby-theme path (CHETAN_THEME.log next to the
 -- save files). Picks / restores / skips only -- never per-tick.
@@ -1973,7 +2351,7 @@ local function _persistModOutfit(resID, insID)
         pcall(function() _flushSave(true) end)
     end
 
-    -- ========== حقن WardrobeNewHandler (لإصلاح حفظ السيارات في اللوبي) ==========
+    -- ========== Ø­Ù‚Ù† WardrobeNewHandler (Ù„Ø¥ØµÙ„Ø§Ø­ Ø­ÙØ¸ Ø§Ù„Ø³ÙŠØ§Ø±Ø§Øª ÙÙŠ Ø§Ù„Ù„ÙˆØ¨ÙŠ) ==========
     pcall(function()
         local WardrobeNewHandler = {}
 
@@ -2277,19 +2655,19 @@ local function _persistModOutfit(resID, insID)
         loadSettings()
 
         local ITEMS = {}
-        local _itemsLoaded = false  -- منع إعادة تحميل العناصر
+        local _itemsLoaded = false  -- Ù…Ù†Ø¹ Ø¥Ø¹Ø§Ø¯Ø© ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¹Ù†Ø§ØµØ±
 
-        -- بناء خرائط "الحدّ الأقصى للمستوى" لمجموعات الترقية (أسلحة/معدّات) وعصور X-Suit
-        -- النتيجة: مجموعة من المعرفات التي يجب استبعادها لأنها ليست أعلى لفل ضمن سلسلتها
+        -- Ø¨Ù†Ø§Ø¡ Ø®Ø±Ø§Ø¦Ø· "Ø§Ù„Ø­Ø¯Ù‘ Ø§Ù„Ø£Ù‚ØµÙ‰ Ù„Ù„Ù…Ø³ØªÙˆÙ‰" Ù„Ù…Ø¬Ù…ÙˆØ¹Ø§Øª Ø§Ù„ØªØ±Ù‚ÙŠØ© (Ø£Ø³Ù„Ø­Ø©/Ù…Ø¹Ø¯Ù‘Ø§Øª) ÙˆØ¹ØµÙˆØ± X-Suit
+        -- Ø§Ù„Ù†ØªÙŠØ¬Ø©: Ù…Ø¬Ù…ÙˆØ¹Ø© Ù…Ù† Ø§Ù„Ù…Ø¹Ø±ÙØ§Øª Ø§Ù„ØªÙŠ ÙŠØ¬Ø¨ Ø§Ø³ØªØ¨Ø¹Ø§Ø¯Ù‡Ø§ Ù„Ø£Ù†Ù‡Ø§ Ù„ÙŠØ³Øª Ø£Ø¹Ù„Ù‰ Ù„ÙÙ„ Ø¶Ù…Ù† Ø³Ù„Ø³Ù„ØªÙ‡Ø§
         local function buildNonMaxLevelSet()
             local nonMax = {}
             if not (CDataTable and CDataTable.GetTable) then return nonMax end
 
-            -- 1) جدول ترقية العناصر (أسلحة + خوذ/شنط/درع التي تستخدم نفس الآلية)
+            -- 1) Ø¬Ø¯ÙˆÙ„ ØªØ±Ù‚ÙŠØ© Ø§Ù„Ø¹Ù†Ø§ØµØ± (Ø£Ø³Ù„Ø­Ø© + Ø®ÙˆØ°/Ø´Ù†Ø·/Ø¯Ø±Ø¹ Ø§Ù„ØªÙŠ ØªØ³ØªØ®Ø¯Ù… Ù†ÙØ³ Ø§Ù„Ø¢Ù„ÙŠØ©)
             pcall(function()
                 local upTbl = CDataTable.GetTable("ItemUpgradeConfig")
                 if not upTbl then return end
-                -- لكل GroupID: أوجد أعلى Level + معرف العنصر صاحبه
+                -- Ù„ÙƒÙ„ GroupID: Ø£ÙˆØ¬Ø¯ Ø£Ø¹Ù„Ù‰ Level + Ù…Ø¹Ø±Ù Ø§Ù„Ø¹Ù†ØµØ± ØµØ§Ø­Ø¨Ù‡
                 local maxLvl, maxItem = {}, {}
                 local groupMembers = {}
                 for _, cfg in pairs(upTbl) do
@@ -2313,7 +2691,7 @@ local function _persistModOutfit(resID, insID)
                 end
             end)
 
-            -- 2) إعدادات بدلات X-Suit (Star levels)
+            -- 2) Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø¨Ø¯Ù„Ø§Øª X-Suit (Star levels)
             local function processXSuitTable(tableName)
                 pcall(function()
                     local tbl = CDataTable.GetTable(tableName)
@@ -2345,7 +2723,7 @@ local function _persistModOutfit(resID, insID)
             processXSuitTable("GoldenSuitUpgradeCfgKJ")
             processXSuitTable("GoldenSuitUpgradeCfgIN")
 
-            -- 3) خوذ وشنط قابلة للترقية (BackpackMapping: Lv1/Lv2/Lv3 → نُبقي Lv3 فقط)
+            -- 3) Ø®ÙˆØ° ÙˆØ´Ù†Ø· Ù‚Ø§Ø¨Ù„Ø© Ù„Ù„ØªØ±Ù‚ÙŠØ© (BackpackMapping: Lv1/Lv2/Lv3 â†’ Ù†ÙØ¨Ù‚ÙŠ Lv3 ÙÙ‚Ø·)
             pcall(function()
                 local bpMap = CDataTable.GetTable("BackpackMapping")
                 if not bpMap then return end
@@ -2357,6 +2735,9 @@ local function _persistModOutfit(resID, insID)
                     if lv2 > 0 and lv2 ~= lv3 then nonMax[lv2] = true end
                 end
             end)
+
+            -- Keep Pharaoh 6-star (1405628) unlocked so it appears in lobby even when nonMax filter is active
+            nonMax[1405628] = nil
 
             return nonMax
         end
@@ -2391,10 +2772,14 @@ local function _persistModOutfit(resID, insID)
                         end
                     end
                 end
+                if not seen[1405628] then
+                    seen[1405628] = true
+                    ITEMS[#ITEMS + 1] = 1405628
+                end
                 table.sort(ITEMS)
                 if #ITEMS > 0 then
                     _itemsLoaded = true
-                    log("MODSKIN list", #ITEMS, "عنصر للحقن")
+                    log("MODSKIN list", #ITEMS, "Ø¹Ù†ØµØ± Ù„Ù„Ø­Ù‚Ù†")
                 end
                 return #ITEMS
             end
@@ -2423,7 +2808,7 @@ local function _persistModOutfit(resID, insID)
             table.sort(ITEMS)
             if count > 0 then
                 _itemsLoaded = true
-                log("جمع تلقائي", count, "عنصر للحقن", "(تم تجاهل", skipped, "نسخة ليست أعلى لفل)")
+                log("Ø¬Ù…Ø¹ ØªÙ„Ù‚Ø§Ø¦ÙŠ", count, "Ø¹Ù†ØµØ± Ù„Ù„Ø­Ù‚Ù†", "(ØªÙ… ØªØ¬Ø§Ù‡Ù„", skipped, "Ù†Ø³Ø®Ø© Ù„ÙŠØ³Øª Ø£Ø¹Ù„Ù‰ Ù„ÙÙ„)")
             end
             return count
         end
@@ -2532,10 +2917,7 @@ local function _persistModOutfit(resID, insID)
             if not resID or not CDataTable or not CDataTable.GetTableData then return nil end
             resID = tonumber(resID)
             if not resID then return nil end
-            if _C.cfg[resID] ~= nil then return _C.cfg[resID] end
-            local c = CDataTable.GetTableData("Item", resID)
-            _C.cfg[resID] = c
-            return c
+            return CDataTable.GetTableData("Item", resID)
         end
 
         local function subType(c)
@@ -2922,9 +3304,9 @@ local function _persistModOutfit(resID, insID)
             _weaponSkinResMergeCache.res = nil
         end
 
-        -- ========== لفلات الخوذة/الشنطة (3 مستويات) ==========
-        -- catalog = ID الأساسي | lv1/lv2/lv3 = شكل كل لفة في الجيم
-        -- مثال: Magick Delight Helmet
+        -- ========== Ù„ÙÙ„Ø§Øª Ø§Ù„Ø®ÙˆØ°Ø©/Ø§Ù„Ø´Ù†Ø·Ø© (3 Ù…Ø³ØªÙˆÙŠØ§Øª) ==========
+        -- catalog = ID Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ | lv1/lv2/lv3 = Ø´ÙƒÙ„ ÙƒÙ„ Ù„ÙØ© ÙÙŠ Ø§Ù„Ø¬ÙŠÙ…
+        -- Ù…Ø«Ø§Ù„: Magick Delight Helmet
         local EQUIP_LEVEL_SETS = {
             [1502000382] = { lv1 = 1502001382, lv2 = 1502002382, lv3 = 1502003382, slot = "helmet" },
         }
@@ -2949,10 +3331,10 @@ local function _persistModOutfit(resID, insID)
         end
         _G.AddOutfitRegisterEquipLevelSet = registerEquipLevelSet
 
-        -- نطاقات معدات بـ 3 لفلات (نفس البنية: 15XX00Y### حيث Y = اللفة)
+        -- Ù†Ø·Ø§Ù‚Ø§Øª Ù…Ø¹Ø¯Ø§Øª Ø¨Ù€ 3 Ù„ÙÙ„Ø§Øª (Ù†ÙØ³ Ø§Ù„Ø¨Ù†ÙŠØ©: 15XX00Y### Ø­ÙŠØ« Y = Ø§Ù„Ù„ÙØ©)
         local EQUIP_LEVEL_RANGES = {
-            { base = 1502000000, slot = "helmet" }, -- خوذة
-            { base = 1501000000, slot = "bag"    }, -- شنطة
+            { base = 1502000000, slot = "helmet" }, -- Ø®ÙˆØ°Ø©
+            { base = 1501000000, slot = "bag"    }, -- Ø´Ù†Ø·Ø©
         }
 
         local function findEquipLevelRange(resID)
@@ -3004,7 +3386,7 @@ local function _persistModOutfit(resID, insID)
                 if EQUIP_LEVEL_SETS[catalog] then return EQUIP_LEVEL_SETS[catalog] end
                 if level then return buildPatternLevelSet(catalog) end
             end
-            -- resID نفسه ممكن يكون الـ catalog (بدون رقم لفل) — جرّب نبني set مباشرة
+            -- resID Ù†ÙØ³Ù‡ Ù…Ù…ÙƒÙ† ÙŠÙƒÙˆÙ† Ø§Ù„Ù€ catalog (Ø¨Ø¯ÙˆÙ† Ø±Ù‚Ù… Ù„ÙÙ„) â€” Ø¬Ø±Ù‘Ø¨ Ù†Ø¨Ù†ÙŠ set Ù…Ø¨Ø§Ø´Ø±Ø©
             local direct = buildPatternLevelSet(resID)
             if direct then
                 _equipLevelByRes[resID] = direct
@@ -3448,7 +3830,7 @@ local function _persistModOutfit(resID, insID)
             end
             _S.matchApplied = false
             invalidateSocialWearCache()
-            log("ذاكرة معدات", slot, resID)
+            log("Ø°Ø§ÙƒØ±Ø© Ù…Ø¹Ø¯Ø§Øª", slot, resID)
             pcall(_AutoSaveOutfit)
         end
 
@@ -3546,7 +3928,7 @@ local function _persistModOutfit(resID, insID)
             _G.AddOutfitLastAppliedSkin = {}
             _S.matchApplied = false
             invalidateSocialWearCache()
-            log("ذاكرة سكن", weaponID, "→", resID)
+            log("Ø°Ø§ÙƒØ±Ø© Ø³ÙƒÙ†", weaponID, "â†’", resID)
             pcall(_AutoSaveOutfit)
         end
 
@@ -3777,7 +4159,7 @@ local function _persistModOutfit(resID, insID)
                     end
                 end
 
-                -- مزامنة سكن البراشوت من FashionBag
+                -- Ù…Ø²Ø§Ù…Ù†Ø© Ø³ÙƒÙ† Ø§Ù„Ø¨Ø±Ø§Ø´ÙˆØª Ù…Ù† FashionBag
                 pcall(function()
                     local fashionbag_data = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
                     local paraInsID = tonumber(fashionbag_data:GetParachute())
@@ -3801,7 +4183,7 @@ local function _persistModOutfit(resID, insID)
                     end
                 end)
 
-                -- مزامنة سكن الجلايدر من FashionBag
+                -- Ù…Ø²Ø§Ù…Ù†Ø© Ø³ÙƒÙ† Ø§Ù„Ø¬Ù„Ø§ÙŠØ¯Ø± Ù…Ù† FashionBag
                 pcall(function()
                     local fashionbag_data = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
                     local gliderInsID = tonumber(fashionbag_data:GetAircraftOrGliding())
@@ -3939,7 +4321,7 @@ local function _persistModOutfit(resID, insID)
         -- Wear-pak ODPAK requests for equipped accessories (face/hat/mask/
         -- glasses/beard/gloves). The match comp hides meshes whose pak is
         -- not on disk (ProcessUnDownloadHead et al: FakeID swap), while
-        -- lobby paths skip the download check — the classic "lobby shows,
+        -- lobby paths skip the download check â€” the classic "lobby shows,
         -- match hides". One request per resID per session; _G.download_item
         -- itself no-ops when the pak state is already Done.
         _G.AddOutfitWearDlQueued = _G.AddOutfitWearDlQueued or {}
@@ -4138,7 +4520,7 @@ local function _persistModOutfit(resID, insID)
             Arm.WardrobeInsList[resID] = insID
         end
 
-        -- تعديل: منع إعادة الحقن
+        -- ØªØ¹Ø¯ÙŠÙ„: Ù…Ù†Ø¹ Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ø­Ù‚Ù†
         local function injectAll(entity)
             refreshItems()
             entity = entity or getEntity()
@@ -4218,7 +4600,7 @@ local function _persistModOutfit(resID, insID)
             -- skin.  Fix: only the CATALOG resID goes into the depot (one row
             -- in the UI); lv1/lv2/lv3 are still registered in R.resToIns /
             -- R.insToRes so mapEquipSkinRes can resolve them for match-apply.
-            -- Non-equip items (weapons, clothes, vehicles …) are unaffected.
+            -- Non-equip items (weapons, clothes, vehicles â€¦) are unaffected.
             local expanded, seen = {}, {}   -- depot-injected items
             local equipLevels = {}          -- R-only, NOT depot-injected
             local seenEL = {}
@@ -4313,7 +4695,7 @@ local function _persistModOutfit(resID, insID)
                     _S.injectedProbeRes = tonumber(expanded[1])
                 end
                 _G.AddOutfit_R = R
-                log("حقن", n, "items")
+                log("Ø­Ù‚Ù†", n, "items")
             end
             return n > 0
         end
@@ -4525,7 +4907,7 @@ local function _persistModOutfit(resID, insID)
             end)
         end
 
-        -- ========== دوال الخلع المُحسَّنة ==========
+        -- ========== Ø¯ÙˆØ§Ù„ Ø§Ù„Ø®Ù„Ø¹ Ø§Ù„Ù…ÙØ­Ø³ÙŽÙ‘Ù†Ø© ==========
         local takeOffEquipSkinVisual, takeOffClothVisual, takeOffWeaponSkinVisual
 
         local function takeOffItem(insID)
@@ -4722,11 +5104,11 @@ local function _persistModOutfit(resID, insID)
                 local fbd = require("client.slua.logic.wardrobe.fashionbag.fashionbag_data")
                 local HT = require("client.logic.lobby.hall_theme_utils")
                 local wgl = require("client.slua.logic.wardrobe.logic_wardrobe_gun")
-                -- مسح من install_list
+                -- Ù…Ø³Ø­ Ù…Ù† install_list
                 if Arm.rsp_list and Arm.rsp_list.install_list then
                     Arm.rsp_list.install_list[weaponID] = nil
                 end
-                -- مسح من FashionBag
+                -- Ù…Ø³Ø­ Ù…Ù† FashionBag
                 if fbd.UpdateCurrentFashionBagWeaponSkin then
                     fbd:UpdateCurrentFashionBagWeaponSkin(weaponID, 0)
                 end
@@ -4734,14 +5116,14 @@ local function _persistModOutfit(resID, insID)
                 if bag and bag.weapon_skin_list then
                     bag.weapon_skin_list[weaponID] = nil
                 end
-                -- تحديث واجهة السلاح
+                -- ØªØ­Ø¯ÙŠØ« ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„Ø³Ù„Ø§Ø­
                 local bagIdx = fbd:GetFashionBagUseIndex()
                 HT.proc_skin_list_chg("weapon_skin", weaponID, 0, bagIdx, {})
                 wgl:SetGunID(weaponID)
                 if wgl.UpdateCurrentGunAvatar then
                     wgl:UpdateCurrentGunAvatar(weaponID, 0)
                 end
-                -- أحداث التحديث
+                -- Ø£Ø­Ø¯Ø§Ø« Ø§Ù„ØªØ­Ø¯ÙŠØ«
                 if EventSystem and EVENTTYPE_ARMORY and EVENTID_ARMORY_EQUIP_STAT_CHANGE then
                     EventSystem:postEvent(EVENTTYPE_ARMORY, EVENTID_ARMORY_EQUIP_STAT_CHANGE, 0)
                 end
@@ -4751,10 +5133,10 @@ local function _persistModOutfit(resID, insID)
                 if EventSystem and EVENTID_WARDROBE_UPDATE_GUN_LIST then
                     EventSystem:postEvent(EVENTTYPE_WARDROBE, EVENTID_WARDROBE_UPDATE_GUN_LIST, weaponID)
                 end
-                log("خلع سكن سلاح", weaponID)
+                log("Ø®Ù„Ø¹ Ø³ÙƒÙ† Ø³Ù„Ø§Ø­", weaponID)
             end)
         end
-        -- ========== نهاية دوال الخلع ==========
+        -- ========== Ù†Ù‡Ø§ÙŠØ© Ø¯ÙˆØ§Ù„ Ø§Ù„Ø®Ù„Ø¹ ==========
 
         -- Equip a throwable into the lobby.
         --
@@ -4797,7 +5179,7 @@ local function _persistModOutfit(resID, insID)
             end)
             saveThrowObject(resID, insID)
             pcall(_AutoSaveOutfit)
-            log("لبس قنبلة", st, resID)
+            log("Ù„Ø¨Ø³ Ù‚Ù†Ø¨Ù„Ø©", st, resID)
         end
 
         local function putOnEquipSkin(insID)
@@ -4824,7 +5206,7 @@ local function _persistModOutfit(resID, insID)
                 elseif slot == "bag" then
                     HT.ProcPutOnBagSkin(item, oldItem)
                 elseif slot == "parachute" then
-                    -- استدعاء on_puton_rsp مع تخطي AddToWearInfo للبراشوت فقط
+                    -- Ø§Ø³ØªØ¯Ø¹Ø§Ø¡ on_puton_rsp Ù…Ø¹ ØªØ®Ø·ÙŠ AddToWearInfo Ù„Ù„Ø¨Ø±Ø§Ø´ÙˆØª ÙÙ‚Ø·
                     local wl = require("client.slua.logic.wardrobe.logic_wardrobe_new")
                     local lav = require("client.slua.logic.wardrobe.logic_wardrobe_avatar")
                     local origAddToWearInfo = lav.AddToWearInfo
@@ -4837,7 +5219,7 @@ local function _persistModOutfit(resID, insID)
                     end)
                     lav.AddToWearInfo = origAddToWearInfo
                 elseif slot == "glider" then
-                    -- استدعاء on_puton_rsp مع تخطي AddToWearInfo للجلايدر فقط
+                    -- Ø§Ø³ØªØ¯Ø¹Ø§Ø¡ on_puton_rsp Ù…Ø¹ ØªØ®Ø·ÙŠ AddToWearInfo Ù„Ù„Ø¬Ù„Ø§ÙŠØ¯Ø± ÙÙ‚Ø·
                     local wl = require("client.slua.logic.wardrobe.logic_wardrobe_new")
                     local lav = require("client.slua.logic.wardrobe.logic_wardrobe_avatar")
                     local origAddToWearInfo = lav.AddToWearInfo
@@ -4858,12 +5240,12 @@ local function _persistModOutfit(resID, insID)
                 if oldResID and oldResID > 0 and oldResID ~= resID then
                     softRemoveEquipVisual(oldResID, slot)
                 end
-                -- البراشوت والجلايدر: لا يُطبقان مرئياً في اللوبي، يُخزنان للجيم فقط
+                -- Ø§Ù„Ø¨Ø±Ø§Ø´ÙˆØª ÙˆØ§Ù„Ø¬Ù„Ø§ÙŠØ¯Ø±: Ù„Ø§ ÙŠÙØ·Ø¨Ù‚Ø§Ù† Ù…Ø±Ø¦ÙŠØ§Ù‹ ÙÙŠ Ø§Ù„Ù„ÙˆØ¨ÙŠØŒ ÙŠÙØ®Ø²Ù†Ø§Ù† Ù„Ù„Ø¬ÙŠÙ… ÙÙ‚Ø·
                 if slot ~= "parachute" and slot ~= "glider" then
                     applyEquipVisual(resID, insID, slot)
                 end
                 invalidateSocialWearCache()
-                log("لبس معدات", slot, resID)
+                log("Ù„Ø¨Ø³ Ù…Ø¹Ø¯Ø§Øª", slot, resID)
             end)
             _S.equipSkinApplying = false
         end
@@ -4944,7 +5326,7 @@ local function _persistModOutfit(resID, insID)
                         syncFashionBagRolewear()
                     end)
                 end)
-                log("لبس", kind, resID)
+                log("Ù„Ø¨Ø³", kind, resID)
             end
 
             if switchingFromSuit then
@@ -5091,7 +5473,7 @@ local function _persistModOutfit(resID, insID)
             if EventSystem and EVENTTYPE_WARDROBE and EVENTID_WARDROBE_UPDATE_GUN_LIST then
                 EventSystem:postEvent(EVENTTYPE_WARDROBE, EVENTID_WARDROBE_UPDATE_GUN_LIST, weaponID)
             end
-            log("سكن سلاح", weaponID, resID, insID)
+            log("Ø³ÙƒÙ† Ø³Ù„Ø§Ø­", weaponID, resID, insID)
             return true
         end
 
@@ -5174,7 +5556,7 @@ local function _persistModOutfit(resID, insID)
                         .. " ins=" .. tostring(insID))
                 end
             end)
-            log("ثيم لوبي", resID, insID)
+            log("Ø«ÙŠÙ… Ù„ÙˆØ¨ÙŠ", resID, insID)
         end
 
         -- Intercepts the game's own ProcPutOnHallTheme (V2 hookHallTheme):
@@ -5264,7 +5646,7 @@ local function _persistModOutfit(resID, insID)
             end)
         end
 
-        -- ========== لوبي سوشيال ==========
+        -- ========== Ù„ÙˆØ¨ÙŠ Ø³ÙˆØ´ÙŠØ§Ù„ ==========
         local SOCIAL = _G.AddOutfitSocialState or {}
         _G.AddOutfitSocialState = SOCIAL
         SOCIAL.debGen = SOCIAL.debGen or 0
@@ -5551,7 +5933,7 @@ local function _persistModOutfit(resID, insID)
             mergeInjectedEquipIntoWearData(wearData)
         end
 
-        -- تعديل: منع إعادة التطبيق المتكرر في اللوبي
+        -- ØªØ¹Ø¯ÙŠÙ„: Ù…Ù†Ø¹ Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ø§Ù„Ù…ØªÙƒØ±Ø± ÙÙŠ Ø§Ù„Ù„ÙˆØ¨ÙŠ
         local function reapplyAccessoryIns(insID)
             insID = tonumber(insID)
             local resID = R.insToRes[insID]
@@ -5627,7 +6009,7 @@ local function _persistModOutfit(resID, insID)
         local function publishLobbyWeaponSkinList()
             local ok, fbd = pcall(require, "client.slua.logic.wardrobe.fashionbag.fashionbag_data")
             if not ok or not fbd or not fbd.GetCurrentFashionBag then return 0 end
-            local bag = fbd:GetCurrentFashionBag()
+            local bag = fbd.GetCurrentFashionBag()
             if not bag then return 0 end
             if not bag.weapon_skin_list then bag.weapon_skin_list = { _isLeaf = true } end
             local cch = cache()
@@ -5667,7 +6049,7 @@ local function _persistModOutfit(resID, insID)
             _suppressLobbyWeaponRec = true
 
             -- Step 1: Re-inject all saved items into the wardrobe depot so R is populated.
-            -- On fresh login / game reopen R.resToIns and R.insToRes are empty — every
+            -- On fresh login / game reopen R.resToIns and R.insToRes are empty â€” every
             -- isInjectedIns/isInjectedRes check below fails unless we re-register first.
             local injOk = injectAllSources()
             flog("OUTFIT", "injectAllSources result=" .. tostring(injOk) .. " R.resToIns[savedRes] after=" .. tostring(_G._savedOutfitRes and R.resToIns[_G._savedOutfitRes]))
@@ -5695,7 +6077,7 @@ local function _persistModOutfit(resID, insID)
             restorePersistedHallTheme()
             syncMatchConfigFromCache()
 
-            -- Always snapshot current lobby wear (may be empty on fresh login —
+            -- Always snapshot current lobby wear (may be empty on fresh login â€”
             -- that's fine, the saved values below will fill the cache).
             snapshotLobbyWear()
             local cch = cache()
@@ -5902,7 +6284,7 @@ local function _persistModOutfit(resID, insID)
                 if published > 0 then
                     pcall(function() refreshWardrobe() end)
                 end
-                log("إعادة تطبيق لوبي (مرة واحدة)")
+                log("Ø¥Ø¹Ø§Ø¯Ø© ØªØ·Ø¨ÙŠÙ‚ Ù„ÙˆØ¨ÙŠ (Ù…Ø±Ø© ÙˆØ§Ø­Ø¯Ø©)")
             end)
 
             pcall(function()
@@ -5999,7 +6381,7 @@ local function _persistModOutfit(resID, insID)
                 if EventSystem and EventSystem.registEvent and EVENTTYPE_LOBBY and EVENTID_SWITCHTO_PAGE_END then
                     EventSystem:registEvent(EVENTTYPE_LOBBY, EVENTID_SWITCHTO_PAGE_END, function(_, _, _, toPage)
                         if ENUM_LobbyPageType and toPage == ENUM_LobbyPageType.Mid then
-                            socialDebounce(0.5, reapplyLobbyEquipped) -- زمن أطول لتجنب التكرار
+                            socialDebounce(0.5, reapplyLobbyEquipped) -- Ø²Ù…Ù† Ø£Ø·ÙˆÙ„ Ù„ØªØ¬Ù†Ø¨ Ø§Ù„ØªÙƒØ±Ø§Ø±
                         end
                     end)
                 end
@@ -6050,7 +6432,7 @@ local function _persistModOutfit(resID, insID)
             return _gcbeTemplate
         end
 
-        -- ========== هوكات اللوبي ==========
+        -- ========== Ù‡ÙˆÙƒØ§Øª Ø§Ù„Ù„ÙˆØ¨ÙŠ ==========
         local function hookCDataTableCache()
             pcall(function()
                 if not CDataTable or CDataTable._lava_cached then return end
@@ -6058,15 +6440,7 @@ local function _persistModOutfit(resID, insID)
                 local origGetTableData = CDataTable.GetTableData
                 CDataTable.GetTableData = function(tableName, resID, ...)
                     if tableName == "Item" then
-                        resID = tonumber(resID)
-                        if resID and _C.cfg[resID] ~= nil then
-                            return _C.cfg[resID]
-                        end
-                        local result = origGetTableData(tableName, resID, ...)
-                        if resID then
-                            _C.cfg[resID] = result
-                        end
-                        return result
+                        return origGetTableData(tableName, resID, ...)
                     end
                     if tableName == "GoldClothBattleEffect" then
                         local numId = tonumber(resID)
@@ -6827,8 +7201,8 @@ local function _persistModOutfit(resID, insID)
                         local wd = require("client.slua.logic.wardrobe.wardrobe_data")
                         if wd:GetHallDepotItemDataByInsID(insID) then
                             flog("PUTON", "generic-accessory resID=" .. tostring(resID))
-                            -- إكسسوار (ماسك/نظارة/طاقية): اخلع القديم بنفس النوع أولاً
-                            -- كي لا تظهر أكثر من علامة صح على عناصر نفس الخانة
+                            -- Ø¥ÙƒØ³Ø³ÙˆØ§Ø± (Ù…Ø§Ø³Ùƒ/Ù†Ø¸Ø§Ø±Ø©/Ø·Ø§Ù‚ÙŠØ©): Ø§Ø®Ù„Ø¹ Ø§Ù„Ù‚Ø¯ÙŠÙ… Ø¨Ù†ÙØ³ Ø§Ù„Ù†ÙˆØ¹ Ø£ÙˆÙ„Ø§Ù‹
+                            -- ÙƒÙŠ Ù„Ø§ ØªØ¸Ù‡Ø± Ø£ÙƒØ«Ø± Ù…Ù† Ø¹Ù„Ø§Ù…Ø© ØµØ­ Ø¹Ù„Ù‰ Ø¹Ù†Ø§ØµØ± Ù†ÙØ³ Ø§Ù„Ø®Ø§Ù†Ø©
                             local itemSt = st or subType(cfg(resID))
                             local oldIns, oldRes
                             if itemSt then
@@ -8019,7 +8393,7 @@ local function _persistModOutfit(resID, insID)
             end)
         end
 
-        -- ========== ماتش ==========
+        -- ========== Ù…Ø§ØªØ´ ==========
         local function isInLobby()
             local ok, r = pcall(function()
                 return GameStatus and GameStatus.IsInLobbyOrMainCity and GameStatus.IsInLobbyOrMainCity() == true
@@ -8081,6 +8455,12 @@ local function _persistModOutfit(resID, insID)
         end
 
         local function notify(msg)
+            if not DEBUG or isInMatchOrGame() then return end
+            msg = "[AddOutfit] " .. tostring(msg)
+            log(msg:gsub("^%[AddOutfit%] ", ""))
+            pcall(function()
+                if ShowNotice then ShowNotice(msg, false, 10) end
+            end)
         end
 
         local function getDesiredOutfit()
@@ -8486,6 +8866,47 @@ local function _persistModOutfit(resID, insID)
             return formed
         end
 
+        _S.unlockXSuitFeatures = function(ac, suitID)
+            if not ac or not slua.isValid(ac) then return end
+            suitID = tonumber(suitID) or 0
+            if suitID <= 0 then return end
+            pcall(function()
+                local XU = require("GameLua.Activity.Commercialize.GamePlay.XSuit.XSuitUtil")
+                if not XU or not XU.GetPeriodByItemId then return end
+                local period = XU:GetPeriodByItemId(suitID)
+                if period and period > 0 then
+                    local branch = (XU.GetBranchIdByItemId and XU:GetBranchIdByItemId(suitID)) or 0
+                    ac.XSuitUnlockFeatureMap = ac.XSuitUnlockFeatureMap or {}
+                    ac.XSuitUnlockFeatureMap[period] = ac.XSuitUnlockFeatureMap[period] or {}
+                    ac.XSuitUnlockFeatureMap[period][branch] = ac.XSuitUnlockFeatureMap[period][branch] or {}
+                    for lv = 1, 7 do
+                        ac.XSuitUnlockFeatureMap[period][branch][lv] = ac.XSuitUnlockFeatureMap[period][branch][lv] or {}
+                        for idx = 0, 5 do
+                            ac.XSuitUnlockFeatureMap[period][branch][lv][idx] = { state = 1 }
+                        end
+                    end
+                    ac.XSuitFeatureFlagMap = ac.XSuitFeatureFlagMap or {}
+                    ac.XSuitFeatureFlagMap[period] = ac.XSuitFeatureFlagMap[period] or {}
+                    ac.XSuitFeatureFlagMap[period][branch] = ac.XSuitFeatureFlagMap[period][branch] or {}
+                    for lv = 1, 7 do
+                        ac.XSuitFeatureFlagMap[period][branch][lv] = ac.XSuitFeatureFlagMap[period][branch][lv] or {}
+                        for idx = 0, 5 do
+                            ac.XSuitFeatureFlagMap[period][branch][lv][idx] = { flag_state = 1 }
+                        end
+                    end
+                    local EAvatarSlotType = import("EAvatarSlotType")
+                    local slot = EAvatarSlotType and EAvatarSlotType.EAvatarSlotType_ClothesEquipemtSlot or 5
+                    local handle = ac.GetLoadedHandle and ac:GetLoadedHandle(slot)
+                    if handle and ac.ReFreshAnimListOverride then
+                        ac:ReFreshAnimListOverride(handle)
+                    end
+                    if EventSystem and EVENTTYPE_PLAYEREVENT_AVATAR and EVENTID_PLAYEREVENT_AVATAR_XSUIT_FEATURE_CHANGED then
+                        EventSystem:postEvent(EVENTTYPE_PLAYEREVENT_AVATAR, EVENTID_PLAYEREVENT_AVATAR_XSUIT_FEATURE_CHANGED, ac.Object)
+                    end
+                end
+            end)
+        end
+
         local function matchApplyOutfit(char)
             if inHeroForm(char) then return false end
             -- Desired-state source.
@@ -8616,7 +9037,7 @@ local function _persistModOutfit(resID, insID)
                     -- so a server revert costs one rebuild, not one per 0.5s
                     -- tick. Change-detection still means a settled suit is
                     -- never touched at all.
-                    if doAcc and eq and eq.ItemId ~= 0 then
+                    if doAcc and eq then
                         local target = 0
                         if eq.SlotID == 5 and outfitRes and outfitRes ~= 0 then
                             target = outfitRes
@@ -8663,33 +9084,39 @@ local function _persistModOutfit(resID, insID)
                 -- (spawn-naked slots have no entry to patch; adopted from
                 -- 1.lua forceApplySlot). Throttled with the acc cadence.
                 if doAcc then
-for slotID, resID in pairs(accTargets) do
-                    local found = false
-                    for i = 0, applyData:Num() - 1 do
-                        local e2 = applyData:Get(i)
-                        if e2 and e2.SlotID == slotID then found = true break end
+                    local allWanted = {}
+                    for slotID, resID in pairs(accTargets) do allWanted[slotID] = resID end
+                    if outfitRes and outfitRes ~= 0 then allWanted[5] = outfitRes end
+                    for slotID, resID in pairs(allWanted) do
+                        local found = false
+                        for i = 0, applyData:Num() - 1 do
+                            local e2 = applyData:Get(i)
+                            if e2 and e2.SlotID == slotID then found = true break end
+                        end
+                        if not found then
+                            pcall(function()
+                                local ESyncOperation = import("ESyncOperation")
+                                if _G.download_item then _G.download_item(resID) end
+                                local entry = import("AvatarSyncData")()
+                                entry.SlotID = slotID
+                                entry.ItemId = resID
+                                entry.ItemID = resID
+                                entry.FakeItemID = resID
+                                if ESyncOperation then entry.OperationType = ESyncOperation.PutOn end
+                                applyData:Add(entry)
+                                ref = true
+                                applied = true
+                                didWrite = true
+                                flog("MATCH", "sync-add slot=" .. tostring(slotID) .. " resID=" .. tostring(resID))
+                            end)
+                        end
                     end
-                    if not found then
-                        pcall(function()
-                            local ESyncOperation = import("ESyncOperation")
-                            if _G.download_item then _G.download_item(resID) end
-                            local entry = import("AvatarSyncData")()
-                            entry.SlotID = slotID
-                            entry.ItemId = resID
-                            entry.ItemID = resID
-                            entry.FakeItemID = resID
-                            if ESyncOperation then entry.OperationType = ESyncOperation.PutOn end
-                            applyData:Add(entry)
-                            ref = true
-                            applied = true
-                            didWrite = true
-                            flog("MATCH", "sync-add slot=" .. tostring(slotID) .. " resID=" .. tostring(resID))
-                        end)
-                    end
-                end
                 end
                 if ref and ac.OnRep_BodySlotStateChanged then
                     ac:OnRep_BodySlotStateChanged()
+                end
+                if outfitRes and outfitRes ~= 0 then
+                    pcall(_S.unlockXSuitFeatures, ac, outfitRes)
                 end
             end)
 
@@ -9183,7 +9610,7 @@ for slotID, resID in pairs(accTargets) do
             local char = getLocalChar()
             local eq = pc.InitialEquipmentAvatar or {}
 
-            -- طبّق سكن الشنطة فقط لو اللاعب لابس شنطة فعلاً
+            -- Ø·Ø¨Ù‘Ù‚ Ø³ÙƒÙ† Ø§Ù„Ø´Ù†Ø·Ø© ÙÙ‚Ø· Ù„Ùˆ Ø§Ù„Ù„Ø§Ø¹Ø¨ Ù„Ø§Ø¨Ø³ Ø´Ù†Ø·Ø© ÙØ¹Ù„Ø§Ù‹
             if cch.equip.bag and cch.equip.bag > 0 and isWearingEquip(char, "bag") then
                 local catalogBag = normalizeEquipCatalogRes(cch.equip.bag)
                 local bagLists = buildEquipSkinLists(catalogBag)
@@ -9200,7 +9627,7 @@ for slotID, resID in pairs(accTargets) do
                 eq.BagAvatar = 0
                 eq.BagAvatarList = nil
             end
-            -- طبّق سكن الخوذة فقط لو اللاعب لابس خوذة فعلاً
+            -- Ø·Ø¨Ù‘Ù‚ Ø³ÙƒÙ† Ø§Ù„Ø®ÙˆØ°Ø© ÙÙ‚Ø· Ù„Ùˆ Ø§Ù„Ù„Ø§Ø¹Ø¨ Ù„Ø§Ø¨Ø³ Ø®ÙˆØ°Ø© ÙØ¹Ù„Ø§Ù‹
             if cch.equip.helmet and cch.equip.helmet > 0 and isWearingEquip(char, "helmet") then
                 local catalogHelm = normalizeEquipCatalogRes(cch.equip.helmet)
                 local helmLists = buildEquipSkinLists(catalogHelm)
@@ -9257,7 +9684,7 @@ for slotID, resID in pairs(accTargets) do
                     end
                 end
             end)
-            notify("معدات: خوذة=" .. tostring(eq.HelmetAvatar) .. " شنطة=" .. tostring(eq.BagAvatar))
+            notify("Ù…Ø¹Ø¯Ø§Øª: Ø®ÙˆØ°Ø©=" .. tostring(eq.HelmetAvatar) .. " Ø´Ù†Ø·Ø©=" .. tostring(eq.BagAvatar))
             return true
         end
 
@@ -9357,7 +9784,7 @@ for slotID, resID in pairs(accTargets) do
                         return origResult
                     end
 
-                    -- fallback مع تحقق isWearingEquip
+                    -- fallback Ù…Ø¹ ØªØ­Ù‚Ù‚ isWearingEquip
                     local isHelmetQuery = GAME_HELMET_LEVEL[InItemID] ~= nil or (InItemID >= 502001 and InItemID <= 502999)
                     local isBagQuery = GAME_BAG_LEVEL[InItemID] ~= nil or (InItemID >= 501001 and InItemID <= 501999)
                     local char = getLocalChar()
@@ -9496,7 +9923,7 @@ for slotID, resID in pairs(accTargets) do
             return ok
         end
 
-            -- أضف الدالة دي قبل matchApplyEquipSkins
+            -- Ø£Ø¶Ù Ø§Ù„Ø¯Ø§Ù„Ø© Ø¯ÙŠ Ù‚Ø¨Ù„ matchApplyEquipSkins
         local function getCharEquipLevel(char, slotID)
             local found = nil
             pcall(function()
@@ -9520,11 +9947,11 @@ for slotID, resID in pairs(accTargets) do
             local slotID = (slot == "helmet") and 9 or (slot == "bag") and 8 or (slot == "parachute") and 11 or (slot == "glider") and 15 or nil
             if not slotID then return false end
 
-            -- 1) تحقق من SlotSyncData بنفس طريقة pairs الشغالة
+            -- 1) ØªØ­Ù‚Ù‚ Ù…Ù† SlotSyncData Ø¨Ù†ÙØ³ Ø·Ø±ÙŠÙ‚Ø© pairs Ø§Ù„Ø´ØºØ§Ù„Ø©
             local itemID = getCharEquipLevel(char, slotID)
             if itemID and itemID > 0 then return true end
 
-            -- 2) تحقق من PlayerState EquipmentAvatarData
+            -- 2) ØªØ­Ù‚Ù‚ Ù…Ù† PlayerState EquipmentAvatarData
             local wearing = false
             pcall(function()
                 local pc = getPlayerController()
@@ -9664,22 +10091,6 @@ for slotID, resID in pairs(accTargets) do
         -- re-attempted while airborne and still mismatched, at most every 2s.
         AIR.lastAirAttempt = AIR.lastAirAttempt or { para = 0, glider = 0 }
         AIR.lastAirDl = AIR.lastAirDl or {}
-
-        -- Per-match reset. The game rebuilds DataMgr/NetAvatarData from server
-        -- data when a new match starts, so the "already synced this key" memo
-        -- (AIR.key) and the per-res retry counters are all stale afterwards.
-        -- Without this the second match keeps the memo, syncDataMgr returns
-        -- early, DataMgr keeps the stock parachute/glider and nothing in the
-        -- air path ever rewrites it -- the canopy and aircraft come out default.
-        AIR.resetMatch = function()
-            AIR.key = nil
-            AIR.lastSync = 0
-            AIR.lastAirLogKey = nil
-            AIR.lastAirAttempt = { para = 0, glider = 0 }
-            AIR.lastAirDl = {}
-            AIR.groundAirAttempts = {}
-            AIR.diagDone = {}
-        end
 
         -- On-device file log for the airborne path (CHETAN_AIR.log next to
         -- the save files). flog() is a memory-only ring buffer, so without
@@ -9951,7 +10362,7 @@ for slotID, resID in pairs(accTargets) do
                     local helmLevel = resolveWornEquipLevel(char, 9, true)
                     if helmLevel and applyMatchEquipSkinAtLevel(comp, catalogHelm, helmLevel) then
                         ok = true
-                        notify("خوذة ماتش OK " .. mapEquipSkinRes(catalogHelm, helmLevel))
+                        notify("Ø®ÙˆØ°Ø© Ù…Ø§ØªØ´ OK " .. mapEquipSkinRes(catalogHelm, helmLevel))
                     end
                 end
             end
@@ -9962,7 +10373,7 @@ for slotID, resID in pairs(accTargets) do
                     local bagLevel = resolveWornEquipLevel(char, 8, false)
                     if bagLevel and applyMatchEquipSkinAtLevel(comp, catalogBag, bagLevel) then
                         ok = true
-                        notify("شنطة ماتش OK " .. mapEquipSkinRes(catalogBag, bagLevel))
+                        notify("Ø´Ù†Ø·Ø© Ù…Ø§ØªØ´ OK " .. mapEquipSkinRes(catalogBag, bagLevel))
                     end
                 end
             end
@@ -9976,10 +10387,10 @@ for slotID, resID in pairs(accTargets) do
                 if airChanged then changed = true end
             end
 
-            -- حدّث PlayerController بعد تطبيق السكنات (مش قبل، عشان نتجنب circular dependency)
+            -- Ø­Ø¯Ù‘Ø« PlayerController Ø¨Ø¹Ø¯ ØªØ·Ø¨ÙŠÙ‚ Ø§Ù„Ø³ÙƒÙ†Ø§Øª (Ù…Ø´ Ù‚Ø¨Ù„ØŒ Ø¹Ø´Ø§Ù† Ù†ØªØ¬Ù†Ø¨ circular dependency)
             applyMatchEquipAvatarToController()
 
-            -- باقي كود SlotSyncData بدون تغيير...
+            -- Ø¨Ø§Ù‚ÙŠ ÙƒÙˆØ¯ SlotSyncData Ø¨Ø¯ÙˆÙ† ØªØºÙŠÙŠØ±...
             pcall(function()
                 local NetAvatarData = slua.IndexReference(comp, "NetAvatarData")
                 if not NetAvatarData then return end
@@ -13902,7 +14313,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
                 _lastWeaponSkinSig = sig
                 _lastWeaponSkinPC = pc
                 _lastWeaponSkinPush = now
-                notify("سلاح PC: " .. sig)
+                notify("Ø³Ù„Ø§Ø­ PC: " .. sig)
             end
             return ok
         end
@@ -14242,6 +14653,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
 
             return _attachMaps
         end
+        _G.buildAttachmentMaps = buildAttachmentMaps
 
         local function applyAttachmentSkins(AttachmentArray, selectedSkinID)
             if not AttachmentArray or not slua.isValid(AttachmentArray) then return false end
@@ -14364,7 +14776,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
             return changed
         end
 
-        -- ══════════════════════════════════════════════════════════════════
+        -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- WEAPON INSPECT (weapon show) SUPPORT
 -- QuickExpressionUtils.TryPlayWeaponShowEmote -> skill 1014433,
 -- QuickExpression:TryDoCheckGun -> skill 1014405 (or a custom emote when
@@ -14379,7 +14791,7 @@ local msid = grenadeFXOurSkinIDMoved(comp)
 --     WeaponAvatarBattleEffect.WeaponEmoteID is in
 --     CommerFeature.WeaponShowEmoteList, so most skins never expose the
 --     gun icon at all. We inject that id.
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 _G.ChetanWeaponShowBusy = _G.ChetanWeaponShowBusy or function()
     local busy = false
     pcall(function()
@@ -14485,29 +14897,90 @@ _G.ChetanWeaponShowResync = _G.ChetanWeaponShowResync or function()
     end)
 end
 
-local function apply_attachment(CurWeapon, avatarid)
-    if not slua.isValid(CurWeapon) then return end
-    -- Never touch the weapon avatar while the inspect animation plays.
-    if _G.ChetanWeaponShowBusy and _G.ChetanWeaponShowBusy() then return end
-    avatarid = tonumber(avatarid) or 0
-    if avatarid <= 0 then return end
-            local array = CurWeapon.synData
-            if not array then flog("ATTACH","no synData avatarid="..avatarid) return end
+        -- Anti-flicker guard for attachment skins. After a network resync or
+        -- recall the game can keep snapping attachment slots back to their
+        -- base IDs; rewriting them AND rebuilding the avatar on every 0.5s
+        -- tick replays the scope open/close animation forever. Back off when
+        -- the same weapon keeps needing changes.
+        local _attachGuard = {}
+
+        local function apply_attachment(CurWeapon, avatarid, force)
+            if not slua.isValid(CurWeapon) then return end
+            -- Never touch the weapon avatar while the inspect animation plays.
+            if _G.ChetanWeaponShowBusy and _G.ChetanWeaponShowBusy() then return end
+            avatarid = tonumber(avatarid) or 0
+            if avatarid <= 0 then return end
+            local nowG = 0
+            pcall(function() nowG = os.clock() end)
+            local g = _attachGuard[CurWeapon]
+            if g and g.avatar ~= avatarid then g = nil end
+            if not g then
+                g = { avatar = avatarid, burst = 0, last = 0, pauseUntil = 0, rounds = 0,
+                      refreshUntil = 0, nextRefresh = 0, offSeen = false }
+                _attachGuard[CurWeapon] = g
+            end
+            if g.pauseUntil > nowG then return end
+
+            -- A rebuild is only needed when something actually changed, but the
+            -- master skin material can need several rebuilds while the
+            -- download_item asset finishes loading. So: refresh every 0.5s for
+            -- ~6s after a real change, then go quiet. Refreshing forever is what
+            -- replayed the scope open/close animation.
+            local function scheduleRefresh()
+                local untilT = nowG + 6.0
+                if untilT > g.refreshUntil then g.refreshUntil = untilT end
+                if g.nextRefresh <= 0 or g.nextRefresh > nowG then g.nextRefresh = nowG end
+            end
+            local function pumpRefresh()
+                if g.refreshUntil > nowG and g.nextRefresh <= nowG then
+                    pcall(function() CurWeapon:DelayHandleAvatarMeshChanged() end)
+                    g.nextRefresh = nowG + 0.5
+                end
+            end
+
             -- ATTACHMENT SKINS off: still drive the mesh refresh, just do not
-            -- touch the attachment slots. The periodic DelayHandleAvatarMeshChanged
-            -- is what makes the MASTER gun skin render, so skipping it entirely
-            -- took the full gun skin down with the attachments.
+            -- touch the attachment slots. The refresh is what makes the MASTER
+            -- gun skin render, so skipping it entirely took the full gun skin
+            -- down with the attachments.
             if not featOn("attachments") then
-                pcall(function() CurWeapon:DelayHandleAvatarMeshChanged() end)
+                if force or not g.offSeen then
+                    g.offSeen = true
+                    scheduleRefresh()
+                end
+                pumpRefresh()
                 return
             end
+
+            local array = CurWeapon.synData
+            if not array then flog("ATTACH","no synData avatarid="..avatarid) return end
             flog("ATTACH","apply_attachment avatarid="..avatarid)
-            local ok, err = pcall(applyAttachmentSkins, array, avatarid)
+            local ok, changed = pcall(applyAttachmentSkins, array, avatarid)
             if not ok then
-                flog("ATTACH","  ERR: "..tostring(err))
-            elseif ok == true then
-                pcall(function() CurWeapon:DelayHandleAvatarMeshChanged() end)
+                flog("ATTACH","  ERR: "..tostring(changed))
+                return
             end
+            if changed or force then
+                if changed then
+                    -- Server keeps snapping the slots back (resync/recall):
+                    -- stop fighting it instead of replaying the scope anim.
+                    if (nowG - g.last) <= 1.5 then g.burst = g.burst + 1 else g.burst = 1 end
+                    g.last = nowG
+                    if g.burst >= 5 then
+                        g.burst = 0
+                        g.rounds = g.rounds + 1
+                        local pause = math.min(30 * (2 ^ (g.rounds - 1)), 300)
+                        g.pauseUntil = nowG + pause
+                        g.refreshUntil = 0
+                        g.nextRefresh = 0
+                        flog("ATTACH","  revert loop detected, backing off "..tostring(math.floor(pause)).."s")
+                        return
+                    end
+                else
+                    g.burst = 0
+                end
+                scheduleRefresh()
+            end
+            pumpRefresh()
             -- No flog_flush() here on purpose: this now runs on the 0.5s tick
             -- for the held weapon, and a blocking io.open/write/close per call
             -- is exactly the stall we are trying to remove. The shared buffer
@@ -14590,7 +15063,11 @@ local function apply_attachment(CurWeapon, avatarid)
         -- wpn -> timestamp of the last full SetWeaponAvatarID rebuild. Used as a
         -- slow self-heal backstop; see applyWeaponSkinDirect.
         local _weaponAvatarReassert = {}
-        local function applyWeaponSkinDirect(wpn, forceRebuild)
+        -- wpn -> { avatar, count, first, pauseUntil }: detects the server
+        -- snapping slot 7 back to the base avatar (resync/recall) and stops
+        -- rewriting it so the scope animation does not replay in a loop.
+        local _skinWriteGuard = {}
+        local function applyWeaponSkinDirect(wpn)
             if not slua.isValid(wpn) then return false end
             local weaponID = 0
             pcall(function()
@@ -14614,6 +15091,21 @@ local function apply_attachment(CurWeapon, avatarid)
             -- inspect animation off. Suspend while skill 1014433/1014405 runs.
             if _G.ChetanWeaponShowBusy and _G.ChetanWeaponShowBusy() then return false end
 
+            -- Skin-write backoff (see _skinWriteGuard).
+            local _nowS = 0
+            pcall(function() _nowS = os.clock() end)
+            local sg = _skinWriteGuard[wpn]
+            if sg and sg.avatar ~= targetID then sg = nil end
+            if not sg then
+                sg = { avatar = targetID, count = 0, first = 0, pauseUntil = 0 }
+                _skinWriteGuard[wpn] = sg
+            end
+            if sg.pauseUntil > _nowS then
+                -- Still keep attachment skins alive, just leave the avatar alone.
+                pcall(apply_attachment, wpn, targetID, false)
+                return true
+            end
+
             -- Ensure skin asset is downloaded
             if not _G.SkinLoadedCache[targetID] then
                 local ok2, e2 = pcall(_G.download_item, targetID)
@@ -14624,6 +15116,7 @@ local function apply_attachment(CurWeapon, avatarid)
             -- Write skin to slot 7
             local slot7ok = false
             local curAvatarID = nil
+            local wroteSlot7 = false
             pcall(function()
                 local sd = wpn.synData
                 if not sd then flog("GUN", "  synData nil") return end
@@ -14637,10 +15130,23 @@ local function apply_attachment(CurWeapon, avatarid)
                 if curAvatarID ~= targetID then
                     ref.TypeSpecificID = targetID
                     sd:Set(7, data)
+                    wroteSlot7 = true
                     if wpn.OnWeaponSkinUpdate then wpn:OnWeaponSkinUpdate() end
                 end
                 slot7ok = true
             end)
+
+            if wroteSlot7 then
+                if (_nowS - sg.first) > 10.0 then sg.first = _nowS sg.count = 0 end
+                sg.count = sg.count + 1
+                if sg.count >= 6 then
+                    sg.count = 0
+                    sg.pauseUntil = _nowS + 60
+                    flog("GUN", "  slot7 keeps reverting, backing off 60s")
+                    pcall(apply_attachment, wpn, targetID, false)
+                    return true
+                end
+            end
 
             -- SetWeaponAvatarID rebuilds the entire weapon avatar and RESETS the
             -- attachment slots back to their defaults. Calling it on every pass
@@ -14665,14 +15171,22 @@ local function apply_attachment(CurWeapon, avatarid)
                 for k in pairs(_weaponAvatarReassert) do
                     if not slua.isValid(k) then _weaponAvatarReassert[k] = nil end
                 end
+                for k in pairs(_attachGuard) do
+                    if not slua.isValid(k) then _attachGuard[k] = nil end
+                end
+                for k in pairs(_skinWriteGuard) do
+                    if not slua.isValid(k) then _skinWriteGuard[k] = nil end
+                end
             end
             local _lastReassert = _weaponAvatarReassert[wpn] or 0
             local dueReassert = (_nowW - _lastReassert) >= 20.0
-            if curAvatarID ~= targetID or dueReassert or forceRebuild then
+            local didSetAvatar = false
+            if curAvatarID ~= targetID or dueReassert then
                 pcall(function()
                     if wpn.SetWeaponAvatarID then
                         wpn:SetWeaponAvatarID(targetID)
                         _weaponAvatarReassert[wpn] = _nowW
+                        didSetAvatar = true
                         flog("GUN", "  SetWeaponAvatarID(" .. targetID .. ") ok cur=" ..
                             tostring(curAvatarID) .. " reassert=" .. tostring(dueReassert))
                     else
@@ -14680,8 +15194,11 @@ local function apply_attachment(CurWeapon, avatarid)
                     end
                 end)
             end
-            -- Apply attachment skins every call
-            local aok, aerr = pcall(apply_attachment, wpn, targetID)
+            -- Force the mesh-refresh window whenever we actually rewrote the
+            -- avatar; otherwise the master skin can stay unrendered until an
+            -- unrelated attachment change triggers a rebuild.
+            local forceRefresh = wroteSlot7 or didSetAvatar or (curAvatarID ~= targetID)
+            local aok, aerr = pcall(apply_attachment, wpn, targetID, forceRefresh)
             if not aok then flog("GUN", "  apply_attachment err=" .. tostring(aerr)) end
             -- no flog_flush(): this runs per weapon across the whole inventory
             return true
@@ -14764,13 +15281,13 @@ local function apply_attachment(CurWeapon, avatarid)
             return out
         end
 
-        local function registerWeaponAvatarItems(char, desiredSkins)
+        local function registerWeaponAvatarItems(char)
             local pc = char.GetPlayerControllerSafety and char:GetPlayerControllerSafety()
             if not slua.isValid(pc) then return false end
             local BU = import("BackpackUtils")
             local AU = import("AvatarUtils")
             local addedCount = 0
-            for _, resID in ipairs(desiredSkins or getDesiredWeaponSkins()) do
+            for _, resID in ipairs(getDesiredWeaponSkins()) do
                 local doneDirect = false
                 pcall(function()
                     if pc.AddWeaponAvatarItem then
@@ -14784,34 +15301,11 @@ local function apply_attachment(CurWeapon, avatarid)
                         local skinBPID = BU.GetBPIDByResID(tonumber(resID))
                         local arr = slua.Array(UEnums.EPropertyClass.Int)
                         local parents = AU.GetWeaponAvatarParentIDList(skinBPID, arr, false)
-                        if parents and pc.WeaponAvatarItemList then
-                            local parentCount = 0
-                            pcall(function()
-                                if parents.Num then parentCount = parents:Num() end
-                            end)
-                            local linked = 0
-                            local canGet = false
-                            pcall(function() canGet = parents.Get ~= nil end)
-                            if parentCount > 0 and canGet then
-                                for parentIndex = 0, parentCount - 1 do
-                                    local parentID = nil
-                                    pcall(function() parentID = parents:Get(parentIndex) end)
-                                    if parentID ~= nil then
-                                        local added = pcall(function()
-                                            pc.WeaponAvatarItemList:Add(parentID, skinBPID)
-                                        end)
-                                        if added then linked = linked + 1 end
-                                    end
-                                end
-                            elseif type(parents) == "table" then
-                                for _, parentID in pairs(parents) do
-                                    local added = pcall(function()
-                                        pc.WeaponAvatarItemList:Add(parentID, skinBPID)
-                                    end)
-                                    if added then linked = linked + 1 end
-                                end
+                        if parents and parents.Num and parents:Num() > 0 and pc.WeaponAvatarItemList then
+                            for _, parentID in pairs(parents) do
+                                pc.WeaponAvatarItemList:Add(parentID, skinBPID)
                             end
-                            if linked > 0 then addedCount = addedCount + 1 end
+                            addedCount = addedCount + 1
                         end
                     end)
                 end
@@ -14819,7 +15313,7 @@ local function apply_attachment(CurWeapon, avatarid)
             if addedCount == 0 then return false end
             pcall(function() if pc.InitWeaponAvatarItems then pc:InitWeaponAvatarItems() end end)
             pcall(function() if pc.OnWeaponAvatarUpdate then pc:OnWeaponAvatarUpdate() end end)
-            notify("سجّلت " .. addedCount .. " سكن سلاح")
+            notify("Ø³Ø¬Ù‘Ù„Øª " .. addedCount .. " Ø³ÙƒÙ† Ø³Ù„Ø§Ø­")
             return true
         end
 
@@ -14845,46 +15339,9 @@ local function apply_attachment(CurWeapon, avatarid)
                 flog("GUN", "SkinIdMappings total=" .. mcount)
             end
             applyMatchWeaponSkinsToController()
-            local weaponItemsChanged = false
-            local regNow = 0
-            pcall(function() regNow = os.clock() end)
-            local checkReg = false
             if not _S.avatarItemsRegistered then
-                checkReg = _S.weaponRegAttemptAt == nil
-                    or (regNow - _S.weaponRegAttemptAt) >= 1.0
-            else
-                checkReg = (regNow - (_S.weaponRegCheckedAt or 0)) >= 2.0
+                _S.avatarItemsRegistered = registerWeaponAvatarItems(char)
             end
-            if checkReg then
-                _S.weaponRegCheckedAt = regNow
-                local regIds = getDesiredWeaponSkins()
-                table.sort(regIds)
-                local regSig = table.concat(regIds, ",")
-                if not _S.avatarItemsRegistered or _S.weaponRegSig ~= regSig then
-                    _S.weaponRegAttemptAt = regNow
-                    if registerWeaponAvatarItems(char, regIds) then
-                        _S.avatarItemsRegistered = true
-                        _S.weaponRegSig = regSig
-                        weaponItemsChanged = true
-                    end
-                end
-            end
-            -- A newly held weapon may retain its default mesh even when slot 7
-            -- already contains the selected skin ID; rebuild it once on pickup.
-            pcall(function()
-                local cw = char.GetCurrentWeapon and char:GetCurrentWeapon()
-                if not (cw and slua.isValid(cw)) then return end
-                local cwID = 0
-                pcall(function() cwID = tonumber(cw:GetWeaponID()) or 0 end)
-                if cwID > 0 and (weaponItemsChanged or cwID ~= _S._lastHeldWeaponID
-                    or not slua.isValid(_S._lastHeldWeaponObj)) then
-                    _S._lastHeldWeaponID = cwID
-                    _S._lastHeldWeaponObj = cw
-                    flog("GUN", "held weapon changed -> " .. tostring(cwID) .. ", force re-apply")
-                    applyWeaponSkinDirect(cw, true)
-                    pcall(fixHeldWeaponAttachmentSkin)
-                end
-            end)
             -- Apply to all 3 inventory slots (1.lua ForceSyncWeaponSkins style)
             return _G.equip_weapon_avatar(char)
         end
@@ -14988,21 +15445,18 @@ local function apply_attachment(CurWeapon, avatarid)
             return ok
         end
 
-        -- تعديل startMatchWatcher لاستخدام محاولات محدودة
+        -- ØªØ¹Ø¯ÙŠÙ„ startMatchWatcher Ù„Ø§Ø³ØªØ®Ø¯Ø§Ù… Ù…Ø­Ø§ÙˆÙ„Ø§Øª Ù…Ø­Ø¯ÙˆØ¯Ø©
         local function startMatchWatcher(char)
             -- Legacy stub: the 0.5s PC timer below now drives all in-match application.
             -- bootstrapMatch() already calls matchApplyAll() immediately on entry,
-            -- and the repeating timer handles subsequent ticks — no separate watcher needed.
+            -- and the repeating timer handles subsequent ticks â€” no separate watcher needed.
             _S.matchTimer = true  -- mark as "started" so bootstrapMatch guard works
         end
 
-        -- ========== حقن سكنات الأسلحة في واجهة الشنطة داخل الجيم ==========
-        -- بدل تعديل AdditionalData (اللي مش بيتعدل من Lua)، بنعمل hook على
-        -- GetWeaponAvatarRes اللي بترجع السكن للـ backpack UI
+        -- ========== Ø­Ù‚Ù† Ø³ÙƒÙ†Ø§Øª Ø§Ù„Ø£Ø³Ù„Ø­Ø© ÙÙŠ ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„Ø´Ù†Ø·Ø© Ø¯Ø§Ø®Ù„ Ø§Ù„Ø¬ÙŠÙ… ==========
+        -- Ø¨Ø¯Ù„ ØªØ¹Ø¯ÙŠÙ„ AdditionalData (Ø§Ù„Ù„ÙŠ Ù…Ø´ Ø¨ÙŠØªØ¹Ø¯Ù„ Ù…Ù† Lua)ØŒ Ø¨Ù†Ø¹Ù…Ù„ hook Ø¹Ù„Ù‰
+        -- GetWeaponAvatarRes Ø§Ù„Ù„ÙŠ Ø¨ØªØ±Ø¬Ø¹ Ø§Ù„Ø³ÙƒÙ† Ù„Ù„Ù€ backpack UI
         local _hookedGetWeaponAvatarRes = false
-
-        local function hookQualityWatermark()
-        end
 
         local function hookBackpackWeaponAvatarRes()
             if _hookedGetWeaponAvatarRes then return end
@@ -15051,15 +15505,18 @@ local function apply_attachment(CurWeapon, avatarid)
                         _bpAvatarResTicks[WeaponID] = nowTick
                         return origGetRes(WeaponID, AdditionalDataArray)
                     end
-                    log("[AddOutfit] hookBackpackWeaponAvatarRes: تم")
+                    log("[AddOutfit] hookBackpackWeaponAvatarRes: ØªÙ…")
                 end
             end)
         end
 
-        -- ========== تطبيق سكن السيارة داخل الجيم ==========
-        -- مكافئ Lua لكود C++ الذي يطبق سكن السيارة عند ركوب نوع السيارة المطابق
-        -- Menu skin lists are synchronized on demand, not during vehicle entry.
+        -- ========== ØªØ·Ø¨ÙŠÙ‚ Ø³ÙƒÙ† Ø§Ù„Ø³ÙŠØ§Ø±Ø© Ø¯Ø§Ø®Ù„ Ø§Ù„Ø¬ÙŠÙ… ==========
+        -- Ù…ÙƒØ§ÙØ¦ Lua Ù„ÙƒÙˆØ¯ C++ Ø§Ù„Ø°ÙŠ ÙŠØ·Ø¨Ù‚ Ø³ÙƒÙ† Ø§Ù„Ø³ÙŠØ§Ø±Ø© Ø¹Ù†Ø¯ Ø±ÙƒÙˆØ¨ Ù†ÙˆØ¹ Ø§Ù„Ø³ÙŠØ§Ø±Ø© Ø§Ù„Ù…Ø·Ø§Ø¨Ù‚
         local _lastVehicleSkinKey = ""
+        -- Timestamp + key of the last vehicle-list sync, so the rebuild only
+        -- runs when the vehicle/avatar changed or a 5s backstop expires.
+        local _lastVehSyncAt = 0
+        local _lastVehSyncKey = nil
 
         local function applyVehicleSkinInGame()
             local char = getLocalChar()
@@ -15068,6 +15525,8 @@ local function apply_attachment(CurWeapon, avatarid)
             local vehicle = char.GetCurrentVehicle and char:GetCurrentVehicle()
             if not vehicle or not slua.isValid(vehicle) then
                 _lastVehicleSkinKey = ""
+                _lastVehSyncAt = 0
+                _lastVehSyncKey = nil
                 return
             end
 
@@ -15079,21 +15538,35 @@ local function apply_attachment(CurWeapon, avatarid)
 
             local currentAvatarID = avatarComp.GetCurrentAvatarID and avatarComp.GetCurrentAvatarID and avatarComp:GetCurrentAvatarID()
 
-            -- تجنب إعادة التطبيق على نفس السيارة بنفس السكن
+            -- ØªØ¬Ù†Ø¨ Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ø¹Ù„Ù‰ Ù†ÙØ³ Ø§Ù„Ø³ÙŠØ§Ø±Ø© Ø¨Ù†ÙØ³ Ø§Ù„Ø³ÙƒÙ†
             local cacheKey = tostring(vehicle) .. "_" .. tostring(defaultAvatarID) .. "_" .. tostring(currentAvatarID)
             local vehicleChanged = (cacheKey ~= _lastVehicleSkinKey)
             if vehicleChanged then _lastVehicleSkinKey = cacheKey end
 
+            -- The list rebuild used to sit ABOVE this early-out, so it ran on
+            -- every 2s pass even when nothing about the vehicle had changed.
+            -- It now runs when the vehicle/avatar actually changed, plus a 5s
+            -- backstop so a skin selection change or a late injection is still
+            -- picked up while parked in the same vehicle.
+            local nowV = 0
+            pcall(function() nowV = os.clock() end)
+            if vehicleChanged or _lastVehSyncKey ~= cacheKey
+                or _lastVehSyncAt == nil or (nowV - _lastVehSyncAt) >= 5.0 then
+                _lastVehSyncAt = nowV
+                _lastVehSyncKey = cacheKey
+                pcall(syncVehicleAvatarSkinList)
+            end
+
             if not vehicleChanged then return end
 
-            -- الحصول على itemSubType للسيارة الحالية من جدول Item
+            -- Ø§Ù„Ø­ØµÙˆÙ„ Ø¹Ù„Ù‰ itemSubType Ù„Ù„Ø³ÙŠØ§Ø±Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ© Ù…Ù† Ø¬Ø¯ÙˆÙ„ Item
             local vehicleSubType = 0
             local defaultItemCfg = cfg(defaultAvatarID)
             if defaultItemCfg then
                 vehicleSubType = tonumber(defaultItemCfg.ItemSubType or defaultItemCfg.itemSubType) or 0
             end
 
-            -- جمع السكنات المطلوبة من VehicleSlotList
+            -- Ø¬Ù…Ø¹ Ø§Ù„Ø³ÙƒÙ†Ø§Øª Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø© Ù…Ù† VehicleSlotList
             local desiredSkins = {}
             local firstSkinResID = 0
             if vehicleSubType > 0 and DataMgr and DataMgr.VehicleSlotList then
@@ -15123,7 +15596,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 end
             end
 
-            -- Fallback: إضافة السكنات من vst_in_battle من PlayerState
+            -- Fallback: Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø³ÙƒÙ†Ø§Øª Ù…Ù† vst_in_battle Ù…Ù† PlayerState
             if vehicleSubType > 0 then
                 pcall(function()
                     local pc = getPlayerController()
@@ -15149,7 +15622,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 end)
             end
 
-            -- Fallback: مطابقة بناءً على بادئة الـ ID
+            -- Fallback: Ù…Ø·Ø§Ø¨Ù‚Ø© Ø¨Ù†Ø§Ø¡Ù‹ Ø¹Ù„Ù‰ Ø¨Ø§Ø¯Ø¦Ø© Ø§Ù„Ù€ ID
             if firstSkinResID == 0 and DataMgr and DataMgr.VehicleSlotList then
                 local defStr = tostring(defaultAvatarID)
                 for subType, insList in pairs(DataMgr.VehicleSlotList) do
@@ -15187,7 +15660,7 @@ local function apply_attachment(CurWeapon, avatarid)
                 end
             end
 
-            -- إذا السكن الحالي من السكنات المختارة في السلوتات، لا نفرض تغييره
+            -- Ø¥Ø°Ø§ Ø§Ù„Ø³ÙƒÙ† Ø§Ù„Ø­Ø§Ù„ÙŠ Ù…Ù† Ø§Ù„Ø³ÙƒÙ†Ø§Øª Ø§Ù„Ù…Ø®ØªØ§Ø±Ø© ÙÙŠ Ø§Ù„Ø³Ù„ÙˆØªØ§ØªØŒ Ù„Ø§ Ù†ÙØ±Ø¶ ØªØºÙŠÙŠØ±Ù‡
             -- Also honour any in-match skin the player manually selected via the
             -- panel -- without this the next tick immediately reverts to the first
             -- slot skin because the manually-chosen skin is not in desiredSkins.
@@ -15216,13 +15689,13 @@ local function apply_attachment(CurWeapon, avatarid)
             end
 
 
-            -- تطبيق السكن على السيارة
+            -- ØªØ·Ø¨ÙŠÙ‚ Ø§Ù„Ø³ÙƒÙ† Ø¹Ù„Ù‰ Ø§Ù„Ø³ÙŠØ§Ø±Ø©
             pcall(function()
                 local pc = getPlayerController()
                 if pc and avatarComp.SetVehicleNetAvatarData then
                     avatarComp:SetVehicleNetAvatarData(pc)
                 end
-                -- تعيين إفكت التبديل (مثل SwitchEffectId = 7303001 في C++)
+                -- ØªØ¹ÙŠÙŠÙ† Ø¥ÙÙƒØª Ø§Ù„ØªØ¨Ø¯ÙŠÙ„ (Ù…Ø«Ù„ SwitchEffectId = 7303001 ÙÙŠ C++)
                 if avatarComp.VehicleNetAvatarData then
                     avatarComp.VehicleNetAvatarData.SwitchEffectId = 7303001
                     avatarComp.VehicleNetAvatarData.UpdateFlag = 1
@@ -15232,13 +15705,14 @@ local function apply_attachment(CurWeapon, avatarid)
                 _G.CurrentEquipVehicleID = skinResID
             end)
 
-            -- تشغيل إضاءة LED تحت السيارة (Chassis Light) عند تطبيق السكن
+            -- ØªØ´ØºÙŠÙ„ Ø¥Ø¶Ø§Ø¡Ø© LED ØªØ­Øª Ø§Ù„Ø³ÙŠØ§Ø±Ø© (Chassis Light) Ø¹Ù†Ø¯ ØªØ·Ø¨ÙŠÙ‚ Ø§Ù„Ø³ÙƒÙ†
             pcall(applyVehicleChassisLight)
+            pcall(_G._chetan_applyVehicleHighTire)
 
             _lastVehicleSkinKey = cacheKey
         end
 
-        -- ========== إضاءة تحت السيارة (Chassis Light) في الجيم ==========
+        -- ========== Ø¥Ø¶Ø§Ø¡Ø© ØªØ­Øª Ø§Ù„Ø³ÙŠØ§Ø±Ø© (Chassis Light) ÙÙŠ Ø§Ù„Ø¬ÙŠÙ… ==========
         local _LAVA_CHASSIS_LIGHT_ID = 7302002
 
         local function isLocalPlayerVehicle(vehicle)
@@ -15327,6 +15801,121 @@ local function apply_attachment(CurWeapon, avatarid)
             if not isLocalPlayerVehicle(vehicle) then return end
             if not vehicleHasSkinApplied(vehicle) then return end
             forceVehicleChassisLight(vehicle)
+        end
+
+        _G._chetan_highTireCarMap = _G._chetan_highTireCarMap or {
+            [1961020] = true,
+            [1961021] = true,
+            [1961024] = true,
+            [1961025] = true,
+            [1961144] = true,
+            [1961145] = true,
+            [1903079] = true,
+            [1903080] = true,
+            [1908066] = true,
+            [1908067] = true,
+            [1903212] = true,
+            [1915018] = true,
+        }
+
+        _G._chetan_isHighTireCar = function(skinID)
+            if not skinID or skinID <= 0 then return false end
+            if _G._chetan_highTireCarMap[skinID] then return true end
+            local ok, cfg = pcall(function()
+                return CDataTable and CDataTable.GetTableData and CDataTable.GetTableData("CollectCarHighTire", skinID)
+            end)
+            if ok and cfg then return true end
+            return false
+        end
+
+        _G._chetan_forceVehicleHighTire = function(vehicle)
+            if not vehicle or not slua.isValid(vehicle) then return end
+            local skinID = getVehicleSkinID(vehicle)
+            if not _G._chetan_isHighTireCar(skinID) then return end
+
+            local param = (skinID == 1903212 or skinID == 1915018) and "HuxiTintInt" or "HubLight"
+
+            local avatarComp = vehicle.GetAvatarComponent and vehicle:GetAvatarComponent()
+            if not avatarComp or not slua.isValid(avatarComp) then
+                avatarComp = vehicle.VehicleAvatarComponent or vehicle.VehicleAvatarComponent_BP
+            end
+
+            if avatarComp and slua.isValid(avatarComp) then
+                pcall(function()
+                    if avatarComp.NetHighTireStruct then
+                        avatarComp.NetHighTireStruct.ItemID = skinID
+                        avatarComp.NetHighTireStruct.bEnableHighTire = true
+                    end
+                end)
+                if avatarComp.PreChangeHighTireLight then
+                    pcall(function() avatarComp:PreChangeHighTireLight(skinID, true) end)
+                end
+                if avatarComp.EnableHighTireLight then
+                    pcall(function() avatarComp:EnableHighTireLight(true, skinID) end)
+                end
+                if avatarComp.ItemBodyMesh and slua.isValid(avatarComp.ItemBodyMesh) then
+                    pcall(function()
+                        local mesh = avatarComp.ItemBodyMesh
+                        local idx = mesh:GetMaterialIndex("slot1")
+                        if idx and idx >= 0 then
+                            local mat = mesh:GetMaterial(idx)
+                            if mat then
+                                local dmat = mesh:CreateDynamicMaterialInstance(idx, mat)
+                                if dmat then
+                                    dmat:SetScalarParameterValue(param, 5)
+                                end
+                            end
+                        end
+                    end)
+                end
+            end
+
+            pcall(function()
+                local battleCls = import("VehicleAvatarComponentBattleBase")
+                if battleCls then
+                    local battleAv = vehicle.GetComponentByClass and vehicle:GetComponentByClass(battleCls)
+                    if battleAv and slua.isValid(battleAv) then
+                        if battleAv.NetHighTireStruct then
+                            battleAv.NetHighTireStruct.ItemID = skinID
+                            battleAv.NetHighTireStruct.bEnableHighTire = true
+                        end
+                        if battleAv.PreChangeHighTireLight then
+                            pcall(function() battleAv:PreChangeHighTireLight(skinID, true) end)
+                        end
+                        if battleAv.EnableHighTireLight then
+                            pcall(function() battleAv:EnableHighTireLight(true, skinID) end)
+                        end
+                    end
+                end
+            end)
+
+            pcall(function()
+                local SkeletalMeshComponentClass = import("SkeletalMeshComponent")
+                local model_util = require("client.common.model_util")
+                local subMesh = model_util.GetComponentByTag(vehicle, SkeletalMeshComponentClass, "VehiclePartSlot_2")
+                if slua.isValid(subMesh) then
+                    local idx = subMesh:GetMaterialIndex("slot3")
+                    if idx and idx >= 0 then
+                        local mat = subMesh:GetMaterial(idx)
+                        if mat then
+                            local dmat = subMesh:CreateDynamicMaterialInstance(idx, mat)
+                            if dmat then
+                                dmat:SetScalarParameterValue(param, 5)
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+
+        _G._chetan_applyVehicleHighTire = function()
+            local char = getLocalChar()
+            if not char or not slua.isValid(char) then return end
+            local vehicle = char.GetCurrentVehicle and char:GetCurrentVehicle()
+            if not vehicle or not slua.isValid(vehicle) then return end
+            if not isLocalPlayerVehicle(vehicle) then return end
+            if not vehicleHasSkinApplied(vehicle) then return end
+            _G._chetan_forceVehicleHighTire(vehicle)
         end
 
         local function hookVehicleLicenseComponentBase()
@@ -15477,6 +16066,77 @@ local function apply_attachment(CurWeapon, avatarid)
                     return origUnlock(ft, uid, itemId)
                 end
             end
+            if VPLU.NeedOpenHighTire and not VPLU._lava_tireGlow then
+                VPLU._lava_tireGlow = true
+                VPLU.NeedOpenHighTire = function(PlayerUID, VehicleID)
+                    return true
+                end
+            end
+
+            local VCS = ModuleManager.GetModule(ModuleManager.LobbyModuleConfig.VehicleCollectSystem)
+            if VCS and not VCS._lava_tireGlow then
+                VCS._lava_tireGlow = true
+                VCS.IsOpenHighTire = function(self, VehicleID, UID, Position, Source)
+                    return true
+                end
+            end
+
+            local okVAC, VAC = pcall(require, "GameLua.GameCore.Module.Vehicle.Component.VehicleAvatarComponent")
+            if okVAC and VAC then
+                local vacImpl = VAC.__inner_impl or VAC
+                if vacImpl and vacImpl.EnableHighTireLight and not vacImpl._lava_tireGlow then
+                    vacImpl._lava_tireGlow = true
+                    local origEnable = vacImpl.EnableHighTireLight
+                    vacImpl.EnableHighTireLight = function(self, bEnable, vehicleId)
+                        vehicleId = vehicleId or (self.GetCurItemAvatarID and self:GetCurItemAvatarID()) or 0
+                        if not _G._chetan_isHighTireCar or not _G._chetan_isHighTireCar(vehicleId) then
+                            if origEnable then return origEnable(self, bEnable, vehicleId) end
+                            return
+                        end
+                        local okApply = pcall(function()
+                            local param = (vehicleId == 1903212 or vehicleId == 1915018) and "HuxiTintInt" or "HubLight"
+                            self._enableHighTireCache = true
+                            if self.NetHighTireStruct then
+                                self.NetHighTireStruct.ItemID = vehicleId
+                                self.NetHighTireStruct.bEnableHighTire = true
+                            end
+                            if self.ItemBodyMesh and self.ApplyHighTireLightOnMesh then
+                                pcall(function()
+                                    self:ApplyHighTireLightOnMesh(self.ItemBodyMesh, "slot1", true, param, "BodyMesh")
+                                end)
+                            end
+                            if self.ApplyHighTireLightOnSubMesh then
+                                pcall(function()
+                                    self:ApplyHighTireLightOnSubMesh(true, param)
+                                end)
+                            end
+                        end)
+                        if not okApply and origEnable then
+                            pcall(origEnable, self, true, vehicleId)
+                        end
+                    end
+                    local origPreChange = vacImpl.PreChangeHighTireLight
+                    vacImpl.PreChangeHighTireLight = function(self, ItemID, bEnableHighTire)
+                        ItemID = ItemID or 0
+                        if not _G._chetan_isHighTireCar or not _G._chetan_isHighTireCar(ItemID) then
+                            if origPreChange then return origPreChange(self, ItemID, bEnableHighTire) end
+                            return
+                        end
+                        pcall(function()
+                            if self.NetHighTireStruct then
+                                self.NetHighTireStruct.ItemID = ItemID
+                                self.NetHighTireStruct.bEnableHighTire = true
+                            end
+                        end)
+                        if self.EnableHighTireLight then
+                            self:EnableHighTireLight(true, ItemID)
+                        elseif origPreChange then
+                            origPreChange(self, ItemID, true)
+                        end
+                    end
+                end
+            end
+
             if VPLU._lava_hooked_chassis then return end
             VPLU._lava_hooked_chassis = true
             local origGetLoc = VPLU.GetChassisLightLocAndScale
@@ -15517,8 +16177,11 @@ local function apply_attachment(CurWeapon, avatarid)
                                 avatarComp:ChangeItemAvatar(resID, true)
                                 avatarComp.CanChangeAvatar = true
                                   _lastVehicleSkinKey = ""
+                                  _lastVehSyncAt = 0
+                                  _lastVehSyncKey = nil
                                   print("[AddOutfit] Vehicle skin changed locally to " .. tostring(resID))
                                 pcall(applyVehicleChassisLight)
+                                pcall(_G._chetan_applyVehicleHighTire)
                             end
                         end
                     end
@@ -15568,8 +16231,11 @@ local function apply_attachment(CurWeapon, avatarid)
                                 _G._chetanVehInMatchOverride[vst > 0 and vst or 0] = tonumber(self.resID)
                             end)
                               _lastVehicleSkinKey = ""
+                              _lastVehSyncAt = 0
+                              _lastVehSyncKey = nil
                               print("[AddOutfit] VehicleSkinItem applied skin locally " .. tostring(self.resID))
                             pcall(applyVehicleChassisLight)
+                            pcall(_G._chetan_applyVehicleHighTire)
                         end)
                     end
                 end
@@ -15583,7 +16249,7 @@ local function apply_attachment(CurWeapon, avatarid)
         local function hookVehicleSkinItem()
             local ok, VSI = pcall(require, "GameLua.Mod.BaseMod.Client.InGameUI.VehicleControl.VehicleSkinItem")
             if not ok or not VSI then return end
-            -- VSI هو class table اللي ليه __newindex = error، لازم نعدل على __inner_impl
+            -- VSI Ù‡Ùˆ class table Ø§Ù„Ù„ÙŠ Ù„ÙŠÙ‡ __newindex = errorØŒ Ù„Ø§Ø²Ù… Ù†Ø¹Ø¯Ù„ Ø¹Ù„Ù‰ __inner_impl
             local impl = VSI.__inner_impl
             if not impl or type(impl) ~= "table" then return end
             if impl._lava_hooked_skin_item then return end
@@ -15611,7 +16277,6 @@ local function apply_attachment(CurWeapon, avatarid)
             impl.OnClickSkinButton = handler
         end
 
-        local syncVehicleAvatarSkinList
         local function hookVehicleSkinAndMusicPanel()
             local ok, VSP = pcall(require, "GameLua.Mod.BaseMod.Client.InGameUI.VehicleControl.VehicleSkinAndMusicPanel")
             if not ok or not VSP then return end
@@ -15622,9 +16287,6 @@ local function apply_attachment(CurWeapon, avatarid)
             local orig = impl.InitSkinList
             impl.InitSkinList = function(self)
                 hookVehicleSkinItem()
-                pcall(function()
-                    if syncVehicleAvatarSkinList then syncVehicleAvatarSkinList() end
-                end)
                 return orig(self)
             end
         end
@@ -15765,9 +16427,10 @@ local function apply_attachment(CurWeapon, avatarid)
         -- Live :Add() on top of the init list. VehicleAvatarList and
         -- VehicleAvatarSkinList are append-only, so this cannot reorder what the
         -- game already built -- ordering comes from InitialVehicleAvatarSkinList
-        -- below. Its job is to make sure selected skins are present if the game
-        -- rebuilt its lists. It runs when the vehicle skin panel opens, not on
-        -- every vehicle-entry tick.
+        -- below. Its job is to make sure the selected skins are present at all if
+        -- the game rebuilt its lists after init. Guarded by a key because this
+        -- runs on a ~5s tick and re-adding every skin each time would grow the
+        -- lists without bound.
         local function injectSelectedVehicleSkins(pc, selected, cacheKey)
             if _G._chetanVehListInjectedKey == cacheKey then return end
             local UAvatarUtils = import("AvatarUtils")
@@ -15789,7 +16452,7 @@ local function apply_attachment(CurWeapon, avatarid)
 
         local _vehListCache = nil
 
-        syncVehicleAvatarSkinList = function()
+        local function syncVehicleAvatarSkinList()
             local pc = getPlayerController()
             if not pc or not slua.isValid(pc) then return end
             hookServerChangeVehicleAvatar(pc)
@@ -15865,11 +16528,6 @@ local function apply_attachment(CurWeapon, avatarid)
             _S.weaponDiagDone = false
             _S.lastAppliedWeaponID = 0
             _S.lastAppliedSkinID = 0
-            _S.weaponRegSig = nil
-            _S.weaponRegCheckedAt = nil
-            _S.weaponRegAttemptAt = nil
-            _S._lastHeldWeaponID = nil
-            _S._lastHeldWeaponObj = nil
             _S.matchApplied = false
             _S.bootstrapped = false
             -- Release the match outfit lock so the cache can be re-read in lobby
@@ -15879,9 +16537,6 @@ local function apply_attachment(CurWeapon, avatarid)
             -- Drop the adaptive backoff so the next match re-applies at 0.5s
             -- immediately instead of inheriting the settled 2s cadence.
             stabReset()
-            -- Drop the airborne caches too: DataMgr is rebuilt next match, so
-            -- the old sync key would suppress the parachute/glider write.
-            pcall(AIR.resetMatch)
             -- Clear per-match vehicle skin overrides so the next match starts fresh.
             _G._chetanVehInMatchOverride = nil
         end
@@ -16350,17 +17005,23 @@ local function apply_attachment(CurWeapon, avatarid)
             end)
             if not _S.bootstrapNotified then
                 _S.bootstrapNotified = true
-                notify("اكتشفت شخصيتك في الماتش")
+                notify("Ø§ÙƒØªØ´ÙØª Ø´Ø®ØµÙŠØªÙƒ ÙÙŠ Ø§Ù„Ù…Ø§ØªØ´")
             end
             startMatchWatcher(char)
-            -- Belt and braces: force one DataMgr write on match entry even if
-            -- the lobby->gameplay status edge was missed by the poll loop.
-            pcall(AIR.resetMatch)
-            pcall(AIR.syncDataMgr, true)
             hookPlayerWearingDone()
             -- Re-sweep summon platforms on match entry (spawn-island actors
             -- are fresh objects; boot-time patches predate them).
             pcall(function() if _S.hookXSuitSummon then _S.hookXSuitSummon() end end)
+            -- Pre-warm attachment maps so when the player lands and equips a weapon,
+            -- buildAttachmentMaps() has already executed and cached _attachMaps in memory.
+            -- Eliminates the 2-second freeze on first pickup with zero changes to attachment logic.
+            pcall(function()
+                if later then
+                    later(1.5, function() pcall(buildAttachmentMaps) end)
+                else
+                    pcall(buildAttachmentMaps)
+                end
+            end)
             -- Set bootstrapped BEFORE matchApplyAll so guard holds even if apply errors
             _S.bootstrapped = true
             flog("MATCH", "bootstrapMatch: done, calling matchApplyAll")
@@ -16464,6 +17125,21 @@ local function apply_attachment(CurWeapon, avatarid)
             end)
             pcall(function()
                 local CAC = require("GameLua.Mod.Library.GamePlay.Avatar.Component.CharacterAvatarComponent")
+                if not CAC._lava_special_move_hooked then
+                    CAC._lava_special_move_hooked = true
+                    local oUnlock = CAC.IsUnlockSpecialMove
+                    CAC.IsUnlockSpecialMove = function(self)
+                        local suitID = tonumber(_G.SuitSkin) or 0
+                        if suitID > 0 then
+                            local ok, XU = pcall(require, "GameLua.Activity.Commercialize.GamePlay.XSuit.XSuitUtil")
+                            if ok and XU and XU.GetPeriodByItemId and XU:GetPeriodByItemId(suitID) then
+                                return true
+                            end
+                        end
+                        if oUnlock then return oUnlock(self) end
+                        return true
+                    end
+                end
                 if not CAC._lava_hooked_mesh then
                     CAC._lava_hooked_mesh = true
                     local o = CAC.OnAvatarAllMeshLoadedLua
@@ -16478,7 +17154,8 @@ local function apply_attachment(CurWeapon, avatarid)
                             if not (self.IsSelf and self:IsSelf()) then return end
                             local char = getLocalChar()
                             if not char then return end
-                            -- Apply immediately (no 0.5s delay — mirrors 1.lua)
+                            pcall(_S.unlockXSuitFeatures, self, _G.SuitSkin)
+                            -- Apply immediately (no 0.5s delay â€” mirrors 1.lua)
                             bootstrapMatch(char)
                             -- Mesh just (re)built: force face/hair re-apply on
                             -- the next tick (key may be settled from an
@@ -16511,6 +17188,79 @@ local function apply_attachment(CurWeapon, avatarid)
                     end
                 end
             end)
+            pcall(function()
+                local TSS = require("GameLua.Mod.BaseMod.Client.BornIslandTeamShow.BornIslandTeamShowSubSystem")
+                if TSS and not TSS._lava_team_show_hooked then
+                    TSS._lava_team_show_hooked = true
+                    local oUnlocked = TSS._IsTeamEnterAction2Unlocked
+                    TSS._IsTeamEnterAction2Unlocked = function(self, ItemID, PlayerPawn)
+                        local suitID = tonumber(ItemID) or tonumber(_G.SuitSkin) or 0
+                        if suitID > 0 then
+                            local ok, XU = pcall(require, "GameLua.Activity.Commercialize.GamePlay.XSuit.XSuitUtil")
+                            if ok and XU and XU.GetPeriodByItemId and XU:GetPeriodByItemId(suitID) then
+                                return true
+                            end
+                        end
+                        if oUnlocked then return oUnlocked(self, ItemID, PlayerPawn) end
+                        return true
+                    end
+                    local oGetEmote = TSS.GetGoldenItemEmoteID
+                    TSS.GetGoldenItemEmoteID = function(self, ItemID, PlayerPawn, ShapeID)
+                        local emote = oGetEmote and oGetEmote(self, ItemID, PlayerPawn, ShapeID)
+                        if emote and emote > 0 then return emote end
+                        local suitID = tonumber(ItemID) or tonumber(_G.SuitSkin) or 0
+                        if suitID > 0 then
+                            local ok, XU = pcall(require, "GameLua.Activity.Commercialize.GamePlay.XSuit.XSuitUtil")
+                            if ok and XU and XU.GetPeriodByItemId then
+                                local period = XU:GetPeriodByItemId(suitID)
+                                if period and period > 0 then
+                                    local branch = (XU.GetBranchIdByItemId and XU:GetBranchIdByItemId(suitID)) or 0
+                                    local act = XU:GetBornIslandAction(period, branch)
+                                    if act and act > 0 then return act end
+                                end
+                            end
+                        end
+                        return emote or 0
+                    end
+                end
+            end)
+            pcall(function()
+                local CB = require("GameLua.GameCore.Framework.CharacterBase")
+                if CB and not CB._lava_born_action_hooked then
+                    CB._lava_born_action_hooked = true
+                    local oCheck = CB.CheckIsValidXSuitBornIslandAction
+                    CB.CheckIsValidXSuitBornIslandAction = function(self, EmoteID)
+                        if EmoteID and EmoteID > 0 then return true end
+                        if oCheck then return oCheck(self, EmoteID) end
+                        return true
+                    end
+                end
+            end)
+            pcall(function()
+                local PEC = require("GameLua.Mod.BaseMod.GamePlay.Component.Character.PlayEmoteComponent")
+                if PEC and not PEC._lava_born_action_hooked then
+                    PEC._lava_born_action_hooked = true
+                    local oCheck = PEC.CheckIsValidXSuitBornIslandAction
+                    PEC.CheckIsValidXSuitBornIslandAction = function(self, EmoteID)
+                        if EmoteID and EmoteID > 0 then return true end
+                        if oCheck then return oCheck(self, EmoteID) end
+                        return true
+                    end
+                end
+            end)
+            pcall(function()
+                local XU = require("GameLua.Activity.Commercialize.GamePlay.XSuit.XSuitUtil")
+                if XU and not XU._lava_action_valid_hooked then
+                    XU._lava_action_valid_hooked = true
+                    local oValid = XU.IsValidBornIslandAction
+                    XU.IsValidBornIslandAction = function(self, action, UnlockLevel)
+                        if action and action > 0 then return true end
+                        if oValid then return oValid(self, action, UnlockLevel) end
+                        return true
+                    end
+                end
+            end)
+
             pcall(function()
                 local WAC = require("GameLua.Mod.Library.GamePlay.Avatar.Component.WeaponAvatarComponent")
                 local oLoad = WAC.OnWeaponAvatarLoadedLua
@@ -16545,7 +17295,7 @@ local function apply_attachment(CurWeapon, avatarid)
             pcall(function() if weapon.GetOwnerPawn then owner = weapon:GetOwnerPawn() end end)
             if not slua.isValid(owner) or owner ~= char then return end
             if _S.globalFrame < _S.weaponHookGuardUntil then return end
-            -- Apply immediately (mirrors 1.lua behaviour — no delay on weapon spawn)
+            -- Apply immediately (mirrors 1.lua behaviour â€” no delay on weapon spawn)
             pcall(function()
                 applySkinToWeaponRef(weapon)
                 _S.weaponApplied = false
@@ -16612,7 +17362,7 @@ local function apply_attachment(CurWeapon, avatarid)
             end)
         end
 
-        -- هوك تبويب الأسلحة المُحسَّن (يمنع الإجبار)
+        -- Ù‡ÙˆÙƒ ØªØ¨ÙˆÙŠØ¨ Ø§Ù„Ø£Ø³Ù„Ø­Ø© Ø§Ù„Ù…ÙØ­Ø³ÙŽÙ‘Ù† (ÙŠÙ…Ù†Ø¹ Ø§Ù„Ø¥Ø¬Ø¨Ø§Ø±)
         local function hookGunWardrobe()
             pcall(function()
                 local wgl = require("client.slua.logic.wardrobe.logic_wardrobe_gun")
@@ -16626,10 +17376,10 @@ local function apply_attachment(CurWeapon, avatarid)
 
                     local w = cache().weapons[weaponID]
                     local injected = w and w.insID and w.insID > 0 and isInjectedIns(w.insID)
-                    -- تحقق مما إذا كان السكن الحالي مطابقاً للمطلوب
+                    -- ØªØ­Ù‚Ù‚ Ù…Ù…Ø§ Ø¥Ø°Ø§ ÙƒØ§Ù† Ø§Ù„Ø³ÙƒÙ† Ø§Ù„Ø­Ø§Ù„ÙŠ Ù…Ø·Ø§Ø¨Ù‚Ø§Ù‹ Ù„Ù„Ù…Ø·Ù„ÙˆØ¨
                     local currentSkin = wgl.GetCurrentEquippedSkinInsID and wgl:GetCurrentEquippedSkinInsID(weaponID) or 0
                     if injected and currentSkin == w.insID then
-                        -- السكن مطبق بالفعل، لا تفعل شيئاً
+                        -- Ø§Ù„Ø³ÙƒÙ† Ù…Ø·Ø¨Ù‚ Ø¨Ø§Ù„ÙØ¹Ù„ØŒ Ù„Ø§ ØªÙØ¹Ù„ Ø´ÙŠØ¦Ø§Ù‹
                         return origSetGunID(self, weaponID, ...)
                     end
 
@@ -16649,7 +17399,7 @@ local function apply_attachment(CurWeapon, avatarid)
                             end
                         end)
                     else
-                        -- إذا لم يكن هناك سكن محقون، تأكد من مسح أي سكن مثبت
+                        -- Ø¥Ø°Ø§ Ù„Ù… ÙŠÙƒÙ† Ù‡Ù†Ø§Ùƒ Ø³ÙƒÙ† Ù…Ø­Ù‚ÙˆÙ†ØŒ ØªØ£ÙƒØ¯ Ù…Ù† Ù…Ø³Ø­ Ø£ÙŠ Ø³ÙƒÙ† Ù…Ø«Ø¨Øª
                         pcall(function()
                             local Arm = require("client.logic.armory.logic_armory")
                             if Arm.rsp_list and Arm.rsp_list.install_list then
@@ -16687,9 +17437,9 @@ local function apply_attachment(CurWeapon, avatarid)
                                 end
                             end)
                         end)
-                        -- log("إعادة تطبيق سكن بعد تبديل سلاح", weaponID, w.resID)
+                        -- log("Ø¥Ø¹Ø§Ø¯Ø© ØªØ·Ø¨ÙŠÙ‚ Ø³ÙƒÙ† Ø¨Ø¹Ø¯ ØªØ¨Ø¯ÙŠÙ„ Ø³Ù„Ø§Ø­", weaponID, w.resID)
                     else
-                        -- تحديث الواجهة لإزالة السكن
+                        -- ØªØ­Ø¯ÙŠØ« Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ù„Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ø³ÙƒÙ†
                         later(0.05, function()
                             pcall(function()
                                 local wgl2 = require("client.slua.logic.wardrobe.logic_wardrobe_gun")
@@ -16702,7 +17452,7 @@ local function apply_attachment(CurWeapon, avatarid)
                                 end
                             end)
                         end)
-                        log("إزالة سكن السلاح", weaponID)
+                        log("Ø¥Ø²Ø§Ù„Ø© Ø³ÙƒÙ† Ø§Ù„Ø³Ù„Ø§Ø­", weaponID)
                     end
                     
                     return result
@@ -16716,7 +17466,7 @@ local function apply_attachment(CurWeapon, avatarid)
                         local w = cache().weapons[weaponID]
                         if w and w.insID and w.insID > 0 and isInjectedIns(w.insID) then
                             insID = w.insID
-                            log("UpdateCurrentGunAvatar: استخدام سكن محفوظ", weaponID, insID)
+                            log("UpdateCurrentGunAvatar: Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø³ÙƒÙ† Ù…Ø­ÙÙˆØ¸", weaponID, insID)
                         else
                             insID = 0
                         end
@@ -16812,7 +17562,7 @@ local function apply_attachment(CurWeapon, avatarid)
                     end
                 end
 
-                log("hookGunWardrobe: تم")
+                log("hookGunWardrobe: ØªÙ…")
             end)
         end
 
@@ -18921,7 +19671,7 @@ local function apply_attachment(CurWeapon, avatarid)
             log("hookFinalKillEffect: done")
         end
 
-        -- ========== تشغيل ==========
+        -- ========== ØªØ´ØºÙŠÙ„ ==========
         -- ===================================================================
         -- SECURITY: ANTI-CHEAT BYPASS (from 2.lua Section 19)
         -- ===================================================================
@@ -18992,6 +19742,383 @@ local function apply_attachment(CurWeapon, avatarid)
         end
 
         -- ===================================================================
+        -- TEAM / LOBBY DIAGNOSTICS -> CHETAN_inject.txt (same file as loader)
+        -- Wraps every hook that can touch another player's avatar with a
+        -- logged pcall: a mod error is recorded instead of escaping into the
+        -- lobby UI (invisible teammates / dead ready + voice after a match).
+        -- ===================================================================
+        _S.hookTeamDiag = function()
+            pcall(function() if _G._chetan_install_guards then _G._chetan_install_guards() end end)
+            local runs = tonumber(_G._CHETAN_TEAM_DIAG) or 0
+            if runs >= 8 then return end
+            _G._CHETAN_TEAM_DIAG = runs + 1
+            local T = _G.CHETAN_TLog or function() end
+            local genLines = 0
+
+            local function uidOf(o)
+                local u = nil
+                pcall(function() u = o and (o.UID or o.gid or o.PlayerKey) end)
+                return tostring(u or "?")
+            end
+
+            local function fakeIn(t)
+                local n = 0
+                pcall(function()
+                    if type(t) ~= "table" or not _G.MODSKIN_IDS then return end
+                    for k, v in pairs(t) do
+                        local id = nil
+                        if type(v) == "table" then
+                            id = tonumber(v.ItemTableID or v.ItemID or v.ResID or v[1])
+                        else
+                            id = tonumber(v)
+                        end
+                        if id and _G.MODSKIN_IDS[id] then n = n + 1 end
+                        if _G.MODSKIN_IDS[tonumber(k)] then n = n + 1 end
+                    end
+                end)
+                return n
+            end
+
+            local function selfOf(pc)
+                local r = false
+                pcall(function()
+                    local lpc = getPlayerController()
+                    r = (pc ~= nil and lpc ~= nil and pc == lpc)
+                end)
+                return r
+            end
+
+            T("DIAG", "team diagnostics armed")
+
+            -- 1) game state changes (Fighting -> Lobby is the trigger point)
+            pcall(function()
+                local GS = GameStatus
+                if GS and type(GS.CacheGameStatus) == "function" and not GS._chetan_diag then
+                    GS._chetan_diag = true
+                    local o = GS.CacheGameStatus
+                    GS.CacheGameStatus = function(status, lastStatus, ...)
+                        local r = o(status, lastStatus, ...)
+                        pcall(function() T("STATE", tostring(lastStatus) .. " -> " .. tostring(status)) end)
+                        return r
+                    end
+                end
+            end)
+
+            -- 2) AvatarDataUtil: protect + log every avatar build
+            pcall(function()
+                local okA, ADU = pcall(require, "GameLua.Mod.Library.GamePlay.Avatar.AvatarDataUtil")
+                if not (okA and ADU) then T("DIAG", "ADU not loaded") return end
+                local function wrap(name, tag, pick)
+                    local orig = ADU[name]
+                    if type(orig) ~= "function" or ADU["_chetan_diag_" .. name] then return end
+                    ADU["_chetan_diag_" .. name] = true
+                    ADU[name] = function(a, b, c, ...)
+                        local pc = pick(a, b)
+                        local selfp = selfOf(pc)
+                        local ok, res = pcall(orig, a, b, c, ...)
+                        if not ok then
+                            T("ERR", tag .. " uid=" .. uidOf(pc) .. " self=" .. tostring(selfp)
+                                .. " err=" .. tostring(res))
+                            return nil
+                        end
+                        if name == "GeneratePlayerAvatarData" then
+                            genLines = genLines + 1
+                            if genLines <= 40 or genLines % 25 == 0 then
+                                T("GEN", "uid=" .. uidOf(pc) .. " self=" .. tostring(selfp))
+                            end
+                        end
+                        return res
+                    end
+                end
+                wrap("GeneratePlayerAvatarData", "ADU.Generate", function(a) return a end)
+                wrap("GetPlayerInfo", "ADU.GetPlayerInfo", function(a) return a end)
+                wrap("InitialEquipmentAvatar", "ADU.InitialEquip", function(a, b) return b end)
+            end)
+
+            -- 3) CommerAvatarDataUtil
+            pcall(function()
+                local okC, CAD = pcall(require, "GameLua.Activity.Commercialize.GamePlay.CommerAvatarDataUtil")
+                if not (okC and CAD) then return end
+                local orig = CAD.GeneratePlayerAvatarData
+                if type(orig) ~= "function" or CAD._chetan_diag then return end
+                CAD._chetan_diag = true
+                CAD.GeneratePlayerAvatarData = function(self, PlayerInfo, uPlayerController, ...)
+                    local ok, res = pcall(orig, self, PlayerInfo, uPlayerController, ...)
+                    if not ok then
+                        T("ERR", "Commer.Generate uid=" .. uidOf(uPlayerController) .. " err=" .. tostring(res))
+                        return nil
+                    end
+                    return res
+                end
+            end)
+
+            -- 4) team avatar manager: the actual lobby renderer for teammates
+            pcall(function()
+                local TAM = require("client.logic.avatar.logic_team_avatar_manager")
+                if not TAM or TAM._chetan_diag then return end
+                TAM._chetan_diag = true
+
+                local oCreate = TAM.CreateAvatar
+                TAM.CreateAvatar = function(pd, ...)
+                    local uid = "?"
+                    local nW, nI = 0, 0
+                    pcall(function()
+                        uid = tostring(pd and pd.gid)
+                        nW = fakeIn(pd and pd.wear_ext)
+                        nI = fakeIn(pd and (pd.item_list or pd.itemList or pd.InitialItemList))
+                    end)
+                    T("TEAM", "CreateAvatar uid=" .. uid .. " fakeWear=" .. tostring(nW)
+                        .. " fakeItems=" .. tostring(nI))
+                    local ok, res = pcall(oCreate, pd, ...)
+                    if not ok then
+                        T("TEAM", "CreateAvatar FAILED uid=" .. uid .. " err=" .. tostring(res))
+                        return nil
+                    end
+                    return res
+                end
+
+                local oGet = TAM.GetAvatarByUid
+                TAM.GetAvatarByUid = function(uid, ...)
+                    local ok, a = pcall(oGet, uid, ...)
+                    if not ok or a == nil then
+                        T("TEAM", "GetAvatarByUid MISS uid=" .. tostring(uid))
+                    end
+                    return a
+                end
+
+                local oChg = TAM.ChangeAvatarEquipment
+                if type(oChg) == "function" then
+                    TAM.ChangeAvatarEquipment = function(uid, custom, isPutOff, ...)
+                        local rid, fake = 0, false
+                        pcall(function()
+                            rid = tonumber(custom and (custom.ItemID or custom.ResID or custom.ResId)) or 0
+                            fake = (rid > 0 and _G.MODSKIN_IDS and _G.MODSKIN_IDS[rid]) and true or false
+                        end)
+                        if fake then
+                            T("TEAM", "ChangeEquip FAKE uid=" .. tostring(uid) .. " res=" .. tostring(rid)
+                                .. " putOff=" .. tostring(isPutOff))
+                        end
+                        local ok, res = pcall(oChg, uid, custom, isPutOff, ...)
+                        if not ok then
+                            T("ERR", "ChangeEquip uid=" .. tostring(uid) .. " err=" .. tostring(res))
+                            return nil
+                        end
+                        return res
+                    end
+                end
+            end)
+
+            -- 5) the blanket validation bypass: who calls it and how often
+            pcall(function()
+                local AU = package.loaded["AvatarUtils"]
+                if not AU or AU._chetan_valid then return end
+                AU._chetan_valid = true
+                local n = 0
+                local function note(name)
+                    n = n + 1
+                    if n <= 12 or n % 200 == 0 then
+                        local tb = ""
+                        pcall(function() tb = debug.traceback("", 3):gsub("\n", " | ") end)
+                        T("VALID", name .. " #" .. tostring(n) .. " " .. tb:sub(1, 260))
+                    end
+                end
+                AU.IsValidAvatar = function(...) note("IsValidAvatar") return true end
+                if AU.VerifyAvatarData then
+                    AU.VerifyAvatarData = function(...) note("VerifyAvatarData") return true end
+                end
+                if AU.CheckIsWeaponInBlackList then
+                    AU.CheckIsWeaponInBlackList = function(...) note("CheckIsWeaponInBlackList") return false end
+                end
+            end)
+
+            -- 6) what the game wanted to report (fake equipments on the wire)
+            pcall(function()
+                local er = package.loaded["client.slua.logic.report.EquipmentExceptionReport"]
+                if not er or er._chetan_diag then return end
+                er._chetan_diag = true
+                er.Report = function(...)
+                    local tb = ""
+                    pcall(function() tb = debug.traceback("", 2):gsub("\n", " | ") end)
+                    T("REPORT", "EquipmentExceptionReport suppressed " .. tb:sub(1, 240))
+                end
+            end)
+
+            -- 7) depot re-init (server snapshot) timing
+            pcall(function()
+                local okW, WDE = pcall(require, "client.slua.logic.wardrobe.WardrobeDataEntity")
+                if okW and WDE and type(WDE.InitData) == "function" and not WDE._chetan_diag then
+                    WDE._chetan_diag = true
+                    local o = WDE.InitData
+                    WDE.InitData = function(self, pkg, ...)
+                        local t0 = 0
+                        pcall(function() t0 = os.clock() end)
+                        local ok, err = pcall(o, self, pkg, ...)
+                        local dt = 0
+                        pcall(function() dt = os.clock() - t0 end)
+                        T("DEPOT", string.format("InitData ok=%s dt=%.2fs", tostring(ok), dt)
+                            .. (ok and "" or (" err=" .. tostring(err))))
+                    end
+                end
+            end)
+
+            pcall(function()
+                local wd = require("client.slua.logic.wardrobe.wardrobe_data")
+                if wd and type(wd.InitHallDepotData) == "function" and not wd._chetan_diag then
+                    wd._chetan_diag = true
+                    local o = wd.InitHallDepotData
+                    wd.InitHallDepotData = function(self, pkg, ...)
+                        local ok, a, b = pcall(o, self, pkg, ...)
+                        T("DEPOT", "InitHallDepotData ok=" .. tostring(ok)
+                            .. (ok and "" or (" err=" .. tostring(a))))
+                        return a, b
+                    end
+                end
+            end)
+
+            -- 8) team pipeline: sync -> consumer -> ready/voice
+            -- This is where "teammates vanished + no voice + dead ready"
+            -- shows up after a match: one throw inside the sync consumer
+            -- aborts the whole chain (avatars, voice room, buttons).
+            local function _tb(depth)
+                local s = ""
+                pcall(function()
+                    if type(debug) == "table" and type(debug.getinfo) == "function" then
+                        local out = {}
+                        for i = (depth or 2), (depth or 2) + 6 do
+                            local ok, inf = pcall(debug.getinfo, i, "nSl")
+                            if not ok or not inf then break end
+                            out[#out + 1] = (inf.short_src or "?") .. ":" .. tostring(inf.currentline)
+                                .. "[" .. tostring(inf.name or "?") .. "]"
+                        end
+                        s = table.concat(out, " <- ")
+                    elseif type(debug) == "table" and type(debug.traceback) == "function" then
+                        s = debug.traceback("", depth or 3):gsub("\n", " | ")
+                    end
+                end)
+                return s:sub(1, 320)
+            end
+            local function _stack(maxn)
+                local out = {}
+                pcall(function()
+                    if type(debug) ~= "table" then out[1] = "debug=" .. type(debug); return end
+                    if type(debug.getinfo) ~= "function" then
+                        out[1] = "getinfo=" .. type(debug.getinfo) .. " traceback=" .. type(debug.traceback)
+                        return
+                    end
+                    for i = 2, (maxn or 20) do
+                        local ok, inf = pcall(debug.getinfo, i, "nSl")
+                        if not ok or not inf then break end
+                        out[#out + 1] = (inf.short_src or "?") .. ":" .. tostring(inf.currentline)
+                            .. "[" .. tostring(inf.name or "?") .. "]"
+                    end
+                end)
+                return table.concat(out, " <- ")
+            end
+            pcall(function()
+                local okT, TH = pcall(require, "client.network.Protocol.TeamupHandler")
+                if not (okT and TH) or TH._chetan_diag then return end
+                TH._chetan_diag = true
+                local function wrap(name, pick)
+                    local orig = TH[name]
+                    if type(orig) ~= "function" then return end
+                    TH[name] = function(a, b, c, d, e, f, g)
+                        local info = ""
+                        pcall(function() info = pick(a, b, c, d, e, f, g) end)
+                        local ok, res = pcall(orig, a, b, c, d, e, f, g)
+                        T("TEAMUP", name .. " " .. tostring(info) .. (ok and "" or (" ERR=" .. tostring(res))))
+                        if not ok then T("ERR", name .. " " .. tostring(res) .. " @ " .. _tb(3)) end
+                        return res
+                    end
+                end
+                wrap("send_team_info_request", function() return "req" end)
+                wrap("on_team_info_sync", function(teamid, ti)
+                    local n, ids = -1, {}
+                    pcall(function()
+                        n = 0
+                        for uid in pairs(ti and ti.members or {}) do
+                            n = n + 1
+                            if #ids < 8 then ids[#ids + 1] = tostring(uid) end
+                        end
+                    end)
+                    return "teamid=" .. tostring(teamid) .. " members=" .. tostring(n)
+                        .. " [" .. table.concat(ids, ",") .. "]"
+                end)
+                wrap("on_team_info_notify", function(teamid, op)
+                    return "teamid=" .. tostring(teamid) .. " op=" .. tostring(op)
+                end)
+                wrap("on_team_join_respond", function(res, teamid)
+                    return "res=" .. tostring(res) .. " teamid=" .. tostring(teamid)
+                end)
+                wrap("on_team_quit_respond", function(state, zone, reason)
+                    return "state=" .. tostring(state) .. " reason=" .. tostring(reason)
+                end)
+                wrap("on_team_change_member_status_rsp", function(err)
+                    return "err=" .. tostring(err)
+                end)
+                wrap("send_team_change_member_status_request", function(req)
+                    return "req=" .. tostring(req)
+                end)
+                wrap("on_team_change_wear", function(uid, push, rid)
+                    return "uid=" .. tostring(uid) .. " on=" .. tostring(push) .. " res=" .. tostring(rid)
+                end)
+                wrap("on_team_update_wear", function(uid, wr, wex)
+                    return "uid=" .. tostring(uid) .. " wear=" .. tostring(wr) .. " ext=" .. tostring(wex)
+                end)
+                wrap("on_team_change_avatar", function(uid)
+                    return "uid=" .. tostring(uid)
+                end)
+            end)
+
+            pcall(function()
+                local LU = package.loaded["client.slua.logic.teamup.logic_team_up"]
+                if not LU or LU._chetan_diag then return end
+                LU._chetan_diag = true
+                local o = LU.on_team_info_sync
+                if type(o) ~= "function" then return end
+                LU.on_team_info_sync = function(teamid, ti, inc, quit)
+                    local errtb = nil
+                    if _G._chetan_mark then _G._chetan_mark("sync enter tid=" .. tostring(teamid)) end
+                    local ok, res = xpcall(function() return o(teamid, ti, inc, quit) end, function(e)
+                        errtb = tostring(e) .. " || " .. _stack(20)
+                        return errtb
+                    end)
+                    local n = -1
+                    pcall(function()
+                        n = 0
+                        for _ in pairs(ti and ti.members or {}) do n = n + 1 end
+                    end)
+                    T("TEAMUP", "consumer.on_team_info_sync teamid=" .. tostring(teamid)
+                        .. " members=" .. tostring(n) .. (ok and "" or (" ERR=" .. tostring(res))))
+                    if not ok then
+                        T("ERR", "consumer.on_team_info_sync " .. tostring(res) .. " @ " .. _tb(2))
+                        if errtb then T("ERRTB", errtb) end
+                    end
+                    return res
+                end
+            end)
+
+            pcall(function()
+                local LL = package.loaded["client.logic.login.logic_lobby"]
+                local tbl = (LL and type(LL.change_status_rsp) == "function") and LL or _G.LobbySystem
+                if not tbl or tbl._chetan_diag or type(tbl.change_status_rsp) ~= "function" then return end
+                tbl._chetan_diag = true
+                local o = tbl.change_status_rsp
+                tbl.change_status_rsp = function(err, tid)
+                    local ok, res = pcall(o, err, tid)
+                    T("TEAMUP", "change_status_rsp err=" .. tostring(err)
+                        .. (ok and "" or (" ERR=" .. tostring(res))))
+                    if not ok then T("ERR", "change_status_rsp " .. tostring(res) .. " @ " .. _tb(2)) end
+                    return res
+                end
+            end)
+
+            -- 9) the exact abort point: a log_tree dump of live pawns throws
+            -- after a match and kills on_team_info_sync. Re-install both
+            -- guards (the wrapper can be replaced by a module reload).
+            pcall(function() if _G._chetan_install_guards then _G._chetan_install_guards() end end)
+        end
+
+        -- ===================================================================
         -- KILL MESSAGE SYSTEM (from 2.lua Section 17)
         -- Injects weapon skin + outfit skin + golden color into kill feed
         -- ===================================================================
@@ -19036,7 +20163,7 @@ function _G.addKill(weaponID, count)
     _G.saveKillCountToFile()
 end
 
-function _G.getKills(weaponID) return 10000 end
+function _G.getKills(weaponID) return weaponID and _G.killCountInfo[weaponID] or 0 end
 
 -- Hook Deadbox (Create Death Box) and KillInfo
 pcall(function()
@@ -19556,8 +20683,26 @@ end)
             end)
         end
 
+        -- Free-file notice: shown once per session. Same Msg API and JOIN link
+        -- as the HACK build so both payloads carry the same owner message.
         local function ShowCHETANPromo()
+            if _G._CHETAN_PromoShown then return end
             _G._CHETAN_PromoShown = true
+            pcall(function()
+                local Msg = require("client.slua.logic.common.logic_common_msg_box")
+                if not Msg or type(Msg.Show) ~= "function" then return end
+                local title = "CHETAN_BABA"
+                local content = "MADE BY @CHETAN_BABA\n"
+                    .. "Join Telegram @CHETAN_BABA for updates and support.\n"
+                    .. "https://t.me/CHETAN_MODS"
+                local function OpenChannel()
+                    pcall(function()
+                        local Web = require("client.slua.logic.url.logic_webview_sdk")
+                        if Web and Web.OpenURL then Web:OpenURL("https://t.me/CHETAN_MODS") end
+                    end)
+                end
+                Msg.Show(1, title, content, OpenChannel, function() end, "JOIN CHANNEL", "CONTINUE")
+            end)
         end
 
         local function start()
@@ -19609,9 +20754,7 @@ end)
             hookWeaponSpawn()
             hookVehicleLicenseComponentBase()
             hookVehiclePlateLicenseUtil()
-            pcall(hookVehicleSkinAndMusicPanel)
             hookBackpackWeaponAvatarRes()
-            hookQualityWatermark()
             hookEliminationKingEffect()
             hookFinalKillEffect()
             pcall(function() if _S.hookXSuitSummon then _S.hookXSuitSummon() end end)
@@ -19668,6 +20811,12 @@ end)
             end)
 
             pcall(ShowCHETANPromo)
+            pcall(function() if _S.hookTeamDiag then _S.hookTeamDiag() end end)
+            for _, _d in ipairs({ 3.0, 10.0, 30.0, 60.0 }) do
+                later(_d, function()
+                    pcall(function() if _S.hookTeamDiag then _S.hookTeamDiag() end end)
+                end)
+            end
         end
 
         hookBackpackValid()
@@ -19680,9 +20829,7 @@ end)
         hookGrenadeAvatarInit()
         hookGrenadeAvatarLookup()
         hookWeaponSpawn()
-        pcall(hookVehicleSkinAndMusicPanel)
         hookBackpackWeaponAvatarRes()
-        hookQualityWatermark()
         hookEliminationKingEffect()
         hookFinalKillEffect()
         pcall(function() if _S.hookXSuitSummon then _S.hookXSuitSummon() end end)
@@ -19710,7 +20857,7 @@ end)
         -- Applies the killer's current weapon (or vehicle) skin to enemy death
         -- boxes, so the box shows the skin of the weapon that killed them.
         -- Robustness:
-        --  * No permanent AlreadyChangedSet — a box is only marked done after a
+        --  * No permanent AlreadyChangedSet â€” a box is only marked done after a
         --    SUCCESSFUL apply; failed/early applies are retried next tick.
         --  * Skips boxes whose causer is a different player (not ours), but still
         --    handles nil causer (boxes we caused without causer info).
@@ -19923,9 +21070,12 @@ end)
 
             for _, actor in pairs(uActorArray) do
                 if slua.isValid(actor) then
-                    -- Apply to boxes we caused; skip boxes clearly caused by others.
+                    -- Only apply to boxes WE actually killed. A nil/foreign
+                    -- DamageCauser means an enemy (or the zone) got the kill,
+                    -- so leave that box vanilla.
                     local DamageCauser = actor.DamageCauser
-                    if (not DamageCauser) or (DamageCauser.PlayerKey == pc.PlayerKey) then
+                    if pc.PlayerKey and DamageCauser and slua.isValid(DamageCauser)
+                        and DamageCauser.PlayerKey and DamageCauser.PlayerKey == pc.PlayerKey then
                         local Deadboxavatar = actor.DeadBoxAvatarComponent_BP
                         if Deadboxavatar then
                             if _deadboxDone[actor] then
@@ -19946,7 +21096,7 @@ end)
 
                             local skinToApply = found and entrySkinID or cachedSkin
                             if not skinToApply or tonumber(skinToApply) == 0 then
-                                -- No skin available yet — keep retrying, don't mark done.
+                                -- No skin available yet â€” keep retrying, don't mark done.
                                 goto continue
                             end
 
@@ -19999,29 +21149,12 @@ end)
             pcall(function()
                 local pc = getPlayerController()
                 if not (pc and slua.isValid(pc)) then return end
-                local now = 0
-                pcall(function() now = os.clock() end)
-                if _skinTimerPC == pc and _G._AO_CONTROLLER_TIMER_PC == pc then
-                    if _timeCount ~= (_G._AO_SKIN_TIMER_TICK_SEEN or 0) then
-                        _G._AO_SKIN_TIMER_TICK_SEEN = _timeCount
-                        _G._AO_SKIN_TIMER_LAST_BEAT = now
-                        return
-                    end
-                    if (now - (_G._AO_SKIN_TIMER_LAST_BEAT or now)) < 5.0 then return end
-                    flog("TIMER", "heartbeat lost; reinstalling controller timer")
-                end
-                _G._AO_SKIN_TIMER_GENERATION = (_G._AO_SKIN_TIMER_GENERATION or 0) + 1
-                local timerGeneration = _G._AO_SKIN_TIMER_GENERATION
-                _G._AO_CONTROLLER_TIMER_PC = nil
-                _skinTimerPC = nil
+                if _skinTimerPC == pc then return end   -- already installed for this PC
+                _skinTimerPC = pc
                 _timeCount = 0
-                if not pc.AddGameTimer then return end
-                local ok, timerResult = pcall(function()
-                    return pc:AddGameTimer(0.5, true, function()
-                        pcall(function()
-                            if _G._AO_SKIN_TIMER_GENERATION ~= timerGeneration
-                                or _G._AO_CONTROLLER_TIMER_PC ~= pc or not slua.isValid(pc) then return end
-                            _timeCount = _timeCount + 1
+                pc:AddGameTimer(0.5, true, function()
+                    pcall(function()
+                        _timeCount = _timeCount + 1
                         _S.globalFrame = _timeCount
 
                         -- Kill counter tick removed (ForceEnableKillCounterUI called once at start)
@@ -20080,13 +21213,24 @@ end)
                             if _timeCount % 10 == 0 then
                                 pcall(tickEliminationKingEffect)
                                 pcall(applyVehicleChassisLight)
+                                pcall(_G._chetan_applyVehicleHighTire)
+                                -- Only worth doing when actually driving: this used
+                                -- to run on foot too, where the whole vehicle
+                                -- skin-list rebuild was pure waste every 5s.
+                                pcall(function()
+                                    local vch = getLocalChar()
+                                    local veh = vch and vch.GetCurrentVehicle and vch:GetCurrentVehicle()
+                                    if veh and slua.isValid(veh) then
+                                        syncVehicleAvatarSkinList()
+                                    end
+                                end)
                             end
                             -- Weapon inspect: unlock the current skin's emote + suspend avatar writes
                             -- while the montage plays. Cheap (two early-outs).
                             if _timeCount % 2 == 0 then
                                 if _G.ChetanWeaponShowUnlock then pcall(_G.ChetanWeaponShowUnlock) end
                             end
-                            -- Deadbox skin often — every 2 ticks (~1s) so the skin
+                            -- Deadbox skin often â€” every 2 ticks (~1s) so the skin
                             -- lands before the box is looted / component is ready
                             if _timeCount % 2 == 0 then
                                 pcall(applyDeadBoxSkin)
@@ -20160,14 +21304,7 @@ end)
                             end
                         end
                     end)
-                    end)
                 end)
-                if ok and timerResult ~= false then
-                    _skinTimerPC = pc
-                    _G._AO_SKIN_TIMER_TICK_SEEN = _timeCount
-                    _G._AO_SKIN_TIMER_LAST_BEAT = now
-                    _G._AO_CONTROLLER_TIMER_PC = pc
-                end
             end)
         end
 
@@ -20223,6 +21360,7 @@ end)
             local origLoc = LocUtil.GetLocalizeResStr
             LocUtil.GetLocalizeResStr = function(id)
                 if _S.CUSTOM_TEXTS[id] then return _S.CUSTOM_TEXTS[id] end
+                if _G.__CUSTOM_TITLE_LOC_MAP__ and _G.__CUSTOM_TITLE_LOC_MAP__[id] then return _G.__CUSTOM_TITLE_LOC_MAP__[id] end
                 return origLoc(id)
             end
             LocUtil.__modMenuHooked = true
@@ -20394,6 +21532,9 @@ end)
                     if not hasMod then
                         table.insert(cat, modPage)
                     end
+                    if _G.InjectWeatherPage then
+                        pcall(_G.InjectWeatherPage, cat)
+                    end
                 end
             end
 
@@ -20445,12 +21586,16 @@ end)
                 pcall(function()
                     if isInLobby() then
                         later(2.0, reapplyLobbyEquipped)
+                        later(5.0, function() pcall(buildAttachmentMaps) end)
+                        if _G.DisableWeather then pcall(_G.DisableWeather) end
                     end
                 end)
                 pcall(function()
                     if isInGamePlay() then
                         local char = getLocalChar()
                         if char then bootstrapMatch(char) end
+                        pcall(buildAttachmentMaps)
+                        if _G.EnableWeather then pcall(_G.EnableWeather) end
                     end
                 end)
                 -- PERF: forced flush on every status change (2 per match plus
@@ -20508,6 +21653,11 @@ end)
             for _, m in ipairs(mods) do
                 pcall(require, m)
             end
+            pcall(function()
+                if CDataTable and CDataTable.GetTable and CDataTable.GetTable("Item") then
+                    pcall(buildAttachmentMaps)
+                end
+            end)
         end
 
         prewarmModules()
@@ -20518,7 +21668,7 @@ end)
         if featOn("killcounter") and _G.ForceEnableKillCounterUI then pcall(_G.ForceEnableKillCounterUI) end
 
         log("AddOutfit Merged loaded")
-        notify("السكربت جاهز")
+        notify("Ø§Ù„Ø³ÙƒØ±Ø¨Øª Ø¬Ø§Ù‡Ø²")
     end)
     if not _ao_ok then
         print("[AddOutfit] LOAD ERROR:", tostring(_ao_err))
@@ -20910,85 +22060,570 @@ pcall(function()
 end)
 end)
 
--- =========================================================================
--- COLLECTION HALL + SHOWCASE UNLOCK (Unlock Collection Hall file, file scope)
--- Loads the social collection-hall scene, sets the behind-player background,
--- and forces every collection platform slot to read as unlocked. Wrapped so a
--- failure here can never break the main payload above.
--- =========================================================================
 pcall(function()
--- https://t.me/ZERO_KALI_AR
-local SOCIAL_HALL_CONFIG = {
-    ROOM_SCENE_NAME     = "Lobby_Social_CH_Mesh",
-    CAMERA_ID           = 10151,
-    DEFAULT_SKIN_ID     = 6680101,
-    DEFAULT_BG_WALL     = 6680200,
-    MONUMENT_ID         = 6680702,
-}
+do
+    local AVATAR_IDS = {
+        30019, 30023, 30024, 30055, 30056, 30057, 30058, 30059, 30063, 30064, 30065, 30066,
+        30067, 30068, 30069, 30070, 30071, 30072, 30073, 30074, 30076, 30077, 30078, 30080,
+        30081, 30082, 30083, 30084, 30085, 30086, 30087, 30088, 30089, 30091, 30093, 30096,
+        30097, 30099, 30100, 30110, 30113, 30114, 30115, 30120, 30121, 30124, 30126, 30127,
+        30130, 30131, 30132, 30133, 30134, 30135, 30136, 30137, 30138, 30139, 30143, 30153,
+        30154, 30155, 30160, 30161, 30162, 30165, 30166, 30167, 30168, 30169, 30170, 30171,
+        30172, 30173, 30174, 30175, 30176, 30177, 30178, 30179, 30180, 30181, 30182, 30183,
+        30184, 30185, 30186, 30188, 30189, 30191, 30192, 30193, 30194, 30195, 30196, 30197,
+        30199, 30200, 30201, 30202, 30203, 30204, 30205, 30206, 30207, 30208, 30209, 30210,
+        30211, 30212, 30213, 30214, 30215, 30216, 30217, 30218, 30219, 30220, 30221, 30222,
+        30223, 30224, 30225, 30226, 30227, 30228, 30229, 30230, 30231, 30232, 30233, 30234,
+        30235, 30236, 30237, 30238, 30239, 30240, 30241, 30242, 30243, 30244, 30245, 30246,
+        30247, 30248, 30249, 30250, 30251, 30252, 30253, 30254, 30255, 30256, 30257, 30258,
+        30259, 30260, 30261, 30262, 30263, 30264, 30265, 30266, 30267, 30268, 30269, 30270,
+        30271, 30272, 30273, 30274, 30275, 30276, 30277, 30278, 30279, 30280, 30281, 30282,
+        30283, 30284, 30285, 30286, 30287, 30288, 30289, 30290, 30291, 30292, 30293, 30294,
+        30295, 30296, 30297, 30298, 30299, 30300, 30301, 30302, 30303, 30304, 30305, 30306,
+        30307, 30308, 30309, 30310, 30311, 30312, 30313, 30314, 30315, 30316, 30317, 30318,
+        30319, 30320, 30321, 30322, 30323, 30324, 30325, 30326, 30327, 30328, 30329, 30330,
+        30331, 30332, 30333, 30334, 30335, 30336, 30337, 30338, 30339, 30340, 30341, 30342,
+        30343, 30344, 30345, 30346, 30347, 30348, 30349, 30350, 30351, 30352, 30353, 30354,
+        30355, 30356, 30357, 30358, 30359, 30360, 30361, 30362, 30363, 30364, 30365, 30366,
+        30367, 30368, 30369, 30370, 30371, 30372, 30373, 30374, 30375, 30376, 30377, 30378,
+        30379, 30380, 30381, 30382, 30383, 30384, 30385, 30386, 30387, 30388, 30389, 30390,
+        30391, 30392, 30393, 30394, 30395, 30396, 30397, 30398, 30400, 30401, 30402, 30403,
+        30404, 30405, 30406, 30407, 30408, 30409, 30410, 30411, 30412, 30413, 30414, 30415,
+        30416, 30417, 30418, 30419, 30420, 30421, 30422, 30423, 30424, 30601, 30602, 30603,
+        30604, 30605, 30606, 30607, 30608, 30609, 30610, 30611, 30612, 30613, 30614, 30615,
+        30616, 30617, 30618, 30619, 30620, 30621, 30622, 30623, 30624, 30625, 30626, 30627,
+        30628, 30629, 30630, 30631, 30632, 30633, 30634, 30635, 30636, 30637, 30638, 30639,
+        30640, 31001, 31003, 31004, 31005, 31006, 31007, 31008, 31009, 31010, 31011, 31012,
+        31013, 31014, 31015, 31016, 31017, 31018, 31019, 31020, 31021, 31022, 31023, 31024,
+        31025, 31026, 31027, 31028, 31029, 31030, 31031, 31032, 31033, 31034, 31035, 31036,
+        31037, 31038, 31039, 31040, 31041, 31042, 31043, 31044, 31045, 31046, 31047, 31048,
+        31049, 31051, 31052, 31053, 31054, 31055, 31056, 31057, 31058, 31059, 31060, 31061,
+        31062, 31063, 31064, 31065, 31066, 31067, 31068, 31069, 31070, 31071, 31072, 31073,
+        31074, 31075, 31076, 31077, 31078, 31079, 31080, 31081, 31082, 31083, 31084, 31085,
+        31086, 31087, 31088, 31089, 31090, 31091, 31092, 31093, 31094, 31095, 31096, 31097,
+        31098, 31099, 31100, 31101, 31102, 31103, 31104, 31105, 31106, 31107, 31108, 31109,
+        31110, 31111, 31112, 31113, 31114, 31115, 31116, 31117, 31118, 31119, 31120, 31122,
+        31123, 31124, 31125, 31126, 31127, 31128, 31129, 31130, 31131, 31132, 31133, 31134,
+        31135, 31136, 31137, 31138, 31139, 31140, 31141, 31142, 31143, 31144, 31145, 31146,
+        31147, 31148, 31149, 31150, 31151, 31152, 31153, 31154, 31155, 31156, 31157, 31158,
+        31159, 31160, 31161, 31162, 31163, 31164, 31165, 31166, 31167, 31168, 31169, 31170,
+        31171, 31172, 31173, 31174, 31175, 31176, 31177, 31178, 31179, 31180, 31181, 31182,
+        31183, 31184, 31185, 31186, 31187, 31188, 31189, 31190, 31191, 31192, 31194, 31195,
+        31196, 31197, 31198, 31199, 31200, 31201, 31202, 31203, 31204, 31205, 31206, 31207,
+        31209, 31210, 31211, 31212, 31213, 31214, 31215, 31216, 31217, 31218, 31219, 31220,
+        31221, 31222, 31225, 31226, 31227, 31228, 31229, 31230, 31231, 31234, 31236, 31237,
+        31238, 31239, 31240, 31241, 31242, 31243, 31244, 31245, 31246, 31250, 31251, 31252,
+        31253, 31254, 31255, 31256, 31257, 31258, 31259, 31260, 31261, 31262, 31264, 31265,
+        31266, 31267, 31268, 31269, 31270, 31271, 31272, 31273, 31274, 31275, 31276, 31277,
+        31278, 31279, 31280, 31281, 31282, 31283, 31284, 31287, 31290, 31291, 31292, 31293,
+        31294, 31295, 31296, 31297, 31298, 31299, 31300, 31303, 31304, 31305, 31312, 31313,
+        31315, 31316, 31318, 31319, 31320, 31321, 31322, 31323, 31324, 31325, 31326, 31327,
+        31328, 31330, 31331, 31332, 31333, 31334, 31335, 31364, 31400, 31401, 31403, 31404,
+        31405, 31410, 31411, 31412, 31413, 31414, 31415, 31430, 31431, 31432, 31433, 31434,
+        31437, 31438, 31439, 31441, 31442, 31443, 31444, 31445, 31446, 31447, 31448, 31449,
+        31451, 31452, 31453, 31454, 31455, 31456, 31457, 31459, 31460, 31461, 31462, 31465,
+        31466, 31467, 31468, 31470, 31475, 31476, 31477, 31501, 31502, 31503, 31504, 31505,
+        31506, 31507, 31508, 31509, 31510, 31511, 31512, 31513, 31514, 31515, 31516, 32002,
+        32003, 32004, 32005, 32006, 32007, 32008, 32009, 32010, 32011, 35001, 35002, 35003,
+        35004, 35005, 35006, 35007, 35008, 35009, 35010, 40001, 40002, 40004, 40005, 40007,
+        40008, 40010, 40011, 40013, 40014, 40016, 40017, 40019, 40020, 40022, 40023, 40025,
+        40026, 40028, 40029, 40031, 40032, 40034, 40035, 40037, 40038, 40040, 40041, 40043,
+        40044, 40046, 40047, 40049, 40050, 40232, 40233, 40242, 40243, 40252, 40253, 40262,
+        40263, 60001, 60003, 60005, 60007, 60009, 60011, 60013, 60015, 60017, 60019, 60021,
+        60023, 60025, 60027, 60029, 60031, 60033, 60035, 60037, 60039, 60041, 60043, 60044,
+        60046, 60048, 60050, 60052, 60054, 60056, 60058, 60060, 60062, 60064, 60066, 60068,
+        60070, 60072, 60074, 60076, 60078, 70001, 70002, 70003, 70004, 70005, 70006, 70007,
+        70008, 70009, 70010, 70011, 70012, 1522195, 1522196, 1522240, 1522329, 1540259, 2000103, 2000104,
+        2000105, 2001000, 2001001, 2001002, 2001003, 2001004, 2001005, 2001006, 2001007, 2001008, 2001009, 2001010,
+        2001011, 2001012, 2001013, 2001014, 2001015, 2001016, 2001017, 2001018, 2001019, 2001020, 2001021, 2001022,
+        2001023, 2001024, 2001025, 2001026, 2001027, 2001028, 2001029, 2001030, 2001031, 2001032, 2001033, 2001034,
+        2001035, 2001036, 2001037, 2001038, 2001039, 2001040, 2001041, 2001042, 2001043, 2001044, 2001045, 2001046,
+        2001047, 2001048, 2001049, 2001050, 2001051, 2001052, 2001053, 2001054, 2001055, 2001056, 2001057, 2001058,
+        2001059, 2001060, 2001061, 2001062, 2001063, 2001064, 2001065, 2001066, 2001067, 2001068, 2001069, 2001070,
+        2001071, 2001072, 2001073, 2001074, 2001075, 2001076, 2001079, 2001080, 2001081, 2001082, 2001083, 2001084,
+        2001085, 2001086, 2001087, 2001088, 2001089, 2001090, 2001091, 2001092, 2001093, 2001094, 2001095, 2001096,
+        2001097, 2001098, 2001099, 2001100, 2001101, 2001102, 2001103, 2001104, 2001105, 2001106, 2001107, 2001108,
+        2001109, 2001110, 2001111, 2001112, 2001113, 2001114, 2001115, 2001116, 2001117, 2001118, 2001119, 2001120,
+        2001121, 2001122, 2001123, 2001124, 2001125, 2001126, 2001127, 2001128, 2001129, 2001130, 2001131, 2001132,
+        2001133, 2001134, 2001135, 2001136, 2001137, 2001138, 2001139, 2001140, 2001141, 2001142, 2001143, 2001144,
+        2001145, 2001146, 2001147, 2001148, 2001149, 2001150, 2001151, 2001152, 2001153, 2001154, 2001155, 2001156,
+        2001157, 2001158, 2001159, 2001160, 2001161, 2001162, 2001163, 2001164, 2001165, 2001166, 2001169, 2001170,
+        2001171, 2001172, 2001173, 2001174, 2001175, 2001176, 2001177, 2001178, 2001179, 2001180, 2001181, 2001182,
+        2001183, 2001184, 2001185, 2001186, 2001187, 2001188, 2001189, 2001190, 2001191, 2001193, 2001194, 2001195,
+        2001196, 2001197, 2001198, 2001199, 2001200, 2001201, 2001202, 2001203, 2001204, 2001205, 2001206, 2001207,
+        2001208, 2001209, 2001210, 2001211, 2001212, 2001213, 2001214, 2001215, 2001216, 2001217, 2001218, 2001219,
+        2001220, 2001221, 2001222, 2001223, 2001224, 2002000, 2002101, 2002102, 2002103, 2002201, 2002202, 2002203,
+        2002204, 2002205, 2002206, 2002901, 2002902, 2002903, 2002904, 2002905, 2002906, 2002907, 2002920, 2002921,
+        2002922, 2002923, 2002924, 2002925, 2002926, 2002927, 2002928, 2002929, 2002930, 2002931, 2002932, 2002933,
+        2002934, 2002935, 2002936, 2002937, 2002938, 2002939, 2002940, 2002941, 2002942, 2002943, 2002944, 2002945,
+        2002946, 2002947, 2002948, 2002949, 2002950, 2002951, 2002952, 2002965, 2002966, 2002967, 2002968, 2002969,
+        2002970, 2003000, 2003001, 2003002, 2003003, 2003004, 2003005, 2003006, 2003007, 2003008, 2003009, 2003010,
+        2003011, 2003012, 2003013, 2003014, 2003015, 2003016, 2003017, 2003018, 2003019, 2003020, 2003021, 2003022,
+        2003023, 2003024, 2003025, 2003026, 2003027, 2003028, 2003029, 2004006, 2005001, 2005002, 2005003, 2005007,
+        2005008, 2005009, 2005023, 2005024, 2005025, 2005028, 2005031, 2005034, 2005038, 2005041, 2005043, 2005047,
+        2005048, 2005049, 2005050, 2005051, 2005052, 2005053, 2005058, 2005059, 2005060, 2005062, 2005063, 2005064,
+        2005065, 2005066, 2005067, 2005068, 2005069, 2005070, 2005071, 2005072, 2005073, 2005074, 2005075, 2005076,
+        2005078, 2005079, 2005080, 2005081, 2005082, 2005083, 2005084, 2005085, 2005086, 2005087, 2005088, 2005092,
+        2005093, 2005094, 2005096, 2005097, 2005098, 2005099, 2005100, 2005101, 2005105, 2005106, 2005107, 2005108,
+        2005111, 2005112, 2005113, 2005114, 2005115, 2005116, 2005117, 2005119, 2005123, 2005124, 2005125, 2005126,
+        2005127, 2005128, 2005129, 2005130, 2005131, 2005132, 2005133, 2005134, 2005135, 2005136, 2005137, 2005138,
+        2005139, 2005140, 2005141, 2005143, 2005144, 2005145, 2005147, 2005148, 2005149, 2005150, 2005151, 2005152,
+        2005154, 2005155, 2005158, 2005159, 2005160, 2005161, 2005162, 2005163, 2005164, 2005165, 2005166, 2005167,
+        2005168, 2005169, 2005170, 2005171, 2005172, 2005173, 2005174, 2005175, 2005176, 2005177, 2005178, 2005179,
+        2005180, 2005181, 2005183, 2005184, 2005185, 2005186, 2005187, 2005188, 2005190, 2005191, 2005192, 2005193,
+        2005194, 2005195, 2005196, 2005197, 2005198, 2005199, 2005200, 2005202, 2005203, 2005204, 2005205, 2005206,
+        2005207, 2005208, 2005211, 2005212, 2005213, 2005214, 2005215, 2005216, 2005217, 2005218, 2005219, 2005220,
+        2005221, 2005224, 2005225, 2005226, 2005227, 2005228, 2005237, 2005239, 2005245, 2005247, 2005248, 2005249,
+        2005250, 2005251, 2005252, 2005253, 2005254, 2005255, 2005256, 2005257, 2005258, 2005259, 2005260, 2005261,
+        2005262, 2005263, 2005264, 2005265, 2005266, 2005267, 2005268, 2005269, 2010001, 2010002, 2010003, 2010004,
+        2010005, 2010006, 2010007, 2010008, 2010009, 2200002, 2200003, 2200004, 2200005, 2200006, 2200007, 2200008,
+        2200009, 2200010, 2200011, 2200012, 2200013, 2200014, 2200015, 2200016, 2200017, 2200018, 2200019, 2200020,
+        2200021, 2200022, 2200023, 2200024, 2200025, 2200026, 2200027, 2200028, 2200029, 2200030, 2200031, 2200032,
+        2200033, 2200034, 2200035, 2200036, 2200037, 2200038, 2200039, 2200041, 2200043, 2200044, 2200045, 2200046,
+        2200047, 2200048, 2200049, 2200050, 2200051, 2200052, 2200053, 2200054, 2200055, 2200056, 2200057, 2200058,
+        2200059, 2200063, 2200064, 2200065, 2200066, 2200067, 2200068, 2200069, 2200070, 2200071, 2200072, 2200073,
+        2200074, 2200075, 2200076, 2200077, 2200078, 2200079, 2200080, 2200081, 2200082, 2200083, 2200084, 2200085,
+        2200086, 2200087, 2200088, 2200089, 2200090, 2200091, 2200092, 2200093, 2200094, 2200095, 2200096, 2200097,
+        2200098, 2200099, 2200100, 2200102, 2200103, 2200104, 2200105, 2200107, 2200108, 2200110, 2200111, 2200112,
+        2200113, 2200114, 2200115, 2200116, 2200118, 2200119, 2200120, 2200121, 2200123, 2200124, 2200125, 2200126,
+        2200140, 2200141, 2200142, 2200143, 2200144, 2200158, 2200161, 2200167, 2200168, 2200169, 2200170, 2200171,
+        2200172, 2200173, 2200174, 2200210, 2200211, 2200212, 2200217, 2200218, 2200219, 2200222, 2200223, 2200224,
+        2200228, 2200229, 2200231, 2200232, 2200233, 2200235, 2200236, 2200237, 2200238, 2200239, 2200240, 2200241,
+        2200244, 2200245, 2200246, 2200248, 2200249, 2200250, 2200253, 2200260, 2200261, 2200262, 2201048, 4507702,
+        4507703, 12222958, 22001034, 22001036, 22001037, 22001038, 22001039, 22001044, 22001045, 22001049, 80080001, 80080002,
+        80080003, 80080004, 80080005, 220010450, 220010451, 220010452, 220010453, 220010454, 220010455, 220010456, 220010457, 220010458,
+        220010459, 220010460, 220010462, 220010492, 300000001, 300000002, 300000003, 300000004, 300000005, 300000006, 300000007, 300000008,
+        300000009, 300000010, 300000011, 300000012, 300000013, 300000014, 300000015, 300000016, 300000017, 300000018, 300000019, 300000020,
+        300000021, 300000022, 300000023, 300000024, 300000025, 300000026, 300010001, 300010002, 300010003, 300010004, 300010005,
+    }
 
+    local FRAME_IDS = {
+        30079, 30090, 30092, 30094, 30095, 30098, 30111, 30112, 30116, 30117, 30118, 30119,
+        30122, 30123, 30125, 30128, 30129, 30130, 30142, 30143, 30144, 30145, 30146, 30147,
+        30148, 30149, 30150, 30151, 30152, 30156, 30157, 30158, 30159, 30163, 30164, 30167,
+        30168, 30169, 30176, 30177, 30185, 30186, 30191, 30194, 30195, 30202, 30204, 30216,
+        30217, 30238, 30239, 30254, 30255, 30257, 30263, 30264, 30286, 30287, 30294, 30295,
+        30298, 30299, 30300, 30301, 30302, 30303, 30306, 30307, 30309, 30312, 30313, 30314,
+        30315, 30317, 30318, 30319, 30322, 30323, 30326, 30327, 30328, 30329, 30332, 30333,
+        30334, 30335, 30338, 30341, 30342, 30343, 30344, 30345, 30346, 30349, 30350, 30351,
+        30352, 30355, 30356, 30357, 30359, 30360, 30363, 30364, 30367, 30368, 30369, 30370,
+        30373, 30374, 30375, 30376, 30377, 30380, 30381, 30382, 30383, 30386, 30387, 30388,
+        30389, 30392, 30393, 30394, 30395, 30601, 30602, 30605, 30606, 30609, 30610, 30611,
+        30612, 30615, 30616, 30617, 30618, 30621, 30622, 30623, 30624, 30625, 30627, 30630,
+        30631, 30632, 30633, 30634, 30637, 30638, 30639, 30640, 31001, 31261, 40002, 40005,
+        40008, 40011, 40014, 40017, 40020, 40023, 40026, 40029, 40032, 40035, 40038, 40041,
+        40044, 40047, 40050, 60003, 60005, 60009, 60011, 60015, 60017, 60021, 60023, 60027,
+        60029, 60033, 60035, 60039, 60041, 60043, 60046, 60048, 60052, 60054, 60058, 60060,
+        60064, 60066, 60070, 60072, 60076, 60078, 70002, 70004, 70006, 70008, 70010, 70012,
+        1403200, 1602266, 1602267, 2000103, 2000104, 2000105, 2001000, 2001001, 2001002, 2001003, 2001004, 2001005,
+        2001006, 2001007, 2001008, 2001009, 2001010, 2001011, 2001012, 2001013, 2001014, 2001015, 2001016, 2001017,
+        2001018, 2001019, 2001020, 2001021, 2001022, 2001023, 2001024, 2001025, 2001026, 2001027, 2001028, 2001029,
+        2001030, 2001031, 2001032, 2001033, 2001034, 2001035, 2001036, 2001037, 2001038, 2001039, 2001040, 2001041,
+        2001042, 2001043, 2001044, 2001045, 2001046, 2001047, 2001048, 2001049, 2001050, 2001051, 2001052, 2001053,
+        2001054, 2001055, 2001056, 2001057, 2001058, 2001059, 2001060, 2001061, 2001062, 2001063, 2001064, 2001065,
+        2001066, 2001067, 2001068, 2001069, 2001070, 2001071, 2001072, 2001073, 2001074, 2001075, 2001076, 2001079,
+        2001080, 2001081, 2001082, 2001083, 2001084, 2001085, 2001086, 2001087, 2001088, 2001089, 2001090, 2001091,
+        2001092, 2001093, 2001094, 2001095, 2001096, 2001097, 2001098, 2001099, 2001100, 2001101, 2001102, 2001103,
+        2001104, 2001105, 2001106, 2001107, 2001108, 2001109, 2001110, 2001111, 2001112, 2001113, 2001114, 2001115,
+        2001116, 2001117, 2001118, 2001119, 2001120, 2001121, 2001122, 2001123, 2001124, 2001125, 2001126, 2001127,
+        2001128, 2001129, 2001130, 2001131, 2001132, 2001133, 2001134, 2001135, 2001136, 2001137, 2001138, 2001139,
+        2001140, 2001141, 2001142, 2001143, 2001144, 2001145, 2001146, 2001147, 2001148, 2001149, 2001150, 2001151,
+        2001152, 2001153, 2001154, 2001155, 2001156, 2001157, 2001158, 2001159, 2001160, 2001161, 2001162, 2001163,
+        2001164, 2001165, 2001166, 2001169, 2001170, 2001171, 2001172, 2001173, 2001174, 2001175, 2001176, 2001177,
+        2001178, 2001179, 2001180, 2001181, 2001182, 2001183, 2001184, 2001185, 2001186, 2001187, 2001188, 2001189,
+        2001190, 2001191, 2001193, 2001194, 2001195, 2001196, 2001197, 2001198, 2001199, 2001200, 2001201, 2001202,
+        2001203, 2001204, 2001205, 2001206, 2001207, 2001208, 2001209, 2001210, 2001211, 2001212, 2001213, 2001214,
+        2001215, 2001216, 2001217, 2001218, 2001219, 2001220, 2001221, 2001222, 2001223, 2001224, 2002000, 2002001,
+        2002002, 2002003, 2002004, 2002005, 2002006, 2002007, 2002101, 2002102, 2002103, 2002201, 2002202, 2002203,
+        2002204, 2002205, 2002206, 2002901, 2002902, 2002903, 2002904, 2002905, 2002906, 2002907, 2002908, 2002909,
+        2002910, 2002911, 2002912, 2002913, 2002914, 2002915, 2002916, 2002917, 2002918, 2002919, 2002920, 2002921,
+        2002922, 2002923, 2002924, 2002925, 2002926, 2002927, 2002928, 2002929, 2002930, 2002931, 2002932, 2002933,
+        2002934, 2002935, 2002936, 2002937, 2002938, 2002939, 2002940, 2002941, 2002942, 2002943, 2002944, 2002945,
+        2002946, 2002947, 2002948, 2002949, 2002950, 2002951, 2002952, 2002965, 2002966, 2002967, 2002968, 2002969,
+        2002970, 2003000, 2003001, 2003002, 2003003, 2003004, 2003005, 2003006, 2003007, 2003008, 2003009, 2003010,
+        2003011, 2003012, 2003013, 2003014, 2003015, 2003016, 2003017, 2003018, 2003019, 2003020, 2003021, 2003022,
+        2003023, 2003024, 2003025, 2003026, 2003027, 2003028, 2003029, 2004003, 2004005, 2004006, 2005001, 2005002,
+        2005003, 2005004, 2005007, 2005008, 2005009, 2005010, 2005012, 2005013, 2005014, 2005015, 2005016, 2005017,
+        2005018, 2005019, 2005020, 2005021, 2005022, 2005023, 2005024, 2005025, 2005026, 2005027, 2005028, 2005029,
+        2005030, 2005031, 2005032, 2005033, 2005034, 2005035, 2005036, 2005037, 2005038, 2005039, 2005040, 2005041,
+        2005042, 2005043, 2005044, 2005045, 2005046, 2005047, 2005048, 2005049, 2005050, 2005051, 2005052, 2005053,
+        2005056, 2005057, 2005058, 2005059, 2005060, 2005061, 2005062, 2005063, 2005064, 2005065, 2005066, 2005067,
+        2005068, 2005069, 2005070, 2005071, 2005072, 2005073, 2005074, 2005075, 2005076, 2005077, 2005078, 2005079,
+        2005080, 2005081, 2005082, 2005083, 2005084, 2005085, 2005086, 2005087, 2005088, 2005089, 2005090, 2005091,
+        2005092, 2005093, 2005094, 2005095, 2005096, 2005097, 2005098, 2005099, 2005100, 2005101, 2005102, 2005103,
+        2005104, 2005105, 2005106, 2005107, 2005108, 2005111, 2005112, 2005113, 2005114, 2005115, 2005116, 2005117,
+        2005118, 2005119, 2005120, 2005121, 2005122, 2005123, 2005124, 2005125, 2005126, 2005127, 2005128, 2005129,
+        2005130, 2005131, 2005132, 2005133, 2005134, 2005135, 2005136, 2005137, 2005138, 2005139, 2005140, 2005141,
+        2005142, 2005143, 2005144, 2005145, 2005146, 2005147, 2005148, 2005149, 2005150, 2005151, 2005152, 2005153,
+        2005154, 2005155, 2005156, 2005157, 2005158, 2005159, 2005160, 2005161, 2005163, 2005164, 2005165, 2005166,
+        2005167, 2005168, 2005169, 2005170, 2005171, 2005172, 2005173, 2005174, 2005175, 2005176, 2005177, 2005178,
+        2005179, 2005180, 2005181, 2005182, 2005183, 2005184, 2005185, 2005186, 2005187, 2005188, 2005189, 2005190,
+        2005191, 2005192, 2005193, 2005194, 2005195, 2005196, 2005197, 2005198, 2005199, 2005200, 2005201, 2005202,
+        2005203, 2005204, 2005205, 2005206, 2005207, 2005208, 2005209, 2005210, 2005211, 2005212, 2005213, 2005214,
+        2005215, 2005216, 2005217, 2005218, 2005219, 2005220, 2005221, 2005222, 2005223, 2005224, 2005225, 2005226,
+        2005227, 2005228, 2005237, 2005239, 2005240, 2005241, 2005242, 2005243, 2005244, 2005245, 2005246, 2005247,
+        2005248, 2005249, 2005250, 2005251, 2005252, 2005253, 2005254, 2005255, 2005256, 2005257, 2005258, 2005259,
+        2005260, 2005261, 2005262, 2005263, 2005264, 2005265, 2005266, 2005267, 2005268, 2005269, 2010001, 2010002,
+        2010003, 2010004, 2010005, 2010006, 2010007, 2010008, 2010009, 2200002, 2200003, 2200004, 2200005, 2200006,
+        2200007, 2200008, 2200009, 2200010, 2200011, 2200012, 2200013, 2200014, 2200015, 2200016, 2200017, 2200018,
+        2200019, 2200020, 2200021, 2200022, 2200023, 2200024, 2200025, 2200026, 2200027, 2200028, 2200029, 2200030,
+        2200031, 2200032, 2200033, 2200034, 2200035, 2200036, 2200037, 2200038, 2200039, 2200040, 2200041, 2200043,
+        2200044, 2200045, 2200046, 2200047, 2200048, 2200049, 2200050, 2200051, 2200052, 2200053, 2200054, 2200055,
+        2200056, 2200057, 2200058, 2200059, 2200060, 2200063, 2200064, 2200065, 2200066, 2200067, 2200068, 2200069,
+        2200070, 2200071, 2200072, 2200073, 2200074, 2200075, 2200076, 2200077, 2200078, 2200079, 2200080, 2200081,
+        2200082, 2200083, 2200084, 2200085, 2200086, 2200087, 2200088, 2200089, 2200090, 2200091, 2200092, 2200093,
+        2200094, 2200095, 2200096, 2200097, 2200098, 2200099, 2200100, 2200102, 2200103, 2200104, 2200105, 2200106,
+        2200107, 2200108, 2200109, 2200110, 2200111, 2200112, 2200113, 2200114, 2200115, 2200116, 2200117, 2200118,
+        2200119, 2200120, 2200121, 2200122, 2200123, 2200124, 2200125, 2200126, 2200140, 2200141, 2200142, 2200143,
+        2200144, 2200145, 2200146, 2200147, 2200148, 2200149, 2200150, 2200151, 2200155, 2200156, 2200157, 2200158,
+        2200161, 2200162, 2200163, 2200164, 2200165, 2200166, 2200167, 2200168, 2200169, 2200170, 2200171, 2200172,
+        2200173, 2200174, 2200210, 2200211, 2200212, 2200213, 2200214, 2200216, 2200217, 2200218, 2200219, 2200220,
+        2200221, 2200222, 2200223, 2200224, 2200225, 2200226, 2200227, 2200228, 2200229, 2200230, 2200231, 2200232,
+        2200233, 2200234, 2200235, 2200236, 2200237, 2200238, 2200239, 2200240, 2200241, 2200242, 2200243, 2200244,
+        2200245, 2200246, 2200248, 2200249, 2200250, 2200251, 2200252, 2200253, 2200256, 2200260, 2200261, 2200262,
+        2201048, 4507703, 12219672, 12219673, 12220609, 12220611, 12222958, 22001034, 22001036, 22001037, 22001038, 22001039,
+        22001040, 22001041, 22001042, 22001043, 22001044, 22001045, 22001047, 22001048, 22001049, 61830001, 61830002, 61830003,
+        62310001, 62410001, 66631070, 66631704, 66631705, 66631706, 66631707, 66631708, 66631709, 66631710, 66632393, 220010450,
+        220010451, 220010452, 220010453, 220010454, 220010455, 220010456, 220010457, 220010458, 220010459, 220010460, 220010462, 220010492,
+        300000001, 300000002, 300000003, 300000004, 300000005, 300000006, 300000007, 300000008, 300000009, 300000010, 300000011, 300000012,
+        300000013, 300000014, 300000015, 300000016, 300000017, 300000018, 300000019, 300000020, 300000021, 300000022, 300000023, 300000024,
+        300000025, 300000026,
+    }
 
-function _G.LoadCollectionHallScene()
+    _G.BeysaFake = _G.BeysaFake or {}
+    local BF = _G.BeysaFake
+    _G.BeysaProfile = BF
+
+    local currentAvatar = 0
+    local currentFrame = 0
+    local rawSetAvatar = BF.SetAvatar
+    local rawSetBox = BF.SetAvatarBox
+
+    local PROFILE_PATHS = {
+        "/storage/emulated/0/Android/data/com.pubg.imobile/files/BeysaProfile.ini",
+        "/storage/emulated/0/Android/data/com.tencent.ig/files/BeysaProfile.ini",
+        "/storage/emulated/0/Android/data/com.vng.pubgmobile/files/BeysaProfile.ini",
+        "/storage/emulated/0/Android/data/com.pubg.krmobile/files/BeysaProfile.ini"
+    }
+
+    local function saveProfile()
+        pcall(function()
+            local a, b = BF.GetProfile()
+            for _, path in ipairs(PROFILE_PATHS) do
+                local f = io.open(path, "w")
+                if f then
+                    f:write("[Profile]\nAVATAR=" .. tostring(a) .. "\nFRAME=" .. tostring(b) .. "\n")
+                    f:close()
+                    break
+                end
+            end
+        end)
+    end
+
+    BF.GetProfile = function()
+        return currentAvatar, currentFrame
+    end
+
+    BF.SetAvatar = function(id)
+        currentAvatar = tonumber(id) or id
+        _G.AVATAR_ID = currentAvatar
+        _G._savedAvatarUrl = tostring(id)
+        if type(rawSetAvatar) == "function" then pcall(rawSetAvatar, id) end
+        saveProfile()
+    end
+
+    BF.SetAvatarBox = function(id)
+        currentFrame = tonumber(id) or id
+        _G.AVATAR_BOX_ID = currentFrame
+        _G._savedAvatarFrame = tonumber(id) or 0
+        if type(rawSetBox) == "function" then pcall(rawSetBox, id) end
+        saveProfile()
+    end
+
     pcall(function()
-        if LobbySceneManager and LobbySceneManager.LoadStreamLevel then
-
-            LobbySceneManager.LoadStreamLevel(true, SOCIAL_HALL_CONFIG.ROOM_SCENE_NAME, SOCIAL_HALL_CONFIG.CAMERA_ID, "Lobby_Light")
-        end
-    end)
-end
-
-
-function _G.SetBehindPlayerBackground(bgItemId)
-    pcall(function()
-        bgItemId = bgItemId or SOCIAL_HALL_CONFIG.DEFAULT_BG_WALL
-        local ModuleManager = require("client.module_framework.ModuleManager")
-        if not ModuleManager or not ModuleManager.LobbyModuleConfig then return end
-
-        local Logic_SocialLobbyModule = ModuleManager.GetModule(ModuleManager.LobbyModuleConfig.Logic_SocialLobbyModule)
-        if Logic_SocialLobbyModule then
-            local myUid = tonumber(DataMgr.roleData.uid)
-
-            Logic_SocialLobbyModule:SetBGWallPicItemId(myUid, bgItemId)
-
-
-            if EventSystem and EVENTTYPE_LOBBY_SOCIAL and EVENTID_SOCIAL_LOBBY_SLOT_DATA_UPDATE then
-                EventSystem:postEvent(EVENTTYPE_LOBBY_SOCIAL, EVENTID_SOCIAL_LOBBY_SLOT_DATA_UPDATE)
+        for _, path in ipairs(PROFILE_PATHS) do
+            local f = io.open(path, "r")
+            if f then
+                local txt = f:read("*a")
+                f:close()
+                local a = tonumber(txt:match("AVATAR%s*=%s*(%d+)"))
+                local b = tonumber(txt:match("FRAME%s*=%s*(%d+)"))
+                if a and a > 0 then
+                    currentAvatar = a
+                    _G.AVATAR_ID = a
+                    _G._savedAvatarUrl = tostring(a)
+                    if type(rawSetAvatar) == "function" then pcall(rawSetAvatar, a) end
+                end
+                if b and b > 0 then
+                    currentFrame = b
+                    _G.AVATAR_BOX_ID = b
+                    _G._savedAvatarFrame = b
+                    if type(rawSetBox) == "function" then pcall(rawSetBox, b) end
+                end
+                break
             end
         end
     end)
+
+    pcall(function()
+        if (not currentAvatar or currentAvatar == 0) and _G._savedAvatarUrl then
+            local a = tonumber(_G._savedAvatarUrl)
+            if a and a > 0 then currentAvatar = a end
+        end
+        if (not currentFrame or currentFrame == 0) and _G._savedAvatarFrame then
+            local b = tonumber(_G._savedAvatarFrame)
+            if b and b > 0 then currentFrame = b end
+        end
+    end)
+
+    local function post(evType, evId, arg1)
+        pcall(function()
+            if EventSystem and _G[evType] and _G[evId] then
+                EventSystem:postEvent(_G[evType], _G[evId], arg1)
+            end
+        end)
+    end
+
+    local INJ_A, INJ_F = {}, {}
+
+    local function mergeAvatars(sys)
+        pcall(function()
+            if not sys then return end
+            sys.HeadportraitList = sys.HeadportraitList or {}
+            for _, id in ipairs(AVATAR_IDS) do
+                local k = tostring(id)
+                if sys.HeadportraitList[k] == nil then
+                    sys.HeadportraitList[k] = 1
+                    INJ_A[k] = true
+                end
+            end
+            sys.HasOwnHeadPortrait = function() return true end
+            sys.HasAvatar = function() return true end
+        end)
+    end
+
+    local function mergeFrames(sys)
+        pcall(function()
+            if not sys then return end
+            sys.AvatarFrameList = sys.AvatarFrameList or {}
+            for _, id in ipairs(FRAME_IDS) do
+                if sys.AvatarFrameList[id] == nil then
+                    sys.AvatarFrameList[id] = { id = id, expire_time = 1 }
+                    INJ_F[id] = true
+                end
+            end
+            sys.HasAvatarFrame = function() return true end
+            sys.HasAvatarFrameCond = function() return true end
+            sys.IsLocked = function() return false end
+            sys.CheckAvatarFrameValid = function() return true end
+        end)
+    end
+
+    local function hookAvatar()
+        local ok, sys = pcall(require, "client.slua.logic.roleInfo.logic_roleInfo_Avatar")
+        if not ok or type(sys) ~= "table" then return false end
+        if not sys._BeysaPickerHooked then
+            sys._BeysaPickerHooked = true
+            local origRsp = sys.get_user_avatar_list_rsp
+            sys.get_user_avatar_list_rsp = function(err, list, url)
+                INJ_A = {}
+                if origRsp then origRsp(err, list, url) end
+                if err == 0 then
+                    mergeAvatars(sys)
+                    pcall(function()
+                        local headUrl = DataMgr and DataMgr.roleData and DataMgr.roleData.headIconUrl
+                        post("EVENTTYPE_ROLEINFO", "EVENTID_ROLEINFO_UPDATE_HEAD_INFO", headUrl)
+                    end)
+                end
+            end
+
+            local origSend = sys.send_change_user_avatar
+            sys.send_change_user_avatar = function(item_url)
+                local id = tonumber(item_url)
+                if id and (INJ_A[tostring(id)] or true) then
+                    pcall(GlobalShowNotice, 49951)
+                    BF.SetAvatar(id)
+                    pcall(function()
+                        if DataMgr and DataMgr.UpdateHeadIconUrl then
+                            DataMgr.UpdateHeadIconUrl(tostring(id))
+                        end
+                    end)
+                    post("EVENTTYPE_ROLEINFO", "EVENTID_ROLEINFO_UPDATE_USE_AVATAR")
+                    post("EVENTTYPE_LOBBY", "EVENTID_UPDATE_LOBBY_AVATAR")
+                    pcall(function()
+                        if sys.update_user_avatar_url then
+                            sys.update_user_avatar_url(item_url)
+                        elseif sys.change_user_avatar_rsp then
+                            sys.change_user_avatar_rsp(0, item_url, 0)
+                        end
+                    end)
+                    if _G.AddOutfitForceFlushSave then pcall(_G.AddOutfitForceFlushSave) end
+                    return
+                end
+                if origSend then return origSend(item_url) end
+            end
+        end
+        mergeAvatars(sys)
+        return true
+    end
+
+    local function hookFrame()
+        local ok, sys = pcall(require, "client.slua.logic.roleInfo.logic_RoleInfoAvatarFrame")
+        if not ok or type(sys) ~= "table" then return false end
+        if not sys._BeysaPickerHooked then
+            sys._BeysaPickerHooked = true
+            local origRsp = sys.get_avatar_box_list_rsp
+            sys.get_avatar_box_list_rsp = function(err, list, cur)
+                INJ_F = {}
+                if origRsp then origRsp(err, list, cur) end
+                if err == 0 then
+                    mergeFrames(sys)
+                    post("EVENTTYPE_ROLEINFO", "EVENTID_ROLEINFO_UPDATE_AVATAR_FRAME_INFO")
+                end
+            end
+
+            local origChange = sys.change_avatar_box
+            sys.change_avatar_box = function(item_id)
+                local id = tonumber(item_id)
+                if id and (INJ_F[id] or true) then
+                    pcall(GlobalShowNotice, 49951)
+                    BF.SetAvatarBox(id)
+                    pcall(function()
+                        if sys.UpdateCurAvatarBoxID then
+                            sys.UpdateCurAvatarBoxID(id)
+                        end
+                    end)
+                    post("EVENTTYPE_ROLEINFO", "EVENTID_ROLEINFO_UPDATE_AVATAR_FRAME_INFO")
+                    post("EVENTTYPE_LOBBY", "EVENTID_UPDATE_LOBBY_AVATAR")
+                    pcall(function()
+                        if sys.change_avatar_box_rsp then
+                            sys.change_avatar_box_rsp(0, id)
+                        end
+                    end)
+                    if _G.AddOutfitForceFlushSave then pcall(_G.AddOutfitForceFlushSave) end
+                    return
+                end
+                if origChange then return origChange(item_id) end
+            end
+        end
+        mergeFrames(sys)
+        return true
+    end
+
+    local function hookAll()
+        local a = hookAvatar()
+        local b = hookFrame()
+        return a and b
+    end
+
+    _G.BeysaMergeAvatars = mergeAvatars
+    _G.BeysaMergeFrames = mergeFrames
+    _G.BeysaHookAll = hookAll
+
+    pcall(hookAll)
 end
 
+do
+    local SOCIAL_HALL_CONFIG = {
+        ROOM_SCENE_NAME     = "Lobby_Social_CH_Mesh",
+        CAMERA_ID           = 10151,
+        DEFAULT_SKIN_ID     = 6680101,
+        DEFAULT_BG_WALL     = 6680200,
+        MONUMENT_ID         = 6680702,
+    }
 
-function _G.UnlockAllCollectionPlatforms()
-    pcall(function()
-        local ModuleManager = require("client.module_framework.ModuleManager")
-        if not ModuleManager or not ModuleManager.LobbyModuleConfig then return end
+    local function getModuleManager()
+        local ok1, m1 = pcall(require, "client.module_framework.ModuleManager")
+        if ok1 and m1 then return m1 end
+        local ok2, m2 = pcall(require, "client.module_framework.module_manager")
+        if ok2 and m2 then return m2 end
+        return nil
+    end
 
-        local Logic_SocialLobbyModule = ModuleManager.GetModule(ModuleManager.LobbyModuleConfig.Logic_SocialLobbyModule)
-        if Logic_SocialLobbyModule then
+    local function patchSocialModule(m)
+        if not m or type(m) ~= "table" then return end
+        m.GetSlotIsUnlockBySlotTypeAndIndex = function() return true end
+        m.CheckSlotTypeIsUCUnlock = function() return true end
+        m.GetSlotIsUnlockedByCollectHallLevel = function() return true end
+        m.GetUnlockSlotByCollectHallMinLevel = function() return 0 end
+        m.IsSlotUnlocked = function() return true end
+    end
 
-            Logic_SocialLobbyModule.GetSlotIsUnlockBySlotTypeAndIndex = function() return true end
-            Logic_SocialLobbyModule.CheckSlotTypeIsUCUnlock = function() return true end
-            Logic_SocialLobbyModule.GetSlotIsUnlockedByCollectHallLevel = function() return true end
+    local function patchSocialEditModule(m)
+        if not m or type(m) ~= "table" then return end
+        m.GetCurIsLatestData = function() return true end
+    end
 
+    function _G.LoadCollectionHallScene()
+        pcall(function()
+            if LobbySceneManager and LobbySceneManager.LoadStreamLevel then
+                LobbySceneManager.LoadStreamLevel(true, SOCIAL_HALL_CONFIG.ROOM_SCENE_NAME, SOCIAL_HALL_CONFIG.CAMERA_ID, "Lobby_Light")
+            end
+        end)
+    end
+
+    function _G.SetBehindPlayerBackground(bgItemId)
+        pcall(function()
+            bgItemId = bgItemId or SOCIAL_HALL_CONFIG.DEFAULT_BG_WALL
+            local ModuleManager = getModuleManager()
+            if not ModuleManager or not ModuleManager.LobbyModuleConfig then return end
+
+            local Logic_SocialLobbyModule = ModuleManager.GetModule(ModuleManager.LobbyModuleConfig.Logic_SocialLobbyModule)
+            if Logic_SocialLobbyModule then
+                patchSocialModule(Logic_SocialLobbyModule)
+                local myUid = tonumber(DataMgr and DataMgr.roleData and DataMgr.roleData.uid)
+                if myUid and Logic_SocialLobbyModule.SetBGWallPicItemId then
+                    Logic_SocialLobbyModule:SetBGWallPicItemId(myUid, bgItemId)
+                end
+                if EventSystem and EVENTTYPE_LOBBY_SOCIAL and EVENTID_SOCIAL_LOBBY_SLOT_DATA_UPDATE then
+                    EventSystem:postEvent(EVENTTYPE_LOBBY_SOCIAL, EVENTID_SOCIAL_LOBBY_SLOT_DATA_UPDATE)
+                end
+            end
+        end)
+    end
+
+    function _G.UnlockAllCollectionPlatforms()
+        pcall(function()
+            local ModuleManager = getModuleManager()
+            if not ModuleManager or not ModuleManager.LobbyModuleConfig then return end
+
+            if ModuleManager.GetModule and not ModuleManager._skin_ch_hooked then
+                ModuleManager._skin_ch_hooked = true
+                local origGet = ModuleManager.GetModule
+                ModuleManager.GetModule = function(self_or_cfg, cfg_arg)
+                    local mod = origGet(self_or_cfg, cfg_arg)
+                    if mod and type(mod) == "table" and ModuleManager.LobbyModuleConfig then
+                        local cfg = cfg_arg or self_or_cfg
+                        if cfg == ModuleManager.LobbyModuleConfig.Logic_SocialLobbyModule then
+                            patchSocialModule(mod)
+                        elseif cfg == ModuleManager.LobbyModuleConfig.Logic_SocialLobbyEditMgrModule then
+                            patchSocialEditModule(mod)
+                        end
+                    end
+                    return mod
+                end
+            end
+
+            local Logic_SocialLobbyModule = ModuleManager.GetModule(ModuleManager.LobbyModuleConfig.Logic_SocialLobbyModule)
+            if Logic_SocialLobbyModule then
+                patchSocialModule(Logic_SocialLobbyModule)
+            end
 
             local Logic_SocialLobbyEditMgrModule = ModuleManager.GetModule(ModuleManager.LobbyModuleConfig.Logic_SocialLobbyEditMgrModule)
             if Logic_SocialLobbyEditMgrModule then
-                Logic_SocialLobbyEditMgrModule.GetCurIsLatestData = function() return true end
+                patchSocialEditModule(Logic_SocialLobbyEditMgrModule)
             end
-
 
             if EventSystem and EVENTTYPE_LOBBY_SOCIAL and EVENTID_SOCIAL_LOBBY_SLOT_DATA_UPDATE then
                 EventSystem:postEvent(EVENTTYPE_LOBBY_SOCIAL, EVENTID_SOCIAL_LOBBY_SLOT_DATA_UPDATE)
             end
-        end
-    end)
+        end)
+    end
+
+    _G.LoadCollectionHallScene()
+    _G.SetBehindPlayerBackground(6680200)
+    _G.UnlockAllCollectionPlatforms()
 end
-
-
-_G.LoadCollectionHallScene()
-_G.SetBehindPlayerBackground(6680200)
-_G.UnlockAllCollectionPlatforms()
--- https://t.me/ZERO_KALI_AR
 end)
 
 -- =========================================================================
@@ -21074,11 +22709,11 @@ end
 -- would fire notice 49951 twice).
 -- =========================================================================
 pcall(function()
--- ══════════════════════════════════════════════════════════════════
--- 7LuaPremium.lua — Unified Game Modifier
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+-- 7LuaPremium.lua â€” Unified Game Modifier
 -- Merged: 6.lua (fake gacha/currency) + 7.lua (profile/rank/badge/collection)
 -- Merged from: frame.lua + 2.lua + 3.lua + FAKE UC.lua
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 local M = {}
 _G.SevenLua = M
@@ -21158,9 +22793,9 @@ local function wireOnce(obj, method, key, wrapper)
     return false
 end
 
--- ══════════════════════════════════════════════════════════════════
--- CONFIGURATION — Edit values here
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+-- CONFIGURATION â€” Edit values here
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 M.config = {
     NAME_TAG_ID = 211216,
@@ -21352,9 +22987,9 @@ local function resolveTitleId()
     return findAlias(C.TITLE_LABEL) or 0
 end
 
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- SECTION 0: FAKE GACHA SYSTEM (from 6.lua, no DataMgr.ticket/coupon/voucher)
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 local function InitFakeGachaSystem()
     local function GetResId(data)
@@ -21586,7 +23221,7 @@ local function InitFakeGachaSystem()
 
         local availableRewards = ExtractRewardList(activityData)
         if not availableRewards or #availableRewards == 0 then
-            if _G.ShowNotice then _G.ShowNotice("Phần thưởng trống") end
+            if _G.ShowNotice then _G.ShowNotice("Pháº§n thÆ°á»Ÿng trá»‘ng") end
             return
         end
 
@@ -22440,9 +24075,9 @@ end
 InitFakeGachaSystem()
 
 
--- ══════════════════════════════════════════════════════════════════
--- SECTION 2: PROFILE SWAP — NAME TAG + TITLE (from 2.lua)
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+-- SECTION 2: PROFILE SWAP â€” NAME TAG + TITLE (from 2.lua)
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 local ALIAS_STATE = { notHave = 0, have = 1, use = 2 }
 
@@ -22988,9 +24623,9 @@ local function installProfileSwapHooks()
     log("ProfileSwap", "Lobby + In-game hooks initialized")
 end
 
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- SECTION 5: RANK / BADGE / PROFILE (from 3.lua, NO AVATAR)
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 local SEGMENT_TYPE = { solo = 1, double = 2, team = 3, fpp_solo = 4, fpp_double = 5, fpp_team = 6 }
 local RANK_MODES = { "solo", "duo", "squad", "fppsolo", "fppduo", "fppsquad" }
@@ -23767,9 +25402,9 @@ local function initRankBadge()
     log("RankBadge", "Rank + badge spoofing initialized")
 end
 
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- SECTION 6: COLLECTION LEVEL (from 3.lua)
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 _G.FAKE_LEVEL = C.FAKE_COLLECTION_LEVEL
 _G.FAKE_DAN = C.FAKE_COLLECTION_DAN
@@ -23928,9 +25563,9 @@ local function initCollectionLevel()
     log("Collection", "Collection level spoofing initialized")
 end
 
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 -- SECTION 7: MASTER TIMER + API + STARTUP
--- ══════════════════════════════════════════════════════════════════
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 local function applyAll(inMatch)
     pcall(function()
@@ -26003,6 +27638,7 @@ local function installSocialModuleHooks()
                             end
                         end
                     end)
+                    pcall(function() if _G.BeysaMergeAvatars then _G.BeysaMergeAvatars(sys) end end)
                     -- Server rsp resets the selected head icon: re-assert saved.
                     pcall(function()
                         local au = _G._savedAvatarUrl
@@ -26080,6 +27716,7 @@ local function installSocialModuleHooks()
                                 end
                             end
                         end
+                        pcall(function() if _G.BeysaMergeFrames then _G.BeysaMergeFrames(sys) end end)
                         -- Server rsp resets the equipped id: re-assert saved.
                         local af = tonumber(_G._savedAvatarFrame) or 0
                         if af > 0 and sys.UpdateCurAvatarBoxID then
@@ -26266,10 +27903,804 @@ pcall(function()
                     inMatch = GameStatus.IsInFightingStatus() and true or false
                 end
             end)
-            if not inMatch then pcall(installTeambrandUseHook) end
+            if not inMatch then
+                pcall(installTeambrandUseHook)
+                pcall(function()
+                    if _G.BeysaHookAll then _G.BeysaHookAll() end
+                    if _G.UnlockAllCollectionPlatforms then _G.UnlockAllCollectionPlatforms() end
+                end)
+            end
         end, -1, 2.0)
     end
 end)
 print("[ChetanSocial] name tag + frame + cover persist installed")
 end)
 
+
+
+-- =========================================================================
+-- WEATHER SYSTEM (weather.lua integration)
+-- =========================================================================
+do
+  if not _G.__WEATHER_MOD_LOADED__ then
+    _G.__WEATHER_MOD_LOADED__ = true
+
+_G.__WEATHER_MOD_LOADED__ = true
+
+local TitleLoc = {}
+TitleLoc._map = _G.__CUSTOM_TITLE_LOC_MAP__ or {}
+_G.__CUSTOM_TITLE_LOC_MAP__ = TitleLoc._map
+TitleLoc._nextId = 987655000
+
+function TitleLoc.Register(text)
+  if LocUtil and type(LocUtil.GetLocalizeResStr) == "function" and LocUtil.GetLocalizeResStr ~= TitleLoc._wrapped then
+    local current = LocUtil.GetLocalizeResStr
+    TitleLoc._prev = current
+    TitleLoc._wrapped = function(id)
+      local t = TitleLoc._map[id]
+      if t then return t end
+      if TitleLoc._prev then return TitleLoc._prev(id) end
+      return id
+    end
+    LocUtil.GetLocalizeResStr = TitleLoc._wrapped
+  end
+  TitleLoc._nextId = TitleLoc._nextId + 1
+  local id = TitleLoc._nextId
+  TitleLoc._map[id] = text or ""
+  return id
+end
+
+local FALLBACK_CFG_PATHS = {
+  "/storage/emulated/0/Android/data/com.tencent.ig/weather.h",
+  "/storage/emulated/0/Android/data/com.pubg.krmobile/weather.h",
+  "/storage/emulated/0/Android/data/com.vng.pubgmobile/weather.h",
+  "/storage/emulated/0/Android/data/com.rekoo.pubgm/weather.h",
+  "/storage/emulated/0/Android/data/com.pubg.imobile/weather.h",
+}
+
+local _fbCache = {}
+local _fbPath = nil
+
+local function FindFallbackPath()
+  if _fbPath then
+    local f = io.open(_fbPath, "r")
+    if f then f:close() return _fbPath end
+    _fbPath = nil
+  end
+  for _, path in ipairs(FALLBACK_CFG_PATHS) do
+    local f = io.open(path, "r")
+    if f then f:close() _fbPath = path return path end
+  end
+  return nil
+end
+
+local function LoadFallbackCfg()
+  if next(_fbCache) then return _fbCache end
+  _fbCache = {}
+  local path = FindFallbackPath()
+  if not path then return _fbCache end
+  local f = io.open(path, "r")
+  if not f then return _fbCache end
+  for line in f:lines() do
+    local key, value = line:match("^(%w+)%s*=%s*(%d+)")
+    if key and value then _fbCache[key] = tonumber(value) end
+  end
+  f:close()
+  return _fbCache
+end
+
+local function GetCfg(key, def)
+  local c = _G.lizardMH_Config
+  if c and c.Get then
+    local ok, v = pcall(c.Get, c, key, def)
+    if ok then return v end
+  end
+  local v = LoadFallbackCfg()[key]
+  return v ~= nil and v or def
+end
+
+local function SetCfg(key, value)
+  value = tonumber(value) or 0
+  local c = _G.lizardMH_Config
+  if c and c.Set then
+    pcall(c.Set, c, key, value)
+    return
+  end
+  LoadFallbackCfg()
+  _fbCache[key] = value
+  local path = FindFallbackPath()
+  if not path then return end
+  local lines = {}
+  local f = io.open(path, "r")
+  if f then
+    for line in f:lines() do table.insert(lines, line) end
+    f:close()
+  end
+  local updated = false
+  for i, line in ipairs(lines) do
+    local k = line:match("^(%w+)%s*=")
+    if k == key then
+      lines[i] = key .. "=" .. tostring(value)
+      updated = true
+      break
+    end
+  end
+  if not updated then lines[#lines + 1] = key .. "=" .. tostring(value) end
+  f = io.open(path, "w")
+  if f then
+    for _, line in ipairs(lines) do f:write(line, "\n") end
+    f:close()
+  end
+end
+
+local WIMG_WEATHER = "/Game/UMG/Texture/Lobby_NoAtlas/Room/Room_Image_Weather.Room_Image_Weather"
+local WIMG_WEATHER01 = "/Game/UMG/Texture/Lobby_NoAtlas/Room/Room_Image_Weather01.Room_Image_Weather01"
+local WIMG_FIVE = "/Game/UMG/Texture/Lobby_NoAtlas/Room/Room_Image_Five.Room_Image_Five"
+local WIMG_SIX = "/Game/UMG/Texture/Lobby_NoAtlas/Room/Room_Image_Six.Room_Image_Six"
+local WIMG_EIGHT = "/Game/UMG/Texture/Lobby_NoAtlas/Room/Room_Image_Eight.Room_Image_Eight"
+local WIMG_ROOMLIST = "/Game/UMG/Texture/Lobby_NoAtlas/Room/Room_Image_RoomList.Room_Image_RoomList"
+local WIMG_WEATHER_BG = "/Game/Mod/PlanPH/Arts/NoAtlas/ZD_Image_Weather_Bg.ZD_Image_Weather_Bg"
+
+local WEATHER_STYLES = {
+  [0] = { name = "Default", level = nil, material = nil, img = nil, imgLevel = "PUBG_Forest_SunnyDay" },
+  { name = "Sunny", level = "PUBG_Forest_SunnyDay", material = "/Game/Arts_Scenes/_Baltic/Sky/Materials/MI_Baltic_New_Sunny.MI_Baltic_New_Sunny", img = nil },
+  { name = "Sunset", level = "PUBG_Forest_SunnyDay_2UpDate", material = "/Game/Arts_Scenes/_Baltic/Sky/Materials/MI_Baltic_New_Sunset.MI_Baltic_New_Sunset", img = nil },
+  { name = "Rainy", level = "PUBG_Forest_RainyDay", material = "/Game/Arts_Scenes/_Baltic/Sky/Materials/M_SkySunnyToFoggy_Forest_Inst.M_SkySunnyToFoggy_Forest_Inst", img = nil },
+  { name = "Night Origin", level = "PUBG_Forest_Night_Origin", material = "/Game/Arts_Scenes/_Baltic/Sky/Materials/MI_Baltic_New_Night.MI_Baltic_New_Night", img = nil },
+  { name = "Night", level = "PUBG_Forest_Night_2", material = "/Game/Mod/GoldenDragon/Arts/sky/MI_Skybox_Night_GoldenDragon.MI_Skybox_Night_GoldenDragon", img = nil },
+  { name = "Foggy Night", level = "PUBG_Forest_Night_NewFog", material = "/Game/Arts_Scenes/_Baltic/Sky/Materials/Sky_SphereTexturesMap_Fog.Sky_SphereTexturesMap_Fog", img = nil },
+  { name = "Cloudy", level = "UGC_CloudyDay", material = "/Game/Arts_Scenes/_Baltic/Sky/Materials/MI_Baltic_New_Cloudy.MI_Baltic_New_Cloudy", img = nil },
+  { name = "Snowy", level = "UGC_SnowyDay", material = "/Game/Arts_Scenes/_DihorOtok/Sky/Materials/M_Sky_SnowToSquall_Inst.M_Sky_SnowToSquall_Inst", img = nil },
+  { name = "Dark", level = "TplanD_Weather_Dark", material = "/Game/Mod/Borderland/Arts_Scenes/_Borderland/Sky/BorderLand_SKy_Dark.BorderLand_SKy_Dark", img = nil },
+  { name = "Sandstorm", level = nil, material = "/Game/Arts_Scenes/_Savage/Buildings/Materials/M_SkySunnyToFoggy_SphereTex_Inst.M_SkySunnyToFoggy_SphereTex_Inst", img = WIMG_FIVE },
+  { name = "Dusk", level = nil, material = "/Game/Mod/PlanNT/Arts_Scenes/Sky/Mat/MI_Baltic_PlanNT_Dusk_01.MI_Baltic_PlanNT_Dusk_01", img = WIMG_SIX },
+  { name = "Radiation", level = nil, material = "/Game/Mod/TPlanD/Arts_Scenes/Landscape/Sky/MI_TplanD_Weather_Dark_Sunset.MI_TplanD_Weather_Dark_Sunset", img = WIMG_EIGHT },
+  { name = "Red Sky", level = nil, material = "/Game/Arts/Common/MasterMatInstances/Scene/Sky/MI_NewSky_Forest_Sunset.MI_NewSky_Forest_Sunset", img = WIMG_WEATHER_BG },
+  { name = "Morning", level = nil, material = "/Game/Mod/Livik/Livik_Scenes_New/Landscape/Sky/Sky_SphereTexturesMap_Morning.Sky_SphereTexturesMap_Morning", img = WIMG_ROOMLIST },
+  { name = "Neon Dark", level = nil, material = "/Game/Mod/Neon/Arts_Scenes/_Neon/Sky/Neon_Sky_Dark01_Inst.Neon_Sky_Dark01_Inst", img = WIMG_WEATHER01 },
+  { name = "Midnight", level = nil, material = "/Game/Mod/EvoBase/Arts_Scenes/Weather/M_260_SkySwitch_MiddayNight.M_260_SkySwitch_MiddayNight", img = WIMG_WEATHER },
+}
+
+local WEATHER_TYPES = {
+  [0] = { name = "None" },
+  { name = "Rain" },
+  { name = "Snow" },
+  { name = "Blizzard" },
+  { name = "Thunderstorm" },
+  { name = "Storm" },
+}
+
+local WEATHER_TYPE_CFG_KEY = "WEATHER_TYPE"
+local WEATHER_STYLE_CFG_KEY = "WEATHER_STYLE"
+local WEATHER_SFX_CFG_KEY = "WEATHER_SFX"
+
+local AUDIO_RAIN_AMBIENT_PLAY = "/Game/WwiseEvent/Ambient/Play_Ambient_Rain.Play_Ambient_Rain"
+local AUDIO_RAIN_AMBIENT_STOP = "/Game/WwiseEvent/Ambient/Play_Ambient_Rain_Stop.Play_Ambient_Rain_Stop"
+local AUDIO_RAIN_LOOP_PLAY = "/Game/Mod/PlanPH/WwiseEvent/PlanPH_Object_310/Play_PlanPH_Object_Rain_Loop.Play_PlanPH_Object_Rain_Loop"
+local AUDIO_RAIN_LOOP_STOP = "/Game/Mod/PlanPH/WwiseEvent/PlanPH_Object_310/Stop_PlanPH_Object_Rain_Loop.Stop_PlanPH_Object_Rain_Loop"
+local AUDIO_SNOW_PLAY = "/Game/Mod/IceWorld3/WwiseEvent/IceWorld3_Treasure_350/Play_IceWorld3_TreasureBox_Snow_Loop.Play_IceWorld3_TreasureBox_Snow_Loop"
+local AUDIO_SNOW_STOP = "/Game/Mod/IceWorld3/WwiseEvent/IceWorld3_Treasure_350/Stop_IceWorld3_TreasureBox_Snow_Loop.Stop_IceWorld3_TreasureBox_Snow_Loop"
+local AUDIO_WIND_PLAY = "/Game/Mod/EasternRealm/WwiseEvent/EasternRealm_POI_Wind_360/Play_EasternRealm_Wind_Guest_Loop.Play_EasternRealm_Wind_Guest_Loop"
+local AUDIO_WIND_STOP = "/Game/Mod/EasternRealm/WwiseEvent/EasternRealm_POI_Wind_360/Stop_EasternRealm_Wind_Guest_Loop.Stop_EasternRealm_Wind_Guest_Loop"
+local AUDIO_WIND2_PLAY = "/Game/Mod/PlanPH/WwiseEvent/PlanPH_Object_310/Play_PlanPH_Object_Wind_Machine_Loop.Play_PlanPH_Object_Wind_Machine_Loop"
+local AUDIO_WIND2_STOP = "/Game/Mod/PlanPH/WwiseEvent/PlanPH_Object_310/Stop_PlanPH_Object_Wind_Machine_Loop.Stop_PlanPH_Object_Wind_Machine_Loop"
+local AUDIO_WIND3_PLAY = "/Game/Mod/Mecha/WwiseEvent/Mecha_FlyArmor_320/Play_Mecha_FlyArmor_Wind_Loop.Play_Mecha_FlyArmor_Wind_Loop"
+local AUDIO_THUNDER_PLAY = "/Game/WwiseEvent/Character_KillEffect/Character_KillEffect_320/Play_Character_KillEffect_Thunder_320.Play_Character_KillEffect_Thunder_320"
+local AUDIO_THUNDER_STOP = "/Game/WwiseEvent/Character_KillEffect/Character_KillEffect_320/Stop_Character_KillEffect_Thunder_2D_320.Stop_Character_KillEffect_Thunder_2D_320"
+local AUDIO_THUNDER2_PLAY = "/Game/Mod/ZNQ8th/WwiseEvent/ZNQ8th_RegionalTransformation_430/Play_ZNQ8th_RegionalTransformation_ThunderCloud.Play_ZNQ8th_RegionalTransformation_ThunderCloud"
+local AUDIO_THUNDER3_PLAY = "/Game/Mod/GoldenDragon/WwiseEvent/GoldenDragon_300/Play_GoldenDragon_Ground_Thunder.Play_GoldenDragon_Ground_Thunder"
+
+local THUNDER_MIN_FRAMES = 480
+local THUNDER_MAX_FRAMES = 1200
+local SOUND_REFRESH_FRAMES = 600
+
+local _active = false
+local _loopAudioIDs = {}
+local _lastInGame = false
+local _frameCount = 0
+local _lastSoundRefresh = 0
+local _nextThunderFrame = 0
+local _thunderIndex = 1
+local _styleApplied = false
+
+local ALL_STOP_PATHS = {
+  AUDIO_RAIN_AMBIENT_STOP, AUDIO_RAIN_LOOP_STOP,
+  AUDIO_SNOW_STOP, AUDIO_WIND_STOP, AUDIO_WIND2_STOP,
+  AUDIO_THUNDER_STOP,
+}
+
+local THUNDER_PATHS = {
+  AUDIO_THUNDER_PLAY,
+  AUDIO_THUNDER2_PLAY,
+  AUDIO_THUNDER3_PLAY,
+}
+
+local _gAkGameplayStatics = nil
+local _gEScreenParticleEffectType = nil
+local _gAudioUtil = nil
+
+local function InitAudio()
+  if _gAkGameplayStatics then return end
+  local ok1, Ak = pcall(import, "AkGameplayStatics")
+  local ok2, ESPET = pcall(import, "EScreenParticleEffectType")
+  local ok3, audioUtil = pcall(require, "client.common.audio_util")
+  if ok1 then _gAkGameplayStatics = Ak end
+  if ok2 then _gEScreenParticleEffectType = ESPET end
+  if ok3 then _gAudioUtil = audioUtil end
+end
+
+local function IsInGame()
+  if GameStatus and GameStatus.IsInFightingStatus then
+    return GameStatus.IsInFightingStatus()
+  end
+  if Client and GameFrontendHUD then
+    return Client.GetUnrealNetworkStatus(GameFrontendHUD) == "Online"
+  end
+  return false
+end
+
+local function GetPlayerCharacter()
+  local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
+  if not slua.isValid(pc) then return nil end
+  if pc.GetPlayerCharacterSafety then return pc:GetPlayerCharacterSafety() end
+  if pc.GetCurPlayerCharacter then return pc:GetCurPlayerCharacter() end
+  return nil
+end
+
+local function StopAudioID(id)
+  if id and id ~= 0 then
+    pcall(function()
+      if _gAudioUtil then _gAudioUtil.StopSound(id) end
+    end)
+    pcall(function()
+      if _gAkGameplayStatics then _gAkGameplayStatics.StopPlayingID(id) end
+    end)
+  end
+end
+
+local function PlayLoopSound(key, path)
+  local ownerObj = GetPlayerCharacter()
+  pcall(function()
+    if not _gAudioUtil then return end
+    _gAudioUtil.PlayAudioAsync(path, ownerObj, nil, function(soundId)
+      if soundId and soundId ~= 0 then
+        _loopAudioIDs[key] = soundId
+      end
+    end)
+  end)
+end
+
+local function StopAllLoopSounds()
+  for key, id in pairs(_loopAudioIDs) do
+    StopAudioID(id)
+    _loopAudioIDs[key] = nil
+  end
+  pcall(function()
+    if _gAudioUtil then
+      for _, stopPath in ipairs(ALL_STOP_PATHS) do
+        _gAudioUtil.PlayAudioAsync(stopPath)
+      end
+    end
+    if _gAkGameplayStatics then
+      _gAkGameplayStatics.AkSetRTPCValue("Ambient_Weather", 0, false)
+    end
+  end)
+end
+
+local function ScheduleNextThunder()
+  _nextThunderFrame = _frameCount + math.random(THUNDER_MIN_FRAMES, THUNDER_MAX_FRAMES)
+end
+
+local function PlayThunder()
+  local ownerObj = GetPlayerCharacter()
+  local path = THUNDER_PATHS[_thunderIndex]
+  _thunderIndex = (_thunderIndex % #THUNDER_PATHS) + 1
+  pcall(function()
+    if _gAudioUtil then _gAudioUtil.PlayAudioAsync(path, ownerObj) end
+  end)
+  ScheduleNextThunder()
+end
+
+local function GetTypeMode()
+  return GetCfg(WEATHER_TYPE_CFG_KEY, 0)
+end
+
+local function GetSFXEnabled()
+  return GetCfg(WEATHER_SFX_CFG_KEY, 1) == 1
+end
+
+local function NeedsRain()
+  local m = GetTypeMode()
+  return m == 1 or m == 4 or m == 5
+end
+
+local function NeedsSnow()
+  local m = GetTypeMode()
+  return m == 2 or m == 3 or m == 5
+end
+
+local function NeedsBlizzard()
+  local m = GetTypeMode()
+  return m == 3 or m == 5
+end
+
+local function NeedsWind()
+  local m = GetTypeMode()
+  return m == 3 or m == 5
+end
+
+local function NeedsThunder()
+  local m = GetTypeMode()
+  return m == 4 or m == 5
+end
+
+local function StartSounds()
+  StopAllLoopSounds()
+  if not GetSFXEnabled() then return end
+  local ownerObj = GetPlayerCharacter()
+
+  if NeedsRain() then
+    pcall(function()
+      if _gAkGameplayStatics then _gAkGameplayStatics.AkSetRTPCValue("Ambient_Weather", 100, false) end
+    end)
+    PlayLoopSound("rain_ambient", AUDIO_RAIN_AMBIENT_PLAY)
+    PlayLoopSound("rain_loop", AUDIO_RAIN_LOOP_PLAY)
+  end
+
+  if NeedsSnow() then
+    PlayLoopSound("snow", AUDIO_SNOW_PLAY)
+  end
+
+  if NeedsWind() then
+    PlayLoopSound("wind1", AUDIO_WIND_PLAY)
+    PlayLoopSound("wind2", AUDIO_WIND2_PLAY)
+    PlayLoopSound("wind3", AUDIO_WIND3_PLAY)
+  end
+
+  if NeedsThunder() then
+    ScheduleNextThunder()
+    PlayThunder()
+  end
+
+  _lastSoundRefresh = _frameCount
+end
+
+local function SetRainVisual(on)
+  local pc = slua_GameFrontendHUD and slua_GameFrontendHUD:GetPlayerController()
+  if slua.isValid(pc) and pc.SetIsRainy then
+    pc:SetIsRainy(on)
+  end
+end
+
+local function SetParticleEffect(effectType, on)
+  local char = GetPlayerCharacter()
+  if slua.isValid(char) and char.SetRainyEffectEnable then
+    char:SetRainyEffectEnable(effectType, on, on and 500 or 0)
+  end
+end
+
+local function SetSnowScreenUI(on)
+  pcall(function()
+    if not UIManager or not UIManager.UI_Config_InGame then return end
+    local cfg = UIManager.UI_Config_InGame.SnowEffectUI
+    if not cfg then return end
+    if on then
+      if not UIManager.IsUIShow(cfg) then UIManager.ShowUI(cfg) end
+    elseif UIManager.IsUIShow(cfg) then
+      UIManager.CloseUI(cfg)
+    end
+  end)
+end
+
+local function ApplyVisuals(on)
+  local ESPET = _gEScreenParticleEffectType
+  if not on then
+    SetRainVisual(false)
+    if ESPET then
+      SetParticleEffect(ESPET.ESPET_Rainy, false)
+      SetParticleEffect(ESPET.ESPET_Snowy, false)
+      SetParticleEffect(ESPET.ESPET_Blizzard, false)
+    end
+    SetSnowScreenUI(false)
+    return
+  end
+
+  local showRain = NeedsRain()
+  local showSnow = NeedsSnow()
+  local showBlizzard = NeedsBlizzard()
+
+  SetRainVisual(showRain)
+  if ESPET then
+    SetParticleEffect(ESPET.ESPET_Rainy, showRain)
+    SetParticleEffect(ESPET.ESPET_Snowy, showSnow or showBlizzard)
+    SetParticleEffect(ESPET.ESPET_Blizzard, showBlizzard)
+  end
+  SetSnowScreenUI(showSnow or showBlizzard)
+end
+
+local function GetWeatherSubsystem()
+  if SubsystemMgr and SubsystemMgr.Get then
+    local ok, ws = pcall(SubsystemMgr.Get, SubsystemMgr, "WeatherSubsystem")
+    if ok and ws then return ws end
+  end
+  return nil
+end
+
+local function GetWorld()
+  if slua_GameFrontendHUD and slua_GameFrontendHUD.GetWorld then
+    local ok, world = pcall(function() return slua_GameFrontendHUD:GetWorld() end)
+    if ok then return world end
+  end
+  return nil
+end
+
+local function ApplyStyle(styleId)
+  local ws = GetWeatherSubsystem()
+  local style = WEATHER_STYLES[styleId] or WEATHER_STYLES[0]
+  if not ws then return end
+
+  if style.material and ws.ChangeSkyMaterial then
+    local world = GetWorld()
+    if world then
+      pcall(ws.ChangeSkyMaterial, ws, world, style.material, nil)
+      return
+    end
+  end
+
+  if style.level and ws.ChangeWeather then
+    pcall(ws.ChangeWeather, ws, style.level)
+  end
+end
+
+local function RestoreStyle()
+  local ws = GetWeatherSubsystem()
+  if not ws then return end
+  if ws.RestoreSkyMaterial then
+    local world = GetWorld()
+    if world then
+      pcall(ws.RestoreSkyMaterial, ws, world)
+    end
+  end
+  if ws.ChangeWeather and ws.GetDefaultWeatherLevel then
+    local ok, defaultLevel = pcall(ws.GetDefaultWeatherLevel, ws)
+    if ok and defaultLevel then
+      pcall(ws.ChangeWeather, ws, defaultLevel)
+    end
+  end
+end
+
+local function EnableWeather()
+  if _active then return end
+  if not IsInGame() then return end
+  InitAudio()
+  ApplyVisuals(true)
+  StartSounds()
+  local styleId = GetCfg(WEATHER_STYLE_CFG_KEY, 0)
+  if styleId and styleId ~= 0 then
+    ApplyStyle(styleId)
+    _styleApplied = true
+  end
+  _active = true
+end
+
+local function DisableWeather()
+  if not _active then return end
+  ApplyVisuals(false)
+  StopAllLoopSounds()
+  if _styleApplied then
+    RestoreStyle()
+    _styleApplied = false
+  end
+  _active = false
+  _nextThunderFrame = 0
+end
+
+local function RefreshWeather()
+  if not _active then return end
+  ApplyVisuals(true)
+  if _frameCount - _lastSoundRefresh >= SOUND_REFRESH_FRAMES then
+    StartSounds()
+  end
+end
+
+local function GetMaxStyleId()
+  local m = 0
+  for k in pairs(WEATHER_STYLES) do
+    if k > m then m = k end
+  end
+  return m
+end
+
+local function GetMaxTypeId()
+  local m = 0
+  for k in pairs(WEATHER_TYPES) do
+    if k > m then m = k end
+  end
+  return m
+end
+
+function _G.SetWeatherType(mode)
+  mode = tonumber(mode) or 0
+  if mode < 0 then mode = 0 end
+  local maxType = GetMaxTypeId()
+  if mode > maxType then mode = maxType end
+  SetCfg(WEATHER_TYPE_CFG_KEY, mode)
+  if _active then
+    ApplyVisuals(true)
+    StartSounds()
+  end
+end
+
+function _G.SetWeatherStyle(styleId)
+  styleId = tonumber(styleId) or 0
+  if styleId < 0 then styleId = 0 end
+  local maxStyle = GetMaxStyleId()
+  if styleId > maxStyle then styleId = maxStyle end
+  SetCfg(WEATHER_STYLE_CFG_KEY, styleId)
+  if _active then
+    if styleId == 0 then
+      if _styleApplied then
+        RestoreStyle()
+        _styleApplied = false
+      end
+    else
+      ApplyStyle(styleId)
+      _styleApplied = true
+    end
+  end
+end
+
+function _G.SetWeatherSFX(enabled)
+  local value = enabled and 1 or 0
+  SetCfg(WEATHER_SFX_CFG_KEY, value)
+  if _active then
+    if not enabled then
+      StopAllLoopSounds()
+      _nextThunderFrame = 0
+    else
+      StartSounds()
+    end
+  end
+end
+
+local function OnTick()
+  _frameCount = _frameCount + 1
+  local inGame = IsInGame()
+
+  if inGame and not _lastInGame then
+    EnableWeather()
+  elseif not inGame and _lastInGame then
+    DisableWeather()
+  end
+
+  if inGame and _active then
+    if _frameCount % 120 == 0 then
+      RefreshWeather()
+    end
+
+    if GetSFXEnabled() and NeedsThunder() and _nextThunderFrame > 0 and _frameCount >= _nextThunderFrame then
+      PlayThunder()
+    end
+  end
+
+  _lastInGame = inGame
+end
+
+local FALLBACK_WEATHER_IMG = "/Game/UMG/Texture/Lobby_NoAtlas/Room/Room_Image_Weather01.Room_Image_Weather01"
+
+local function GetWeatherLevelImg(level)
+  if not level then return FALLBACK_WEATHER_IMG end
+  local ok, wcfg = pcall(function()
+    if not CDataTable or not CDataTable.GetTableData then return nil end
+    return CDataTable.GetTableData("MapWeather", level)
+  end)
+  if ok and wcfg then
+    local ok2, tcfg = pcall(function()
+      return CDataTable.GetTableData("MapWeatherType", wcfg.WeatherType)
+    end)
+    if ok2 and tcfg and tcfg.ShowImg and tcfg.ShowImg ~= "" then
+      return tcfg.ShowImg
+    end
+  end
+  return FALLBACK_WEATHER_IMG
+end
+
+local function StyleImg(styleId)
+  local style = WEATHER_STYLES[styleId]
+  if not style then return FALLBACK_WEATHER_IMG end
+  if style.img then return style.img end
+  return GetWeatherLevelImg(style.level or style.imgLevel)
+end
+
+local TYPE_IMGS = {
+  [0] = WIMG_WEATHER,
+  [1] = WIMG_WEATHER01,
+  [2] = WIMG_FIVE,
+  [3] = WIMG_SIX,
+  [4] = WIMG_EIGHT,
+  [5] = WIMG_WEATHER_BG,
+}
+
+local function TypeImg(typeId)
+  return TYPE_IMGS[typeId] or FALLBACK_WEATHER_IMG
+end
+
+local function BuildWeatherPageDef()
+  local ui = UIManager and UIManager.UI_Config
+  local bpImageSwitcher = ui and ui.Setting_Option_ImageSwitcher
+  local bpSwitcher = ui and ui.Setting_Option_Switcher
+  local bpTitle = ui and ui.Setting_Title
+  local bpSpacer = ui and ui.Setting_Spacer
+  if not bpImageSwitcher or not bpSwitcher or not bpTitle then
+    local okAlias, AliasMap = pcall(require, "client.slua.umg.NewSetting.Item.AliasMap")
+    if okAlias and AliasMap then
+      bpImageSwitcher = bpImageSwitcher or AliasMap.ImageSwitcher
+      bpSwitcher = bpSwitcher or AliasMap.Switcher
+      bpTitle = bpTitle or AliasMap.Title
+      bpSpacer = bpSpacer or AliasMap.Spacer
+    end
+  end
+  if not bpImageSwitcher or not bpSwitcher or not bpTitle then return nil end
+
+  local stack = {}
+
+  local function addTitle(text)
+    table.insert(stack, { UI = bpTitle, Text = TitleLoc.Register(text) })
+  end
+
+  local function addSpacer(height)
+    table.insert(stack, { UI = bpSpacer, Height = height or 5 })
+  end
+
+  local function addImageSwitcher(key, text, ids, labelFunc, imgFunc, getFunc, setFunc)
+    local names = {}
+    local values = {}
+    local images = {}
+    for i = 1, #ids do
+      local id = ids[i]
+      names[i] = TitleLoc.Register(labelFunc(id))
+      values[i] = id
+      images[i] = imgFunc(id)
+    end
+    table.insert(stack, {
+      Key = key,
+      UI = bpImageSwitcher,
+      Text = TitleLoc.Register(text),
+      SwitcherText = names,
+      SwitcherValue = values,
+      SwitcherImage = images,
+      GetFunc = getFunc,
+      SetFunc = setFunc,
+    })
+  end
+
+  local function styleLabel(id)
+    local style = WEATHER_STYLES[id]
+    return style and style.name or "?"
+  end
+
+  local function typeLabel(id)
+    local t = WEATHER_TYPES[id]
+    return t and t.name or "?"
+  end
+
+  local styleGet = function()
+    return GetCfg(WEATHER_STYLE_CFG_KEY, 0)
+  end
+
+  local styleSet = function(_, value)
+    if _G.SetWeatherStyle then _G.SetWeatherStyle(value) end
+    return true
+  end
+
+  local typeGet = function()
+    return GetCfg(WEATHER_TYPE_CFG_KEY, 0)
+  end
+
+  local typeSet = function(_, value)
+    if _G.SetWeatherType then _G.SetWeatherType(value) end
+    return true
+  end
+
+  addTitle("Weather Style")
+  addSpacer(10)
+  addImageSwitcher("WeatherStyleA", "Day / Night", { 0, 1, 2, 3, 4, 5 }, styleLabel, StyleImg, styleGet, styleSet)
+  addSpacer(5)
+  addImageSwitcher("WeatherStyleB", "Fog / Dark", { 6, 7, 8, 9 }, styleLabel, StyleImg, styleGet, styleSet)
+  addSpacer(5)
+  addImageSwitcher("WeatherStyleC", "Storm / Red", { 10, 11, 12, 13 }, styleLabel, StyleImg, styleGet, styleSet)
+  addSpacer(5)
+  addImageSwitcher("WeatherStyleD", "Morning / Neon", { 14, 15, 16 }, styleLabel, StyleImg, styleGet, styleSet)
+  addSpacer(20)
+
+  addTitle("Weather Type")
+  addSpacer(10)
+  addImageSwitcher("WeatherTypeA", "Precipitation", { 0, 1, 2, 3 }, typeLabel, TypeImg, typeGet, typeSet)
+  addSpacer(5)
+  addImageSwitcher("WeatherTypeB", "Storms", { 4, 5 }, typeLabel, TypeImg, typeGet, typeSet)
+  addSpacer(20)
+
+  addTitle("Weather SFX Sound")
+  addSpacer(10)
+  table.insert(stack, {
+    Key = "WeatherSFX",
+    UI = bpSwitcher,
+    Text = TitleLoc.Register("Weather SFX Sound"),
+    SwitcherText = {
+      TitleLoc.Register("ON"),
+      TitleLoc.Register("OFF"),
+    },
+    SwitcherValue = { 1, 0 },
+    GetFunc = function()
+      return GetCfg(WEATHER_SFX_CFG_KEY, 1)
+    end,
+    SetFunc = function(_, value)
+      if _G.SetWeatherSFX then _G.SetWeatherSFX(value == 1) end
+      return true
+    end,
+  })
+  addSpacer(10)
+
+  return {
+    Key = "Weather",
+    Text = TitleLoc.Register("Weather"),
+    UIKey = "Setting_StackContainer",
+    Stack = stack,
+  }
+end
+
+local function InjectWeatherPage(catalog)
+  if type(catalog) ~= "table" then return catalog end
+  for i = 1, #catalog do
+    if catalog[i] and catalog[i].Key == "Weather" then
+      return catalog
+    end
+  end
+  local page = BuildWeatherPageDef()
+  if not page then return catalog end
+  table.insert(catalog, page)
+  return catalog
+end
+_G.InjectWeatherPage = InjectWeatherPage
+_G.EnableWeather = EnableWeather
+_G.DisableWeather = DisableWeather
+
+local okCatalog, SettingCatalogMod = pcall(require, "client.logic.NewSetting.SettingCatalog")
+if okCatalog and type(SettingCatalogMod) == "table" then
+  local injected = InjectWeatherPage(SettingCatalogMod)
+  if injected ~= SettingCatalogMod then
+    for i = 1, #SettingCatalogMod do
+      SettingCatalogMod[i] = nil
+    end
+    for i = 1, #injected do
+      SettingCatalogMod[i] = injected[i]
+    end
+  end
+end
+
+local origShowUI = UIManager and UIManager.ShowUI
+if origShowUI then
+  UIManager.ShowUI = function(config, arg1, arg2, arg3, arg4)
+    if config and config == UIManager.UI_Config.setting_main and type(arg1) == "table" then
+      arg1 = InjectWeatherPage(arg1)
+    end
+    return origShowUI(config, arg1, arg2, arg3, arg4)
+  end
+end
+
+local okFrontend, game_frontend_hud = pcall(require, "game_frontend_hud")
+if okFrontend and game_frontend_hud then
+  if game_frontend_hud.SetSluaTickListener then
+    game_frontend_hud.SetSluaTickListener(OnTick)
+  end
+  if game_frontend_hud.SetPostSwitchGameStatusListener then
+    game_frontend_hud.SetPostSwitchGameStatusListener(function()
+      if IsInGame() then EnableWeather() else DisableWeather() end
+    end)
+  end
+end
+
+print("[WEATHER] Loaded | style=" .. tostring(GetCfg(WEATHER_STYLE_CFG_KEY, 0)) .. " type=" .. tostring(GetCfg(WEATHER_TYPE_CFG_KEY, 0)) .. " sfx=" .. tostring(GetCfg(WEATHER_SFX_CFG_KEY, 1)))
+
+  end
+end
