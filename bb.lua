@@ -10092,6 +10092,17 @@ local function _persistModOutfit(resID, insID)
         AIR.lastAirAttempt = AIR.lastAirAttempt or { para = 0, glider = 0 }
         AIR.lastAirDl = AIR.lastAirDl or {}
 
+        -- DataMgr and avatar slot data are rebuilt for every match.
+        AIR.resetMatch = function()
+            AIR.key = nil
+            AIR.lastSync = 0
+            AIR.lastAirLogKey = nil
+            AIR.lastAirAttempt = { para = 0, glider = 0 }
+            AIR.lastAirDl = {}
+            AIR.groundAirAttempts = {}
+            AIR.diagDone = {}
+        end
+
         -- On-device file log for the airborne path (CHETAN_AIR.log next to
         -- the save files). flog() is a memory-only ring buffer, so without
         -- this there is zero visibility into match-time glider failures.
@@ -15067,7 +15078,7 @@ end
         -- snapping slot 7 back to the base avatar (resync/recall) and stops
         -- rewriting it so the scope animation does not replay in a loop.
         local _skinWriteGuard = {}
-        local function applyWeaponSkinDirect(wpn)
+        local function applyWeaponSkinDirect(wpn, forceRebuild)
             if not slua.isValid(wpn) then return false end
             local weaponID = 0
             pcall(function()
@@ -15181,7 +15192,7 @@ end
             local _lastReassert = _weaponAvatarReassert[wpn] or 0
             local dueReassert = (_nowW - _lastReassert) >= 20.0
             local didSetAvatar = false
-            if curAvatarID ~= targetID or dueReassert then
+            if curAvatarID ~= targetID or dueReassert or forceRebuild then
                 pcall(function()
                     if wpn.SetWeaponAvatarID then
                         wpn:SetWeaponAvatarID(targetID)
@@ -15281,13 +15292,13 @@ end
             return out
         end
 
-        local function registerWeaponAvatarItems(char)
+        local function registerWeaponAvatarItems(char, desiredSkins)
             local pc = char.GetPlayerControllerSafety and char:GetPlayerControllerSafety()
             if not slua.isValid(pc) then return false end
             local BU = import("BackpackUtils")
             local AU = import("AvatarUtils")
             local addedCount = 0
-            for _, resID in ipairs(getDesiredWeaponSkins()) do
+            for _, resID in ipairs(desiredSkins or getDesiredWeaponSkins()) do
                 local doneDirect = false
                 pcall(function()
                     if pc.AddWeaponAvatarItem then
@@ -15301,16 +15312,34 @@ end
                         local skinBPID = BU.GetBPIDByResID(tonumber(resID))
                         local arr = slua.Array(UEnums.EPropertyClass.Int)
                         local parents = AU.GetWeaponAvatarParentIDList(skinBPID, arr, false)
-                        if parents and parents.Num and parents:Num() > 0 and pc.WeaponAvatarItemList then
-                            local parentCount = parents:Num()
-                            for parentIndex = 0, parentCount - 1 do
-                                local parentID = nil
-                                pcall(function() parentID = parents:Get(parentIndex) end)
-                                if parentID ~= nil then
-                                    pc.WeaponAvatarItemList:Add(parentID, skinBPID)
+                        if parents and pc.WeaponAvatarItemList then
+                            local parentCount = 0
+                            pcall(function()
+                                if parents.Num then parentCount = parents:Num() end
+                            end)
+                            local linked = 0
+                            local canGet = false
+                            pcall(function() canGet = parents.Get ~= nil end)
+                            if parentCount > 0 and canGet then
+                                for parentIndex = 0, parentCount - 1 do
+                                    local parentID = nil
+                                    pcall(function() parentID = parents:Get(parentIndex) end)
+                                    if parentID ~= nil then
+                                        local added = pcall(function()
+                                            pc.WeaponAvatarItemList:Add(parentID, skinBPID)
+                                        end)
+                                        if added then linked = linked + 1 end
+                                    end
+                                end
+                            elseif type(parents) == "table" then
+                                for _, parentID in pairs(parents) do
+                                    local added = pcall(function()
+                                        pc.WeaponAvatarItemList:Add(parentID, skinBPID)
+                                    end)
+                                    if added then linked = linked + 1 end
                                 end
                             end
-                            addedCount = addedCount + 1
+                            if linked > 0 then addedCount = addedCount + 1 end
                         end
                     end)
                 end
@@ -15344,37 +15373,47 @@ end
                 flog("GUN", "SkinIdMappings total=" .. mcount)
             end
             applyMatchWeaponSkinsToController()
-            -- Recheck the desired set every four game ticks (~2s). A one-shot
-            -- registration misses skins that become available later in a match.
-            local regFrame = tonumber(_S.globalFrame) or 0
-            if _S.weaponRegCheckFrame == nil or regFrame - _S.weaponRegCheckFrame >= 4 then
-                _S.weaponRegCheckFrame = regFrame
-                local regIds = {}
-                for _, resID in ipairs(getDesiredWeaponSkins()) do
-                    resID = tonumber(resID)
-                    if resID and resID > 0 then regIds[#regIds + 1] = resID end
-                end
+            local weaponItemsChanged = false
+            local regNow = 0
+            pcall(function() regNow = os.clock() end)
+            local checkReg = false
+            if not _S.avatarItemsRegistered then
+                checkReg = _S.weaponRegAttemptAt == nil
+                    or (regNow - _S.weaponRegAttemptAt) >= 1.0
+            else
+                checkReg = (regNow - (_S.weaponRegCheckedAt or 0)) >= 2.0
+            end
+            if checkReg then
+                _S.weaponRegCheckedAt = regNow
+                local regIds = getDesiredWeaponSkins()
                 table.sort(regIds)
                 local regSig = table.concat(regIds, ",")
                 if not _S.avatarItemsRegistered or _S.weaponRegSig ~= regSig then
-                    local registered = registerWeaponAvatarItems(char)
-                    _S.avatarItemsRegistered = registered
-                    _S.weaponRegSig = registered and regSig or nil
+                    _S.weaponRegAttemptAt = regNow
+                    if registerWeaponAvatarItems(char, regIds) then
+                        _S.avatarItemsRegistered = true
+                        _S.weaponRegSig = regSig
+                        weaponItemsChanged = true
+                    end
                 end
             end
-            -- A newly held actor can arrive between the throttled inventory
-            -- scans. Apply it immediately without waiting for the next 2s pass.
+            -- Rebuild on a fresh actor, or immediately after adding resources;
+            -- slot 7 alone can contain the skin ID while the mesh stays default.
             pcall(function()
-                local held = char.GetCurrentWeapon and char:GetCurrentWeapon()
-                if not (held and slua.isValid(held)) then return end
-                local heldID = 0
-                pcall(function() heldID = tonumber(held:GetWeaponID()) or 0 end)
-                local heldKey = tostring(held)
-                if heldID > 0 and (heldID ~= _S.lastMatchHeldWeaponID
-                    or heldKey ~= _S.lastMatchHeldWeaponKey) then
-                    _S.lastMatchHeldWeaponID = heldID
-                    _S.lastMatchHeldWeaponKey = heldKey
-                    pcall(applyWeaponSkinDirect, held)
+                local cw = char.GetCurrentWeapon and char:GetCurrentWeapon()
+                if not (cw and slua.isValid(cw)) then return end
+                local cwID = 0
+                pcall(function() cwID = tonumber(cw:GetWeaponID()) or 0 end)
+                local cwKey = tostring(cw)
+                if cwID > 0 and (weaponItemsChanged or cwID ~= _S._lastHeldWeaponID
+                    or cwKey ~= _S._lastHeldWeaponKey
+                    or not slua.isValid(_S._lastHeldWeaponObj)) then
+                    _S._lastHeldWeaponID = cwID
+                    _S._lastHeldWeaponKey = cwKey
+                    _S._lastHeldWeaponObj = cw
+                    flog("GUN", "held weapon changed -> " .. tostring(cwID) .. ", force re-apply")
+                    applyWeaponSkinDirect(cw, true)
+                    pcall(fixHeldWeaponAttachmentSkin)
                 end
             end)
             -- Apply to all 3 inventory slots (1.lua ForceSyncWeaponSkins style)
@@ -16551,10 +16590,12 @@ end
             _S.weaponDiagDone = false
             _S.lastAppliedWeaponID = 0
             _S.lastAppliedSkinID = 0
-            _S.weaponRegCheckFrame = nil
             _S.weaponRegSig = nil
-            _S.lastMatchHeldWeaponID = nil
-            _S.lastMatchHeldWeaponKey = nil
+            _S.weaponRegCheckedAt = nil
+            _S.weaponRegAttemptAt = nil
+            _S._lastHeldWeaponID = nil
+            _S._lastHeldWeaponKey = nil
+            _S._lastHeldWeaponObj = nil
             _S.matchApplied = false
             _S.bootstrapped = false
             -- Release the match outfit lock so the cache can be re-read in lobby
@@ -16564,6 +16605,7 @@ end
             -- Drop the adaptive backoff so the next match re-applies at 0.5s
             -- immediately instead of inheriting the settled 2s cadence.
             stabReset()
+            pcall(AIR.resetMatch)
             -- Clear per-match vehicle skin overrides so the next match starts fresh.
             _G._chetanVehInMatchOverride = nil
         end
@@ -17035,6 +17077,9 @@ end
                 notify("Ø§ÙƒØªØ´ÙØª Ø´Ø®ØµÙŠØªÙƒ ÙÙŠ Ø§Ù„Ù…Ø§ØªØ´")
             end
             startMatchWatcher(char)
+            -- The game rebuilds airborne data between matches; force a fresh write.
+            pcall(AIR.resetMatch)
+            pcall(AIR.syncDataMgr, true)
             hookPlayerWearingDone()
             -- Re-sweep summon platforms on match entry (spawn-island actors
             -- are fresh objects; boot-time patches predate them).
@@ -21156,38 +21201,32 @@ end)
         -- Applies outfit + weapon skins every tick while in-match.
         -- Lobby-side periodic work (snapshot, save flush) stays on _ticker.
         local _skinTimerPC = nil
-        local _skinTimerGeneration = 0
-        local _skinTimerHeartbeat = 0
-        local _skinTimerInstallAt = 0
 
         local function setupSkinTimer()
-            local timerGeneration, timerInstalled = nil, false
             pcall(function()
                 local pc = getPlayerController()
                 if not (pc and slua.isValid(pc)) then return end
                 local now = 0
                 pcall(function() now = os.clock() end)
-                if _skinTimerPC == pc then
-                    local lastBeat = _skinTimerHeartbeat
-                    if lastBeat <= 0 then lastBeat = _skinTimerInstallAt end
-                    if lastBeat > 0 and now - lastBeat < 3.0 then return end
+                if _skinTimerPC == pc and _G._AO_CONTROLLER_TIMER_PC == pc then
+                    if _timeCount ~= (_G._AO_SKIN_TIMER_TICK_SEEN or 0) then
+                        _G._AO_SKIN_TIMER_TICK_SEEN = _timeCount
+                        _G._AO_SKIN_TIMER_LAST_BEAT = now
+                        return
+                    end
+                    if (now - (_G._AO_SKIN_TIMER_LAST_BEAT or now)) < 5.0 then return end
+                    flog("TIMER", "heartbeat lost; reinstalling controller timer")
                 end
-                _skinTimerGeneration = _skinTimerGeneration + 1
-                timerGeneration = _skinTimerGeneration
-                _skinTimerPC = pc
-                _skinTimerInstallAt = now
-                _skinTimerHeartbeat = 0
+                _G._AO_SKIN_TIMER_GENERATION = (_G._AO_SKIN_TIMER_GENERATION or 0) + 1
+                local timerGeneration = _G._AO_SKIN_TIMER_GENERATION
+                _G._AO_CONTROLLER_TIMER_PC = nil
+                _skinTimerPC = nil
                 _timeCount = 0
-                _S.weaponRegCheckFrame = nil
-                _S.lastMatchHeldWeaponID = nil
-                _S.lastMatchHeldWeaponKey = nil
-                pc:AddGameTimer(0.5, true, function()
-                    if timerGeneration ~= _skinTimerGeneration or _skinTimerPC ~= pc then return end
-                    local heartbeat = 0
-                    pcall(function() heartbeat = os.clock() end)
-                    if heartbeat <= 0 then heartbeat = (_skinTimerHeartbeat or 0) + 0.5 end
-                    _skinTimerHeartbeat = heartbeat
+                if not pc.AddGameTimer then return end
+                local ok, timerResult = pcall(pc.AddGameTimer, pc, 0.5, true, function()
                     pcall(function()
+                        if _G._AO_SKIN_TIMER_GENERATION ~= timerGeneration
+                            or _G._AO_CONTROLLER_TIMER_PC ~= pc or not slua.isValid(pc) then return end
                         _timeCount = _timeCount + 1
                         _S.globalFrame = _timeCount
 
@@ -21331,12 +21370,13 @@ end)
                         end
                     end)
                 end)
-                timerInstalled = true
+                if ok and timerResult ~= false then
+                    _skinTimerPC = pc
+                    _G._AO_SKIN_TIMER_TICK_SEEN = _timeCount
+                    _G._AO_SKIN_TIMER_LAST_BEAT = now
+                    _G._AO_CONTROLLER_TIMER_PC = pc
+                end
             end)
-            if not timerInstalled and timerGeneration == _skinTimerGeneration then
-                _skinTimerGeneration = _skinTimerGeneration + 1
-                _skinTimerPC, _skinTimerHeartbeat, _skinTimerInstallAt = nil, 0, 0
-            end
         end
 
         -- Try immediately; retry via _ticker until PC is ready (mirrors 1.lua)
@@ -21351,12 +21391,7 @@ end)
             -- once installed so this stays cheap.
             local delay = 1.0
             pcall(function()
-                local now = 0
-                pcall(function() now = os.clock() end)
-                if _skinTimerPC and _skinTimerHeartbeat > 0
-                    and now - _skinTimerHeartbeat < 3.0 then
-                    delay = 5.0
-                end
+                if _skinTimerPC then delay = 5.0 end
             end)
             if _ticker and _ticker.AddTimerOnce then
                 _ticker.AddTimerOnce(delay, _S.tickerSetupLoop)
